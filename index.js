@@ -1,5 +1,7 @@
-import createSeaOfNodes from './build/type/sea-of-nodes.mjs';
-import babylon from '@babel/parser';
+const babylon = require("@babel/parser");
+const createSeaOfNodes = require("./build/type/sea-of-nodes").default;
+
+console.log(babylon.SourceLocation);
 
 const source = `
   const b: number = 2;

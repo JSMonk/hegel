@@ -1,0 +1,8 @@
+{
+  sourceType: "module",
+  presets: ["@babel/preset-flow"],
+  plugins: [
+    "transform-es2015-modules-commonjs",
+    "syntax-flow"
+  ]
+}

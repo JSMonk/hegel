@@ -14,7 +14,6 @@ type TypeInfo = {|
   parent: Scope | SeaOfNodes,
   exactType?: string,
   meta: {
-    filePath: string,
     loc: SourceLocation
   }
 |};
@@ -123,7 +122,6 @@ const getTypeInfoFromDelcaration = (
   type: getTypeFromTypeAnnotation(currentNode.id.typeAnnotation),
   parent: getParentFromNode(parentNode, sea),
   meta: {
-    filePath: "NONAME",
     loc: currentNode.loc
   }
 });

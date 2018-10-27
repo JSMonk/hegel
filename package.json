@@ -6,8 +6,9 @@
   "scripts": {
     "build": "npm run build:check && npm run build:clean && npm run build:start",
     "build:check": "flow",
-    "build:start": "flow-remove-types src/ -d build/",
-    "build:clean": "rm -rf build && mkdir build"
+    "build:start": "babel src -d build",
+    "build:clean": "rm -rf build && mkdir build",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
@@ -15,6 +16,13 @@
     "@babel/parser": "^7.1.3"
   },
   "devDependencies": {
+    "@babel/cli": "^7.1.2",
+    "@babel/core": "^7.1.2",
+    "@babel/preset-flow": "^7.0.0",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-jest": "^23.6.0",
+    "babel-plugin-syntax-flow": "^6.18.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
     "flow-bin": "^0.83.0",
     "jest": "^23.6.0"
   }
