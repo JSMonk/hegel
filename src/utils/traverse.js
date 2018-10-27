@@ -13,12 +13,17 @@ const traverseTree = (
   parentNode: ?Tree = null
 ) => {
   cb(currentNode, parentNode);
-  if (!currentNode.body) {
+  const body = currentNode.body ||  currentNode.consequent;
+  if (!body) {
     return;
   }
-  currentNode.body.forEach(childNode =>
-    traverseTree(childNode, cb, currentNode)
-  );
+  if (Array.isArray(body)) {
+    body.forEach(childNode =>
+      traverseTree(childNode, cb, currentNode)
+    );
+  } else {
+    traverseTree(body, cb, currentNode)
+  }
 };
 
 export default traverseTree;
