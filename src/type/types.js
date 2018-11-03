@@ -7,6 +7,7 @@ export type TypeGraph = Map<string, GraphElement>;
 
 export class ModuleScope {
   body: TypeGraph = new Map();
+  parent: void;
 }
 
 export class Type {
@@ -27,10 +28,12 @@ export class Scope {
   type: "block" | "function" | "object" | "class";
   parent: Scope | ModuleScope;
   body: TypeGraph = new Map();
+  declaration: ?TypeInfo;
 
-  constructor(type: $PropertyType<this, "type">, parent: ModuleScope | Scope) {
+  constructor(type: $PropertyType<this, "type">, parent: ModuleScope | Scope, declaration?: TypeInfo) {
     this.type = type;
     this.parent = parent;
+    this.declaration = declaration;
   }
 }
 
@@ -47,10 +50,12 @@ export class TypeInfo {
   parent: Scope | ModuleScope;
   exactType: ?string;
   meta: Meta 
+  relatedTo: ?Map<string, TypeInfo>;
   
-  constructor(type: Type, parent: Scope | ModuleScope, meta: Meta) {
+  constructor(type: Type, parent: Scope | ModuleScope, meta: Meta, relatedTo: ?Map<string, TypeInfo>) {
     this.type = type;
     this.parent = parent;
     this.meta = meta;
+    this.relatedTo = relatedTo;
   }
 }
