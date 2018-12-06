@@ -9,8 +9,6 @@ const babelrc = {
 
 const prepeareAST = source => babylon.parse(source, babelrc).program;
 
-const getEntries = map => [...map.entries()];
-
 describe("Simple global variable nodes", () => {
   test("Creating global module variable with number type", () => {
     const sourceAST = prepeareAST(`
