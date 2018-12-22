@@ -25,7 +25,13 @@ export const EXPRESSIONS_TYPES = {
   CLASS_EXPRESSION: "ClassExpression"
 };
 
+export const OBJECT_PROPERTIES = {
+  OBJECT_EXPRESSION: "ObjectExpression",
+  OBJECT_METHOD: "ObjectMethod"
+};
+
 export const ANNOTATION_TYPES = {
+  FUNCTION_TYPE_ANNOTATION: "FunctionTypeAnnotation",
   ANY_TYPE_ANNOTATION: "AnyTypeAnnotation",
   VOID_TYPE_ANNOTATION: "VoidTypeAnnotation",
   BOOLEAN_TYPE_ANNOTATION: "BooleanTypeAnnotation",
@@ -37,7 +43,9 @@ export const ANNOTATION_TYPES = {
   GENERIC_TYPE_ANNOTATION: "GenericTypeAnnotation",
   NUBMER_LITERAL_TYPE_ANNOTATION: "NumberLiteralTypeAnnotation",
   BOOLEAN_LITERAL_TYPE_ANNOTATION: "BooleanLiteralTypeAnnotation",
-  STRING_LITERAL_TYPE_ANNOTATION: "StringLiteralTypeAnnotation"
+  STRING_LITERAL_TYPE_ANNOTATION: "StringLiteralTypeAnnotation",
+  OBJECT_TYPE_ANNOTATION: "ObjectTypeAnnotation",
+  OBJECT_TYPE_PROPERTY: "ObjectTypeProperty"
 };
 
 const INITIALIZATION_TYPES = {
@@ -53,6 +61,9 @@ const DECLARATION_KINDS = {
 const isUnscopableDeclaration = ({ kind }: Object) =>
   kind === DECLARATION_KINDS.VAR;
 
+const isObject = (node: Node) =>
+  node.type === OBJECT_PROPERTIES.OBJECT_EXPRESSION
+
 const isFunction = (node: Node) =>
   [
     DECLARATION_TYPES.FUNCTION_DECLARATION,
@@ -60,12 +71,18 @@ const isFunction = (node: Node) =>
     EXPRESSIONS_TYPES.ARROW_FUNCTION_EXPRESSION
   ].includes(node.type);
 
+const isFunctionalProperty = (node: Node) =>
+  node.type === OBJECT_PROPERTIES.OBJECT_METHOD || isFunction(node.value);
+
 export default {
+  isObject,
   isFunction,
+  isFunctionalProperty,
   isUnscopableDeclaration,
   ...DECLARATION_TYPES,
   ...STATEMENTS_TYPES,
   ...ANNOTATION_TYPES,
   ...EXPRESSIONS_TYPES,
-  ...INITIALIZATION_TYPES
+  ...INITIALIZATION_TYPES,
+  ...OBJECT_PROPERTIES
 };

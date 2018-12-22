@@ -24,5 +24,4 @@ const AST = babylon.parse(source, {
 });
 
 const result = createSeaOfNodes(AST.program);
-console.dir(result);
 
