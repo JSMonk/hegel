@@ -1,6 +1,13 @@
 const babylon = require("@babel/parser");
 const createTypeGraph = require("../build/type/type-graph").default;
-const { Type, TypeInfo, FunctionType } = require("../build/type/types");
+const {
+  Type,
+  ObjectType,
+  FunctionType,
+  TypeInfo,
+  UNDEFINED_TYPE,
+  TYPE_SCOPE
+} = require("../build/type/types");
 
 const babelrc = {
   sourceType: "module",
@@ -158,8 +165,8 @@ describe("Simple global variable nodes", () => {
     const expectedAFunction = expect.objectContaining({
       parent: actual,
       type: new FunctionType(
-        "(?, ?) => number",
-        [new Type("?"), new Type("?")],
+        `(${UNDEFINED_TYPE}, ${UNDEFINED_TYPE}) => number`,
+        [new Type(UNDEFINED_TYPE), new Type(UNDEFINED_TYPE)],
         new Type("number")
       )
     });
@@ -176,9 +183,9 @@ describe("Simple global variable nodes", () => {
     const expectedAFunction = expect.objectContaining({
       parent: actual,
       type: new FunctionType(
-        "(number, string) => ?",
+        `(number, string) => ${UNDEFINED_TYPE}`,
         [new Type("number"), new Type("string")],
-        new Type("?")
+        new Type(UNDEFINED_TYPE)
       )
     });
     expect(actualAFunction).toEqual(expectedAFunction);
@@ -212,8 +219,8 @@ describe("Simple global variable nodes", () => {
     const expectedAFunction = expect.objectContaining({
       parent: actual,
       type: new FunctionType(
-        "(?, ?) => number",
-        [new Type("?"), new Type("?")],
+        `(${UNDEFINED_TYPE}, ${UNDEFINED_TYPE}) => number`,
+        [new Type(UNDEFINED_TYPE), new Type(UNDEFINED_TYPE)],
         new Type("number")
       )
     });
@@ -230,9 +237,9 @@ describe("Simple global variable nodes", () => {
     const expectedAFunction = expect.objectContaining({
       parent: actual,
       type: new FunctionType(
-        "(number, string) => ?",
+        `(number, string) => ${UNDEFINED_TYPE}`,
         [new Type("number"), new Type("string")],
-        new Type("?")
+        new Type(UNDEFINED_TYPE)
       )
     });
     expect(actualAFunction).toEqual(expectedAFunction);
@@ -629,9 +636,9 @@ describe("Simple objects with property typing", () => {
       declaration: actualA
     });
     const expectedAType = new FunctionType(
-      "(string) => ?",
+      `(string) => ${UNDEFINED_TYPE}`,
       [new Type("string")],
-      new Type("?"),
+      new Type(UNDEFINED_TYPE),
       false
     );
     const expectedObj = expect.objectContaining({
@@ -676,9 +683,9 @@ describe("Simple objects with property typing", () => {
     const actualKeySize = actualObj.type.properties.size;
     const actualA = actualObj.type.properties.get("a");
     const expectedAType = new FunctionType(
-      "(number, string) => ?",
+      `(number, string) => ${UNDEFINED_TYPE}`,
       [new Type("number"), new Type("string")],
-      new Type("?"),
+      new Type(UNDEFINED_TYPE),
       false
     );
     const expectedObj = expect.objectContaining({
@@ -732,9 +739,9 @@ describe("Simple objects with property typing", () => {
     const actualA = actualObj.type.properties.get("a");
     const actualAScope = actual.body.get("[[Scope3-11]]");
     const expectedAType = new FunctionType(
-      "(number, string) => ?",
+      `(number, string) => ${UNDEFINED_TYPE}`,
       [new Type("number"), new Type("string")],
-      new Type("?"),
+      new Type(UNDEFINED_TYPE),
       false
     );
     const expectedAScope = expect.objectContaining({
@@ -797,13 +804,9 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type(
-        "{ n: number }",
-        {
-          isLiteral: true
-        },
-        [["n", new TypeInfo(new Type("number"), actual, actualA.meta)]]
-      )
+      type: new ObjectType("{ n: number }", [
+        ["n", new TypeInfo(new Type("number"), actual, actualA.meta)]
+      ])
     });
     expect(actualA).toEqual(expectedA);
   });
@@ -815,13 +818,9 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type(
-        "{ n: string }",
-        {
-          isLiteral: true
-        },
-        [["n", new TypeInfo(new Type("string"), actual, actualA.meta)]]
-      )
+      type: new ObjectType("{ n: string }", [
+        ["n", new TypeInfo(new Type("string"), actual, actualA.meta)]
+      ])
     });
     expect(actualA).toEqual(expectedA);
   });
@@ -833,31 +832,9 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type(
-        "{ n: boolean }",
-        {
-          isLiteral: true
-        },
-        [["n", new TypeInfo(new Type("boolean"), actual, actualA.meta)]]
-      )
-    });
-    expect(actualA).toEqual(expectedA);
-  });
-  test("Primitive boolean inside object type", () => {
-    const sourceAST = prepareAST(`
-      const a: { n: boolean } = { n: false };
-    `);
-    const actual = createTypeGraph(sourceAST);
-    const actualA = actual.body.get("a");
-    const expectedA = expect.objectContaining({
-      parent: actual,
-      type: new Type(
-        "{ n: boolean }",
-        {
-          isLiteral: true
-        },
-        [["n", new TypeInfo(new Type("boolean"), actual, actualA.meta)]]
-      )
+      type: new ObjectType("{ n: boolean }", [
+        ["n", new TypeInfo(new Type("boolean"), actual, actualA.meta)]
+      ])
     });
     expect(actualA).toEqual(expectedA);
   });
@@ -869,13 +846,9 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type(
-        "{ n: void }",
-        {
-          isLiteral: true
-        },
-        [["n", new TypeInfo(new Type("void"), actual, actualA.meta)]]
-      )
+      type: new ObjectType("{ n: void }", [
+        ["n", new TypeInfo(new Type("void"), actual, actualA.meta)]
+      ])
     });
     expect(actualA).toEqual(expectedA);
   });
@@ -887,13 +860,9 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type(
-        "{ n: mixed }",
-        {
-          isLiteral: true
-        },
-        [["n", new TypeInfo(new Type("mixed"), undefined, actualA.meta)]]
-      )
+      type: new ObjectType("{ n: mixed }", [
+        ["n", new TypeInfo(new Type("mixed"), undefined, actualA.meta)]
+      ])
     });
     expect(actualA).toEqual(expectedA);
   });
@@ -905,13 +874,9 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type(
-        "{ n: any }",
-        {
-          isLiteral: true
-        },
-        [["n", new TypeInfo(new Type("any"), undefined, actualA.meta)]]
-      )
+      type: new ObjectType("{ n: any }", [
+        ["n", new TypeInfo(new Type("any"), undefined, actualA.meta)]
+      ])
     });
     expect(actualA).toEqual(expectedA);
   });
@@ -923,22 +888,16 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type(
-        "{ n: 2 }",
-        {
-          isLiteral: true
-        },
+      type: new ObjectType("{ n: 2 }", [
         [
-          [
-            "n",
-            new TypeInfo(
-              new Type(2, { isLiteral: true }),
-              undefined,
-              actualA.meta
-            )
-          ]
+          "n",
+          new TypeInfo(
+            new Type(2, { isLiteral: true }),
+            undefined,
+            actualA.meta
+          )
         ]
-      )
+      ])
     });
     expect(actualA).toEqual(expectedA);
   });
@@ -950,22 +909,16 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type(
-        "{ n: '' }",
-        {
-          isLiteral: true
-        },
+      type: new ObjectType("{ n: '' }", [
         [
-          [
-            "n",
-            new TypeInfo(
-              new Type("", { isLiteral: true }),
-              undefined,
-              actualA.meta
-            )
-          ]
+          "n",
+          new TypeInfo(
+            new Type("", { isLiteral: true }),
+            undefined,
+            actualA.meta
+          )
         ]
-      )
+      ])
     });
     expect(actualA).toEqual(expectedA);
   });
@@ -977,22 +930,16 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type(
-        "{ n: true }",
-        {
-          isLiteral: true
-        },
+      type: new ObjectType("{ n: true }", [
         [
-          [
-            "n",
-            new TypeInfo(
-              new Type(true, { isLiteral: true }),
-              undefined,
-              actualA.meta
-            )
-          ]
+          "n",
+          new TypeInfo(
+            new Type(true, { isLiteral: true }),
+            undefined,
+            actualA.meta
+          )
         ]
-      )
+      ])
     });
     expect(actualA).toEqual(expectedA);
   });
@@ -1004,7 +951,7 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type("{ n: null }", { isLiteral: true }, [
+      type: new ObjectType("{ n: null }", [
         [
           "n",
           new TypeInfo(
@@ -1026,7 +973,7 @@ describe("Unnamed object types", () => {
     const actualN = actualA.type.properties.get("n");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type("{ n: undefined }", { isLiteral: true }, [
+      type: new ObjectType("{ n: undefined }", [
         ["n", new TypeInfo(new Type("undefined"), undefined, actualN.meta)]
       ])
     });
@@ -1043,7 +990,7 @@ describe("Unnamed object types", () => {
     const actualF = actualA.type.properties.get("f");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type("{ f: (string, number) => number }", { isLiteral: true }, [
+      type: new ObjectType("{ f: (string, number) => number }", [
         [
           "f",
           new TypeInfo(
@@ -1068,11 +1015,11 @@ describe("Unnamed object types", () => {
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new Type("{ n: { c: number } }", { isLiteral: true }, [
+      type: new ObjectType("{ n: { c: number } }", [
         [
           "n",
           new TypeInfo(
-            new Type("{ c: number }", { isLiteral: true }, [
+            new ObjectType("{ c: number }", [
               ["c", new TypeInfo(new Type("number"), undefined, actualA.meta)]
             ]),
             undefined,
@@ -1082,5 +1029,168 @@ describe("Unnamed object types", () => {
       ])
     });
     expect(actualA).toEqual(expectedA);
+  });
+});
+describe("Type alias", () => {
+  describe("Primitive type alias", () => {
+    it("Number primitive type alias", () => {
+      const sourceAST = prepareAST(`
+        type NumberAlias = number;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("NumberAlias");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new Type("number")
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+    it("Boolean primitive type alias", () => {
+      const sourceAST = prepareAST(`
+        type BooleanAlias = boolean;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("BooleanAlias");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new Type("boolean")
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+    it("String primitive type alias", () => {
+      const sourceAST = prepareAST(`
+        type StringAlias = string;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("StringAlias");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new Type("string")
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+    it("Undefined primitive type alias", () => {
+      const sourceAST = prepareAST(`
+        type UndefinedAlias = undefined;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("UndefinedAlias");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new Type("undefined")
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+    it("Symbol primitive type alias", () => {
+      const sourceAST = prepareAST(`
+        type SymbolAlias = Symbol;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("SymbolAlias");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new Type("Symbol")
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+  });
+  describe("Literal type alias", () => {
+    it("Number literal type alias", () => {
+      const sourceAST = prepareAST(`
+        type NumberAlias = 2;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("NumberAlias");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new Type(2, { isLiteral: true })
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+    it("Boolean literal type alias", () => {
+      const sourceAST = prepareAST(`
+        type BooleanAlias = false;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("BooleanAlias");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new Type(false, { isLiteral: true })
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+    it("String literal type alias", () => {
+      const sourceAST = prepareAST(`
+        type StringAlias = "";
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("StringAlias");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new Type("", { isLiteral: true })
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+    it("Null literal type alias", () => {
+      const sourceAST = prepareAST(`
+        type NullAlias = null;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("NullAlias");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new Type(null, { isLiteral: true })
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+  });
+  describe("Object type alias", () => {
+    it("Object type alias", () => {
+      const sourceAST = prepareAST(`
+        type A = {
+          a: number,
+          b: () => number
+        };
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("A");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new ObjectType("{ a: number, b: () => number }", [
+          ["a", new Type("number")],
+          ["b", new FunctionType("() => number", [], new Type("number"))]
+        ])
+      });
+      expect(actualType).toEqual(expectedType);
+    });
+  });
+  describe("Funciton type alias", () => {
+    it("Type alias for function", () => {
+      const sourceAST = prepareAST(`
+        type A = (number, number) => string
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeAlias = actual.body.get(TYPE_SCOPE);
+      const actualType = typeAlias.body.get("A");
+      const expectedType = expect.objectContaining({
+        parent: typeAlias,
+        type: new FunctionType(
+          "(number, number) => string",
+          [new Type("number"), new Type("number")],
+          new Type("string")
+        )
+      });
+      expect(actualType).toEqual(expectedType);
+    });
   });
 });

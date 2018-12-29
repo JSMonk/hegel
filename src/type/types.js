@@ -1,6 +1,9 @@
 // @flow
 import type { SourceLocation } from "@babel/parser";
 
+export const UNDEFINED_TYPE = "?";
+export const TYPE_SCOPE = "[[TypeScope]]";
+
 export type GraphElement = Scope | TypeInfo;
 
 export type TypeGraph = Map<string, GraphElement>;
@@ -18,25 +21,28 @@ type TypeMeta = {
 
 export class Type {
   name: mixed;
-  isLiteral: boolean;
   isNullable: boolean;
   isOptional: boolean;
+  isLiteral: boolean;
+
+  constructor(name: mixed, meta?: TypeMeta = {}) {
+    this.name = name;
+    const { isLiteral = false, isOptional = false, isNullable = false } = meta;
+    this.isOptional = isOptional;
+    this.isNullable = isNullable;
+    this.isLiteral = isLiteral;
+  }
+}
+
+export class ObjectType extends Type {
   properties: Map<string, TypeInfo>;
 
   constructor(
     name: mixed,
-    meta?: TypeMeta = {},
-    properties?: Array<[string, TypeInfo]> = []
+    properties: Array<[string, TypeInfo]>,
+    meta?: TypeMeta = {}
   ) {
-    const {
-      isLiteral = false,
-      isOptional = false,
-      isNullable = false,
-    } = meta;
-    this.name = name;
-    this.isLiteral = isLiteral;
-    this.isOptional = isOptional;
-    this.isNullable = isNullable;
+    super(name, { ...meta, isLiteral: true });
     this.properties = new Map(properties);
   }
 }
@@ -44,21 +50,12 @@ export class Type {
 export class FunctionType extends Type {
   argumentsTypes: Array<Type>;
   returnType: Type;
-  hoisted: boolean;
   context: ?Type;
 
-  constructor(
-    name: string,
-    argumentsTypes: Array<Type>,
-    returnType: Type,
-    hoisted?: boolean = false,
-    context?: ?Type
-  ) {
-    super(name);
+  constructor(name: string, argumentsTypes: Array<Type>, returnType: Type) {
+    super(name, { isLiteral: true });
     this.argumentsTypes = argumentsTypes;
     this.returnType = returnType;
-    this.hoisted = hoisted;
-    this.context = context;
   }
 }
 
@@ -67,6 +64,7 @@ export class Scope {
   static FUNCTION_TYPE = "function";
   static OBJECT_TYPE = "object";
   static CLASS_TYPE = "class";
+
   type: "block" | "function" | "object" | "class";
   parent: Scope | ModuleScope;
   body: TypeGraph = new Map();
@@ -94,7 +92,7 @@ export class Meta {
 export class TypeInfo {
   type: Type;
   parent: ?Scope | ?ModuleScope;
-  exactType: ?string;
+  exactType: ?Type;
   meta: Meta;
   relatedTo: ?Map<string, TypeInfo>;
 

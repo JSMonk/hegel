@@ -7,7 +7,8 @@ export const DECLARATION_TYPES = {
   FUNCTION_DECLARATION: "FunctionDeclaration",
   CLASS_DECLARATION: "ClassDeclaration",
   VARIABLE_DECLARATOR: "VariableDeclarator",
-  VARIABLE_DECLARATOR: "VariableDeclarator"
+  VARIABLE_DECLARATOR: "VariableDeclarator",
+  TYPE_ALIAS: "TypeAlias"
 };
 
 export const STATEMENTS_TYPES = {
