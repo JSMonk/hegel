@@ -1,7 +1,10 @@
 {
-  sourceType: "module",
-  presets: ["@babel/preset-env", "@babel/preset-flow"],
-  plugins: [
+  "sourceType": "module",
+  "presets": [
+    ["@babel/preset-env", { "targets": { "node": "current" } }],
+    "@babel/preset-flow"
+  ],
+  "plugins": [
     "@babel/plugin-proposal-class-properties",
     "transform-es2015-modules-commonjs",
     "syntax-flow"

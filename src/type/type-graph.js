@@ -1,12 +1,18 @@
-//@flow
+// @flow
 import traverseTree from "../utils/traverse";
 import NODE from "../utils/nodes";
 import { Option } from "../utils/option";
 import {
+  findVariableInfo,
+  getTypeFromTypeAnnotation,
+  getFunctionTypeLiteral
+} from "../utils/utils";
+import {
   Type,
   ObjectType,
   FunctionType,
-  TypeInfo,
+  GenericType,
+  VariableInfo,
   Scope,
   Meta,
   ModuleScope,
@@ -18,6 +24,7 @@ import type {
   SourceLocation,
   Node,
   TypeAnnotation,
+  TypeParameter,
   Declaration
 } from "@babel/parser";
 
@@ -29,6 +36,7 @@ const getScopeType = (node: Node): $PropertyType<Scope, "type"> => {
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
     case NODE.OBJECT_METHOD:
+    case NODE.FUNCTION_TYPE_ANNOTATION:
       return Scope.FUNCTION_TYPE;
     case NODE.OBJECT_EXPRESSION:
       return Scope.OBJECT_TYPE;
@@ -39,86 +47,6 @@ const getScopeType = (node: Node): $PropertyType<Scope, "type"> => {
   throw new TypeError("Never for getScopeType");
 };
 
-const getNameForType = (type: Type): string =>
-  typeof type.name === "string" &&
-  type.isLiteral &&
-  !(type instanceof ObjectType) &&
-  !(type instanceof FunctionType)
-    ? `'${String(type.name)}'`
-    : String(type.name);
-
-const getFunctionTypeLiteral = (params: Array<Type>, returnType: Type) =>
-  `(${params.map(getNameForType).join(", ")}) => ${String(returnType.name)}`;
-
-const getObjectTypeLiteral = (params: Array<[string, Type]>) =>
-  `{ ${params
-    .sort(([name1], [name2]) => name1.charCodeAt(0) - name2.charCodeAt(0))
-    .map(([name, type]) => `${name}: ${getNameForType(type)}`)
-    .join(", ")} }`;
-
-const getTypeFromTypeAnnotation = (typeAnnotation: ?TypeAnnotation): Type => {
-  if (!typeAnnotation || !typeAnnotation.typeAnnotation) {
-    return new Type(UNDEFINED_TYPE);
-  }
-  switch (typeAnnotation.typeAnnotation.type) {
-    case NODE.ANY_TYPE_ANNOTATION:
-      return new Type("any");
-    case NODE.VOID_TYPE_ANNOTATION:
-      return new Type("void");
-    case NODE.BOOLEAN_TYPE_ANNOTATION:
-      return new Type("boolean");
-    case NODE.MIXED_TYPE_ANNOTATION:
-      return new Type("mixed");
-    case NODE.EMPTY_TYPE_ANNOTATION:
-      return new Type("empty");
-    case NODE.NUMBER_TYPE_ANNOTATION:
-      return new Type("number");
-    case NODE.STRING_TYPE_ANNOTATION:
-      return new Type("string");
-    case NODE.NULL_LITERAL_TYPE_ANNOTATION:
-      return new Type(null, { isLiteral: true });
-    case NODE.GENERIC_TYPE_ANNOTATION:
-      return new Type(typeAnnotation.typeAnnotation.id.name);
-    case NODE.NUBMER_LITERAL_TYPE_ANNOTATION:
-    case NODE.BOOLEAN_LITERAL_TYPE_ANNOTATION:
-    case NODE.STRING_LITERAL_TYPE_ANNOTATION:
-      return new Type(typeAnnotation.typeAnnotation.value, { isLiteral: true });
-    case NODE.FUNCTION_TYPE_ANNOTATION:
-      const args = typeAnnotation.typeAnnotation.params.map(
-        getTypeFromTypeAnnotation
-      );
-      const returnType = getTypeFromTypeAnnotation({
-        typeAnnotation: typeAnnotation.typeAnnotation.returnType
-      });
-      return new FunctionType(
-        getFunctionTypeLiteral(args, returnType),
-        args,
-        returnType
-      );
-    case NODE.OBJECT_TYPE_ANNOTATION:
-      const { typeAnnotation: annotation } = typeAnnotation;
-      const params = typeAnnotation.typeAnnotation.properties.map(
-        ({ value: typeAnnotation, key }) => [
-          key.name,
-          getTypeFromTypeAnnotation({ typeAnnotation })
-        ]
-      );
-      const objectName = getObjectTypeLiteral(params);
-      return new ObjectType(
-        objectName,
-        params.map(([name, type], index) => [
-          name,
-          new TypeInfo(
-            type,
-            undefined,
-            new Meta(annotation.properties[index].loc)
-          )
-        ])
-      );
-  }
-  return new Type(UNDEFINED_TYPE);
-};
-
 const getTypeFromInit = (
   currentInit: Node,
   parentNode: Node,
@@ -127,14 +55,15 @@ const getTypeFromInit = (
 ): Type => {
   switch (currentInit.type) {
     case NODE.OBJECT_EXPRESSION:
-      return new ObjectType(
+      return ObjectType.createTypeWithName(
         UNDEFINED_TYPE,
+        typeGraph.body.get(TYPE_SCOPE),
         currentInit.properties.reduce(
           (types, field) =>
             types.concat([
               [
                 field.key.name,
-                getTypeInfoFromDelcaration(
+                getVariableInfoFromDelcaration(
                   field.value || field,
                   parentNode,
                   typeGraph
@@ -155,7 +84,11 @@ const getTypeForNode = (
   parentNode?: Node | ModuleScope | Scope = currentNode
 ): Type => {
   const typeAnnotation = currentNode.id && currentNode.id.typeAnnotation;
-  const defaultType = getTypeFromTypeAnnotation(typeAnnotation);
+  const typeScope = typeGraph.body.get(TYPE_SCOPE);
+  if (!typeScope || !(typeScope instanceof Scope)) {
+    throw new Error("Type scope is not a scope.");
+  }
+  const defaultType = getTypeFromTypeAnnotation(typeAnnotation, typeScope);
   if (typeAnnotation) {
     return defaultType;
   }
@@ -174,14 +107,27 @@ const getTypeForNode = (
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
       const params = currentNode.params.map(a =>
-        getTypeFromTypeAnnotation(a.typeAnnotation)
+        getTypeFromTypeAnnotation(a.typeAnnotation, typeScope)
       );
-      const returnType = getTypeFromTypeAnnotation(currentNode.returnType);
-      return new FunctionType(
-        getFunctionTypeLiteral(params, returnType),
-        params,
-        returnType
+      const returnType = getTypeFromTypeAnnotation(
+        currentNode.returnType,
+        typeScope
       );
+      const typeName = getFunctionTypeLiteral(params, returnType);
+      return currentNode.typeParameters 
+        ? GenericType.createTypeWithName(
+            currentNode.id ? currentNode.id.name : typeName,
+            typeScope,
+            currentNode.typeParameters.params,
+            typeScope,
+            Object.assign(currentNode, { type: NODE.FUNCTION_TYPE_ANNOTATION })
+          )
+        : FunctionType.createTypeWithName(
+            typeName,
+            typeScope,
+            params,
+            returnType
+          );
     default:
       return defaultType;
   }
@@ -225,43 +171,7 @@ const getParentFromNode = (
   return scope;
 };
 
-const findVariableTypeInfo = (
-  name: string,
-  parentContext: ModuleScope | Scope
-): ?TypeInfo => {
-  let parent = parentContext;
-  do {
-    const variableTypeInfo = parent.body.get(name);
-    if (variableTypeInfo && variableTypeInfo instanceof TypeInfo) {
-      return variableTypeInfo;
-    }
-    parent = parent.parent;
-  } while (parent);
-  return undefined;
-};
-
-const getRelationFromInit = (
-  currentNode: Node,
-  parentScope: ModuleScope | Scope
-): ?Map<string, TypeInfo> => {
-  if (!currentNode.init) {
-    return null;
-  }
-  const relations = new Map();
-  switch (currentNode.init.type) {
-    case NODE.IDENTIFIER:
-      const { name } = currentNode.init;
-      const relatedVariableTypeInfo = findVariableTypeInfo(name, parentScope);
-      if (!relatedVariableTypeInfo) {
-        break;
-      }
-      relations.set(name, relatedVariableTypeInfo);
-      return relations;
-  }
-  return null;
-};
-
-const getTypeInfoFromDelcaration = (
+const getVariableInfoFromDelcaration = (
   currentNode: Node,
   parent: Node | ModuleScope | Scope,
   typeGraph: ModuleScope
@@ -270,11 +180,10 @@ const getTypeInfoFromDelcaration = (
     parent instanceof ModuleScope || parent instanceof Scope
       ? parent
       : getParentFromNode(currentNode, parent, typeGraph);
-  return new TypeInfo(
+  return new VariableInfo(
     /*type:*/ getTypeForNode(currentNode, typeGraph, parent),
     parentScope,
-    /*meta:*/ new Meta(currentNode.loc),
-    /*relations:*/ getRelationFromInit(currentNode, parentScope)
+    /*meta:*/ new Meta(currentNode.loc)
   );
 };
 
@@ -282,7 +191,7 @@ const getScopeFromNode = (
   currentNode: Node,
   parentNode: Node | ModuleScope | Scope,
   typeGraph: ModuleScope,
-  declaration?: TypeInfo
+  declaration?: VariableInfo
 ) =>
   new Scope(
     /*type:*/ getScopeType(currentNode),
@@ -298,13 +207,13 @@ const addVariableToGraph = (
   typeGraph: ModuleScope,
   customName?: string = getDeclarationName(currentNode)
 ) => {
-  const typeInfo = getTypeInfoFromDelcaration(
+  const variableInfo = getVariableInfoFromDelcaration(
     currentNode,
     parentNode,
     typeGraph
   );
-  typeInfo.parent.body.set(customName, typeInfo);
-  return typeInfo;
+  variableInfo.parent.body.set(customName, variableInfo);
+  return variableInfo;
 };
 
 type FunctionMeta = {
@@ -316,12 +225,17 @@ const addFunctionScopeToTypeGraph = (
   currentNode: Node,
   parentNode: Node | Scope | ModuleScope,
   typeGraph: ModuleScope,
-  typeInfo: TypeInfo
+  variableInfo: VariableInfo
 ) => {
-  const scope = getScopeFromNode(currentNode, parentNode, typeGraph, typeInfo);
+  const scope = getScopeFromNode(
+    currentNode,
+    parentNode,
+    typeGraph,
+    variableInfo
+  );
   typeGraph.body.set(getScopeKey(currentNode), scope);
   if (currentNode.type === NODE.FUNCTION_EXPRESSION && currentNode.id) {
-    scope.body.set(getDeclarationName(currentNode), typeInfo);
+    scope.body.set(getDeclarationName(currentNode), variableInfo);
   }
 };
 
@@ -331,28 +245,28 @@ const addFunctionToTypeGraph = (
   typeGraph: ModuleScope,
   meta: FunctionMeta
 ) => {
-  const typeInfo = addVariableToGraph(
+  const variableInfo = addVariableToGraph(
     currentNode,
     parentNode,
     typeGraph,
     meta.name
   );
   if (meta.type) {
-    typeInfo.type = meta.type;
+    variableInfo.type = meta.type;
   }
-  addFunctionScopeToTypeGraph(currentNode, parentNode, typeGraph, typeInfo);
+  addFunctionScopeToTypeGraph(currentNode, parentNode, typeGraph, variableInfo);
 };
 
 const addObjectMethodToGraph = (
   currentNode: Node,
   parentNode: Node | Scope | ModuleScope,
   typeGraph: ModuleScope,
-  objectTypeInfo: TypeInfo
+  objectVariableInfo: VariableInfo
 ): void => {
   currentNode.properties.forEach(field => {
     const declaration =
-      objectTypeInfo.type instanceof ObjectType
-        ? objectTypeInfo.type.properties.get(field.key.name)
+      objectVariableInfo.type instanceof ObjectType
+        ? objectVariableInfo.type.properties.get(field.key.name)
         : null;
     if (!declaration) {
       return;
@@ -376,22 +290,39 @@ const addObjectMethodToGraph = (
   });
 };
 
+const hasTypeParams = (node: Node): boolean =>
+  node.typeParameters &&
+  Array.isArray(node.typeParameters.params) &&
+  node.typeParameters.params.length !== 0;
+
 const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
-  const typeFor = getTypeFromTypeAnnotation({ typeAnnotation: node.right });
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
   if (typeScope === undefined || !(typeScope instanceof Scope)) {
     throw new Error(
       "Type scope should be presented before type alias has been met"
     );
   }
+  const typeFor = hasTypeParams(node)
+    ? GenericType.createTypeWithName(
+        node.id.name,
+        typeScope,
+        node.typeParameters.params,
+        typeScope,
+        node.right
+      )
+    : getTypeFromTypeAnnotation({ typeAnnotation: node.right }, typeScope);
   typeScope.body.set(
     node.id.name,
-    new TypeInfo(typeFor, typeScope, new Meta(node.loc))
+    new VariableInfo(typeFor, typeScope, new Meta(node.loc))
   );
 };
 
-const fillModuleScope = (typeGraph: ModuleScope) =>
-  function filler(
+const fillModuleScope = (typeGraph: ModuleScope) => {
+  const typeScope = typeGraph.body.get(TYPE_SCOPE);
+  if (!typeScope || !(typeScope instanceof Scope)) {
+    throw new Error("Type scope is not a scope.");
+  }
+  return function filler(
     currentNode: Node,
     parentNode: Node | Scope | ModuleScope,
     meta?: Object = {}
@@ -420,12 +351,15 @@ const fillModuleScope = (typeGraph: ModuleScope) =>
           return filler(currentNode.init, parentNode, {
             name: currentNode.id.name,
             type: currentNode.id.typeAnnotation
-              ? getTypeFromTypeAnnotation(currentNode.id.typeAnnotation)
+              ? getTypeFromTypeAnnotation(
+                  currentNode.id.typeAnnotation,
+                  typeScope
+                )
               : null
           });
         }
         if (NODE.isObject(currentNode.init)) {
-          const objectTypeInfo = addVariableToGraph(
+          const objectVariableInfo = addVariableToGraph(
             currentNode,
             parentNode,
             typeGraph
@@ -434,7 +368,7 @@ const fillModuleScope = (typeGraph: ModuleScope) =>
             currentNode.init,
             parentNode,
             typeGraph,
-            objectTypeInfo
+            objectVariableInfo
           );
           return;
         }
@@ -448,6 +382,7 @@ const fillModuleScope = (typeGraph: ModuleScope) =>
         break;
     }
   };
+};
 
 const createModuleScope = (ast: Program): ModuleScope => {
   const result = new ModuleScope();
