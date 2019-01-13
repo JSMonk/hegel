@@ -8,9 +8,30 @@ const nullLocation = {
 };
 
 const operators = new Map([
-  // Unary
-  // ["+"] after UnionType,
-  // ["-"] after UnionType,
+  [
+    "+",
+    new VariableInfo(
+      new FunctionType(
+        "(mixed) => number",
+        [new Type("mixed")],
+        new Type("number")
+      ),
+      operatorModuleScope,
+      nullLocation
+    )
+  ],
+  [
+    "-",
+    new VariableInfo(
+      new FunctionType(
+        "(mixed) => number",
+        [new Type("mixed")],
+        new Type("number")
+      ),
+      operatorModuleScope,
+      nullLocation
+    )
+  ],
   [
     "!",
     new VariableInfo(

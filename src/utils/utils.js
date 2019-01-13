@@ -8,6 +8,7 @@ import {
   ModuleScope,
   FunctionType,
   ObjectType,
+  UnionType,
   GenericType,
   Type,
   TYPE_SCOPE,
@@ -72,9 +73,14 @@ export const getFunctionTypeLiteral = (
 
 export const getObjectTypeLiteral = (params: Array<[string, Type]>) =>
   `{ ${params
-    .sort(([name1], [name2]) => name1.charCodeAt(0) - name2.charCodeAt(0))
+    .sort(([name1], [name2]) => name1.localeCompare(name2))
     .map(([name, type]) => `${name}: ${getNameForType(type)}`)
     .join(", ")} }`;
+
+export const getUnionTypeLiteral = (params: Array<Type>) =>
+  `${params
+    .sort((t1, t2) => getNameForType(t1).localeCompare(getNameForType(t2)))
+    .reduce((res, t) => `${res}${res ? " | " : ""}${getNameForType(t)}`, "")}`;
 
 export const getTypeFromTypeAnnotation = (
   typeAnnotation: ?TypeAnnotation,
@@ -101,6 +107,15 @@ export const getTypeFromTypeAnnotation = (
       return Type.createTypeWithName("string", typeScope);
     case NODE.NULL_LITERAL_TYPE_ANNOTATION:
       return Type.createTypeWithName(null, typeScope, { isLiteral: true });
+    case NODE.UNION_TYPE_ANNOTATION:
+      const variants = typeAnnotation.typeAnnotation.types.map(typeAnnotation =>
+        getTypeFromTypeAnnotation({ typeAnnotation }, typeScope)
+      );
+      return UnionType.createTypeWithName(
+        getUnionTypeLiteral(variants),
+        typeScope,
+        variants
+      );
     case NODE.TYPE_PARAMETER:
       if (typeAnnotation.typeAnnotation.bound) {
         return getTypeFromTypeAnnotation(

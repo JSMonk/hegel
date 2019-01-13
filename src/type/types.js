@@ -192,9 +192,10 @@ export class GenericType extends Type {
     );
     this.parentTypeScope.body.set(
       appliedTypeName,
-      /*::(*/ 
+      /*::(*/
+
       this.localTypeScope.body.get(String(result.name)) ||
-      this.parentTypeScope.body.get(String(result.name))
+        this.parentTypeScope.body.get(String(result.name))
       /*:: :any)*/
     );
     return result;
@@ -206,7 +207,6 @@ export class FunctionType extends Type {
 
   argumentsTypes: Array<Type>;
   returnType: Type;
-  context: ?Type;
 
   constructor(name: string, argumentsTypes: Array<Type>, returnType: Type) {
     super(name, { isLiteral: true });
@@ -224,6 +224,30 @@ export class FunctionType extends Type {
       this.argumentsTypes.length === argumentsTypes.length &&
       this.argumentsTypes.every((type, index) =>
         type.equalsTo(argumentsTypes[index])
+      )
+    );
+  }
+}
+
+export class UnionType extends Type {
+  static createTypeWithName = createTypeWithName(UnionType);
+
+  variants: Array<Type>;
+
+  constructor(name: string, variants: Array<Type>, meta: TypeMeta = {}) {
+    super(name, {});
+    this.variants = variants;
+  }
+
+  equalsTo(anotherType: Type) {
+    const anotherVariants =
+      anotherType instanceof UnionType ? anotherType.variants : [];
+    return (
+      anotherType instanceof UnionType &&
+      super.equalsTo(anotherType) &&
+      this.variants.length === anotherVariants.length &&
+      this.variants.every((type, index) =>
+        type.equalsTo(anotherVariants[index])
       )
     );
   }
@@ -272,15 +296,10 @@ export class VariableInfo {
   type: Type;
   parent: ?Scope | ?ModuleScope;
   meta: Meta;
-  calls: Array<CallMeta> = [];
 
   constructor(type: Type, parent: ?Scope | ?ModuleScope, meta: Meta) {
     this.type = type;
     this.parent = parent;
     this.meta = meta;
-  }
-
-  callWith(loc: SourceLocation, ...args: Array<VariableInfo | Type>) {
-    this.calls = this.calls.concat(new CallMeta(args, loc));
   }
 }

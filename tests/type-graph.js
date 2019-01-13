@@ -4,6 +4,7 @@ const {
   Type,
   ObjectType,
   FunctionType,
+  UnionType,
   VariableInfo,
   AliasInfo,
   UNDEFINED_TYPE,
@@ -1263,6 +1264,69 @@ describe("Generic types", () => {
       expect(actualGenericType.localTypeScope.body.size).toEqual(2);
       expect(actualTypeT).not.toBe(undefined);
       expect(actualTypeT.type).toEqual(new Type("string"));
+    });
+  });
+  describe("Union types", () => {
+    test("Union type for variable", () => {
+      const sourceAST = prepareAST(`
+        const a: number | string = 2;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const actualVariableInfo = actual.body.get("a");
+      const expectVariableInfo = expect.objectContaining({
+        parent: actual,
+        type: new UnionType("number | string", [
+          new Type("number"),
+          new Type("string")
+        ])
+      });
+      expect(actualVariableInfo).toEqual(expectVariableInfo);
+    });
+    test("Union type in type alias", () => {
+      const sourceAST = prepareAST(`
+        type A = string | number;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const actualTypeScope = actual.body.get(TYPE_SCOPE);
+      const actualAType = actualTypeScope.body.get("A");
+      const expectAType = expect.objectContaining({
+        parent: actualTypeScope,
+        type: new UnionType("number | string", [
+          new Type("number"),
+          new Type("string")
+        ])
+      });
+      expect(actualAType).toEqual(expectAType);
+    });
+    test("Union type as argument type", () => {
+      const sourceAST = prepareAST(`
+        function a(b: string | number): void {}
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const actualAFunctionScope = actual.body.get("[[Scope2-8]]");
+      const actualADeclarationInfo = actual.body.get("a");
+      const actualBArgumentInfo = actualAFunctionScope.body.get("b");
+      const actualArgumentDeclarationInfo =
+        actualADeclarationInfo.type.argumentsTypes[0];
+      const expectBArgumentType = new UnionType("number | string", [
+        new Type("number"),
+        new Type("string")
+      ]);
+      expect(actualBArgumentInfo.type).toEqual(expectBArgumentType);
+      expect(actualArgumentDeclarationInfo).toEqual(expectBArgumentType);
+    });
+    test("Union type as return type", () => {
+      const sourceAST = prepareAST(`
+        function a(): string | number {}
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const actualADeclarationInfo = actual.body.get("a");
+      const actualReturnInfo = actualADeclarationInfo.type.returnType;
+      const expectReturnInfo = new UnionType("number | string", [
+        new Type("number"),
+        new Type("string")
+      ]);
+      expect(actualReturnInfo).toEqual(expectReturnInfo);
     });
   });
 });

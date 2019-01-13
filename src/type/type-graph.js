@@ -114,7 +114,7 @@ const getTypeForNode = (
         typeScope
       );
       const typeName = getFunctionTypeLiteral(params, returnType);
-      return currentNode.typeParameters 
+      return currentNode.typeParameters
         ? GenericType.createTypeWithName(
             currentNode.id ? currentNode.id.name : typeName,
             typeScope,
@@ -203,7 +203,7 @@ const getScopeFromNode = (
 
 const addVariableToGraph = (
   currentNode: Node,
-  parentNode: ?Node,
+  parentNode: ?Node | Scope,
   typeGraph: ModuleScope,
   customName?: string = getDeclarationName(currentNode)
 ) => {
@@ -237,6 +237,9 @@ const addFunctionScopeToTypeGraph = (
   if (currentNode.type === NODE.FUNCTION_EXPRESSION && currentNode.id) {
     scope.body.set(getDeclarationName(currentNode), variableInfo);
   }
+  currentNode.params.forEach(id =>
+    addVariableToGraph({ id }, scope, typeGraph)
+  );
 };
 
 const addFunctionToTypeGraph = (
