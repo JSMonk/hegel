@@ -49,7 +49,8 @@ export const ANNOTATION_TYPES = {
   STRING_LITERAL_TYPE_ANNOTATION: "StringLiteralTypeAnnotation",
   OBJECT_TYPE_ANNOTATION: "ObjectTypeAnnotation",
   OBJECT_TYPE_PROPERTY: "ObjectTypeProperty",
-  UNION_TYPE_ANNOTATION: "UnionTypeAnnotation"
+  UNION_TYPE_ANNOTATION: "UnionTypeAnnotation",
+  NULLABLE_TYPE_ANNOTATION: "NullableTypeAnnotation"
 };
 
 const INITIALIZATION_TYPES = {

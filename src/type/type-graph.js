@@ -396,6 +396,9 @@ const fillModuleScope = (typeGraph: ModuleScope) => {
       case NODE.CLASS_DECLARATION:
       case NODE.FUNCTION_DECLARATION:
         addFunctionToTypeGraph(currentNode, parentNode, typeGraph, meta);
+        if (currentNode.body.type === NODE.BLOCK_STATEMENT) {
+          currentNode.body.body.forEach(node => filler(node, currentNode, meta));
+        }
         break;
     }
   };
@@ -405,7 +408,7 @@ const createModuleScope = (ast: Program): ModuleScope => {
   const result = new ModuleScope();
   const typeScope = new Scope("block", result);
   const callScope = new Scope("block", result);
-  mixBaseOperators(typeScope);
+  // mixBaseOperators(typeScope);
   result.body.set(TYPE_SCOPE, typeScope);
   result.body.set(CALLS_SCOPE, typeScope);
   traverseTree(ast, fillModuleScope(result));

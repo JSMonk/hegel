@@ -107,6 +107,16 @@ export const getTypeFromTypeAnnotation = (
       return Type.createTypeWithName("string", typeScope);
     case NODE.NULL_LITERAL_TYPE_ANNOTATION:
       return Type.createTypeWithName(null, typeScope, { isLiteral: true });
+    case NODE.NULLABLE_TYPE_ANNOTATION:
+      const resultType = getTypeFromTypeAnnotation(
+        typeAnnotation.typeAnnotation,
+        typeScope
+      );
+      return Type.createTypeWithName(
+        `?${getNameForType(resultType)}`,
+        typeScope,
+        { isNullable: true }
+      );
     case NODE.UNION_TYPE_ANNOTATION:
       const variants = typeAnnotation.typeAnnotation.types.map(typeAnnotation =>
         getTypeFromTypeAnnotation({ typeAnnotation }, typeScope)

@@ -1,7 +1,7 @@
-import { FunctionType, VariableInfo, ModuleScope } from "../type/types";
+import { Type, FunctionType, VariableInfo, ModuleScope } from "../type/types";
 import GteDeclaration from "./generics/gte";
 import AwaitDeclaration from "./generics/await";
-import LogicDeclaration from "./generic/logic";
+import LogicDeclaration from "./generics/logic";
 import EqualsDeclaration from "./generics/equals";
 import TernaryDeclaration from "./generics/ternary";
 import AssignmentDeclaration from "./generics/assign";
@@ -549,4 +549,4 @@ const mixBaseOperators = typeScope => {
   return operatorModuleScope;
 };
 
-export default operatorModuleScope;
+export default mixBaseOperators;
