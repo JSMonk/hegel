@@ -2,6 +2,7 @@
 import traverseTree from "../utils/traverse";
 import NODE from "../utils/nodes";
 import { Option } from "../utils/option";
+import mixBaseOperators from "../utils/operators";
 import {
   findVariableInfo,
   getTypeFromTypeAnnotation,
@@ -17,7 +18,8 @@ import {
   Meta,
   ModuleScope,
   UNDEFINED_TYPE,
-  TYPE_SCOPE
+  TYPE_SCOPE,
+  CALLS_SCOPE
 } from "./types";
 import type {
   Program,
@@ -295,8 +297,19 @@ const addObjectMethodToGraph = (
 
 const hasTypeParams = (node: Node): boolean =>
   node.typeParameters &&
+  node.typeParameters.type === NODE.TYPE_PARAMETER_DECLARATION &&
   Array.isArray(node.typeParameters.params) &&
   node.typeParameters.params.length !== 0;
+
+const getGenericNode = (node: Node): ?Node => {
+  if (hasTypeParams(node)) {
+    return node;
+  }
+  if (node.right && hasTypeParams(node.right)) {
+    return node.right;
+  }
+  return null;
+};
 
 const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
@@ -305,11 +318,12 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
       "Type scope should be presented before type alias has been met"
     );
   }
-  const typeFor = hasTypeParams(node)
+  const genericNode = getGenericNode(node);
+  const typeFor = genericNode
     ? GenericType.createTypeWithName(
         node.id.name,
         typeScope,
-        node.typeParameters.params,
+        genericNode.typeParameters.params,
         typeScope,
         node.right
       )
@@ -389,7 +403,11 @@ const fillModuleScope = (typeGraph: ModuleScope) => {
 
 const createModuleScope = (ast: Program): ModuleScope => {
   const result = new ModuleScope();
-  result.body.set(TYPE_SCOPE, new Scope("block", result));
+  const typeScope = new Scope("block", result);
+  const callScope = new Scope("block", result);
+  mixBaseOperators(typeScope);
+  result.body.set(TYPE_SCOPE, typeScope);
+  result.body.set(CALLS_SCOPE, typeScope);
   traverseTree(ast, fillModuleScope(result));
   return result;
 };

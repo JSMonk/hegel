@@ -9,6 +9,7 @@ import type {
 
 export const UNDEFINED_TYPE = "?";
 export const TYPE_SCOPE = "[[TypeScope]]";
+export const CALLS_SCOPE = "[[Calls]]";
 
 export type GraphElement = Scope | VariableInfo;
 

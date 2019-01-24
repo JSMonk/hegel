@@ -1,409 +1,552 @@
 import { FunctionType, VariableInfo, ModuleScope } from "../type/types";
+import GteDeclaration from "./generics/gte";
+import AwaitDeclaration from "./generics/await";
+import LogicDeclaration from "./generic/logic";
+import EqualsDeclaration from "./generics/equals";
+import TernaryDeclaration from "./generics/ternary";
+import AssignmentDeclaration from "./generics/assign";
 
 const operatorModuleScope = new ModuleScope();
 
-const nullLocation = {
-  start: { line: 0, column: 0 },
-  end: { line: 0, column: 0 }
+const mixBaseOperators = typeScope => {
+  if (!operatorModuleScope.body.size) {
+    const operators = new Map([
+      [
+        "+",
+        FunctionType.createTypeWithName(
+          "(mixed) => number",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "-",
+        FunctionType.createTypeWithName(
+          "(mixed) => number",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "!",
+        FunctionType.createTypeWithName(
+          "(mixed) => boolean",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("boolean", typeScope)
+        )
+      ],
+      [
+        "~",
+        FunctionType.createTypeWithName(
+          "(number) => number",
+          typeScope,
+          [Type.createTypeWithName("number", typeScope)],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "typeof",
+        FunctionType.createTypeWithName(
+          "(mixed) => string",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("string", typeScope)
+        )
+      ],
+      [
+        "void",
+        FunctionType.createTypeWithName(
+          "(mixed) => undefined",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("string", typeScope)
+        )
+      ],
+      [
+        "delete",
+        FunctionType.createTypeWithName(
+          "(mixed) => undefined",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("undefined", typeScope)
+        )
+      ],
+      [
+        "await",
+        GenericType.createTypeWithName(
+          "<T>(Promise<T>) => <T>",
+          typeScope,
+          AwaitDeclaration.typeParameters.params,
+          typeScope,
+          AwaitDeclaration
+        )
+      ],
+      [
+        "==",
+        GenericType.createTypeWithName(
+          "<T>(T, T) => boolean",
+          typeScope,
+          EqualsDeclaration.typeParameters.params,
+          typeScope,
+          EqualsDeclaration
+        )
+      ],
+      [
+        "===",
+        GenericType.createTypeWithName(
+          "<T>(T, T) => boolean",
+          typeScope,
+          EqualsDeclaration.typeParameters.params,
+          typeScope,
+          EqualsDeclaration
+        )
+      ],
+      [
+        "!==",
+        GenericType.createTypeWithName(
+          "<T>(T, T) => boolean",
+          typeScope,
+          EqualsDeclaration.typeParameters.params,
+          typeScope,
+          EqualsDeclaration
+        )
+      ],
+      [
+        "!=",
+        GenericType.createTypeWithName(
+          "<T>(T, T) => boolean",
+          typeScope,
+          EqualsDeclaration.typeParameters.params,
+          typeScope,
+          EqualsDeclaration
+        )
+      ],
+      [
+        ">=",
+        GenericType.createTypeWithName(
+          "<T>(T, T) => boolean",
+          typeScope,
+          GteDeclaraction.typeParameters.params,
+          typeScope,
+          GteDeclaraction
+        )
+      ],
+      [
+        "<=",
+        GenericType.createTypeWithName(
+          "<T>(T, T) => boolean",
+          typeScope,
+          GteDeclaraction.typeParameters.params,
+          typeScope,
+          GteDeclaraction
+        )
+      ],
+      [
+        ">",
+        GenericType.createTypeWithName(
+          "<T>(T, T) => boolean",
+          typeScope,
+          GteDeclaraction.typeParameters.params,
+          typeScope,
+          GteDeclaraction
+        )
+      ],
+      [
+        "<",
+        GenericType.createTypeWithName(
+          "<T>(T, T) => boolean",
+          typeScope,
+          GteDeclaraction.typeParameters.params,
+          typeScope,
+          GteDeclaraction
+        )
+      ],
+      [
+        "+<number>",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "+<string>",
+        FunctionType.createTypeWithName(
+          "(string, string) => string",
+          typeScope,
+          [
+            Type.createTypeWithName("string", typeScope),
+            Type.createTypeWithName("string", typeScope)
+          ],
+          Type.createTypeWithName("string", typeScope)
+        )
+      ],
+      [
+        "-",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "/",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "%",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "|",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "&",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "^",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "**",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "<<",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        ">>",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        ">>>",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "in",
+        FunctionType.createTypeWithName(
+          "(string, Object) => boolean",
+          typeScope,
+          [
+            Type.createTypeWithName("string", typeScope),
+            Type.createTypeWithName("Object", typeScope)
+          ],
+          Type.createTypeWithName("boolean", typeScope)
+        )
+      ],
+      [
+        "instanceof",
+        FunctionType.createTypeWithName(
+          "(mixed, mixed) => boolean",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "=",
+        GenericType.createTypeWithName(
+          "<T>(T, T) => boolean",
+          typeScope,
+          AssignmentDeclaration.typeParameters.params,
+          typeScope,
+          AssignmentDeclaration
+        )
+      ],
+      [
+        "+=<string>",
+        FunctionType.createTypeWithName(
+          "(string, string) => string",
+          typeScope,
+          [
+            Type.createTypeWithName("string", typeScope),
+            Type.createTypeWithName("string", typeScope)
+          ],
+          Type.createTypeWithName("string", typeScope)
+        )
+      ],
+      [
+        "+=<number>",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "-=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "*=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "/=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "%=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "**=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        ">>=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        ">>>=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "<<=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "|=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "&=",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      // Updates
+      [
+        "++",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        "--",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
+        // Logical
+        "&&",
+        GenericType.createTypeWithName(
+          "<A, B>(A, B) => A | B",
+          typeScope,
+          LogicDeclaration.typeParameters.params,
+          typeScope,
+          LogicDeclaration
+        )
+      ],
+      [
+        "||",
+        GenericType.createTypeWithName(
+          "<A, B>(A, B) => A | B",
+          typeScope,
+          LogicDeclaration.typeParameters.params,
+          typeScope,
+          LogicDeclaration
+        )
+      ],
+      [
+        "?:",
+        GenericType.createTypeWithName(
+          "<A, B>(A, B) => A | B",
+          typeScope,
+          TernaryDeclaration.typeParameters.params,
+          typeScope,
+          TernaryDeclaration
+        )
+      ]
+    ]);
+    operatorModuleScope.body = operators;
+  }
+  typeScope.body = new Map([...typeScope.body, ...operatorModuleScope.body]);
+  return operatorModuleScope;
 };
-
-const operators = new Map([
-  [
-    "+",
-    new VariableInfo(
-      new FunctionType(
-        "(mixed) => number",
-        [new Type("mixed")],
-        new Type("number")
-      ),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "-",
-    new VariableInfo(
-      new FunctionType(
-        "(mixed) => number",
-        [new Type("mixed")],
-        new Type("number")
-      ),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "!",
-    new VariableInfo(
-      new FunctionType(
-        "(mixed) => boolean",
-        [new Type("mixed")],
-        new Type("boolean")
-      ),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "~",
-    new VariableInfo(
-      new FunctionType(
-        "(number) => number",
-        [new Type("number")],
-        new Type("number")
-      ),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "typeof",
-    new VariableInfo(
-      new FunctionType(
-        "(mixed) => string",
-        [new Type("mixed")],
-        new Type("string")
-      ),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "void",
-    new VariableInfo(
-      new FunctionType(
-        "(mixed) => undefined",
-        [new Type("mixed")],
-        new Type("string")
-      ),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "delete",
-    new VariableInfo(
-      new FunctionType(
-        "(mixed) => undefined",
-        [new Type("mixed")],
-        new Type("undefined")
-      ),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  // ["await", new VariableInfo(new FunctionType("<T>(Promise<T>) => <T>", operatorModuleScope, nullLocation))],
-  // Binary
-  // [
-  //   "==",
-  //   new VariableInfo(
-  //     new FunctionType("<T>(T, T) => boolean", [new Type("T"), new Type("T")], new Type("boolean")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   "===",
-  //   new VariableInfo(
-  //     new FunctionType("<T>(T, T) => boolean", [new Type("T"), new Type("T")], new Type("boolean")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   "!==",
-  //   new VariableInfo(
-  //     new FunctionType("<T>(T, T) => boolean", [new Type("T"), new Type("T")], new Type("boolean")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   "!=",
-  //   new VariableInfo(
-  //     new FunctionType("<T>(T, T) => boolean", [new Type("T"), new Type("T")], new Type("boolean")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   ">=",
-  //   new VariableInfo(
-  //     new FunctionType("<T: number | string>(T, T) => boolean", [new Type("T"), new Type("T")], new Type("boolean")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   "<=",
-  //   new VariableInfo(
-  //     new FunctionType("<T: number | string>(T, T) => boolean", [new Type("T"), new Type("T")], new Type("boolean")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   ">",
-  //   new VariableInfo(
-  //     new FunctionType("<T: number | string>(T, T) => boolean", [new Type("T"), new Type("T")], new Type("boolean")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   "<",
-  //   new VariableInfo(
-  //     new FunctionType("<T: number | string>(T, T) => boolean", [new Type("T"), new Type("T")], new Type("boolean")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   "+",
-  //   new VariableInfo(
-  //     new FunctionType("<T: string | number>(T, T) => T", [new Type("T"), new Type("T")], new Type("boolean")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  [
-    "-",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "/",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "%",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "|",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "&",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "^",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "**",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "<<",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    ">>",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    ">>>",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  // [
-  //   "in",
-  //   new VariableInfo(
-  //     new FunctionType("(string, object | Array<mixed>) => boolean", [new Type("number"), new Type("number")], new Type("number")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  [
-    "instanceof",
-    new VariableInfo(
-      new FunctionType("(mixed, mixed) => boolean", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  // Assignment
-  // [
-  //   "=",
-  //   new VariableInfo(
-  //     new FunctionType("<T>(T, T) => T", [new Type("T"), new Type("T")], new Type("T")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   "+=",
-  //   new VariableInfo(
-  //     new FunctionType("<T: string | number>(T, T) => T", [new Type("T"), new Type("T")], new Type("T")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  [
-    "-=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "*=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "/=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "%=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "**=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    ">>=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    ">>>=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "<<=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "|=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "&=",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  // Updates
-  [
-    "++",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  [
-    "--",
-    new VariableInfo(
-      new FunctionType("(number, number) => number", [new Type("number"), new Type("number")], new Type("number")),
-      operatorModuleScope,
-      nullLocation
-    )
-  ],
-  // Logical
-  // [
-  //   "&&",
-  //   new VariableInfo(
-  //     new FunctionType("<A>(A, A) => A", [new Type("A"), new Type("A")], new Type("A")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // [
-  //   "||",
-  //   new VariableInfo(
-  //     new FunctionType("<A>(A, A) => A", [new Type("A"), new Type("A")], new Type("A")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-  // Conditional
-  // [
-  //   "?:",
-  //   new VariableInfo(
-  //     new FunctionType("<A>(boolean, A, A) => A", [new Type("A"), new Type("A")], new Type("A")),
-  //     operatorModuleScope,
-  //     nullLocation
-  //   )
-  // ],
-]);
-
-operatorModuleScope.body = operators;
 
 export default operatorModuleScope;

@@ -1265,6 +1265,19 @@ describe("Generic types", () => {
       expect(actualTypeT).not.toBe(undefined);
       expect(actualTypeT.type).toEqual(new Type("string"));
     });
+    test("Function type alias with generic", () => {
+      const sourceAST = prepareAST(`
+        type A = <T>(T) => T;
+      `);
+      const actual = createTypeGraph(sourceAST);
+      const typeScope = actual.body.get(TYPE_SCOPE);
+      const actualFunctionType = typeScope.body.get("A");
+      const actualGenericType = actualFunctionType.type;
+      const actualTypeT = actualGenericType.localTypeScope.body.get("T");
+      expect(actualFunctionType).not.toBe(undefined);
+      expect(actualGenericType.localTypeScope.body.size).toEqual(1);
+      expect(actualTypeT).not.toBe(undefined);
+    });
   });
   describe("Union types", () => {
     test("Union type for variable", () => {
