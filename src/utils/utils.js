@@ -1,6 +1,7 @@
 // @flow
 import NODE from "./nodes";
 import HegelError from "./errors";
+import type { Node } from "@babel/parser";
 import type { TypeAnnotation, TypeParameter } from "@babel/parser";
 import {
   Scope,
@@ -17,10 +18,10 @@ import {
 } from "../type/types";
 
 export const findVariableInfo = (
-  name: string,
+  { name, loc }: Node,
   parentContext: ModuleScope | Scope,
   moduleContext: ModuleScope
-): [?VariableInfo, ?VariableInfo] => {
+): [VariableInfo, ?VariableInfo] => {
   let parent = parentContext;
   const typeScope = moduleContext.body.get(TYPE_SCOPE);
   if (!(typeScope instanceof Scope)) {
@@ -33,13 +34,13 @@ export const findVariableInfo = (
         typeScope &&
         typeScope.body.get(/*::String(*/ variableInfo.type.name /*::)*/);
       if (!(typeAlias instanceof VariableInfo)) {
-        throw new Error("Impossible thing!");
+        return [variableInfo, null];
       }
       return [variableInfo, typeAlias];
     }
     parent = parent.parent;
   } while (parent);
-  return [null, null];
+  throw new HegelError(`Variable "${name}" is not defined!`, loc);
 };
 
 export const getInvocationType = (variable: VariableInfo): Type => {

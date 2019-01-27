@@ -9,7 +9,6 @@ import type {
 
 export const UNDEFINED_TYPE = "?";
 export const TYPE_SCOPE = "[[TypeScope]]";
-export const CALLS_SCOPE = "[[Calls]]";
 
 export type GraphElement = Scope | VariableInfo;
 
@@ -20,9 +19,33 @@ const ZeroLocation: SourceLocation = {
   end: { column: -1, line: -1 }
 };
 
+export class Meta {
+  loc: SourceLocation;
+
+  constructor(loc: SourceLocation) {
+    this.loc = loc;
+  }
+}
+
+export class CallMeta extends Meta {
+  target: Type;
+  arguments: Array<Type>;
+
+  constructor(
+    target: Type,
+    args: Array<Type>,
+    loc: SourceLocation
+  ) {
+    super(loc);
+    this.target = target;
+    this.arguments = args;
+  }
+}
+
 export class ModuleScope {
   body: TypeGraph;
   parent: void;
+  calls: Array<CallMeta> = [];
 
   constructor(body?: TypeGraph = new Map()) {
     this.body = body;
@@ -263,6 +286,7 @@ export class Scope {
   type: "block" | "function" | "object" | "class";
   parent: Scope | ModuleScope;
   body: TypeGraph = new Map();
+  calls: Array<CallMeta> = [];
   declaration: ?VariableInfo;
 
   constructor(
@@ -273,23 +297,6 @@ export class Scope {
     this.type = type;
     this.parent = parent;
     this.declaration = declaration;
-  }
-}
-
-export class Meta {
-  loc: SourceLocation;
-
-  constructor(loc: SourceLocation) {
-    this.loc = loc;
-  }
-}
-
-export class CallMeta extends Meta {
-  arguments: Array<Type>;
-
-  constructor(args: Array<VariableInfo | Type>, loc: SourceLocation) {
-    super(loc);
-    this.arguments = args.map(a => (a instanceof Type ? a : a.type));
   }
 }
 

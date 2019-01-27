@@ -18,19 +18,36 @@ export const STATEMENTS_TYPES = {
   IF_STATEMENT: "IfStatement",
   WHILE_STATEMENT: "WhileStatement",
   DO_WHILE_STATEMENT: "DoWhileStatement",
-  FOR_STATEMENT: "ForStatement"
+  FOR_STATEMENT: "ForStatement",
+  EXPRESSION_STATEMENT: "ExpressionStatement",
+  RETURN_STATEMENT: "ReturnStatement"
 };
 
 export const EXPRESSIONS_TYPES = {
   FUNCTION_EXPRESSION: "FunctionExpression",
   ARROW_FUNCTION_EXPRESSION: "ArrowFunctionExpression",
   OBJECT_EXPRESSION: "ObjectExpression",
-  CLASS_EXPRESSION: "ClassExpression"
+  CLASS_EXPRESSION: "ClassExpression",
+  ASSIGNMENT_EXPRESSION: "AssignmentExpression",
+  BINARY_EXPRESSION: "BinaryExpression",
+  UNARY_EXPRESSION: "UnaryExpression",
+  CONDITIONAL_EXPRESSION: "ConditionalExpression",
+  AWAIT_EXPRESSION: "AwaitExpression",
+  LOGICAL_EXPRESSION: "LogicalExpression",
+  CALL_EXPRESSION: "CallExpression"
 };
 
 export const OBJECT_PROPERTIES = {
   OBJECT_EXPRESSION: "ObjectExpression",
   OBJECT_METHOD: "ObjectMethod"
+};
+
+export const LITERAL_TYPES = {
+  NUMERIC_LITERAL: "NumericLiteral",
+  STRING_LITERAL: "StringLiteral",
+  BOOLEAN_LITERAL: "BooleanLiteral",
+  NULL_LITERAL: "NullLiteral",
+  REG_EXP_LITERAL: "RegExpLiteral"
 };
 
 export const ANNOTATION_TYPES = {
@@ -73,7 +90,8 @@ const isFunction = (node: Node) =>
   [
     DECLARATION_TYPES.FUNCTION_DECLARATION,
     EXPRESSIONS_TYPES.FUNCTION_EXPRESSION,
-    EXPRESSIONS_TYPES.ARROW_FUNCTION_EXPRESSION
+    EXPRESSIONS_TYPES.ARROW_FUNCTION_EXPRESSION,
+    ANNOTATION_TYPES.FUNCTION_TYPE_ANNOTATION,
   ].includes(node.type);
 
 const isFunctionalProperty = (node: Node) =>
@@ -89,5 +107,6 @@ export default {
   ...ANNOTATION_TYPES,
   ...EXPRESSIONS_TYPES,
   ...INITIALIZATION_TYPES,
-  ...OBJECT_PROPERTIES
+  ...OBJECT_PROPERTIES,
+  ...LITERAL_TYPES
 };

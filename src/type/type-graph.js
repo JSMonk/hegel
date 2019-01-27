@@ -5,11 +5,13 @@ import { Option } from "../utils/option";
 import mixBaseOperators from "../utils/operators";
 import {
   findVariableInfo,
+  getInvocationType,
   getTypeFromTypeAnnotation,
   getFunctionTypeLiteral
 } from "../utils/utils";
 import {
   Type,
+  CallMeta,
   ObjectType,
   FunctionType,
   GenericType,
@@ -18,8 +20,7 @@ import {
   Meta,
   ModuleScope,
   UNDEFINED_TYPE,
-  TYPE_SCOPE,
-  CALLS_SCOPE
+  TYPE_SCOPE
 } from "./types";
 import type {
   Program,
@@ -49,35 +50,15 @@ const getScopeType = (node: Node): $PropertyType<Scope, "type"> => {
   throw new TypeError("Never for getScopeType");
 };
 
-const getTypeFromInit = (
-  currentInit: Node,
-  parentNode: Node,
-  typeGraph: ModuleScope,
-  defaultType: Type
-): Type => {
-  switch (currentInit.type) {
-    case NODE.OBJECT_EXPRESSION:
-      return ObjectType.createTypeWithName(
-        UNDEFINED_TYPE,
-        typeGraph.body.get(TYPE_SCOPE),
-        currentInit.properties.reduce(
-          (types, field) =>
-            types.concat([
-              [
-                field.key.name,
-                getVariableInfoFromDelcaration(
-                  field.value || field,
-                  parentNode,
-                  typeGraph
-                )
-              ]
-            ]),
-          []
-        )
-      );
-    default:
-      return defaultType;
+const getTypeScope = (scope: Scope | ModuleScope): Scope => {
+  const typeScope = scope.body.get(TYPE_SCOPE);
+  if (typeScope instanceof Scope) {
+    return typeScope;
   }
+  if (scope.parent) {
+    return getTypeScope(scope.parent);
+  }
+  throw new TypeError("Never");
 };
 
 const getTypeForNode = (
@@ -95,6 +76,23 @@ const getTypeForNode = (
     return defaultType;
   }
   switch (currentNode.type) {
+    case NODE.NUMERIC_LITERAL:
+      return Type.createTypeWithName("number", parentNode);
+    case NODE.STRING_LITERAL:
+      return Type.createTypeWithName("string", parentNode);
+    case NODE.BOOLEAN_LITERAL:
+      return Type.createTypeWithName("boolean", parentNode);
+    case NODE.NULL_LITERAL:
+      return Type.createTypeWithName(null, parentNode);
+    case NODE.REG_EXP_LITERAL:
+      return ObjectType.createTypeWithName("RegExp", parentNode);
+    case NODE.IDENTIFIER:
+      const [variableInfo] = findVariableInfo(
+        currentNode,
+        parentNode,
+        typeGraph
+      );
+      return variableInfo.type;
     case NODE.OBJECT_EXPRESSION:
       return getTypeFromInit(currentNode, parentNode, typeGraph, defaultType);
     case NODE.VARIABLE_DECLARATOR:
@@ -130,6 +128,92 @@ const getTypeForNode = (
             params,
             returnType
           );
+    default:
+      return defaultType;
+  }
+};
+
+const addCallToTypeGraph = (
+  node: Node,
+  typeGraph: ModuleScope,
+  currentScope: Scope | ModuleScope
+): Type => {
+  const typeScope = getTypeScope(currentScope);
+  let target = null;
+  let args = null;
+  switch (node.type) {
+    case NODE.EXPRESSION_STATEMENT:
+      return addCallToTypeGraph(node.expression, typeGraph, currentScope);
+    case NODE.RETURN_STATEMENT:
+    case NODE.UNARY_EXPRESSION:
+      args = [addCallToTypeGraph(node.argument, typeGraph, currentScope)];
+      target = typeScope.body.get(node.operator || "return");
+      break;
+    case NODE.BINARY_EXPRESSION:
+    case NODE.LOGICAL_EXPRESSION:
+      args = [
+        addCallToTypeGraph(node.left, typeGraph, currentScope),
+        addCallToTypeGraph(node.right, typeGraph, currentScope)
+      ];
+      target = typeScope.body.get(node.operator);
+      break;
+    case NODE.ASSIGNMENT_EXPRESSION:
+      args = [
+        getTypeForNode(node.left, typeGraph, currentScope),
+        addCallToTypeGraph(node.right, typeGraph, currentScope)
+      ];
+      target = typeScope.body.get(node.operator);
+      break;
+    case NODE.CONDITIONAL_EXPRESSION:
+      args = [
+        addCallToTypeGraph(node.test, typeGraph, currentScope),
+        addCallToTypeGraph(node.conseqent, typeGraph, currentScope),
+        addCallToTypeGraph(node.alternate, typeGraph, currentScope)
+      ];
+      target = typeScope.body.get("?:");
+      break;
+    case NODE.CALL_EXPRESSION:
+      args = node.arguments.map(n =>
+        addCallToTypeGraph(n, typeGraph, currentScope)
+      );
+      target = typeScope.body.get(node.callee);
+      break;
+    default:
+      return getTypeForNode(node, typeGraph, currentScope);
+  }
+  if (!(target instanceof VariableInfo)) {
+    throw new Error("Never!");
+  }
+  currentScope.calls.push(new CallMeta(target.type, args, node.loc));
+  return getInvocationType(target);
+};
+
+const getTypeFromInit = (
+  currentInit: Node,
+  parentNode: Node,
+  typeGraph: ModuleScope,
+  defaultType: Type
+): Type => {
+  switch (currentInit.type) {
+    case NODE.OBJECT_EXPRESSION:
+      return ObjectType.createTypeWithName(
+        UNDEFINED_TYPE,
+        typeGraph.body.get(TYPE_SCOPE),
+        currentInit.properties.reduce(
+          (types, field) =>
+            types.concat([
+              [
+                field.key.name,
+                getVariableInfoFromDelcaration(
+                  field.value || field,
+                  parentNode,
+                  typeGraph
+                )
+              ]
+            ]),
+          []
+        )
+      );
     default:
       return defaultType;
   }
@@ -183,7 +267,7 @@ const getVariableInfoFromDelcaration = (
       ? parent
       : getParentFromNode(currentNode, parent, typeGraph);
   return new VariableInfo(
-    /*type:*/ getTypeForNode(currentNode, typeGraph, parent),
+    /*type:*/ addCallToTypeGraph(currentNode, typeGraph, parentScope),
     parentScope,
     /*meta:*/ new Meta(currentNode.loc)
   );
@@ -345,6 +429,14 @@ const fillModuleScope = (typeGraph: ModuleScope) => {
     meta?: Object = {}
   ) {
     switch (currentNode.type) {
+      case NODE.RETURN_STATEMENT:
+      case NODE.EXPRESSION_STATEMENT:
+        addCallToTypeGraph(
+          currentNode,
+          typeGraph,
+          getParentFromNode(currentNode, parentNode, typeGraph)
+        );
+        break;
       case NODE.TYPE_ALIAS:
         addTypeAlias(currentNode, typeGraph);
         break;
@@ -396,9 +488,6 @@ const fillModuleScope = (typeGraph: ModuleScope) => {
       case NODE.CLASS_DECLARATION:
       case NODE.FUNCTION_DECLARATION:
         addFunctionToTypeGraph(currentNode, parentNode, typeGraph, meta);
-        if (currentNode.body.type === NODE.BLOCK_STATEMENT) {
-          currentNode.body.body.forEach(node => filler(node, currentNode, meta));
-        }
         break;
     }
   };
@@ -407,10 +496,8 @@ const fillModuleScope = (typeGraph: ModuleScope) => {
 const createModuleScope = (ast: Program): ModuleScope => {
   const result = new ModuleScope();
   const typeScope = new Scope("block", result);
-  const callScope = new Scope("block", result);
-  // mixBaseOperators(typeScope);
+  mixBaseOperators(typeScope);
   result.body.set(TYPE_SCOPE, typeScope);
-  result.body.set(CALLS_SCOPE, typeScope);
   traverseTree(ast, fillModuleScope(result));
   return result;
 };

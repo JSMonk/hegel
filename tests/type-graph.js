@@ -1,4 +1,4 @@
-const babylon = require("@babel/parser");
+const prepareAST = require("./preparation");
 const createTypeGraph = require("../build/type/type-graph").default;
 const {
   Type,
@@ -10,13 +10,6 @@ const {
   UNDEFINED_TYPE,
   TYPE_SCOPE
 } = require("../build/type/types");
-
-const babelrc = {
-  sourceType: "module",
-  plugins: ["flow"]
-};
-
-const prepareAST = source => babylon.parse(source, babelrc).program;
 
 describe("Simple global variable nodes", () => {
   test("Creating global module variable with number type", () => {
@@ -1185,7 +1178,6 @@ describe("Generic types", () => {
       const actualTypeAlias = typeScope.body.get("A");
       const actualGenericType = actualTypeAlias.type;
       expect(actualTypeAlias).not.toBe(undefined);
-      expect(actualGenericType.localTypeScope.body.size).toEqual(1);
       expect(actualGenericType.localTypeScope.body.get("T")).not.toBe(
         undefined
       );
@@ -1199,7 +1191,6 @@ describe("Generic types", () => {
       const actualTypeAlias = typeScope.body.get("A");
       const actualGenericType = actualTypeAlias.type;
       expect(actualTypeAlias).not.toBe(undefined);
-      expect(actualGenericType.localTypeScope.body.size).toEqual(2);
       expect(actualGenericType.localTypeScope.body.get("T")).not.toBe(
         undefined
       );
@@ -1217,7 +1208,6 @@ describe("Generic types", () => {
       const actualGenericType = actualTypeAlias.type;
       const actualTypeT = actualGenericType.localTypeScope.body.get("T");
       expect(actualTypeAlias).not.toBe(undefined);
-      expect(actualGenericType.localTypeScope.body.size).toEqual(2);
       expect(actualTypeT).not.toBe(undefined);
       expect(actualTypeT.type).toEqual(new Type("number"));
     });
@@ -1231,7 +1221,6 @@ describe("Generic types", () => {
       const actualFunctionType = actual.body.get("a");
       const actualGenericType = actualFunctionType.type;
       expect(actualFunctionType).not.toBe(undefined);
-      expect(actualGenericType.localTypeScope.body.size).toEqual(1);
       expect(actualGenericType.localTypeScope.body.get("T")).not.toBe(
         undefined
       );
@@ -1244,7 +1233,6 @@ describe("Generic types", () => {
       const actualFunctionType = actual.body.get("a");
       const actualGenericType = actualFunctionType.type;
       expect(actualFunctionType).not.toBe(undefined);
-      expect(actualGenericType.localTypeScope.body.size).toEqual(2);
       expect(actualGenericType.localTypeScope.body.get("T")).not.toBe(
         undefined
       );
@@ -1261,7 +1249,6 @@ describe("Generic types", () => {
       const actualGenericType = actualFunctionType.type;
       const actualTypeT = actualGenericType.localTypeScope.body.get("T");
       expect(actualFunctionType).not.toBe(undefined);
-      expect(actualGenericType.localTypeScope.body.size).toEqual(2);
       expect(actualTypeT).not.toBe(undefined);
       expect(actualTypeT.type).toEqual(new Type("string"));
     });
@@ -1275,7 +1262,6 @@ describe("Generic types", () => {
       const actualGenericType = actualFunctionType.type;
       const actualTypeT = actualGenericType.localTypeScope.body.get("T");
       expect(actualFunctionType).not.toBe(undefined);
-      expect(actualGenericType.localTypeScope.body.size).toEqual(1);
       expect(actualTypeT).not.toBe(undefined);
     });
   });
