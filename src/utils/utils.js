@@ -93,7 +93,7 @@ export const getTypeFromTypeAnnotation = (
   }
   switch (typeAnnotation.typeAnnotation.type) {
     case NODE.ANY_TYPE_ANNOTATION:
-      return Type.createTypeWithName("any", typeScope);
+        throw new HegelError(`There is no "any" type in Hegel.`, typeAnnotation.loc);
     case NODE.VOID_TYPE_ANNOTATION:
       return Type.createTypeWithName("void", typeScope);
     case NODE.BOOLEAN_TYPE_ANNOTATION:
