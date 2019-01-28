@@ -67,7 +67,8 @@ export const ANNOTATION_TYPES = {
   OBJECT_TYPE_ANNOTATION: "ObjectTypeAnnotation",
   OBJECT_TYPE_PROPERTY: "ObjectTypeProperty",
   UNION_TYPE_ANNOTATION: "UnionTypeAnnotation",
-  NULLABLE_TYPE_ANNOTATION: "NullableTypeAnnotation"
+  NULLABLE_TYPE_ANNOTATION: "NullableTypeAnnotation",
+  TUPLE_TYPE_ANNOTATION: "TupleTypeAnnotation"
 };
 
 const INITIALIZATION_TYPES = {

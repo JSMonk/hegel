@@ -1,22 +1,48 @@
+import { findVariableInfo, getFunctionTypeLiteral } from "./utils";
 import {
   Type,
   GenericType,
   FunctionType,
+  UnionType,
   VariableInfo,
   ModuleScope,
   ZeroLocation,
+  Scope,
   Meta
 } from "../type/types";
-import GteDeclaration from "./generics/gte";
-import AwaitDeclaration from "./generics/await";
-import LogicDeclaration from "./generics/logic";
-import EqualsDeclaration from "./generics/equals";
-import TernaryDeclaration from "./generics/ternary";
-import AssignmentDeclaration from "./generics/assign";
 
 const operatorModuleScope = new ModuleScope();
 
 const zeroMetaLocation = new Meta(ZeroLocation);
+
+const genericFunction = (
+  typeScope,
+  genericArguments,
+  getTypeParameters,
+  getReturnType
+) => {
+  const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
+  genericArguments.forEach(([key, type]) => {
+    localTypeScope.body.set(
+      key,
+      new VariableInfo(type, localTypeScope, ZeroLocation)
+    );
+  });
+  const parametersTypes = getTypeParameters(localTypeScope);
+  const returnType = getReturnType(localTypeScope);
+  return GenericType.createTypeWithName(
+    getFunctionTypeLiteral(parametersTypes, returnType, genericArguments),
+    typeScope,
+    genericArguments,
+    localTypeScope,
+    FunctionType.createTypeWithName(
+      getFunctionTypeLiteral(parametersTypes, returnType),
+      localTypeScope,
+      parametersTypes,
+      returnType
+    )
+  );
+};
 
 const mixBaseOperators = typeScope => {
   if (!operatorModuleScope.body.size) {
@@ -85,94 +111,86 @@ const mixBaseOperators = typeScope => {
             Type.createTypeWithName("undefined", typeScope)
           )
         ],
-        [
-          "await",
-          GenericType.createTypeWithName(
-            "<T>(Promise<T>) => <T>",
-            typeScope,
-            AwaitDeclaration.typeParameters.params,
-            typeScope,
-            AwaitDeclaration
-          )
-        ],
+        // [
+        // "await",
+        // genericFunction(typeScope, [["T", new Type("T")]], [[]]),
+        // GenericType.createTypeWithName(
+        //   "<T>(Promise<T>) => <T>",
+        //   typeScope,
+        //   typeScope,
+        //   AwaitDeclaration
+        // )
+        // ],
         [
           "==",
-          GenericType.createTypeWithName(
-            "<T>(T, T) => boolean",
+          genericFunction(
             typeScope,
-            EqualsDeclaration.typeParameters.params,
-            typeScope,
-            EqualsDeclaration
+            [["T", new Type("T")]],
+            l => [l.body.get("T").type, l.body.get("T").type],
+            l => Type.createTypeWithName("boolean", l)
           )
         ],
         [
           "===",
-          GenericType.createTypeWithName(
-            "<T>(T, T) => boolean",
+          genericFunction(
             typeScope,
-            EqualsDeclaration.typeParameters.params,
-            typeScope,
-            EqualsDeclaration
+            [["T", new Type("T")]],
+            l => [l.body.get("T").type, l.body.get("T").type],
+            l => Type.createTypeWithName("boolean", l)
           )
         ],
         [
           "!==",
-          GenericType.createTypeWithName(
-            "<T>(T, T) => boolean",
+          genericFunction(
             typeScope,
-            EqualsDeclaration.typeParameters.params,
-            typeScope,
-            EqualsDeclaration
+            [["T", new Type("T")]],
+            l => [l.body.get("T").type, l.body.get("T").type],
+            l => Type.createTypeWithName("boolean", l)
           )
         ],
         [
           "!=",
-          GenericType.createTypeWithName(
-            "<T>(T, T) => boolean",
+          genericFunction(
             typeScope,
-            EqualsDeclaration.typeParameters.params,
-            typeScope,
-            EqualsDeclaration
+            [["T", new Type("T")]],
+            l => [l.body.get("T").type, l.body.get("T").type],
+            l => Type.createTypeWithName("boolean", l)
           )
         ],
         [
           ">=",
-          GenericType.createTypeWithName(
-            "<T>(T, T) => boolean",
+          genericFunction(
             typeScope,
-            GteDeclaration.typeParameters.params,
-            typeScope,
-            GteDeclaration
+            [["T", new Type("T")]],
+            l => [l.body.get("T").type, l.body.get("T").type],
+            l => Type.createTypeWithName("boolean", l)
           )
         ],
         [
           "<=",
-          GenericType.createTypeWithName(
-            "<T>(T, T) => boolean",
+          genericFunction(
             typeScope,
-            GteDeclaration.typeParameters.params,
-            typeScope,
-            GteDeclaration
+            [["T", new Type("T")]],
+            l => [l.body.get("T").type, l.body.get("T").type],
+            l => Type.createTypeWithName("boolean", l)
           )
         ],
         [
           ">",
-          GenericType.createTypeWithName(
-            "<T>(T, T) => boolean",
+          genericFunction(
             typeScope,
-            GteDeclaration.typeParameters.params,
-            typeScope,
-            GteDeclaration
+            [["T", new Type("T")]],
+            l => [l.body.get("T").type, l.body.get("T").type],
+            l => Type.createTypeWithName("boolean", l)
           )
         ],
         [
           "<",
-          GenericType.createTypeWithName(
-            "<T>(T, T) => boolean",
+          genericFunction(
             typeScope,
-            GteDeclaration.typeParameters.params,
-            typeScope,
-            GteDeclaration
+            [["T", new Type("T")]],
+            l => [l.body.get("T").type, l.body.get("T").type],
+            l => Type.createTypeWithName("boolean", l)
           )
         ],
         [
@@ -345,12 +363,11 @@ const mixBaseOperators = typeScope => {
         ],
         [
           "=",
-          GenericType.createTypeWithName(
-            "<T>(T, T) => boolean",
+          genericFunction(
             typeScope,
-            AssignmentDeclaration.typeParameters.params,
-            typeScope,
-            AssignmentDeclaration
+            [["T", new Type("T")]],
+            l => [l.body.get("T").type, l.body.get("T").type],
+            l => l.body.get("T").type
           )
         ],
         [
@@ -525,32 +542,41 @@ const mixBaseOperators = typeScope => {
         [
           // Logical
           "&&",
-          GenericType.createTypeWithName(
-            "<A, B>(A, B) => A | B",
+          genericFunction(
             typeScope,
-            LogicDeclaration.typeParameters.params,
-            typeScope,
-            LogicDeclaration
+            [["A", new Type("A")], ["B", new Type("B")]],
+            l => [l.body.get("A").type, l.body.get("B").type],
+            l =>
+              UnionType.createTypeWithName("A | B", l, [
+                l.body.get("A").type,
+                l.body.get("B").type
+              ])
           )
         ],
         [
           "||",
-          GenericType.createTypeWithName(
-            "<A, B>(A, B) => A | B",
+          genericFunction(
             typeScope,
-            LogicDeclaration.typeParameters.params,
-            typeScope,
-            LogicDeclaration
+            [["A", new Type("A")], ["B", new Type("B")]],
+            l => [l.body.get("A").type, l.body.get("B").type],
+            l =>
+              UnionType.createTypeWithName("A | B", l, [
+                l.body.get("A").type,
+                l.body.get("B").type
+              ])
           )
         ],
         [
           "?:",
-          GenericType.createTypeWithName(
-            "<A, B>(A, B) => A | B",
+          genericFunction(
             typeScope,
-            TernaryDeclaration.typeParameters.params,
-            typeScope,
-            TernaryDeclaration
+            [["A", new Type("A")], ["B", new Type("B")]],
+            l => [l.body.get("A").type, l.body.get("B").type],
+            l =>
+              UnionType.createTypeWithName("A | B", l, [
+                l.body.get("A").type,
+                l.body.get("B").type
+              ])
           )
         ],
         [
@@ -558,9 +584,7 @@ const mixBaseOperators = typeScope => {
           FunctionType.createTypeWithName(
             "(mixed) => mixed",
             typeScope,
-            [
-              Type.createTypeWithName("mixed", typeScope),
-            ],
+            [Type.createTypeWithName("mixed", typeScope)],
             Type.createTypeWithName("mixed", typeScope)
           )
         ]
@@ -570,7 +594,7 @@ const mixBaseOperators = typeScope => {
       ])
     );
     operatorModuleScope.body = operators;
-  }
+  } 
   typeScope.body = new Map([...typeScope.body, ...operatorModuleScope.body]);
   return operatorModuleScope;
 };

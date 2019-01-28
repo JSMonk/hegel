@@ -1,10 +1,12 @@
 // @flow
 import traverseTree from "../utils/traverse";
 import NODE from "../utils/nodes";
-import { Option } from "../utils/option";
+import mixBaseGlobals from "../utils/globals";
 import mixBaseOperators from "../utils/operators";
+import { Option } from "../utils/option";
 import {
   findVariableInfo,
+  getNameForType,
   getInvocationType,
   getTypeFromTypeAnnotation,
   getFunctionTypeLiteral
@@ -87,11 +89,7 @@ const getTypeForNode = (
     case NODE.REG_EXP_LITERAL:
       return ObjectType.createTypeWithName("RegExp", parentNode);
     case NODE.IDENTIFIER:
-      const [variableInfo] = findVariableInfo(
-        currentNode,
-        parentNode,
-        typeGraph
-      );
+      const variableInfo = findVariableInfo(currentNode, parentNode);
       return variableInfo.type;
     case NODE.OBJECT_EXPRESSION:
       return getTypeFromInit(currentNode, parentNode, typeGraph, defaultType);
@@ -106,27 +104,45 @@ const getTypeForNode = (
     case NODE.FUNCTION_DECLARATION:
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
+      const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
+      const shouldBeGeneric =
+        currentNode.typeParameters &&
+        currentNode.typeParameters.params.some(({ bound }) => !bound);
+      const usedTypeScope = currentNode.typeParameters
+        ? localTypeScope
+        : typeScope;
+      const genericArguments =
+        currentNode.typeParameters &&
+        currentNode.typeParameters.params.map(typeAnnotation =>
+          getTypeFromTypeAnnotation({ typeAnnotation }, localTypeScope)
+        );
       const params = currentNode.params.map(a =>
-        getTypeFromTypeAnnotation(a.typeAnnotation, typeScope)
+        getTypeFromTypeAnnotation(a.typeAnnotation, usedTypeScope, false)
       );
       const returnType = getTypeFromTypeAnnotation(
         currentNode.returnType,
-        typeScope
+        usedTypeScope,
+        false
       );
-      const typeName = getFunctionTypeLiteral(params, returnType);
-      return currentNode.typeParameters
-        ? GenericType.createTypeWithName(
-            currentNode.id ? currentNode.id.name : typeName,
-            typeScope,
-            currentNode.typeParameters.params,
-            typeScope,
-            Object.assign(currentNode, { type: NODE.FUNCTION_TYPE_ANNOTATION })
-          )
-        : FunctionType.createTypeWithName(
+      const typeName = getFunctionTypeLiteral(
+        params,
+        returnType,
+        shouldBeGeneric ? genericArguments : []
+      );
+      const type = FunctionType.createTypeWithName(
+        typeName,
+        shouldBeGeneric ? usedTypeScope : typeScope,
+        params,
+        returnType
+      );
+      return !shouldBeGeneric
+        ? type
+        : GenericType.createTypeWithName(
             typeName,
             typeScope,
-            params,
-            returnType
+            genericArguments,
+            localTypeScope,
+            type
           );
     default:
       return defaultType;
@@ -403,15 +419,37 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
     );
   }
   const genericNode = getGenericNode(node);
-  const typeFor = genericNode
-    ? GenericType.createTypeWithName(
-        node.id.name,
-        typeScope,
-        genericNode.typeParameters.params,
-        typeScope,
-        node.right
-      )
-    : getTypeFromTypeAnnotation({ typeAnnotation: node.right }, typeScope);
+  const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
+  const shouldBeGeneric =
+    genericNode &&
+    genericNode.typeParameters.params.some(({ bound }) => !bound);
+  const usedTypeScope = genericNode ? localTypeScope : typeScope;
+  const genericArguments =
+    genericNode &&
+    genericNode.typeParameters.params.map(typeAnnotation =>
+      getTypeFromTypeAnnotation({ typeAnnotation }, localTypeScope)
+    );
+  const type = getTypeFromTypeAnnotation(
+    { typeAnnotation: node.right },
+    usedTypeScope,
+    false
+  );
+  const typeFor =
+    shouldBeGeneric && genericArguments
+      ? GenericType.createTypeWithName(
+          node.id.name,
+          typeScope,
+          genericArguments,
+          localTypeScope,
+          type
+        )
+      : type;
+  if (!shouldBeGeneric) {
+    typeScope.body.set(
+      getNameForType(type),
+      new VariableInfo(typeFor, typeScope, new Meta(node.loc))
+    );
+  }
   typeScope.body.set(
     node.id.name,
     new VariableInfo(typeFor, typeScope, new Meta(node.loc))
@@ -497,6 +535,7 @@ const createModuleScope = (ast: Program): ModuleScope => {
   const result = new ModuleScope();
   const typeScope = new Scope("block", result);
   mixBaseOperators(typeScope);
+  mixBaseGlobals(typeScope);
   result.body.set(TYPE_SCOPE, typeScope);
   traverseTree(ast, fillModuleScope(result));
   return result;

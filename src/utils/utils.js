@@ -1,8 +1,12 @@
 // @flow
 import NODE from "./nodes";
 import HegelError from "./errors";
-import type { Node } from "@babel/parser";
-import type { TypeAnnotation, TypeParameter } from "@babel/parser";
+import type {
+  Node,
+  SourceLocation,
+  TypeAnnotation,
+  TypeParameter
+} from "@babel/parser";
 import {
   Scope,
   VariableInfo,
@@ -11,32 +15,30 @@ import {
   ObjectType,
   UnionType,
   GenericType,
+  TupleType,
   Type,
   TYPE_SCOPE,
   Meta,
   UNDEFINED_TYPE
 } from "../type/types";
 
+export const getNameForType = (type: Type): string =>
+  typeof type.name === "string" &&
+  type.isLiteralOf &&
+  !(type instanceof ObjectType) &&
+  !(type instanceof FunctionType)
+    ? `'${String(type.name)}'`
+    : String(type.name);
+
 export const findVariableInfo = (
-  { name, loc }: Node,
-  parentContext: ModuleScope | Scope,
-  moduleContext: ModuleScope
-): [VariableInfo, ?VariableInfo] => {
+  { name, loc }: { name: string, loc?: SourceLocation },
+  parentContext: ModuleScope | Scope
+): VariableInfo => {
   let parent = parentContext;
-  const typeScope = moduleContext.body.get(TYPE_SCOPE);
-  if (!(typeScope instanceof Scope)) {
-    throw new Error("Impossible thing!");
-  }
   do {
     const variableInfo = parent.body.get(name);
     if (variableInfo && variableInfo instanceof VariableInfo) {
-      const typeAlias =
-        typeScope &&
-        typeScope.body.get(/*::String(*/ variableInfo.type.name /*::)*/);
-      if (!(typeAlias instanceof VariableInfo)) {
-        return [variableInfo, null];
-      }
-      return [variableInfo, typeAlias];
+      return variableInfo;
     }
     parent = parent.parent;
   } while (parent);
@@ -50,14 +52,6 @@ export const getInvocationType = (variable: VariableInfo): Type => {
   return variable.type;
 };
 
-export const getNameForType = (type: Type): string =>
-  typeof type.name === "string" &&
-  type.isLiteral &&
-  !(type instanceof ObjectType) &&
-  !(type instanceof FunctionType)
-    ? `'${String(type.name)}'`
-    : String(type.name);
-
 export const getFunctionTypeLiteral = (
   params: Array<Type>,
   returnType: Type,
@@ -66,22 +60,35 @@ export const getFunctionTypeLiteral = (
   `${
     genericParams.length
       ? `<${genericParams.reduce(
-          (res, t) => `{res}${res ? ", " : ""}${t.name}`,
+          (res, t) => `${res}${res ? ", " : ""}${t.name}`,
           ""
         )}>`
       : ""
   }(${params.map(getNameForType).join(", ")}) => ${String(returnType.name)}`;
 
-export const getObjectTypeLiteral = (params: Array<[string, Type]>) =>
+export const getObjectTypeLiteral = (
+  /* $FlowIssue - Union type is principal type */
+  params: Array<[string, Type]> | Array<[string, VariableInfo]>
+) =>
   `{ ${params
     .sort(([name1], [name2]) => name1.localeCompare(name2))
-    .map(([name, type]) => `${name}: ${getNameForType(type)}`)
+    .map(
+      ([name, type]) =>
+        `${name}: ${getNameForType(
+          type instanceof VariableInfo ? type.type : type
+        )}`
+    )
     .join(", ")} }`;
 
 export const getUnionTypeLiteral = (params: Array<Type>) =>
   `${params
     .sort((t1, t2) => getNameForType(t1).localeCompare(getNameForType(t2)))
     .reduce((res, t) => `${res}${res ? " | " : ""}${getNameForType(t)}`, "")}`;
+
+export const getTupleTypeLiteral = (params: Array<Type>) =>
+  `[${params
+    .sort((t1, t2) => getNameForType(t1).localeCompare(getNameForType(t2)))
+    .reduce((res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`, "")}]`;
 
 export const getTypeFromTypeAnnotation = (
   typeAnnotation: ?TypeAnnotation,
@@ -93,7 +100,10 @@ export const getTypeFromTypeAnnotation = (
   }
   switch (typeAnnotation.typeAnnotation.type) {
     case NODE.ANY_TYPE_ANNOTATION:
-        throw new HegelError(`There is no "any" type in Hegel.`, typeAnnotation.loc);
+      throw new HegelError(
+        'There is no "any" type in Hegel.',
+        typeAnnotation.typeAnnotation.loc
+      );
     case NODE.VOID_TYPE_ANNOTATION:
       return Type.createTypeWithName("void", typeScope);
     case NODE.BOOLEAN_TYPE_ANNOTATION:
@@ -107,39 +117,75 @@ export const getTypeFromTypeAnnotation = (
     case NODE.STRING_TYPE_ANNOTATION:
       return Type.createTypeWithName("string", typeScope);
     case NODE.NULL_LITERAL_TYPE_ANNOTATION:
-      return Type.createTypeWithName(null, typeScope, { isLiteral: true });
+      return Type.createTypeWithName(null, typeScope);
+    case NODE.NUBMER_LITERAL_TYPE_ANNOTATION:
+      return Type.createTypeWithName(
+        typeAnnotation.typeAnnotation.value,
+        typeScope,
+        { isLiteralOf: Type.createTypeWithName("number", typeScope) }
+      );
+    case NODE.BOOLEAN_LITERAL_TYPE_ANNOTATION:
+      return Type.createTypeWithName(
+        typeAnnotation.typeAnnotation.value,
+        typeScope,
+        { isLiteralOf: Type.createTypeWithName("boolean", typeScope) }
+      );
+    case NODE.STRING_LITERAL_TYPE_ANNOTATION:
+      return Type.createTypeWithName(
+        typeAnnotation.typeAnnotation.value,
+        typeScope,
+        { isLiteralOf: Type.createTypeWithName("string", typeScope) }
+      );
     case NODE.NULLABLE_TYPE_ANNOTATION:
       const resultType = getTypeFromTypeAnnotation(
         typeAnnotation.typeAnnotation,
         typeScope
       );
-      return Type.createTypeWithName(
-        `?${getNameForType(resultType)}`,
+      return UnionType.createTypeWithName(
+        `${getNameForType(resultType)} | null`,
         typeScope,
-        { isNullable: true }
+        [resultType, Type.createTypeWithName(null, typeScope)]
       );
     case NODE.UNION_TYPE_ANNOTATION:
-      const variants = typeAnnotation.typeAnnotation.types.map(typeAnnotation =>
-        getTypeFromTypeAnnotation({ typeAnnotation }, typeScope)
+      const unionVariants = typeAnnotation.typeAnnotation.types.map(
+        typeAnnotation =>
+          getTypeFromTypeAnnotation({ typeAnnotation }, typeScope)
       );
       return UnionType.createTypeWithName(
-        getUnionTypeLiteral(variants),
+        getUnionTypeLiteral(unionVariants),
         typeScope,
-        variants
+        unionVariants
+      );
+    case NODE.TUPLE_TYPE_ANNOTATION:
+      const tupleVariants = typeAnnotation.typeAnnotation.types.map(
+        typeAnnotation =>
+          getTypeFromTypeAnnotation({ typeAnnotation }, typeScope)
+      );
+      return TupleType.createTypeWithName(
+        getTupleTypeLiteral(tupleVariants),
+        typeScope,
+        tupleVariants
       );
     case NODE.TYPE_PARAMETER:
-      if (typeAnnotation.typeAnnotation.bound) {
-        return getTypeFromTypeAnnotation(
+      const bound =
+        typeAnnotation.typeAnnotation.bound &&
+        getTypeFromTypeAnnotation(
           typeAnnotation.typeAnnotation.bound,
           typeScope,
           rewritable
         );
-      } else {
-        return Type.createTypeWithName(
+      if (bound) {
+        typeScope.body.set(
           typeAnnotation.typeAnnotation.name,
-          typeScope
+          /*::(*/ typeScope.body.get(getNameForType(bound)) /*:: :any)*/
         );
+        return bound;
       }
+      return Type.createTypeWithName(
+        typeAnnotation.typeAnnotation.name,
+        typeScope,
+        rewritable
+      );
     case NODE.GENERIC_TYPE_ANNOTATION:
       const genericArguments =
         typeAnnotation.typeAnnotation.typeParameters &&
@@ -172,16 +218,6 @@ export const getTypeFromTypeAnnotation = (
         return /*::(*/ typeScope.body.get(genericName) /*:: :any)*/.type;
       }
       return Type.createTypeWithName(genericName, typeScope);
-    case NODE.NUBMER_LITERAL_TYPE_ANNOTATION:
-    case NODE.BOOLEAN_LITERAL_TYPE_ANNOTATION:
-    case NODE.STRING_LITERAL_TYPE_ANNOTATION:
-      return Type.createTypeWithName(
-        typeAnnotation.typeAnnotation.value,
-        typeScope,
-        {
-          isLiteral: true
-        }
-      );
     case NODE.FUNCTION_TYPE_ANNOTATION:
       const args = typeAnnotation.typeAnnotation.params.map(annotation =>
         getTypeFromTypeAnnotation(annotation, typeScope, rewritable)

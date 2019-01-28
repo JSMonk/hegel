@@ -1,9 +1,11 @@
 const prepareAST = require("./preparation");
+const HegelError = require("../build/utils/errors").default;
 const createTypeGraph = require("../build/type/type-graph").default;
 const {
   Type,
   ObjectType,
   FunctionType,
+  GenericType,
   UnionType,
   VariableInfo,
   AliasInfo,
@@ -60,12 +62,16 @@ describe("Simple global variable nodes", () => {
     const sourceAST = prepareAST(`
       const a: any = 2;
     `);
-    const actual = createTypeGraph(sourceAST);
-    const expected = expect.objectContaining({
-      type: new Type("any"),
-      parent: actual
-    });
-    expect(actual.body.get("a")).toEqual(expected);
+    try {
+      createTypeGraph(sourceAST);
+    } catch (e) {
+      expect(e.constructor).toEqual(HegelError);
+      expect(e.message).toEqual('There is no "any" type in Hegel.');
+      expect(e.loc).toEqual({
+        start: { line: 2, column: 15 },
+        end: { line: 2, column: 18 }
+      });
+    }
   });
   test("Creating global module variable with mixed type", () => {
     const sourceAST = prepareAST(`
@@ -84,7 +90,7 @@ describe("Simple global variable nodes", () => {
     `);
     const actual = createTypeGraph(sourceAST);
     const expected = expect.objectContaining({
-      type: new Type(null, { isLiteral: true }),
+      type: new Type(null),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -94,8 +100,9 @@ describe("Simple global variable nodes", () => {
       const a: 2 = 2;
     `);
     const actual = createTypeGraph(sourceAST);
+    const typeScope = actual.body.get(TYPE_SCOPE);
     const expected = expect.objectContaining({
-      type: new Type(2, { isLiteral: true }),
+      type: new Type(2, { isLiteralOf: typeScope.body.get("number").type }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -105,8 +112,9 @@ describe("Simple global variable nodes", () => {
       const a: '2' = '2';
     `);
     const actual = createTypeGraph(sourceAST);
+    const typeScope = actual.body.get(TYPE_SCOPE);
     const expected = expect.objectContaining({
-      type: new Type("2", { isLiteral: true }),
+      type: new Type("2", { isLiteralOf: typeScope.body.get("string").type }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -116,8 +124,11 @@ describe("Simple global variable nodes", () => {
       const a: false = false;
     `);
     const actual = createTypeGraph(sourceAST);
+    const typeScope = actual.body.get(TYPE_SCOPE);
     const expected = expect.objectContaining({
-      type: new Type(false, { isLiteral: true }),
+      type: new Type(false, {
+        isLiteralOf: typeScope.body.get("boolean").type
+      }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -825,21 +836,23 @@ describe("Unnamed object types", () => {
     const sourceAST = prepareAST(`
       const a: { n: any } = { n: null };
     `);
-    const actual = createTypeGraph(sourceAST);
-    const actualA = actual.body.get("a");
-    const expectedA = expect.objectContaining({
-      parent: actual,
-      type: new ObjectType("{ n: any }", [
-        ["n", new VariableInfo(new Type("any"), undefined, actualA.meta)]
-      ])
-    });
-    expect(actualA).toEqual(expectedA);
+    try {
+      createTypeGraph(sourceAST);
+    } catch (e) {
+      expect(e.constructor).toEqual(HegelError);
+      expect(e.message).toEqual('There is no "any" type in Hegel.');
+      expect(e.loc).toEqual({
+        start: { line: 2, column: 20 },
+        end: { line: 2, column: 23 }
+      });
+    }
   });
   test("Literal number inside object type", () => {
     const sourceAST = prepareAST(`
       const a: { n: 2 } = { n: 2 };
     `);
     const actual = createTypeGraph(sourceAST);
+    const typeScope = actual.body.get(TYPE_SCOPE);
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
@@ -847,7 +860,7 @@ describe("Unnamed object types", () => {
         [
           "n",
           new VariableInfo(
-            new Type(2, { isLiteral: true }),
+            new Type(2, { isLiteralOf: typeScope.body.get("number").type }),
             undefined,
             actualA.meta
           )
@@ -861,6 +874,7 @@ describe("Unnamed object types", () => {
       const a: { n: '' } = { n: '' };
     `);
     const actual = createTypeGraph(sourceAST);
+    const typeScope = actual.body.get(TYPE_SCOPE);
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
@@ -868,7 +882,7 @@ describe("Unnamed object types", () => {
         [
           "n",
           new VariableInfo(
-            new Type("", { isLiteral: true }),
+            new Type("", { isLiteralOf: typeScope.body.get("string").type }),
             undefined,
             actualA.meta
           )
@@ -882,6 +896,7 @@ describe("Unnamed object types", () => {
       const a: { n: true } = { n: true };
     `);
     const actual = createTypeGraph(sourceAST);
+    const typeScope = actual.body.get(TYPE_SCOPE);
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
@@ -889,7 +904,7 @@ describe("Unnamed object types", () => {
         [
           "n",
           new VariableInfo(
-            new Type(true, { isLiteral: true }),
+            new Type(true, { isLiteralOf: typeScope.body.get("boolean").type }),
             undefined,
             actualA.meta
           )
@@ -907,14 +922,7 @@ describe("Unnamed object types", () => {
     const expectedA = expect.objectContaining({
       parent: actual,
       type: new ObjectType("{ n: null }", [
-        [
-          "n",
-          new VariableInfo(
-            new Type(null, { isLiteral: true }),
-            undefined,
-            actualA.meta
-          )
-        ]
+        ["n", new VariableInfo(new Type(null), undefined, actualA.meta)]
       ])
     });
     expect(actualA).toEqual(expectedA);
@@ -1063,11 +1071,11 @@ describe("Type alias", () => {
         type NumberAlias = 2;
       `);
       const actual = createTypeGraph(sourceAST);
-      const typeAlias = actual.body.get(TYPE_SCOPE);
-      const actualType = typeAlias.body.get("NumberAlias");
+      const typeScope = actual.body.get(TYPE_SCOPE);
+      const actualType = typeScope.body.get("NumberAlias");
       const expectedType = expect.objectContaining({
-        parent: typeAlias,
-        type: new Type(2, { isLiteral: true })
+        parent: typeScope,
+        type: new Type(2, { isLiteralOf: typeScope.body.get("number").type })
       });
       expect(actualType).toEqual(expectedType);
     });
@@ -1076,11 +1084,13 @@ describe("Type alias", () => {
         type BooleanAlias = false;
       `);
       const actual = createTypeGraph(sourceAST);
-      const typeAlias = actual.body.get(TYPE_SCOPE);
-      const actualType = typeAlias.body.get("BooleanAlias");
+      const typeScope = actual.body.get(TYPE_SCOPE);
+      const actualType = typeScope.body.get("BooleanAlias");
       const expectedType = expect.objectContaining({
-        parent: typeAlias,
-        type: new Type(false, { isLiteral: true })
+        parent: typeScope,
+        type: new Type(false, {
+          isLiteralOf: typeScope.body.get("boolean").type
+        })
       });
       expect(actualType).toEqual(expectedType);
     });
@@ -1089,11 +1099,11 @@ describe("Type alias", () => {
         type StringAlias = "";
       `);
       const actual = createTypeGraph(sourceAST);
-      const typeAlias = actual.body.get(TYPE_SCOPE);
-      const actualType = typeAlias.body.get("StringAlias");
+      const typeScope = actual.body.get(TYPE_SCOPE);
+      const actualType = typeScope.body.get("StringAlias");
       const expectedType = expect.objectContaining({
-        parent: typeAlias,
-        type: new Type("", { isLiteral: true })
+        parent: typeScope,
+        type: new Type("", { isLiteralOf: typeScope.body.get("string").type })
       });
       expect(actualType).toEqual(expectedType);
     });
@@ -1106,7 +1116,7 @@ describe("Type alias", () => {
       const actualType = typeAlias.body.get("NullAlias");
       const expectedType = expect.objectContaining({
         parent: typeAlias,
-        type: new Type(null, { isLiteral: true })
+        type: new Type(null)
       });
       expect(actualType).toEqual(expectedType);
     });
@@ -1205,11 +1215,12 @@ describe("Generic types", () => {
       const actual = createTypeGraph(sourceAST);
       const typeScope = actual.body.get(TYPE_SCOPE);
       const actualTypeAlias = typeScope.body.get("A");
-      const actualGenericType = actualTypeAlias.type;
-      const actualTypeT = actualGenericType.localTypeScope.body.get("T");
+      const actualAliasType = actualTypeAlias.type;
       expect(actualTypeAlias).not.toBe(undefined);
-      expect(actualTypeT).not.toBe(undefined);
-      expect(actualTypeT.type).toEqual(new Type("number"));
+      expect(actualAliasType.constructor).not.toBe(GenericType);
+      expect(actualAliasType.properties.get("a").type).toEqual(
+        new Type("number")
+      );
     });
   });
   describe("Function generic types", () => {
@@ -1245,12 +1256,17 @@ describe("Generic types", () => {
         function a<T: string>(b: T): T {}
       `);
       const actual = createTypeGraph(sourceAST);
-      const actualFunctionType = actual.body.get("a");
-      const actualGenericType = actualFunctionType.type;
-      const actualTypeT = actualGenericType.localTypeScope.body.get("T");
-      expect(actualFunctionType).not.toBe(undefined);
-      expect(actualTypeT).not.toBe(undefined);
-      expect(actualTypeT.type).toEqual(new Type("string"));
+      const actualFunction = actual.body.get("a");
+      const expectedFunction = expect.objectContaining({
+        parent: actual,
+        type: new FunctionType(
+          "(string) => string",
+          [new Type("string")],
+          new Type("string")
+        )
+      });
+      expect(actualFunction).not.toBe(undefined);
+      expect(actualFunction.type.constructor).not.toBe(GenericType);
     });
     test("Function type alias with generic", () => {
       const sourceAST = prepareAST(`

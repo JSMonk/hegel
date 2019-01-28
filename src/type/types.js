@@ -1,6 +1,14 @@
 // @flow
 import HegelError from "../utils/errors";
-import { getTypeFromTypeAnnotation, getNameForType } from "../utils/utils";
+import {
+  getTypeFromTypeAnnotation,
+  getNameForType,
+  getUnionTypeLiteral,
+  getTupleTypeLiteral,
+  getObjectTypeLiteral,
+  getFunctionTypeLiteral,
+  findVariableInfo
+} from "../utils/utils";
 import type {
   SourceLocation,
   TypeAnnotation,
@@ -31,11 +39,7 @@ export class CallMeta extends Meta {
   target: Type;
   arguments: Array<Type>;
 
-  constructor(
-    target: Type,
-    args: Array<Type>,
-    loc: SourceLocation
-  ) {
+  constructor(target: Type, args: Array<Type>, loc: SourceLocation) {
     super(loc);
     this.target = target;
     this.arguments = args;
@@ -53,20 +57,21 @@ export class ModuleScope {
 }
 
 type TypeMeta = {
-  isNullable?: boolean,
-  isOptional?: boolean,
-  isLiteral?: boolean
+  isLiteralOf?: Type
 };
 
 const createTypeWithName = <T: Type>(BaseType: Class<T>) => (
   name: string,
-  typeScope: Scope,
+  typeScope: Scope | ModuleScope,
   ...args
 ): T => {
   if (name === UNDEFINED_TYPE) {
     return new BaseType(name, ...args);
   }
-  let existedType = typeScope.body.get(name);
+  let existedType;
+  try {
+    existedType = findVariableInfo({ name }, typeScope);
+  } catch {}
   const newType = new BaseType(name, ...args);
   if (
     !existedType ||
@@ -86,25 +91,36 @@ export class Type {
   static createTypeWithName = createTypeWithName(Type);
 
   name: mixed;
-  isNullable: boolean;
-  isOptional: boolean;
-  isLiteral: boolean;
+  isLiteralOf: ?Type;
 
   constructor(name: mixed, meta?: TypeMeta = {}) {
+    const { isLiteralOf = null } = meta;
     this.name = name;
-    const { isLiteral = false, isOptional = false, isNullable = false } = meta;
-    this.isOptional = isOptional;
-    this.isNullable = isNullable;
-    this.isLiteral = isLiteral;
+    this.isLiteralOf = isLiteralOf;
+  }
+
+  changeAll(
+    sourceTypes: Array<Type>,
+    targetTypes: Array<Type>,
+    typeScope: Scope | ModuleScope
+  ) {
+    const indexOfNewType = sourceTypes.indexOf(this);
+    return indexOfNewType === -1 ? this : targetTypes[indexOfNewType];
   }
 
   equalsTo(anotherType: Type) {
     return (
       this.name === anotherType.name &&
-      this.isOptional === anotherType.isOptional &&
-      this.isNullable === anotherType.isNullable &&
-      this.isLiteral === anotherType.isLiteral
+      this.isLiteralOf === anotherType.isLiteralOf
     );
+  }
+
+  isSuperTypeFor(type: Type): boolean {
+    return type.isLiteralOf === this;
+  }
+
+  isPrincipalTypeFor(type: Type): boolean {
+    return this.equalsTo(type) || this.isSuperTypeFor(type);
   }
 }
 
@@ -113,13 +129,52 @@ export class ObjectType extends Type {
 
   properties: Map<string, VariableInfo>;
 
-  constructor(
-    name: string,
-    properties: Array<[string, VariableInfo]>,
-    meta?: TypeMeta = {}
-  ) {
-    super(name, { ...meta, isLiteral: true });
+  constructor(name: string, properties: Array<[string, VariableInfo]>) {
+    super(name);
     this.properties = new Map(properties);
+  }
+
+  isAllProperties(
+    predicate: "equalsTo" | "isSuperTypeFor",
+    anotherType: ObjectType
+  ): boolean {
+    for (const [key, { type }] of this.properties) {
+      const anotherPropertyType = anotherType.properties.get(key);
+      /* $FlowIssue - flow doesn't type methods by name */
+      if (!anotherPropertyType || !type[predicate](anotherPropertyType.type)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  changeAll(
+    sourceTypes: Array<Type>,
+    targetTypes: Array<Type>,
+    typeScope: Scope | ModuleScope
+  ): Type {
+    let isAnyPropertyChanged = false;
+    const newProperties: Array<[string, VariableInfo]> = [];
+    this.properties.forEach((vInfo, key) => {
+      const newType = vInfo.type.changeAll(sourceTypes, targetTypes, typeScope);
+      if (vInfo.type === newType) {
+        return newProperties.push([key, vInfo]);
+      }
+      isAnyPropertyChanged = true;
+      newProperties.push([
+        key,
+        new VariableInfo(newType, vInfo.parent, vInfo.meta)
+      ]);
+    });
+    if (!isAnyPropertyChanged) {
+      return this;
+    }
+    return ObjectType.createTypeWithName(
+      getObjectTypeLiteral(newProperties),
+      typeScope,
+      /* $FlowIssue - Couldn't inferece ObjectType */
+      newProperties
+    );
   }
 
   equalsTo(anotherType: Type) {
@@ -130,13 +185,15 @@ export class ObjectType extends Type {
     ) {
       return false;
     }
-    for (const [key, { type }] of this.properties) {
-      const anotherPropertyType = anotherType.properties.get(key);
-      if (!anotherPropertyType || !type.equalsTo(anotherPropertyType.type)) {
-        return false;
-      }
-    }
-    return true;
+    return this.isAllProperties("equalsTo", anotherType);
+  }
+
+  isSuperTypeFor(anotherType: Type): boolean {
+    return (
+      anotherType instanceof ObjectType &&
+      anotherType.properties.size >= this.properties.size &&
+      this.isAllProperties("isSuperTypeFor", anotherType)
+    );
   }
 }
 
@@ -144,42 +201,32 @@ export class GenericType extends Type {
   static createTypeWithName = createTypeWithName(GenericType);
 
   genericArguments: Array<Type>;
-  astTypeAnnotation: TypeAnnotation;
+  type: Type;
   localTypeScope: Scope;
-  parentTypeScope: Scope;
 
   constructor(
     name: string,
     genericArguments: Array<TypeParameter | Type>,
     typeScope: Scope,
-    astTypeAnnotation: TypeAnnotation,
-    meta?: TypeMeta
+    type: Type
   ) {
-    super(name, meta);
-    this.parentTypeScope = typeScope;
-    this.astTypeAnnotation = astTypeAnnotation;
-    this.localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
-    this.localTypeScope.body = new Map(typeScope.body);
-    if (genericArguments.length && genericArguments[0] instanceof Type) {
-      this.genericArguments = genericArguments;
-    } else {
-      this.genericArguments = genericArguments.map((type: TypeParameter) => {
-        const paramType = getTypeFromTypeAnnotation(
-          { typeAnnotation: type },
-          this.localTypeScope
-        );
-        if (type.bound) {
-          this.localTypeScope.body.set(
-            type.name,
-            new VariableInfo(paramType, this.localTypeScope, new Meta(type.loc))
-          );
-        }
-        return paramType;
-      });
-    }
+    super(name);
+    this.type = type;
+    this.localTypeScope = typeScope;
+    this.genericArguments = genericArguments;
   }
 
-  applyGeneric(parameters: Array<Type>, loc: SourceLocation): Type {
+  equalsTo(anotherType: Type): boolean {
+    if (anotherType instanceof GenericType) {
+    }
+    return true;
+  }
+
+  applyGeneric(
+    parameters: Array<Type>,
+    loc: SourceLocation,
+    shouldBeMemoize: boolean = true
+  ): Type {
     if (parameters.length !== this.genericArguments.length) {
       throw new HegelError(
         `Generic '${String(
@@ -194,34 +241,23 @@ export class GenericType extends Type {
       (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
       ""
     )}>`;
-    const existedType = this.parentTypeScope.body.get(appliedTypeName);
+    const existedType = this.localTypeScope.parent.body.get(appliedTypeName);
     if (existedType && existedType instanceof VariableInfo) {
       return existedType.type;
     }
-    for (let i = 0; i < parameters.length; i++) {
-      const appliedType = parameters[i];
-      const declaredType = this.genericArguments[i];
-      const aliasInLocalScope = this.localTypeScope.body.get(
-        String(declaredType.name)
+    const result = this.type.changeAll(
+      this.genericArguments,
+      parameters,
+      this.localTypeScope.parent
+    );
+    if (shouldBeMemoize) {
+      this.localTypeScope.parent.body.set(
+        appliedTypeName,
+        /*::(*/ this.localTypeScope.parent.body.get(
+          getNameForType(result)
+        ) /*:: :any)*/
       );
-      if (!aliasInLocalScope || !(aliasInLocalScope instanceof VariableInfo)) {
-        throw new Error("NEVER!!!");
-      }
-      aliasInLocalScope.type = appliedType;
     }
-    const result = getTypeFromTypeAnnotation(
-      { typeAnnotation: this.astTypeAnnotation },
-      this.localTypeScope,
-      false
-    );
-    this.parentTypeScope.body.set(
-      appliedTypeName,
-      /*::(*/
-
-      this.localTypeScope.body.get(String(result.name)) ||
-        this.parentTypeScope.body.get(String(result.name))
-      /*:: :any)*/
-    );
     return result;
   }
 }
@@ -233,9 +269,39 @@ export class FunctionType extends Type {
   returnType: Type;
 
   constructor(name: string, argumentsTypes: Array<Type>, returnType: Type) {
-    super(name, { isLiteral: true });
+    super(name);
     this.argumentsTypes = argumentsTypes;
     this.returnType = returnType;
+  }
+
+  changeAll(
+    sourceTypes: Array<Type>,
+    targetTypes: Array<Type>,
+    typeScope: Scope | ModuleScope
+  ): Type {
+    let isArgumentsChanged = false;
+    const newArguments = this.argumentsTypes.map(t => {
+      const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
+      if (newT === t) {
+        return t;
+      }
+      isArgumentsChanged = true;
+      return newT;
+    });
+    const newReturn = this.returnType.changeAll(
+      sourceTypes,
+      targetTypes,
+      typeScope
+    );
+    if (newReturn === this.returnType && !isArgumentsChanged) {
+      return this;
+    }
+    return FunctionType.createTypeWithName(
+      getFunctionTypeLiteral(newArguments, newReturn),
+      typeScope,
+      newArguments,
+      newReturn
+    );
   }
 
   equalsTo(anotherType: Type) {
@@ -251,6 +317,18 @@ export class FunctionType extends Type {
       )
     );
   }
+
+  isSuperTypeFor(anotherType: Type): boolean {
+    const argumentsTypes =
+      anotherType instanceof FunctionType ? anotherType.argumentsTypes : [];
+    return (
+      anotherType instanceof FunctionType &&
+      this.returnType.isSuperTypeFor(anotherType.returnType) &&
+      this.argumentsTypes.every((type, index) =>
+        argumentsTypes[index].isSuperTypeFor(type)
+      )
+    );
+  }
 }
 
 export class UnionType extends Type {
@@ -261,6 +339,30 @@ export class UnionType extends Type {
   constructor(name: string, variants: Array<Type>, meta: TypeMeta = {}) {
     super(name, {});
     this.variants = variants;
+  }
+
+  changeAll(
+    sourceTypes: Array<Type>,
+    targetTypes: Array<Type>,
+    typeScope: Scope | ModuleScope
+  ) {
+    let isVariantsChanged = false;
+    const newVariants = this.variants.map(t => {
+      const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
+      if (newT === t) {
+        return t;
+      }
+      isVariantsChanged = true;
+      return newT;
+    });
+    if (!isVariantsChanged) {
+      return this;
+    }
+    return UnionType.createTypeWithName(
+      getUnionTypeLiteral(newVariants),
+      typeScope,
+      newVariants
+    );
   }
 
   equalsTo(anotherType: Type) {
@@ -274,6 +376,51 @@ export class UnionType extends Type {
         type.equalsTo(anotherVariants[index])
       )
     );
+  }
+
+  isSuperTypeFor(anotherType: Type): boolean {
+    if (anotherType instanceof UnionType) {
+      if (anotherType.variants.length > this.variants.length) {
+        return false;
+      }
+      for (const variantType of anotherType.variants) {
+        if (!this.variants.some(type => type.isSuperTypeFor(variantType))) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return this.variants.some(type => type.isSuperTypeFor(anotherType));
+  }
+}
+
+export class TupleType extends UnionType {
+  changeAll(
+    sourceTypes: Array<Type>,
+    targetTypes: Array<Type>,
+    typeScope: Scope | ModuleScope
+  ) {
+    let isVariantsChanged = false;
+    const newVariants = this.variants.map(t => {
+      const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
+      if (newT === t) {
+        return t;
+      }
+      isVariantsChanged = true;
+      return newT;
+    });
+    if (!isVariantsChanged) {
+      return this;
+    }
+    return TupleType.createTypeWithName(
+      getTupleTypeLiteral(newVariants),
+      typeScope,
+      newVariants
+    );
+  }
+
+  isSuperTypeFor(anotherType: Type) {
+    return this.equalsTo(anotherType);
   }
 }
 
