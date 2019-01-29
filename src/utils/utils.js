@@ -9,6 +9,7 @@ import type {
 } from "@babel/parser";
 import {
   Scope,
+  TypeVar,
   VariableInfo,
   ModuleScope,
   FunctionType,
@@ -167,23 +168,15 @@ export const getTypeFromTypeAnnotation = (
         tupleVariants
       );
     case NODE.TYPE_PARAMETER:
-      const bound =
-        typeAnnotation.typeAnnotation.bound &&
-        getTypeFromTypeAnnotation(
-          typeAnnotation.typeAnnotation.bound,
-          typeScope,
-          rewritable
-        );
-      if (bound) {
-        typeScope.body.set(
-          typeAnnotation.typeAnnotation.name,
-          findVariableInfo({ name: getNameForType(bound) }, typeScope)
-        );
-        return bound;
-      }
-      return Type.createTypeWithName(
+      return TypeVar.createTypeWithName(
         typeAnnotation.typeAnnotation.name,
         typeScope,
+        typeAnnotation.typeAnnotation.bound &&
+          getTypeFromTypeAnnotation(
+            typeAnnotation.typeAnnotation.bound,
+            typeScope,
+            rewritable
+          ),
         rewritable
       );
     case NODE.GENERIC_TYPE_ANNOTATION:

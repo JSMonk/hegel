@@ -3,6 +3,7 @@ const HegelError = require("../build/utils/errors").default;
 const createTypeGraph = require("../build/type/type-graph").default;
 const {
   Type,
+  TypeVar,
   ObjectType,
   FunctionType,
   GenericType,
@@ -1217,9 +1218,9 @@ describe("Generic types", () => {
       const actualTypeAlias = typeScope.body.get("A");
       const actualAliasType = actualTypeAlias.type;
       expect(actualTypeAlias).not.toBe(undefined);
-      expect(actualAliasType.constructor).not.toBe(GenericType);
-      expect(actualAliasType.properties.get("a").type).toEqual(
-        new Type("number")
+      expect(actualAliasType.constructor).toBe(GenericType);
+      expect(actualAliasType.type.properties.get("a").type).toEqual(
+        new TypeVar("T", new Type("number"))
       );
     });
   });
@@ -1260,13 +1261,13 @@ describe("Generic types", () => {
       const expectedFunction = expect.objectContaining({
         parent: actual,
         type: new FunctionType(
-          "(string) => string",
-          [new Type("string")],
-          new Type("string")
+          "<T: string>(T) => T",
+          [new Type("T")],
+          new Type("T")
         )
       });
       expect(actualFunction).not.toBe(undefined);
-      expect(actualFunction.type.constructor).not.toBe(GenericType);
+      expect(actualFunction.type.constructor).toBe(GenericType);
     });
     test("Function type alias with generic", () => {
       const sourceAST = prepareAST(`

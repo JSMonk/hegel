@@ -3,7 +3,6 @@ import traverseTree from "../utils/traverse";
 import NODE from "../utils/nodes";
 import mixBaseGlobals from "../utils/globals";
 import mixBaseOperators from "../utils/operators";
-import { Option } from "../utils/option";
 import {
   findVariableInfo,
   getNameForType,
@@ -105,9 +104,6 @@ const getTypeForNode = (
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
       const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
-      const shouldBeGeneric =
-        currentNode.typeParameters &&
-        currentNode.typeParameters.params.some(({ bound }) => !bound);
       const usedTypeScope = currentNode.typeParameters
         ? localTypeScope
         : typeScope;
@@ -127,15 +123,15 @@ const getTypeForNode = (
       const typeName = getFunctionTypeLiteral(
         params,
         returnType,
-        shouldBeGeneric ? genericArguments : []
+        genericArguments
       );
       const type = FunctionType.createTypeWithName(
         typeName,
-        shouldBeGeneric ? usedTypeScope : typeScope,
+        usedTypeScope,
         params,
         returnType
       );
-      return !shouldBeGeneric
+      return !genericArguments
         ? type
         : GenericType.createTypeWithName(
             typeName,
@@ -446,9 +442,6 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   }
   const genericNode = getGenericNode(node);
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
-  const shouldBeGeneric =
-    genericNode &&
-    genericNode.typeParameters.params.some(({ bound }) => !bound);
   const usedTypeScope = genericNode ? localTypeScope : typeScope;
   const genericArguments =
     genericNode &&
@@ -460,26 +453,17 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
     usedTypeScope,
     false
   );
-  const typeFor =
-    shouldBeGeneric && genericArguments
-      ? GenericType.createTypeWithName(
-          node.id.name,
-          typeScope,
-          genericArguments,
-          localTypeScope,
-          type
-        )
-      : type;
-  if (!shouldBeGeneric) {
-    typeScope.body.set(
-      getNameForType(type),
-      new VariableInfo(typeFor, typeScope, new Meta(node.loc))
-    );
-  }
-  typeScope.body.set(
-    node.id.name,
-    new VariableInfo(typeFor, typeScope, new Meta(node.loc))
-  );
+  const typeFor = genericArguments
+    ? GenericType.createTypeWithName(
+        node.id.name,
+        typeScope,
+        genericArguments,
+        localTypeScope,
+        type
+      )
+    : type;
+  const typeAlias = new VariableInfo(typeFor, typeScope, new Meta(node.loc));
+  typeScope.body.set(node.id.name, typeAlias);
 };
 
 const fillModuleScope = (typeGraph: ModuleScope) => {

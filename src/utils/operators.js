@@ -1,6 +1,7 @@
 import { findVariableInfo, getFunctionTypeLiteral } from "./utils";
 import {
   Type,
+  TypeVar,
   GenericType,
   FunctionType,
   ObjectType,
@@ -129,7 +130,7 @@ const mixBaseOperators = moduleScope => {
         "==",
         genericFunction(
           typeScope,
-          [["T", new Type("T")]],
+          [["T", new TypeVar("T")]],
           l => [l.body.get("T").type, l.body.get("T").type],
           l => Type.createTypeWithName("boolean", l)
         )
@@ -138,7 +139,7 @@ const mixBaseOperators = moduleScope => {
         "===",
         genericFunction(
           typeScope,
-          [["T", new Type("T")]],
+          [["T", new TypeVar("T")]],
           l => [l.body.get("T").type, l.body.get("T").type],
           l => Type.createTypeWithName("boolean", l)
         )
@@ -147,7 +148,7 @@ const mixBaseOperators = moduleScope => {
         "!==",
         genericFunction(
           typeScope,
-          [["T", new Type("T")]],
+          [["T", new TypeVar("T")]],
           l => [l.body.get("T").type, l.body.get("T").type],
           l => Type.createTypeWithName("boolean", l)
         )
@@ -156,7 +157,7 @@ const mixBaseOperators = moduleScope => {
         "!=",
         genericFunction(
           typeScope,
-          [["T", new Type("T")]],
+          [["T", new TypeVar("T")]],
           l => [l.body.get("T").type, l.body.get("T").type],
           l => Type.createTypeWithName("boolean", l)
         )
@@ -165,7 +166,7 @@ const mixBaseOperators = moduleScope => {
         ">=",
         genericFunction(
           typeScope,
-          [["T", new Type("T")]],
+          [["T", new TypeVar("T")]],
           l => [l.body.get("T").type, l.body.get("T").type],
           l => Type.createTypeWithName("boolean", l)
         )
@@ -174,7 +175,7 @@ const mixBaseOperators = moduleScope => {
         "<=",
         genericFunction(
           typeScope,
-          [["T", new Type("T")]],
+          [["T", new TypeVar("T")]],
           l => [l.body.get("T").type, l.body.get("T").type],
           l => Type.createTypeWithName("boolean", l)
         )
@@ -183,7 +184,7 @@ const mixBaseOperators = moduleScope => {
         ">",
         genericFunction(
           typeScope,
-          [["T", new Type("T")]],
+          [["T", new TypeVar("T")]],
           l => [l.body.get("T").type, l.body.get("T").type],
           l => Type.createTypeWithName("boolean", l)
         )
@@ -192,7 +193,7 @@ const mixBaseOperators = moduleScope => {
         "<",
         genericFunction(
           typeScope,
-          [["T", new Type("T")]],
+          [["T", new TypeVar("T")]],
           l => [l.body.get("T").type, l.body.get("T").type],
           l => Type.createTypeWithName("boolean", l)
         )
@@ -369,7 +370,7 @@ const mixBaseOperators = moduleScope => {
         "=",
         genericFunction(
           typeScope,
-          [["T", new Type("T")]],
+          [["T", new TypeVar("T")]],
           l => [l.body.get("T").type, l.body.get("T").type],
           l => l.body.get("T").type
         )
@@ -548,7 +549,7 @@ const mixBaseOperators = moduleScope => {
         "&&",
         genericFunction(
           typeScope,
-          [["A", new Type("A")], ["B", new Type("B")]],
+          [["A", new TypeVar("A")], ["B", new TypeVar("B")]],
           l => [l.body.get("A").type, l.body.get("B").type],
           l =>
             UnionType.createTypeWithName("A | B", l, [
@@ -561,7 +562,7 @@ const mixBaseOperators = moduleScope => {
         "||",
         genericFunction(
           typeScope,
-          [["A", new Type("A")], ["B", new Type("B")]],
+          [["A", new TypeVar("A")], ["B", new TypeVar("B")]],
           l => [l.body.get("A").type, l.body.get("B").type],
           l =>
             UnionType.createTypeWithName("A | B", l, [
@@ -574,7 +575,7 @@ const mixBaseOperators = moduleScope => {
         "?:",
         genericFunction(
           typeScope,
-          [["A", new Type("A")], ["B", new Type("B")]],
+          [["A", new TypeVar("A")], ["B", new TypeVar("B")]],
           l => [l.body.get("A").type, l.body.get("B").type],
           l =>
             UnionType.createTypeWithName("A | B", l, [

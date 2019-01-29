@@ -124,6 +124,29 @@ export class Type {
   }
 }
 
+export class TypeVar extends Type {
+  static createTypeWithName = createTypeWithName(TypeVar);
+
+  constraint: ?Type;
+
+  constructor(name: string, constraint: ?Type) {
+    super(name);
+    this.name = name;
+    this.constraint = constraint;
+  }
+
+  equalsTo(anotherType: Type) {
+    if (!this.constraint) {
+      return true;
+    }
+    return this.constraint.isSuperTypeFor(anotherType);
+  }
+
+  isSuperTypeFor(type: Type): boolean {
+    return this.equalsTo(type);
+  }
+}
+
 export class ObjectType extends Type {
   static createTypeWithName = createTypeWithName(ObjectType);
 
@@ -206,7 +229,7 @@ export class GenericType extends Type {
 
   constructor(
     name: string,
-    genericArguments: Array<TypeParameter | Type>,
+    genericArguments: Array<TypeParameter | TypeVar>,
     typeScope: Scope,
     type: Type
   ) {
