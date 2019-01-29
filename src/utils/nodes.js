@@ -34,7 +34,8 @@ export const EXPRESSIONS_TYPES = {
   CONDITIONAL_EXPRESSION: "ConditionalExpression",
   AWAIT_EXPRESSION: "AwaitExpression",
   LOGICAL_EXPRESSION: "LogicalExpression",
-  CALL_EXPRESSION: "CallExpression"
+  CALL_EXPRESSION: "CallExpression",
+  MEMBER_EXPRESSION: "MemberExpression"
 };
 
 export const OBJECT_PROPERTIES = {
@@ -72,7 +73,8 @@ export const ANNOTATION_TYPES = {
 };
 
 const INITIALIZATION_TYPES = {
-  IDENTIFIER: "Identifier"
+  IDENTIFIER: "Identifier",
+  PROGRAM: "Program"
 };
 
 const DECLARATION_KINDS = {
@@ -85,14 +87,24 @@ const isUnscopableDeclaration = ({ kind }: Object) =>
   kind === DECLARATION_KINDS.VAR;
 
 const isObject = (node: Node) =>
-  node.type === OBJECT_PROPERTIES.OBJECT_EXPRESSION
+  node.type === OBJECT_PROPERTIES.OBJECT_EXPRESSION;
+
+const isScopeCreator = (node: Node) =>
+  [
+    INITIALIZATION_TYPES.PROGRAM,
+    DECLARATION_TYPES.FUNCTION_DECLARATION,
+    EXPRESSIONS_TYPES.FUNCTION_EXPRESSION,
+    EXPRESSIONS_TYPES.ARROW_FUNCTION_EXPRESSION,
+    ANNOTATION_TYPES.FUNCTION_TYPE_ANNOTATION,
+    STATEMENTS_TYPES.BLOCK_STATEMENT
+  ].includes(node.type);
 
 const isFunction = (node: Node) =>
   [
     DECLARATION_TYPES.FUNCTION_DECLARATION,
     EXPRESSIONS_TYPES.FUNCTION_EXPRESSION,
     EXPRESSIONS_TYPES.ARROW_FUNCTION_EXPRESSION,
-    ANNOTATION_TYPES.FUNCTION_TYPE_ANNOTATION,
+    ANNOTATION_TYPES.FUNCTION_TYPE_ANNOTATION
   ].includes(node.type);
 
 const isFunctionalProperty = (node: Node) =>
@@ -101,6 +113,7 @@ const isFunctionalProperty = (node: Node) =>
 export default {
   isObject,
   isFunction,
+  isScopeCreator,
   isFunctionalProperty,
   isUnscopableDeclaration,
   ...DECLARATION_TYPES,

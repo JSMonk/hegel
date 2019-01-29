@@ -4,29 +4,22 @@ import {
   ObjectType,
   ModuleScope,
   VariableInfo,
-  ZeroLocation
+  ZeroLocation,
+  TYPE_SCOPE
 } from "../type/types";
-
-const globalsModuleScope = new ModuleScope();
 
 const zeroMetaLocation = new Meta(ZeroLocation);
 
-const mixBaseGlobals = typeScope => {
-  if (!globalsModuleScope.body.size) {
-    const globals = new Map([
-      [
-        "undefined",
-        new VariableInfo(new Type("undefined"), typeScope, zeroMetaLocation)
-      ],
-      [
-        "Symbol",
-        new VariableInfo(new Type("Symbol"), typeScope, zeroMetaLocation)
-      ]
-    ]);
-    globalsModuleScope.body = globals;
-  }
-  typeScope.body = new Map([...typeScope.body, ...globalsModuleScope.body]);
-  return globalsModuleScope;
+const mixBaseGlobals = moduleScope => {
+  const typeScope = moduleScope.body.get(TYPE_SCOPE);
+  const globals = new Map([
+    [
+      "undefined",
+      new VariableInfo(Type.createTypeWithName("undefined", typeScope))
+    ],
+    ["Symbol", new VariableInfo(Type.createTypeWithName("Symbol", typeScope))]
+  ]);
+  moduleScope.body = new Map([...moduleScope.body, ...globals]);
 };
 
 export default mixBaseGlobals;

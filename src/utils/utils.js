@@ -45,26 +45,26 @@ export const findVariableInfo = (
   throw new HegelError(`Variable "${name}" is not defined!`, loc);
 };
 
-export const getInvocationType = (variable: VariableInfo): Type => {
-  if (variable.type instanceof FunctionType) {
-    return variable.type.returnType;
+export const getInvocationType = (type: Type): Type => {
+  if (type instanceof FunctionType) {
+    return type.returnType;
   }
-  return variable.type;
+  return type;
 };
 
 export const getFunctionTypeLiteral = (
   params: Array<Type>,
   returnType: Type,
-  genericParams: Array<TypeParameter> = []
+  genericParams: Array<Type> = []
 ) =>
   `${
     genericParams.length
       ? `<${genericParams.reduce(
-          (res, t) => `${res}${res ? ", " : ""}${t.name}`,
+          (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
           ""
         )}>`
       : ""
-  }(${params.map(getNameForType).join(", ")}) => ${String(returnType.name)}`;
+  }(${params.map(getNameForType).join(", ")}) => ${getNameForType(returnType)}`;
 
 export const getObjectTypeLiteral = (
   /* $FlowIssue - Union type is principal type */
@@ -149,7 +149,7 @@ export const getTypeFromTypeAnnotation = (
     case NODE.UNION_TYPE_ANNOTATION:
       const unionVariants = typeAnnotation.typeAnnotation.types.map(
         typeAnnotation =>
-          getTypeFromTypeAnnotation({ typeAnnotation }, typeScope)
+          getTypeFromTypeAnnotation({ typeAnnotation }, typeScope, false)
       );
       return UnionType.createTypeWithName(
         getUnionTypeLiteral(unionVariants),
@@ -177,7 +177,7 @@ export const getTypeFromTypeAnnotation = (
       if (bound) {
         typeScope.body.set(
           typeAnnotation.typeAnnotation.name,
-          /*::(*/ typeScope.body.get(getNameForType(bound)) /*:: :any)*/
+          findVariableInfo({ name: getNameForType(bound) }, typeScope)
         );
         return bound;
       }

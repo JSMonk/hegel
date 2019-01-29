@@ -17,10 +17,9 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       !2;
     `);
     const actual = createTypeGraph(sourceAST);
-    const typeScope = actual.body.get(TYPE_SCOPE);
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
-      target: typeScope.body.get("!").type,
+      target: actual.body.get("!").type,
       arguments: [new Type("number")]
     }); 
     expect(actualCall).toEqual(expectedCall);
@@ -31,10 +30,9 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       !a;
     `);
     const actual = createTypeGraph(sourceAST);
-    const typeScope = actual.body.get(TYPE_SCOPE);
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
-      target: typeScope.body.get("!").type,
+      target: actual.body.get("!").type,
       arguments: [new Type("number")]
     }); 
     expect(actualCall).toEqual(expectedCall);
@@ -44,15 +42,14 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       !!2;
     `);
     const actual = createTypeGraph(sourceAST);
-    const typeScope = actual.body.get(TYPE_SCOPE);
     const firstActualCall = actual.calls[0];
     const secondActualCall = actual.calls[1];
     const firstExpectedCall = expect.objectContaining({
-      target: typeScope.body.get("!").type,
+      target: actual.body.get("!").type,
       arguments: [new Type("number")]
     }); 
     const secondExpectedCall = expect.objectContaining({
-      target: typeScope.body.get("!").type,
+      target: actual.body.get("!").type,
       arguments: [new Type("boolean")]
     }); 
     expect(firstActualCall).toEqual(firstExpectedCall);
@@ -63,10 +60,9 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       2 - 2;
     `);
     const actual = createTypeGraph(sourceAST);
-    const typeScope = actual.body.get(TYPE_SCOPE);
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
-      target: typeScope.body.get("-").type,
+      target: actual.body.get("-").type,
       arguments: [new Type("number"), new Type("number")]
     }); 
     expect(actualCall).toEqual(expectedCall);
@@ -77,10 +73,9 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       a - 2;
     `);
     const actual = createTypeGraph(sourceAST);
-    const typeScope = actual.body.get(TYPE_SCOPE);
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
-      target: typeScope.body.get("-").type,
+      target: actual.body.get("-").type,
       arguments: [new Type("number"), new Type("number")]
     }); 
     expect(actualCall).toEqual(expectedCall);
@@ -90,15 +85,14 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       2 - 2 - 2;
     `);
     const actual = createTypeGraph(sourceAST);
-    const typeScope = actual.body.get(TYPE_SCOPE);
     const firstActualCall = actual.calls[0];
     const secondActualCall = actual.calls[1];
     const firstExpectedCall = expect.objectContaining({
-      target: typeScope.body.get("-").type,
+      target: actual.body.get("-").type,
       arguments: [new Type("number"), new Type("number")]
     }); 
     const secondExpectedCall = expect.objectContaining({
-      target: typeScope.body.get("-").type,
+      target: actual.body.get("-").type,
       arguments: [new Type("number"), new Type("number")]
     }); 
     expect(firstActualCall).toEqual(firstExpectedCall);
