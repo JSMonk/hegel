@@ -19,7 +19,7 @@ describe("Test calls meta for operatos and functions in global scope", () => {
     const actual = createTypeGraph(sourceAST);
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
-      target: actual.body.get("!").type,
+      target: actual.body.get("!"),
       arguments: [new Type("number")]
     }); 
     expect(actualCall).toEqual(expectedCall);
@@ -30,10 +30,10 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       !a;
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualCall = actual.calls[0];
+    const actualCall = actual.calls[1];
     const expectedCall = expect.objectContaining({
-      target: actual.body.get("!").type,
-      arguments: [new Type("number")]
+      target: actual.body.get("!"),
+      arguments: [actual.body.get("a")]
     }); 
     expect(actualCall).toEqual(expectedCall);
   });
@@ -45,11 +45,11 @@ describe("Test calls meta for operatos and functions in global scope", () => {
     const firstActualCall = actual.calls[0];
     const secondActualCall = actual.calls[1];
     const firstExpectedCall = expect.objectContaining({
-      target: actual.body.get("!").type,
+      target: actual.body.get("!"),
       arguments: [new Type("number")]
     }); 
     const secondExpectedCall = expect.objectContaining({
-      target: actual.body.get("!").type,
+      target: actual.body.get("!"),
       arguments: [new Type("boolean")]
     }); 
     expect(firstActualCall).toEqual(firstExpectedCall);
@@ -62,7 +62,7 @@ describe("Test calls meta for operatos and functions in global scope", () => {
     const actual = createTypeGraph(sourceAST);
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
-      target: actual.body.get("-").type,
+      target: actual.body.get("-"),
       arguments: [new Type("number"), new Type("number")]
     }); 
     expect(actualCall).toEqual(expectedCall);
@@ -73,10 +73,10 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       a - 2;
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualCall = actual.calls[0];
+    const actualCall = actual.calls[1];
     const expectedCall = expect.objectContaining({
-      target: actual.body.get("-").type,
-      arguments: [new Type("number"), new Type("number")]
+      target: actual.body.get("-"),
+      arguments: [actual.body.get("a"), new Type("number")]
     }); 
     expect(actualCall).toEqual(expectedCall);
   });
@@ -88,11 +88,11 @@ describe("Test calls meta for operatos and functions in global scope", () => {
     const firstActualCall = actual.calls[0];
     const secondActualCall = actual.calls[1];
     const firstExpectedCall = expect.objectContaining({
-      target: actual.body.get("-").type,
+      target: actual.body.get("-"),
       arguments: [new Type("number"), new Type("number")]
     }); 
     const secondExpectedCall = expect.objectContaining({
-      target: actual.body.get("-").type,
+      target: actual.body.get("-"),
       arguments: [new Type("number"), new Type("number")]
     }); 
     expect(firstActualCall).toEqual(firstExpectedCall);

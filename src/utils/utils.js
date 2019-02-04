@@ -3,9 +3,10 @@ import NODE from "./nodes";
 import HegelError from "./errors";
 import type {
   Node,
+  Declaration,
+  TypeParameter,
   SourceLocation,
-  TypeAnnotation,
-  TypeParameter
+  TypeAnnotation
 } from "@babel/parser";
 import {
   Scope,
@@ -20,7 +21,8 @@ import {
   Type,
   TYPE_SCOPE,
   Meta,
-  UNDEFINED_TYPE
+  UNDEFINED_TYPE,
+  ZeroLocation
 } from "../type/types";
 
 export const getNameForType = (type: Type): string =>
@@ -46,22 +48,18 @@ export const findVariableInfo = (
   throw new HegelError(`Variable "${name}" is not defined!`, loc);
 };
 
-export const getInvocationType = (type: Type): Type => {
-  if (type instanceof FunctionType) {
-    return type.returnType;
-  }
-  return type;
-};
-
 export const getFunctionTypeLiteral = (
   params: Array<Type>,
   returnType: Type,
-  genericParams: Array<Type> = []
+  genericParams: Array<TypeVar> = []
 ) =>
   `${
     genericParams.length
       ? `<${genericParams.reduce(
-          (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
+          (res, t) =>
+            `${res}${res ? ", " : ""}${getNameForType(t)}${
+              t.constraint ? `: ${getNameForType(t.constraint)}` : ""
+            }`,
           ""
         )}>`
       : ""
@@ -87,9 +85,29 @@ export const getUnionTypeLiteral = (params: Array<Type>) =>
     .reduce((res, t) => `${res}${res ? " | " : ""}${getNameForType(t)}`, "")}`;
 
 export const getTupleTypeLiteral = (params: Array<Type>) =>
-  `[${params
-    .sort((t1, t2) => getNameForType(t1).localeCompare(getNameForType(t2)))
-    .reduce((res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`, "")}]`;
+  `[${params.reduce(
+    (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
+    ""
+  )}]`;
+
+export const getCollectionTypeLiteral = (keyType: Type, valueType: Type) =>
+  `{ [key: ${getNameForType(keyType)}]: ${getNameForType(valueType)} }`;
+
+export const addTypeVar = (
+  name: string,
+  localTypeScope: Scope,
+  constraint: ?Type,
+  isUserDefined?: boolean = false
+): TypeVar => {
+  const typeVar = new TypeVar(name, constraint, isUserDefined);
+  const varInfo = new VariableInfo(
+    typeVar,
+    localTypeScope,
+    new Meta(ZeroLocation)
+  );
+  localTypeScope.body.set(name, varInfo);
+  return typeVar;
+};
 
 export const getTypeFromTypeAnnotation = (
   typeAnnotation: ?TypeAnnotation,
@@ -97,7 +115,7 @@ export const getTypeFromTypeAnnotation = (
   rewritable: ?boolean = true
 ): Type => {
   if (!typeAnnotation || !typeAnnotation.typeAnnotation) {
-    return Type.createTypeWithName(UNDEFINED_TYPE, typeScope);
+    return TypeVar.createTypeWithName(UNDEFINED_TYPE, typeScope);
   }
   switch (typeAnnotation.typeAnnotation.type) {
     case NODE.ANY_TYPE_ANNOTATION:
@@ -168,7 +186,7 @@ export const getTypeFromTypeAnnotation = (
         tupleVariants
       );
     case NODE.TYPE_PARAMETER:
-      return TypeVar.createTypeWithName(
+      return addTypeVar(
         typeAnnotation.typeAnnotation.name,
         typeScope,
         typeAnnotation.typeAnnotation.bound &&
@@ -177,7 +195,7 @@ export const getTypeFromTypeAnnotation = (
             typeScope,
             rewritable
           ),
-        rewritable
+        true
       );
     case NODE.GENERIC_TYPE_ANNOTATION:
       const genericArguments =
@@ -185,7 +203,10 @@ export const getTypeFromTypeAnnotation = (
         typeAnnotation.typeAnnotation.typeParameters.params;
       const genericName = typeAnnotation.typeAnnotation.id.name;
       if (genericArguments) {
-        const existedGenericType = typeScope.body.get(genericName);
+        const existedGenericType = findVariableInfo(
+          { name: genericName },
+          typeScope
+        );
         if (
           !existedGenericType ||
           !(existedGenericType.type instanceof GenericType)
@@ -206,12 +227,17 @@ export const getTypeFromTypeAnnotation = (
           typeAnnotation.typeAnnotation.loc
         );
       }
-      // TODO: Remve dirty hack
       if (!rewritable) {
-        return /*::(*/ typeScope.body.get(genericName) /*:: :any)*/.type;
+        return findVariableInfo({ name: genericName }, typeScope).type;
       }
       return Type.createTypeWithName(genericName, typeScope);
     case NODE.FUNCTION_TYPE_ANNOTATION:
+      const genericParams = typeAnnotation.typeAnnotation.typeParameters
+        ? typeAnnotation.typeAnnotation.typeParameters.params.map(param =>
+            getTypeFromTypeAnnotation(param, typeScope, rewritable)
+          )
+        : [];
+      const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
       const args = typeAnnotation.typeAnnotation.params.map(annotation =>
         getTypeFromTypeAnnotation(annotation, typeScope, rewritable)
       );
@@ -222,12 +248,22 @@ export const getTypeFromTypeAnnotation = (
         typeScope,
         rewritable
       );
-      return FunctionType.createTypeWithName(
-        getFunctionTypeLiteral(args, returnType),
+      const typeName = getFunctionTypeLiteral(args, returnType, genericParams);
+      const type = FunctionType.createTypeWithName(
+        typeName,
         typeScope,
         args,
         returnType
       );
+      return genericParams.length
+        ? GenericType.createTypeWithName(
+            typeName,
+            typeScope,
+            genericParams,
+            localTypeScope,
+            type
+          )
+        : type;
     case NODE.OBJECT_TYPE_ANNOTATION:
       const { typeAnnotation: annotation } = typeAnnotation;
       const params = typeAnnotation.typeAnnotation.properties.map(
@@ -250,5 +286,45 @@ export const getTypeFromTypeAnnotation = (
         ])
       );
   }
-  return Type.createTypeWithName(UNDEFINED_TYPE, typeScope);
+  return TypeVar.createTypeWithName(UNDEFINED_TYPE, typeScope);
+};
+
+export const getScopeKey = (node: Node) =>
+  `[[Scope${node.loc.start.line}-${node.loc.start.column}]]`;
+
+export const getAnonymousKey = (node: Node) =>
+  `[[Anonymuos${node.loc.start.line}-${node.loc.start.column}]]`;
+
+export const getDeclarationName = (node: Declaration): string => node.id.name;
+
+export const findNearestScopeByType = (
+  type: $PropertyType<Scope, "type">,
+  parentContext: ModuleScope | Scope
+): Scope | ModuleScope => {
+  let parent = parentContext;
+  while (parent instanceof Scope) {
+    if (parent.type === type) {
+      return parent;
+    }
+    parent = parent.parent;
+  }
+  return parent;
+};
+
+export const findNearestTypeScope = (
+  currentScope: Scope | ModuleScope,
+  typeGraph: ModuleScope
+): Scope => {
+  let scope = findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
+  const moduleTypeScope = typeGraph.body.get(TYPE_SCOPE);
+  if (!(moduleTypeScope instanceof Scope)) {
+    throw new Error("Never!");
+  }
+  while (scope.parent) {
+    if (scope.declaration && scope.declaration.type instanceof GenericType) {
+      return scope.declaration.type.localTypeScope;
+    }
+    scope = findNearestScopeByType(Scope.FUNCTION_TYPE, scope.parent);
+  }
+  return moduleTypeScope;
 };

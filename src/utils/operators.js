@@ -29,14 +29,11 @@ const genericFunction = (
       new VariableInfo(type, localTypeScope, ZeroLocation)
     );
   });
+  genericArguments = genericArguments.map(([, t]) => t);
   const parametersTypes = getTypeParameters(localTypeScope);
   const returnType = getReturnType(localTypeScope);
   return GenericType.createTypeWithName(
-    getFunctionTypeLiteral(
-      parametersTypes,
-      returnType,
-      genericArguments.map(([, t]) => t)
-    ),
+    getFunctionTypeLiteral(parametersTypes, returnType, genericArguments),
     typeScope,
     genericArguments,
     localTypeScope,
@@ -599,11 +596,11 @@ const mixBaseOperators = moduleScope => {
       ],
       [
         "return",
-        FunctionType.createTypeWithName(
-          "(mixed) => mixed",
+        genericFunction(
           typeScope,
-          [Type.createTypeWithName("mixed", typeScope)],
-          Type.createTypeWithName("mixed", typeScope)
+          [["T", new TypeVar("T")]],
+          l => [l.body.get("T").type],
+          l => l.body.get("T").type
         )
       ]
     ].map(([name, type]) => [

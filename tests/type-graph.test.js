@@ -9,7 +9,6 @@ const {
   GenericType,
   UnionType,
   VariableInfo,
-  AliasInfo,
   UNDEFINED_TYPE,
   TYPE_SCOPE
 } = require("../build/type/types");
@@ -153,15 +152,9 @@ describe("Simple global variable nodes", () => {
     `);
     const actual = createTypeGraph(sourceAST);
     const actualAFunction = actual.body.get("a");
-    const expectedAFunction = expect.objectContaining({
-      parent: actual,
-      type: new FunctionType(
-        `(${UNDEFINED_TYPE}, ${UNDEFINED_TYPE}) => number`,
-        [new Type(UNDEFINED_TYPE), new Type(UNDEFINED_TYPE)],
-        new Type("number")
-      )
-    });
-    expect(actualAFunction).toEqual(expectedAFunction);
+    expect(actualAFunction.type.subordinateType.returnType).toEqual(
+      new Type("number")
+    );
   });
   test("Create global module function declaration with arguments types", () => {
     const sourceAST = prepareAST(`
@@ -171,15 +164,10 @@ describe("Simple global variable nodes", () => {
     `);
     const actual = createTypeGraph(sourceAST);
     const actualAFunction = actual.body.get("a");
-    const expectedAFunction = expect.objectContaining({
-      parent: actual,
-      type: new FunctionType(
-        `(number, string) => ${UNDEFINED_TYPE}`,
-        [new Type("number"), new Type("string")],
-        new Type(UNDEFINED_TYPE)
-      )
-    });
-    expect(actualAFunction).toEqual(expectedAFunction);
+    expect(actualAFunction.type.argumentsTypes).toEqual([
+      new Type("number"),
+      new Type("string")
+    ]);
   });
   test("Create global module function declaration with arguments and return types", () => {
     const sourceAST = prepareAST(`
@@ -206,16 +194,10 @@ describe("Simple global variable nodes", () => {
       }
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualAFunction = actual.body.get("a");
-    const expectedAFunction = expect.objectContaining({
-      parent: actual,
-      type: new FunctionType(
-        `(${UNDEFINED_TYPE}, ${UNDEFINED_TYPE}) => number`,
-        [new Type(UNDEFINED_TYPE), new Type(UNDEFINED_TYPE)],
-        new Type("number")
-      )
-    });
-    expect(actualAFunction).toEqual(expectedAFunction);
+    const actualAFunction = actual.body.get("[[Anonymuos2-16]]");
+    expect(actualAFunction.type.subordinateType.returnType).toEqual(
+      new Type("number")
+    );
   });
   test("Create global module function expression with arguments types", () => {
     const sourceAST = prepareAST(`
@@ -224,16 +206,11 @@ describe("Simple global variable nodes", () => {
       }
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualAFunction = actual.body.get("a");
-    const expectedAFunction = expect.objectContaining({
-      parent: actual,
-      type: new FunctionType(
-        `(number, string) => ${UNDEFINED_TYPE}`,
-        [new Type("number"), new Type("string")],
-        new Type(UNDEFINED_TYPE)
-      )
-    });
-    expect(actualAFunction).toEqual(expectedAFunction);
+    const actualAFunction = actual.body.get("[[Anonymuos2-16]]");
+    expect(actualAFunction.type.argumentsTypes).toEqual([
+      new Type("number"),
+      new Type("string")
+    ]);
   });
   test("Create global module function expression with arguments and return types", () => {
     const sourceAST = prepareAST(`
@@ -242,7 +219,7 @@ describe("Simple global variable nodes", () => {
       }
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualAFunction = actual.body.get("a");
+    const actualAFunction = actual.body.get("[[Anonymuos2-16]]");
     const expectedAFunction = expect.objectContaining({
       parent: actual,
       type: new FunctionType(
@@ -518,6 +495,7 @@ describe("Function typings and declarations", () => {
     `);
     const actual = createTypeGraph(sourceAST);
     const actualAFunction = actual.body.get("a");
+    const actualAnonymousFunction = actual.body.get("[[Anonymuos2-16]]");
     const actualAScope = actual.body.get("[[Scope2-16]]");
     const expectedAFunction = expect.objectContaining({
       parent: actual
@@ -525,7 +503,7 @@ describe("Function typings and declarations", () => {
     const expectedAScope = expect.objectContaining({
       parent: actual,
       type: "function",
-      declaration: actualAFunction
+      declaration: actualAnonymousFunction
     });
     expect(actualAFunction).toEqual(expectedAFunction);
     expect(actualAScope).toEqual(expectedAScope);
@@ -539,6 +517,7 @@ describe("Function typings and declarations", () => {
     `);
     const actual = createTypeGraph(sourceAST);
     const actualAFunction = actual.body.get("a");
+    const actualAnonymousFunction = actual.body.get("[[Anonymuos2-16]]");
     const actualAScope = actual.body.get("[[Scope2-16]]");
     const expectedAFunction = expect.objectContaining({
       parent: actual
@@ -546,7 +525,7 @@ describe("Function typings and declarations", () => {
     const expectedAScope = expect.objectContaining({
       parent: actual,
       type: "function",
-      declaration: actualAFunction
+      declaration: actualAnonymousFunction
     });
     expect(actualAFunction).toEqual(expectedAFunction);
     expect(actualAScope).toEqual(expectedAScope);
@@ -563,13 +542,9 @@ describe("Simple objects with property typing", () => {
     `);
     const actual = createTypeGraph(sourceAST);
     const actualAScope = actual.body.get("[[Scope3-8]]");
-    const actualObj = actual.body.get("obj");
-    const actualKeySize = actualObj.type.properties.size;
-    const actualA = actualObj.type.properties.get("a");
     const expectedAScope = expect.objectContaining({
       parent: actual,
-      type: "function",
-      declaration: actualA
+      type: "function"
     });
     const expectedAType = new FunctionType(
       "() => number",
@@ -577,44 +552,25 @@ describe("Simple objects with property typing", () => {
       new Type("number"),
       false
     );
-    const expectedObj = expect.objectContaining({
-      parent: actual
-    });
-    expect(actualObj).toEqual(expectedObj);
-    expect(actualKeySize).toEqual(1);
     expect(actualAScope).toEqual(expectedAScope);
-    expect(actualA.type).toEqual(expectedAType);
+    expect(actualAScope.declaration.type).toEqual(expectedAType);
   });
   test("Simple object with typed argument inside method in module scope", () => {
     const sourceAST = prepareAST(`
       const obj = {
-        a(b: string) {
-        },
+        a(b: string) {},
       };
     `);
     const actual = createTypeGraph(sourceAST);
     const actualAScope = actual.body.get("[[Scope3-8]]");
-    const actualObj = actual.body.get("obj");
-    const actualKeySize = actualObj.type.properties.size;
-    const actualA = actualObj.type.properties.get("a");
     const expectedAScope = expect.objectContaining({
       parent: actual,
-      type: "function",
-      declaration: actualA
+      type: "function"
     });
-    const expectedAType = new FunctionType(
-      `(string) => ${UNDEFINED_TYPE}`,
-      [new Type("string")],
-      new Type(UNDEFINED_TYPE),
-      false
-    );
-    const expectedObj = expect.objectContaining({
-      parent: actual
-    });
-    expect(actualObj).toEqual(expectedObj);
-    expect(actualKeySize).toEqual(1);
     expect(actualAScope).toEqual(expectedAScope);
-    expect(actualA.type).toEqual(expectedAType);
+    expect(actualAScope.declaration.type.argumentsTypes).toEqual([
+      new Type("string")
+    ]);
   });
   test("Simple object with typed return arrow function property in module scope", () => {
     const sourceAST = prepareAST(`
@@ -623,21 +579,19 @@ describe("Simple objects with property typing", () => {
       };
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualObj = actual.body.get("obj");
-    const actualKeySize = actualObj.type.properties.size;
-    const actualA = actualObj.type.properties.get("a");
+    const actualAScope = actual.body.get("[[Scope3-11]]");
     const expectedAType = new FunctionType(
       "() => number",
       [],
       new Type("number"),
       false
     );
-    const expectedObj = expect.objectContaining({
-      parent: actual
+    const expectedAScope = expect.objectContaining({
+      parent: actual,
+      type: "function"
     });
-    expect(actualObj).toEqual(expectedObj);
-    expect(actualKeySize).toEqual(1);
-    expect(actualA.type).toEqual(expectedAType);
+    expect(actualAScope).toEqual(expectedAScope);
+    expect(actualAScope.declaration.type).toEqual(expectedAType);
   });
   test("Simple object with typed arguments inside arrow function property in module scope", () => {
     const sourceAST = prepareAST(`
@@ -646,21 +600,16 @@ describe("Simple objects with property typing", () => {
       };
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualObj = actual.body.get("obj");
-    const actualKeySize = actualObj.type.properties.size;
-    const actualA = actualObj.type.properties.get("a");
-    const expectedAType = new FunctionType(
-      `(number, string) => ${UNDEFINED_TYPE}`,
-      [new Type("number"), new Type("string")],
-      new Type(UNDEFINED_TYPE),
-      false
-    );
-    const expectedObj = expect.objectContaining({
-      parent: actual
+    const actualAScope = actual.body.get("[[Scope3-11]]");
+    const expectedAScope = expect.objectContaining({
+      parent: actual,
+      type: "function"
     });
-    expect(actualObj).toEqual(expectedObj);
-    expect(actualKeySize).toEqual(1);
-    expect(actualA.type).toEqual(expectedAType);
+    expect(actualAScope).toEqual(expectedAScope);
+    expect(actualAScope.declaration.type.argumentsTypes).toEqual([
+      new Type("number"),
+      new Type("string")
+    ]);
   });
   test("Simple object with typed return function property in module scope", () => {
     const sourceAST = prepareAST(`
@@ -671,9 +620,6 @@ describe("Simple objects with property typing", () => {
       };
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualObj = actual.body.get("obj");
-    const actualKeySize = actualObj.type.properties.size;
-    const actualA = actualObj.type.properties.get("a");
     const actualAScope = actual.body.get("[[Scope3-11]]");
     const expectedAType = new FunctionType(
       "() => number",
@@ -683,16 +629,10 @@ describe("Simple objects with property typing", () => {
     );
     const expectedAScope = expect.objectContaining({
       parent: actual,
-      type: "function",
-      declaration: actualA
+      type: "function"
     });
-    const expectedObj = expect.objectContaining({
-      parent: actual
-    });
-    expect(actualObj).toEqual(expectedObj);
     expect(actualAScope).toEqual(expectedAScope);
-    expect(actualKeySize).toEqual(1);
-    expect(actualA.type).toEqual(expectedAType);
+    expect(actualAScope.declaration.type).toEqual(expectedAType);
   });
   test("Simple object with typed arguments inside function property in module scope", () => {
     const sourceAST = prepareAST(`
@@ -701,28 +641,16 @@ describe("Simple objects with property typing", () => {
       };
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualObj = actual.body.get("obj");
-    const actualKeySize = actualObj.type.properties.size;
-    const actualA = actualObj.type.properties.get("a");
     const actualAScope = actual.body.get("[[Scope3-11]]");
-    const expectedAType = new FunctionType(
-      `(number, string) => ${UNDEFINED_TYPE}`,
-      [new Type("number"), new Type("string")],
-      new Type(UNDEFINED_TYPE),
-      false
-    );
     const expectedAScope = expect.objectContaining({
       parent: actual,
-      type: "function",
-      declaration: actualA
+      type: "function"
     });
-    const expectedObj = expect.objectContaining({
-      parent: actual
-    });
-    expect(actualObj).toEqual(expectedObj);
     expect(actualAScope).toEqual(expectedAScope);
-    expect(actualKeySize).toEqual(1);
-    expect(actualA.type).toEqual(expectedAType);
+    expect(actualAScope.declaration.type.argumentsTypes).toEqual([
+      new Type("number"),
+      new Type("string")
+    ]);
   });
   test("Object expression inside object exprssion", () => {
     const sourceAST = prepareAST(`
@@ -735,11 +663,6 @@ describe("Simple objects with property typing", () => {
       };
     `);
     const actual = createTypeGraph(sourceAST);
-    const actualObj = actual.body.get("obj");
-    const actualKeySize = actualObj.type.properties.size;
-    const actualAKeySize = actualObj.type.properties.size;
-    const actualA = actualObj.type.properties.get("a");
-    const actualB = actualA.type.properties.get("b");
     const actualBScope = actual.body.get("[[Scope4-10]]");
     const expectedBType = new FunctionType(
       "() => number",
@@ -749,17 +672,10 @@ describe("Simple objects with property typing", () => {
     );
     const expectedAScope = expect.objectContaining({
       parent: actual,
-      type: "function",
-      declaration: actualB
+      type: "function"
     });
-    const expectedObj = expect.objectContaining({
-      parent: actual
-    });
-    expect(actualObj).toEqual(expectedObj);
-    expect(actualKeySize).toEqual(1);
-    expect(actualAKeySize).toEqual(1);
-    expect(actualB.type).toEqual(expectedBType);
     expect(actualBScope).toEqual(expectedAScope);
+    expect(actualBScope.declaration.type).toEqual(expectedBType);
   });
 });
 describe("Unnamed object types", () => {
@@ -832,21 +748,6 @@ describe("Unnamed object types", () => {
       ])
     });
     expect(actualA).toEqual(expectedA);
-  });
-  test("Primitive any inside object type", () => {
-    const sourceAST = prepareAST(`
-      const a: { n: any } = { n: null };
-    `);
-    try {
-      createTypeGraph(sourceAST);
-    } catch (e) {
-      expect(e.constructor).toEqual(HegelError);
-      expect(e.message).toEqual('There is no "any" type in Hegel.');
-      expect(e.loc).toEqual({
-        start: { line: 2, column: 20 },
-        end: { line: 2, column: 23 }
-      });
-    }
   });
   test("Literal number inside object type", () => {
     const sourceAST = prepareAST(`
@@ -945,7 +846,7 @@ describe("Unnamed object types", () => {
   });
   test("Functional types inside object type", () => {
     const sourceAST = prepareAST(`
-      const a: { 
+      const a: {
         f: (string, number) => number
       } = { f(a, b) { return b } };
     `);
@@ -1219,16 +1120,16 @@ describe("Generic types", () => {
       const actualAliasType = actualTypeAlias.type;
       expect(actualTypeAlias).not.toBe(undefined);
       expect(actualAliasType.constructor).toBe(GenericType);
-      expect(actualAliasType.type.properties.get("a").type).toEqual(
-        new TypeVar("T", new Type("number"))
+      expect(actualAliasType.subordinateType.properties.get("a").type).toEqual(
+        new TypeVar("T", new Type("number"), true)
       );
     });
   });
   describe("Function generic types", () => {
     test("Function declaration with simple generic", () => {
       const sourceAST = prepareAST(`
-        function a<T>(b: T): T {}
-      `);
+          function a<T>(b: T): T { return b; }
+        `);
       const actual = createTypeGraph(sourceAST);
       const actualFunctionType = actual.body.get("a");
       const actualGenericType = actualFunctionType.type;
@@ -1239,8 +1140,8 @@ describe("Generic types", () => {
     });
     test("Function declaration multiple generic arguments", () => {
       const sourceAST = prepareAST(`
-        function a<T, U>(b: T): U {}
-      `);
+          function a<T, U>(b: T, c: U): U { return c; }
+        `);
       const actual = createTypeGraph(sourceAST);
       const actualFunctionType = actual.body.get("a");
       const actualGenericType = actualFunctionType.type;
@@ -1254,25 +1155,23 @@ describe("Generic types", () => {
     });
     test("Function declaration with generic restriction", () => {
       const sourceAST = prepareAST(`
-        function a<T: string>(b: T): T {}
-      `);
+          function a<T: string>(b: T): T { return b; }
+        `);
       const actual = createTypeGraph(sourceAST);
       const actualFunction = actual.body.get("a");
-      const expectedFunction = expect.objectContaining({
-        parent: actual,
-        type: new FunctionType(
-          "<T: string>(T) => T",
-          [new Type("T")],
-          new Type("T")
-        )
-      });
+      const expectedFunction = new FunctionType(
+        "<T: string>(T) => T",
+        [new TypeVar("T", new Type("string"), true)],
+        new TypeVar("T", new Type("string"), true)
+      );
       expect(actualFunction).not.toBe(undefined);
       expect(actualFunction.type.constructor).toBe(GenericType);
+      expect(actualFunction.type.subordinateType).toEqual(expectedFunction);
     });
     test("Function type alias with generic", () => {
       const sourceAST = prepareAST(`
-        type A = <T>(T) => T;
-      `);
+          type A = <T>(T) => T;
+        `);
       const actual = createTypeGraph(sourceAST);
       const typeScope = actual.body.get(TYPE_SCOPE);
       const actualFunctionType = typeScope.body.get("A");
@@ -1285,8 +1184,8 @@ describe("Generic types", () => {
   describe("Union types", () => {
     test("Union type for variable", () => {
       const sourceAST = prepareAST(`
-        const a: number | string = 2;
-      `);
+          const a: number | string = 2;
+        `);
       const actual = createTypeGraph(sourceAST);
       const actualVariableInfo = actual.body.get("a");
       const expectVariableInfo = expect.objectContaining({
@@ -1300,8 +1199,8 @@ describe("Generic types", () => {
     });
     test("Union type in type alias", () => {
       const sourceAST = prepareAST(`
-        type A = string | number;
-      `);
+          type A = string | number;
+        `);
       const actual = createTypeGraph(sourceAST);
       const actualTypeScope = actual.body.get(TYPE_SCOPE);
       const actualAType = actualTypeScope.body.get("A");
@@ -1316,10 +1215,10 @@ describe("Generic types", () => {
     });
     test("Union type as argument type", () => {
       const sourceAST = prepareAST(`
-        function a(b: string | number): void {}
-      `);
+          function a(b: string | number): void {}
+        `);
       const actual = createTypeGraph(sourceAST);
-      const actualAFunctionScope = actual.body.get("[[Scope2-8]]");
+      const actualAFunctionScope = actual.body.get("[[Scope2-10]]");
       const actualADeclarationInfo = actual.body.get("a");
       const actualBArgumentInfo = actualAFunctionScope.body.get("b");
       const actualArgumentDeclarationInfo =
@@ -1333,8 +1232,8 @@ describe("Generic types", () => {
     });
     test("Union type as return type", () => {
       const sourceAST = prepareAST(`
-        function a(): string | number {}
-      `);
+          function a(): string | number {}
+        `);
       const actual = createTypeGraph(sourceAST);
       const actualADeclarationInfo = actual.body.get("a");
       const actualReturnInfo = actualADeclarationInfo.type.returnType;

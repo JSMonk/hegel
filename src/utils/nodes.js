@@ -24,6 +24,7 @@ export const STATEMENTS_TYPES = {
 };
 
 export const EXPRESSIONS_TYPES = {
+  ARRAY_EXPRESSION: "ArrayExpression",
   FUNCTION_EXPRESSION: "FunctionExpression",
   ARROW_FUNCTION_EXPRESSION: "ArrowFunctionExpression",
   OBJECT_EXPRESSION: "ObjectExpression",
@@ -40,7 +41,8 @@ export const EXPRESSIONS_TYPES = {
 
 export const OBJECT_PROPERTIES = {
   OBJECT_EXPRESSION: "ObjectExpression",
-  OBJECT_METHOD: "ObjectMethod"
+  OBJECT_METHOD: "ObjectMethod",
+  OBJECT_PROPERTY: "ObjectProperty",
 };
 
 export const LITERAL_TYPES = {
@@ -96,6 +98,7 @@ const isScopeCreator = (node: Node) =>
     EXPRESSIONS_TYPES.FUNCTION_EXPRESSION,
     EXPRESSIONS_TYPES.ARROW_FUNCTION_EXPRESSION,
     ANNOTATION_TYPES.FUNCTION_TYPE_ANNOTATION,
+    OBJECT_PROPERTIES.OBJECT_METHOD,
     STATEMENTS_TYPES.BLOCK_STATEMENT
   ].includes(node.type);
 
@@ -104,17 +107,14 @@ const isFunction = (node: Node) =>
     DECLARATION_TYPES.FUNCTION_DECLARATION,
     EXPRESSIONS_TYPES.FUNCTION_EXPRESSION,
     EXPRESSIONS_TYPES.ARROW_FUNCTION_EXPRESSION,
-    ANNOTATION_TYPES.FUNCTION_TYPE_ANNOTATION
+    ANNOTATION_TYPES.FUNCTION_TYPE_ANNOTATION,
+    OBJECT_PROPERTIES.OBJECT_METHOD
   ].includes(node.type);
-
-const isFunctionalProperty = (node: Node) =>
-  node.type === OBJECT_PROPERTIES.OBJECT_METHOD || isFunction(node.value);
 
 export default {
   isObject,
   isFunction,
   isScopeCreator,
-  isFunctionalProperty,
   isUnscopableDeclaration,
   ...DECLARATION_TYPES,
   ...STATEMENTS_TYPES,
