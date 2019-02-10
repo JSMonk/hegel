@@ -20,7 +20,8 @@ export const STATEMENTS_TYPES = {
   DO_WHILE_STATEMENT: "DoWhileStatement",
   FOR_STATEMENT: "ForStatement",
   EXPRESSION_STATEMENT: "ExpressionStatement",
-  RETURN_STATEMENT: "ReturnStatement"
+  RETURN_STATEMENT: "ReturnStatement",
+  EMPTY_STATEMENT: "EmptyStatement"
 };
 
 export const EXPRESSIONS_TYPES = {
@@ -36,7 +37,8 @@ export const EXPRESSIONS_TYPES = {
   AWAIT_EXPRESSION: "AwaitExpression",
   LOGICAL_EXPRESSION: "LogicalExpression",
   CALL_EXPRESSION: "CallExpression",
-  MEMBER_EXPRESSION: "MemberExpression"
+  MEMBER_EXPRESSION: "MemberExpression",
+  UPDATE_EXPRESSION: "UpdateExpression"
 };
 
 export const OBJECT_PROPERTIES = {

@@ -35,9 +35,29 @@ const genericType = (name, typeScope, genericArguments, typeFactory) => {
 const mixBaseGlobals = moduleScope => {
   const typeScope = moduleScope.body.get(TYPE_SCOPE);
   const globals = new Map([
+    ["mixed", new VariableInfo(Type.createTypeWithName("mixed", typeScope))],
+    ["void", new VariableInfo(Type.createTypeWithName("void", typeScope))],
     [
       "undefined",
-      new VariableInfo(Type.createTypeWithName("undefined", typeScope))
+      new VariableInfo(
+        Type.createTypeWithName("undefined", typeScope, {
+          isLiteralOf: Type.createTypeWithName("void", typeScope)
+        })
+      )
+    ],
+    [
+      null,
+      new VariableInfo(
+        Type.createTypeWithName(null, typeScope, {
+          isLiteralOf: Type.createTypeWithName("void", typeScope)
+        })
+      )
+    ],
+    ["number", new VariableInfo(Type.createTypeWithName("number", typeScope))],
+    ["string", new VariableInfo(Type.createTypeWithName("string", typeScope))],
+    [
+      "boolean",
+      new VariableInfo(Type.createTypeWithName("boolean", typeScope))
     ],
     ["Symbol", new VariableInfo(Type.createTypeWithName("Symbol", typeScope))],
     [

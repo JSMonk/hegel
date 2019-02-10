@@ -6,12 +6,14 @@ import type {
   Function
 } from "@babel/parser";
 import NODE from "../utils/nodes";
+import HegelError from "../utils/errors";
 import { addFunctionScopeToTypeGraph } from "../type/type-graph";
 import {
   addTypeVar,
   getAnonymousKey,
   findVariableInfo,
   getUnionTypeLiteral,
+  getTupleTypeLiteral,
   getObjectTypeLiteral,
   findNearestTypeScope,
   getFunctionTypeLiteral,
@@ -79,29 +81,14 @@ const inferenceArrayType = (
   parentScope: ModuleScope | Scope,
   typeGraph: ModuleScope
 ): ObjectType => {
-  const ArrayType: GenericType<*> = (findVariableInfo(
-    { name: "Array" },
-    typeScope
-  ).type: any);
-  const itemsMap = currentNode.elements
-    .map(a => inferenceTypeForNode(a, typeScope, parentScope, typeGraph))
-    .reduce((res, t) => {
-      if (res.get(t.name)) {
-        return res;
-      }
-      res.set(t.name, t);
-      return res;
-    }, new Map());
-  const items = [...itemsMap.values()];
-  const arraySubordinateType =
-    items.length > 1
-      ? UnionType.createTypeWithName(
-          getUnionTypeLiteral(items),
-          typeScope,
-          items
-        )
-      : items[0] || Type.createTypeWithName("mixed", typeScope);
-  return ArrayType.applyGeneric([arraySubordinateType]);
+  const items = currentNode.elements.map(a =>
+    inferenceTypeForNode(a, typeScope, parentScope, typeGraph)
+  );
+  return TupleType.createTypeWithName(
+    getTupleTypeLiteral(items),
+    typeScope,
+    items
+  );
 };
 
 const typeVarNames = [
@@ -141,6 +128,12 @@ const inferenceFunctionLiteralType = (
     );
   }
   const argumentsTypes = currentNode.params.map((param, index) => {
+    if (param.optional) {
+      throw new HegelError(
+        "The optional argument syntax is not allowed. Please use maybe type syntax.",
+        param.loc
+      );
+    }
     const paramType = getTypeFromTypeAnnotation(
       param.typeAnnotation,
       localTypeScope,
@@ -236,7 +229,7 @@ const resolveOuterTypeVarsFromCall = (
   }
 };
 
-const implicitApplyGeneric = (
+export const implicitApplyGeneric = (
   fn: GenericType<FunctionType>,
   argumentsTypes: Array<Type>
 ): FunctionType => {

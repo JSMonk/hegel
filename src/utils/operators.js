@@ -520,24 +520,18 @@ const mixBaseOperators = moduleScope => {
       [
         "++",
         FunctionType.createTypeWithName(
-          "(number, number) => number",
+          "(number) => number",
           typeScope,
-          [
-            Type.createTypeWithName("number", typeScope),
-            Type.createTypeWithName("number", typeScope)
-          ],
+          [Type.createTypeWithName("number", typeScope)],
           Type.createTypeWithName("number", typeScope)
         )
       ],
       [
         "--",
         FunctionType.createTypeWithName(
-          "(number, number) => number",
+          "(number) => number",
           typeScope,
-          [
-            Type.createTypeWithName("number", typeScope),
-            Type.createTypeWithName("number", typeScope)
-          ],
+          [Type.createTypeWithName("number", typeScope)],
           Type.createTypeWithName("number", typeScope)
         )
       ],
@@ -573,12 +567,56 @@ const mixBaseOperators = moduleScope => {
         genericFunction(
           typeScope,
           [["A", new TypeVar("A")], ["B", new TypeVar("B")]],
-          l => [l.body.get("A").type, l.body.get("B").type],
+          l => [
+            Type.createTypeWithName("boolean", typeScope),
+            l.body.get("A").type,
+            l.body.get("B").type
+          ],
           l =>
             UnionType.createTypeWithName("A | B", l, [
               l.body.get("A").type,
               l.body.get("B").type
             ])
+        )
+      ],
+      [
+        "if",
+        FunctionType.createTypeWithName(
+          "(boolean) => void",
+          typeScope,
+          [Type.createTypeWithName("boolean", typeScope)],
+          Type.createTypeWithName("void", typeScope)
+        )
+      ],
+      [
+        "while",
+        FunctionType.createTypeWithName(
+          "(boolean) => void",
+          typeScope,
+          [Type.createTypeWithName("boolean", typeScope)],
+          Type.createTypeWithName("void", typeScope)
+        )
+      ],
+      [
+        "do-while",
+        FunctionType.createTypeWithName(
+          "(boolean) => void",
+          typeScope,
+          [Type.createTypeWithName("boolean", typeScope)],
+          Type.createTypeWithName("void", typeScope)
+        )
+      ],
+      [
+        "for",
+        FunctionType.createTypeWithName(
+          "(?mixed, ?boolean, ?mixed) => void",
+          typeScope,
+          [
+            Type.createTypeWithName("mixed", typeScope),
+            Type.createTypeWithName("boolean", typeScope),
+            Type.createTypeWithName("mixed", typeScope)
+          ],
+          Type.createTypeWithName("void", typeScope)
         )
       ],
       [

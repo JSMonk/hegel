@@ -28,6 +28,7 @@ import {
 export const getNameForType = (type: Type): string =>
   typeof type.name === "string" &&
   type.isLiteralOf &&
+  type.isLiteralOf.name === "string" &&
   !(type instanceof ObjectType) &&
   !(type instanceof FunctionType)
     ? `'${String(type.name)}'`
@@ -161,9 +162,9 @@ export const getTypeFromTypeAnnotation = (
         typeScope
       );
       return UnionType.createTypeWithName(
-        `${getNameForType(resultType)} | null`,
+        `${getNameForType(resultType)} | void`,
         typeScope,
-        [resultType, Type.createTypeWithName(null, typeScope)]
+        [resultType, Type.createTypeWithName("void", typeScope)]
       );
     case NODE.UNION_TYPE_ANNOTATION:
       const unionVariants = typeAnnotation.typeAnnotation.types.map(
@@ -328,3 +329,7 @@ export const findNearestTypeScope = (
   }
   return moduleTypeScope;
 };
+
+export const compose = (fn: Function, ...fns: Array<Function>) => (
+  ...args: Array<mixed>
+) => fns.reduce((res, fn) => fn(res), fn(...args));

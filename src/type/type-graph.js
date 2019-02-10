@@ -9,6 +9,8 @@ import type {
 } from "@babel/parser";
 import traverseTree from "../utils/traverse";
 import NODE from "../utils/nodes";
+import checkCalls from "../checking";
+import HegelError from "../utils/errors";
 import mixBaseGlobals from "../utils/globals";
 import mixBaseOperators from "../utils/operators";
 import {
@@ -87,6 +89,33 @@ const addCallToTypeGraph = (
     throw new Error("Never!");
   }
   switch (node.type) {
+    case NODE.IF_STATEMENT:
+      target = findVariableInfo({ name: "if" }, currentScope);
+      args = [addCallToTypeGraph(node.test, typeGraph, currentScope)];
+      break;
+    case NODE.WHILE_STATEMENT:
+      target = findVariableInfo({ name: "while" }, currentScope);
+      args = [addCallToTypeGraph(node.test, typeGraph, currentScope)];
+      break;
+    case NODE.DO_WHILE_STATEMENT:
+      target = findVariableInfo({ name: "do-while" }, currentScope);
+      args = [addCallToTypeGraph(node.test, typeGraph, currentScope)];
+      break;
+    case NODE.FOR_STATEMENT:
+      target = findVariableInfo({ name: "for" }, currentScope);
+      args = [
+        Type.createTypeWithName("mixed", typeScope),
+        node.test
+          ? addCallToTypeGraph(
+              node.test,
+              typeGraph,
+              // $FlowIssue
+              typeGraph.body.get(getScopeKey(node.body))
+            )
+          : Type.createTypeWithName("undefined", typeScope),
+        Type.createTypeWithName("mixed", typeScope)
+      ];
+      break;
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
     case NODE.CLASS_DECLARATION:
@@ -110,6 +139,7 @@ const addCallToTypeGraph = (
       return addCallToTypeGraph(node.expression, typeGraph, currentScope);
     case NODE.RETURN_STATEMENT:
     case NODE.UNARY_EXPRESSION:
+    case NODE.UPDATE_EXPRESSION:
       args = [addCallToTypeGraph(node.argument, typeGraph, currentScope)];
       targetName = node.operator || "return";
       target = findVariableInfo({ name: targetName }, currentScope);
@@ -147,7 +177,7 @@ const addCallToTypeGraph = (
     case NODE.CONDITIONAL_EXPRESSION:
       args = [
         addCallToTypeGraph(node.test, typeGraph, currentScope),
-        addCallToTypeGraph(node.conseqent, typeGraph, currentScope),
+        addCallToTypeGraph(node.consequent, typeGraph, currentScope),
         addCallToTypeGraph(node.alternate, typeGraph, currentScope)
       ];
       targetName = "?:";
@@ -349,7 +379,7 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   typeScope.body.set(node.id.name, typeAlias);
 };
 
-const fillModuleScope = (typeGraph: ModuleScope) => {
+const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
   if (!typeScope || !(typeScope instanceof Scope)) {
     throw new Error("Type scope is not a scope.");
@@ -388,7 +418,10 @@ const fillModuleScope = (typeGraph: ModuleScope) => {
   };
 };
 
-const afterFillierActions = (typeGraph: ModuleScope) => {
+const afterFillierActions = (
+  typeGraph: ModuleScope,
+  errors: Array<HegelError>
+) => {
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
   if (!typeScope || !(typeScope instanceof Scope)) {
     throw new Error("Type scope is not a scope.");
@@ -400,14 +433,6 @@ const afterFillierActions = (typeGraph: ModuleScope) => {
   ) => {
     const currentScope = getParentFromNode(currentNode, parentNode, typeGraph);
     switch (currentNode.type) {
-      case NODE.RETURN_STATEMENT:
-      case NODE.EXPRESSION_STATEMENT:
-        addCallToTypeGraph(
-          currentNode,
-          typeGraph,
-          getParentFromNode(currentNode, parentNode, typeGraph)
-        );
-        break;
       case NODE.VARIABLE_DECLARATOR:
         const variableInfo = findVariableInfo(currentNode.id, currentScope);
         const newTypeOrVar = addCallToTypeGraph(
@@ -423,6 +448,18 @@ const afterFillierActions = (typeGraph: ModuleScope) => {
           variableInfo.type.name === UNDEFINED_TYPE
             ? newType
             : variableInfo.type;
+        break;
+      case NODE.RETURN_STATEMENT:
+      case NODE.EXPRESSION_STATEMENT:
+      case NODE.IF_STATEMENT:
+      case NODE.WHILE_STATEMENT:
+      case NODE.DO_WHILE_STATEMENT:
+      case NODE.FOR_STATEMENT:
+        addCallToTypeGraph(
+          currentNode,
+          typeGraph,
+          getParentFromNode(currentNode, parentNode, typeGraph)
+        );
         break;
       case NODE.OBJECT_METHOD:
       case NODE.FUNCTION_EXPRESSION:
@@ -441,20 +478,34 @@ const afterFillierActions = (typeGraph: ModuleScope) => {
         ) {
           // $FlowIssue - Type refinements
           inferenceFunctionTypeByScope(functionScope, typeGraph);
+          checkCalls(functionScope, typeScope, errors);
         }
         break;
     }
   };
 };
 
-const createModuleScope = (ast: Program): ModuleScope => {
+const createModuleScope = (ast: Program): [ModuleScope, Array<HegelError>] => {
+  const errors: Array<HegelError> = [];
   const result = new ModuleScope();
   const typeScope = new Scope("block", result);
   result.body.set(TYPE_SCOPE, typeScope);
   mixBaseGlobals(result);
   mixBaseOperators(result);
-  traverseTree(ast, fillModuleScope(result), afterFillierActions(result));
-  return result;
+  try {
+    traverseTree(
+      ast,
+      fillModuleScope(result, errors),
+      afterFillierActions(result, errors)
+    );
+  } catch (e) {
+    if (!(e instanceof HegelError)) {
+      throw e;
+    }
+    errors.push(e);
+  }
+  checkCalls(result, typeScope, errors);
+  return [result, errors];
 };
 
 export default createModuleScope;

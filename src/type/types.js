@@ -123,10 +123,7 @@ export class Type {
   }
 
   equalsTo(anotherType: Type) {
-    return (
-      this.name === anotherType.name &&
-      this.isLiteralOf === anotherType.isLiteralOf
-    );
+    return this.name === anotherType.name;
   }
 
   isSuperTypeFor(type: Type): boolean {
@@ -134,7 +131,11 @@ export class Type {
   }
 
   isPrincipalTypeFor(type: Type): boolean {
-    return this.equalsTo(type) || this.isSuperTypeFor(type);
+    return (
+      this.equalsTo(new Type("mixed")) ||
+      this.equalsTo(type) ||
+      this.isSuperTypeFor(type)
+    );
   }
 }
 
@@ -179,13 +180,15 @@ export class ObjectType extends Type {
   }
 
   isAllProperties(
-    predicate: "equalsTo" | "isSuperTypeFor",
+    predicate: "equalsTo" | "isPrincipalTypeFor",
     anotherType: ObjectType
   ): boolean {
     for (const [key, { type }] of this.properties) {
-      const anotherPropertyType = anotherType.properties.get(key);
+      const anotherProperty = anotherType.properties.get(key) || {
+        type: new Type("void")
+      };
       /* $FlowIssue - flow doesn't type methods by name */
-      if (!anotherPropertyType || !type[predicate](anotherPropertyType.type)) {
+      if (!type[predicate](anotherProperty.type)) {
         return false;
       }
     }
@@ -233,10 +236,15 @@ export class ObjectType extends Type {
   }
 
   isSuperTypeFor(anotherType: Type): boolean {
+    const requiredProperties = [...this.properties.values()].filter(
+      ({ type }) =>
+        !(type instanceof UnionType) ||
+        !type.variants.some(t => t.equalsTo(new Type("void")))
+    );
     return (
       anotherType instanceof ObjectType &&
-      anotherType.properties.size >= this.properties.size &&
-      this.isAllProperties("isSuperTypeFor", anotherType)
+      anotherType.properties.size >= requiredProperties.length &&
+      this.isAllProperties("isPrincipalTypeFor", anotherType)
     );
   }
 }
@@ -275,7 +283,7 @@ export class GenericType<T: Type> extends Type {
           this.name
         )}' called with wrong number of arguments. Expect: ${
           this.genericArguments.length
-        }, Actual: #{parameters.length}`,
+        }, Actual: ${parameters.length}`,
         loc
       );
     }
@@ -368,9 +376,9 @@ export class FunctionType extends Type {
       anotherType instanceof FunctionType ? anotherType.argumentsTypes : [];
     return (
       anotherType instanceof FunctionType &&
-      this.returnType.isSuperTypeFor(anotherType.returnType) &&
+      this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
       this.argumentsTypes.every((type, index) =>
-        argumentsTypes[index].isSuperTypeFor(type)
+        (argumentsTypes[index] || new Type("void")).isPrincipalTypeFor(type)
       )
     );
   }
@@ -429,13 +437,13 @@ export class UnionType extends Type {
         return false;
       }
       for (const variantType of anotherType.variants) {
-        if (!this.variants.some(type => type.isSuperTypeFor(variantType))) {
+        if (!this.variants.some(type => type.isPrincipalTypeFor(variantType))) {
           return false;
         }
       }
       return true;
     }
-    return this.variants.some(type => type.isSuperTypeFor(anotherType));
+    return this.variants.some(type => type.isPrincipalTypeFor(anotherType));
   }
 }
 
@@ -475,15 +483,9 @@ export class TupleType extends Type {
 
   isSuperTypeFor(anotherType: Type) {
     return (
-      anotherType instanceof CollectionType &&
-      anotherType.keyType.equalsTo(new Type("number")) &&
-      (this.items.length === 0 ||
-        (this.items.length === 1 &&
-          this.items[0].isSuperTypeFor(anotherType.valueType)) ||
-        (this.items.length > 1 &&
-          anotherType.valueType instanceof UnionType &&
-          // $FlowIssue
-          this.items.every(t => anotherType.valueType.isSuperTypeFor(t))))
+      anotherType instanceof TupleType &&
+      //$FlowIssue - instanceof type refinement
+      this.items.every((t, i) => anotherType.items[i].isPrincipalTypeFor(t))
     );
   }
 
@@ -520,11 +522,14 @@ export class CollectionType<K: Type, V: Type> extends Type {
     );
   }
 
-  isSuperTypeFor(anotherType: Type) {
+  isSuperTypeFor(anotherType: any) {
     return (
-      anotherType instanceof CollectionType &&
-      this.keyType.equalsTo(anotherType.keyType) &&
-      this.valueType.isSuperTypeFor(anotherType.valueType)
+      (anotherType instanceof CollectionType &&
+        this.keyType.equalsTo(anotherType.keyType) &&
+        this.valueType.isPrincipalTypeFor(anotherType.valueType)) ||
+      (anotherType instanceof TupleType &&
+        this.keyType.equalsTo(new Type("number")) &&
+        anotherType.items.every(t => this.valueType.isPrincipalTypeFor(t)))
     );
   }
 
