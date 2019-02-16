@@ -15,6 +15,7 @@ import mixBaseGlobals from "../utils/globals";
 import mixBaseOperators from "../utils/operators";
 import {
   getInvocationType,
+  inferenceErrorType,
   inferenceTypeForNode,
   inferenceFunctionTypeByScope
 } from "../inference";
@@ -23,6 +24,8 @@ import {
   getNameForType,
   getAnonymousKey,
   findVariableInfo,
+  getParentFromNode,
+  findThrowableBlock,
   getDeclarationName,
   findNearestTypeScope,
   findNearestScopeByType,
@@ -74,6 +77,20 @@ const getTypeScope = (scope: Scope | ModuleScope): Scope => {
     return getTypeScope(scope.parent);
   }
   throw new TypeError("Never");
+};
+
+const addToThrowable = (
+  throwType: Type | VariableInfo,
+  currentScope: Scope | ModuleScope
+) => {
+  const throwableScope = findThrowableBlock(currentScope);
+  if (!throwableScope || !throwableScope.throwable) {
+    return;
+  }
+  const { throwable } = throwableScope;
+  if (currentScope instanceof Scope) {
+    throwable.push(throwType);
+  }
 };
 
 const addCallToTypeGraph = (
@@ -137,6 +154,12 @@ const addCallToTypeGraph = (
       break;
     case NODE.EXPRESSION_STATEMENT:
       return addCallToTypeGraph(node.expression, typeGraph, currentScope);
+    case NODE.THROW_STATEMENT:
+      args = [addCallToTypeGraph(node.argument, typeGraph, currentScope)];
+      targetName = "throw";
+      target = findVariableInfo({ name: targetName }, currentScope);
+      addToThrowable(args[0], currentScope);
+      break;
     case NODE.RETURN_STATEMENT:
     case NODE.UNARY_EXPRESSION:
     case NODE.UPDATE_EXPRESSION:
@@ -191,6 +214,33 @@ const addCallToTypeGraph = (
         node.callee.type === NODE.IDENTIFIER
           ? findVariableInfo(node.callee, currentScope)
           : (addCallToTypeGraph(node.callee, typeGraph, currentScope): any);
+      const { throwable } = target;
+      if (throwable) {
+        addToThrowable(throwable, currentScope);
+      }
+      break;
+    case NODE.NEW_EXPRESSION:
+      const argument = addCallToTypeGraph(node.callee, typeGraph, currentScope);
+      const argumentType =
+        argument instanceof VariableInfo ? argument.type : argument;
+      const potentialArgument =
+        argumentType instanceof FunctionType ||
+        (argumentType instanceof GenericType &&
+          argumentType.subordinateType instanceof FunctionType)
+          ? getInvocationType(
+              argumentType,
+              node.arguments.map(a =>
+                addCallToTypeGraph(a, typeGraph, currentScope)
+              )
+            )
+          : argumentType;
+      args = [
+        potentialArgument instanceof ObjectType
+          ? potentialArgument
+          : ObjectType.createTypeWithName("{ }", typeScope, [])
+      ];
+      targetName = "new";
+      target = findVariableInfo({ name: targetName }, currentScope);
       break;
     default:
       return inferenceTypeForNode(node, typeScope, currentScope, typeGraph);
@@ -212,25 +262,6 @@ const addCallToTypeGraph = (
     );
   }
   throw new Error(target.constructor.name);
-};
-
-const getParentFromNode = (
-  currentNode: Node,
-  parentNode: ?Node,
-  typeGraph: ModuleScope
-): ModuleScope | Scope => {
-  if (!parentNode) {
-    return typeGraph;
-  }
-  const name = getScopeKey(parentNode);
-  const scope = typeGraph.body.get(name);
-  if (!(scope instanceof Scope)) {
-    return typeGraph;
-  }
-  if (NODE.isUnscopableDeclaration(currentNode)) {
-    return findNearestScopeByType(Scope.FUNCTION_TYPE, scope || typeGraph);
-  }
-  return scope;
 };
 
 const getVariableInfoFromDelcaration = (
@@ -292,6 +323,7 @@ export const addFunctionScopeToTypeGraph = (
     typeGraph,
     variableInfo
   );
+  scope.throwable = [];
   typeGraph.body.set(getScopeKey(currentNode), scope);
   if (currentNode.type === NODE.FUNCTION_EXPRESSION && currentNode.id) {
     scope.body.set(getDeclarationName(currentNode), variableInfo);
@@ -396,17 +428,6 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
           typeGraph
         );
         break;
-      case NODE.BLOCK_STATEMENT:
-        if (NODE.isFunction(parentNode)) {
-          return;
-        }
-      case NODE.CLASS_DECLARATION:
-      case NODE.CLASS_EXPRESSION:
-        typeGraph.body.set(
-          getScopeKey(currentNode),
-          getScopeFromNode(currentNode, parentNode, typeGraph)
-        );
-        break;
       case NODE.OBJECT_METHOD:
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
@@ -414,6 +435,46 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
       case NODE.FUNCTION_DECLARATION:
         addFunctionToTypeGraph(currentNode, parentNode, typeGraph);
         break;
+      case NODE.BLOCK_STATEMENT:
+        if (NODE.isFunction(parentNode)) {
+          return;
+        }
+      case NODE.CLASS_DECLARATION:
+      case NODE.CLASS_EXPRESSION:
+        const scopeName = getScopeKey(currentNode);
+        if (typeGraph.body.get(scopeName)) {
+          return;
+        }
+        typeGraph.body.set(
+          scopeName,
+          getScopeFromNode(currentNode, parentNode, typeGraph)
+        );
+        break;
+      case NODE.TRY_STATEMENT:
+        const tryBlock = getScopeFromNode(
+          currentNode.block,
+          parentNode,
+          typeGraph
+        );
+        tryBlock.throwable = [];
+        typeGraph.body.set(getScopeKey(currentNode.block), tryBlock);
+        if (!currentNode.handler) {
+          return;
+        }
+        const handlerScopeKey = getScopeKey(currentNode.handler.body);
+        typeGraph.body.set(
+          handlerScopeKey,
+          getScopeFromNode(currentNode.handler.body, parentNode, typeGraph)
+        );
+        if (!currentNode.handler.param) {
+          return;
+        }
+        addVariableToGraph(
+          currentNode.handler.param,
+          currentNode.handler.body,
+          typeGraph,
+          currentNode.handler.param.name
+        );
     }
   };
 };
@@ -449,17 +510,32 @@ const afterFillierActions = (
             ? newType
             : variableInfo.type;
         break;
+      case NODE.BLOCK_STATEMENT:
+        if (!currentNode.catchBlock || !currentNode.catchBlock.param) {
+          return;
+        }
+        if (currentNode.catchBlock.param.type !== NODE.IDENTIFIER) {
+          throw new Error("Unsupported yet");
+        }
+        const errorVariable = findVariableInfo(
+          currentNode.catchBlock.param,
+          getParentFromNode(
+            currentNode.catchBlock.param,
+            currentNode.catchBlock.body,
+            typeGraph
+          )
+        );
+        errorVariable.type = inferenceErrorType(currentNode, typeGraph);
+        break;
+      case NODE.CALL_EXPRESSION:
       case NODE.RETURN_STATEMENT:
       case NODE.EXPRESSION_STATEMENT:
       case NODE.IF_STATEMENT:
       case NODE.WHILE_STATEMENT:
       case NODE.DO_WHILE_STATEMENT:
       case NODE.FOR_STATEMENT:
-        addCallToTypeGraph(
-          currentNode,
-          typeGraph,
-          getParentFromNode(currentNode, parentNode, typeGraph)
-        );
+      case NODE.THROW_STATEMENT:
+        addCallToTypeGraph(currentNode, typeGraph, currentScope);
         break;
       case NODE.OBJECT_METHOD:
       case NODE.FUNCTION_EXPRESSION:
@@ -476,9 +552,13 @@ const afterFillierActions = (
           functionScope.type === Scope.FUNCTION_TYPE &&
           functionScope.declaration.type.subordinateType instanceof FunctionType
         ) {
+          const { declaration } = functionScope;
           // $FlowIssue - Type refinements
           inferenceFunctionTypeByScope(functionScope, typeGraph);
           checkCalls(functionScope, typeScope, errors);
+          declaration.throwable = (functionScope.throwable || []).length
+            ? inferenceErrorType(currentNode, typeGraph)
+            : undefined;
         }
         break;
     }

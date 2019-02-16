@@ -21,7 +21,10 @@ export const STATEMENTS_TYPES = {
   FOR_STATEMENT: "ForStatement",
   EXPRESSION_STATEMENT: "ExpressionStatement",
   RETURN_STATEMENT: "ReturnStatement",
-  EMPTY_STATEMENT: "EmptyStatement"
+  EMPTY_STATEMENT: "EmptyStatement",
+  TRY_STATEMENT: "TryStatement",
+  THROW_STATEMENT: "ThrowStatement",
+  CATCH_CLAUSE: "CatchClause"
 };
 
 export const EXPRESSIONS_TYPES = {
@@ -38,13 +41,14 @@ export const EXPRESSIONS_TYPES = {
   LOGICAL_EXPRESSION: "LogicalExpression",
   CALL_EXPRESSION: "CallExpression",
   MEMBER_EXPRESSION: "MemberExpression",
-  UPDATE_EXPRESSION: "UpdateExpression"
+  UPDATE_EXPRESSION: "UpdateExpression",
+  NEW_EXPRESSION: "NewExpression"
 };
 
 export const OBJECT_PROPERTIES = {
   OBJECT_EXPRESSION: "ObjectExpression",
   OBJECT_METHOD: "ObjectMethod",
-  OBJECT_PROPERTY: "ObjectProperty",
+  OBJECT_PROPERTY: "ObjectProperty"
 };
 
 export const LITERAL_TYPES = {

@@ -50,17 +50,35 @@ const mixDeclarationsInideForBlock = (currentNode: Node) => {
   return currentNode;
 };
 
+const mixTryCatchInfo = (currentNode: Node) => {
+  if (currentNode.type !== NODE.TRY_STATEMENT) {
+    return currentNode;
+  }
+  return {
+    ...currentNode,
+    block: {
+      ...currentNode.block,
+      catchBlock: currentNode.handler
+    }
+  };
+};
+
 const getBody = (currentNode: any) =>
   currentNode.body ||
   currentNode.declarations ||
   currentNode.properties ||
   [
+    currentNode.block,
+    currentNode.handler,
+    currentNode.finalizer,
     currentNode.consequent,
     currentNode.value,
     currentNode.init,
     currentNode.right,
     currentNode.left,
-    currentNode.argument
+    currentNode.argument,
+    currentNode.callee,
+    ...(currentNode.arguments || [])
   ].filter(Boolean);
 
 const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
@@ -72,7 +90,8 @@ const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
 
 const getCurrentNode = compose(
   mixDeclarationsInideForBlock,
-  mixBodyToArrowFunctionExpression
+  mixBodyToArrowFunctionExpression,
+  mixTryCatchInfo
 );
 
 const traverseTree = (

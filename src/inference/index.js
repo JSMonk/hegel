@@ -10,6 +10,8 @@ import HegelError from "../utils/errors";
 import { addFunctionScopeToTypeGraph } from "../type/type-graph";
 import {
   addTypeVar,
+  getScopeKey,
+  getParentFromNode,
   getAnonymousKey,
   findVariableInfo,
   getUnionTypeLiteral,
@@ -27,6 +29,7 @@ import {
   TypeVar,
   CallMeta,
   UnionType,
+  TYPE_SCOPE,
   TupleType,
   ObjectType,
   GenericType,
@@ -343,6 +346,40 @@ export const inferenceFunctionTypeByScope = (
     );
   }
   functionScope.declaration.type = newFunctionType;
+};
+
+export const inferenceErrorType = (
+  tryNode: Node,
+  typeGraph: ModuleScope
+): Type => {
+  const globalTypeScope = typeGraph.body.get(TYPE_SCOPE);
+  const tryScope = typeGraph.body.get(getScopeKey(tryNode));
+  if (
+    !(tryScope instanceof Scope) ||
+    !tryScope.throwable ||
+    !(globalTypeScope instanceof Scope)
+  ) {
+    throw new Error("Never");
+  }
+  const { throwable } = tryScope;
+  const variants =
+    throwable.map(t => (t instanceof VariableInfo ? t.type : t)) || [];
+  if (!variants.length) {
+    const errorType = typeGraph.body.get("Error");
+    if (!(errorType instanceof VariableInfo)) {
+      throw new Error("Never");
+    }
+    //$FlowIssue
+    return getInvocationType(errorType.type);
+  }
+  if (variants.length === 1) {
+    return variants[0];
+  }
+  return UnionType.createTypeWithName(
+    getUnionTypeLiteral(variants),
+    globalTypeScope,
+    variants
+  );
 };
 
 export const inferenceTypeForNode = (

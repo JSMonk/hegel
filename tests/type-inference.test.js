@@ -996,3 +996,144 @@ describe("Object type inference", () => {
     expect(actualA.name).toEqual("{ b: { c: () => number } }");
   });
 });
+
+describe("Error inference", () => {
+  test("Inference simple throw", () => {
+    const sourceAST = prepareAST(`
+      try {
+        throw new Error("");
+      } catch(e) {}
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope4-17]]");
+    const actualE = actualCatchScope.body.get("e");
+    expect(actualE.type).toEqual(
+      new ObjectType("{ message: string }", [
+        ["message", new VariableInfo(new Type("string"))]
+      ])
+    );
+  });
+  test("Inference simple throw with SyntaxError", () => {
+    const sourceAST = prepareAST(`
+      try {
+        throw new SyntaxError("test");
+      } catch(e) {}
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope4-17]]");
+    const actualE = actualCatchScope.body.get("e");
+    expect(actualE.type).toEqual(
+      new ObjectType("{ message: string }", [
+        ["message", new VariableInfo(new Type("string"))]
+      ])
+    );
+  });
+  test("Inference simple throw with primitive type", () => {
+    const sourceAST = prepareAST(`
+      try {
+        throw 2;
+      } catch(e) {}
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope4-17]]");
+    const actualE = actualCatchScope.body.get("e");
+    expect(actualE.type).toEqual(new Type("number"));
+  });
+  test("Inference simple throw with object type", () => {
+    const sourceAST = prepareAST(`
+      try {
+        throw { message: "test" };
+      } catch(e) {}
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope4-17]]");
+    const actualE = actualCatchScope.body.get("e");
+    expect(actualE.type).toEqual(
+      new ObjectType("{ message: string }", [
+        ["message", new VariableInfo(new Type("string"))]
+      ])
+    );
+  });
+  test("Inference simple throw with anonymous function type", () => {
+    const sourceAST = prepareAST(`
+      try {
+        throw function() {};
+      } catch(e) {}
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope4-17]]");
+    const actualE = actualCatchScope.body.get("e");
+    expect(actualE.type).toEqual(
+      new FunctionType("() => void", [], new Type("void"))
+    );
+  });
+  test("Inference simple throw new with anonymous function type", () => {
+    const sourceAST = prepareAST(`
+      try {
+        throw new function() {};
+      } catch(e) {}
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope4-17]]");
+    const actualE = actualCatchScope.body.get("e");
+    expect(actualE.type).toEqual(new ObjectType("{ }", []));
+  });
+  test("Inference simple throw relation in catch", () => {
+    const sourceAST = prepareAST(`
+      try {
+        throw 2;
+      } catch(e) {
+        const a = e;
+      }
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope4-17]]");
+    const actualE = actualCatchScope.body.get("a");
+    expect(actualE.type).toEqual(new Type("number"));
+  });
+  test("Inference function call with throw", () => {
+    const sourceAST = prepareAST(`
+      function a() {
+        throw 2;
+      }
+      try {
+        a();
+      } catch(e) {}
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope7-17]]");
+    const actualE = actualCatchScope.body.get("e");
+    expect(actualE.type).toEqual(new Type("number"));
+  });
+  test("Inference function call with conditional throw", () => {
+    const sourceAST = prepareAST(`
+      function a() {
+        if (true)
+          throw 2;
+      }
+      try {
+        a();
+      } catch(e) {}
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope8-17]]");
+    const actualE = actualCatchScope.body.get("e");
+    expect(actualE.type).toEqual(new Type("number"));
+  });
+  test("Inference function call with implicit throw", () => {
+    const sourceAST = prepareAST(`
+      function a() {
+        if (true)
+          throw 2;
+      }
+      function b() { a(); }
+      try {
+        b();
+      } catch(e) {}
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const actualCatchScope = actual.body.get("[[Scope9-17]]");
+    const actualE = actualCatchScope.body.get("e");
+    expect(actualE.type).toEqual(new Type("number"));
+  });
+});

@@ -565,6 +565,7 @@ export class Scope {
   parent: Scope | ModuleScope;
   body: TypeGraph = new Map();
   calls: Array<CallMeta> = [];
+  throwable: ?Array<VariableInfo | Type>;
   declaration: ?VariableInfo;
 
   constructor(
@@ -581,6 +582,7 @@ export class Scope {
 export class VariableInfo {
   type: Type;
   parent: ?Scope | ?ModuleScope;
+  throwable: ?Type;
   meta: Meta;
 
   constructor(

@@ -110,6 +110,40 @@ export const addTypeVar = (
   return typeVar;
 };
 
+export const getParentFromNode = (
+  currentNode: Node,
+  parentNode: ?Node,
+  typeGraph: ModuleScope
+): ModuleScope | Scope => {
+  if (!parentNode) {
+    return typeGraph;
+  }
+  const name = getScopeKey(parentNode);
+  const scope = typeGraph.body.get(name);
+  if (!(scope instanceof Scope)) {
+    return typeGraph;
+  }
+  if (NODE.isUnscopableDeclaration(currentNode)) {
+    return findNearestScopeByType(Scope.FUNCTION_TYPE, scope || typeGraph);
+  }
+  return scope;
+};
+
+export const findThrowableBlock = (
+  parentScope: Scope | ModuleScope
+): ?Scope => {
+  if (!parentScope || !(parentScope instanceof Scope)) {
+    throw new Error("Never");
+  }
+  do {
+    if (parentScope.throwable) {
+      return parentScope;
+    }
+    parentScope = parentScope.parent;
+  } while (parentScope !== null);
+  return null;
+};
+
 export const getTypeFromTypeAnnotation = (
   typeAnnotation: ?TypeAnnotation,
   typeScope: Scope,

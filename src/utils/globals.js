@@ -6,6 +6,7 @@ import {
   ObjectType,
   GenericType,
   ModuleScope,
+  FunctionType,
   VariableInfo,
   ZeroLocation,
   CollectionType,
@@ -74,6 +75,38 @@ const mixBaseGlobals = moduleScope => {
               Type.createTypeWithName("number", localTypeScope),
               TypeVar.createTypeWithName("T", localTypeScope)
             )
+        )
+      )
+    ],
+    [
+      "Error",
+      new VariableInfo(
+        FunctionType.createTypeWithName(
+          "(string) => { message: string }",
+          typeScope,
+          [Type.createTypeWithName("string", typeScope)],
+          ObjectType.createTypeWithName("{ message: string }", typeScope, [
+            [
+              "message",
+              new VariableInfo(Type.createTypeWithName("string", typeScope))
+            ]
+          ])
+        )
+      )
+    ],
+    [
+      "SyntaxError",
+      new VariableInfo(
+        FunctionType.createTypeWithName(
+          "(string) => { message: string }",
+          typeScope,
+          [Type.createTypeWithName("string", typeScope)],
+          ObjectType.createTypeWithName("{ message: string }", typeScope, [
+            [
+              "message",
+              new VariableInfo(Type.createTypeWithName("string", typeScope))
+            ]
+          ])
         )
       )
     ]

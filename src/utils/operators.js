@@ -640,6 +640,24 @@ const mixBaseOperators = moduleScope => {
           l => [l.body.get("T").type],
           l => l.body.get("T").type
         )
+      ],
+      [
+        "new",
+        genericFunction(
+          typeScope,
+          [["T", new TypeVar("T")]],
+          l => [l.body.get("T").type],
+          l => l.body.get("T").type
+        )
+      ],
+      [
+        "throw",
+        genericFunction(
+          typeScope,
+          [["T", new TypeVar("T")]],
+          l => [l.body.get("T").type],
+          l => l.body.get("T").type
+        )
       ]
     ].map(([name, type]) => [
       name,
