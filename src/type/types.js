@@ -172,11 +172,25 @@ export class TypeVar extends Type {
 export class ObjectType extends Type {
   static createTypeWithName = createTypeWithName(ObjectType);
 
-  properties: Map<string, VariableInfo>;
+  properties: Map<string | number, VariableInfo>;
 
-  constructor(name: string, properties: Array<[string, VariableInfo]>) {
-    super(name);
+  constructor(
+    name: string,
+    properties: Array<[string | number, VariableInfo]>
+  ) {
+    super(name, { isLiteralOf: new Type("Object") });
     this.properties = new Map(properties);
+  }
+
+  hasProperty(propertyName: any) {
+    return this.properties.has(propertyName);
+  }
+
+  getPropertyType(propertyName: any) {
+    if (!this.hasProperty(propertyName)) {
+      throw new Error("Unknow property");
+    }
+    return this.properties.get(propertyName);
   }
 
   isAllProperties(
@@ -201,7 +215,7 @@ export class ObjectType extends Type {
     typeScope: Scope
   ): Type {
     let isAnyPropertyChanged = false;
-    const newProperties: Array<[string, VariableInfo]> = [];
+    const newProperties: Array<[string | number, VariableInfo]> = [];
     this.properties.forEach((vInfo, key) => {
       const newType = vInfo.type.changeAll(sourceTypes, targetTypes, typeScope);
       if (vInfo.type === newType) {
@@ -272,11 +286,7 @@ export class GenericType<T: Type> extends Type {
     return this.subordinateType.isSuperTypeFor(anotherType);
   }
 
-  applyGeneric(
-    parameters: Array<Type>,
-    loc?: SourceLocation,
-    shouldBeMemoize?: boolean = true
-  ): T {
+  assertParameters(parameters: Array<Type>, loc?: SourceLocation) {
     if (parameters.length !== this.genericArguments.length) {
       throw new HegelError(
         `Generic '${String(
@@ -287,6 +297,22 @@ export class GenericType<T: Type> extends Type {
         loc
       );
     }
+  }
+
+  changeAll(
+    sourceTypes: Array<Type>,
+    targetTypes: Array<Type>,
+    typeScope: Scope
+  ): Type {
+    return this.subordinateType.changeAll(sourceTypes, targetTypes, typeScope);
+  }
+
+  applyGeneric(
+    parameters: Array<Type>,
+    loc?: SourceLocation,
+    shouldBeMemoize?: boolean = true
+  ): T {
+    this.assertParameters(parameters, loc);
     const appliedTypeName = `${String(this.name)}<${parameters.reduce(
       (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
       ""
@@ -511,6 +537,17 @@ export class CollectionType<K: Type, V: Type> extends Type {
     super(name);
     this.keyType = keyType;
     this.valueType = valueType;
+  }
+
+  hasProperty(property: mixed) {
+    return typeof property === typeof this.keyType;
+  }
+
+  getPropertyType(propertyName: mixed) {
+    if (!this.hasProperty(propertyName)) {
+      throw new Error("Unknow property");
+    }
+    return this.valueType;
   }
 
   equalsTo(anotherType: Type) {

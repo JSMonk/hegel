@@ -619,19 +619,7 @@ const mixBaseOperators = moduleScope => {
           Type.createTypeWithName("void", typeScope)
         )
       ],
-      [
-        ".",
-        // TODO: Rewrite signature
-        FunctionType.createTypeWithName(
-          "(Object, string) => mixed",
-          typeScope,
-          [
-            ObjectType.createTypeWithName("Object", typeScope),
-            Type.createTypeWithName("mixed", typeScope)
-          ],
-          Type.createTypeWithName("mixed", typeScope)
-        )
-      ],
+      [".", typeScope.body.get("$PropertyType").type],
       [
         "return",
         genericFunction(

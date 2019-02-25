@@ -116,6 +116,18 @@ describe("Simple inference for module variables by literal", () => {
     });
     expect(actual.body.get("a")).toEqual(expected);
   });
+  test("Inference global module object property type", () => {
+    const sourceAST = prepareAST(`
+      const a = { a: 1 };
+      const b = a.a;
+    `);
+    const [actual] = createTypeGraph(sourceAST);
+    const expected = expect.objectContaining({
+      type: new Type("number"),
+      parent: actual
+    });
+    expect(actual.body.get("b")).toEqual(expected);
+  });
 });
 describe("Simple inference for module variables by function return", () => {
   test("Inference global module variable with number type", () => {

@@ -529,3 +529,44 @@ describe("Test calls meta for operatos and functions in global scope", () => {
     });
   });
 });
+
+describe("Object and collection properties", () => {
+  test("Get undefined property in object", () => {
+    const sourceAST = prepareAST(`
+       const a = { a: 1 };
+       a.b;
+    `);
+    const [, errors] = createTypeGraph(sourceAST);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Property "b" are not exists in "{ a: number }"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 10, line: 3 },
+      start: { column: 7, line: 3 }
+    });
+  });
+  test("Get existed property in object", () => {
+    const sourceAST = prepareAST(`
+       const a = { a: 1 };
+       a.a;
+    `);
+    const [, errors] = createTypeGraph(sourceAST);
+    expect(errors.length).toEqual(0);
+  });
+  test("Get undefined property in nested object", () => {
+    const sourceAST = prepareAST(`
+       const a = { a: { b: 2 } };
+       a.a.c;
+    `);
+    const [, errors] = createTypeGraph(sourceAST);
+    expect(errors[0].message).toEqual(
+      'Property "c" are not exists in "{ b: number }"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 12, line: 3 },
+      start: { column: 7, line: 3 }
+    });
+  });
+});

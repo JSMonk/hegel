@@ -1,5 +1,6 @@
 {
   "name": "static-type-checker",
+  "author": "",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,9 +9,9 @@
     "build:check": "flow",
     "build:start": "babel src -d build",
     "build:clean": "rm -rf build && mkdir build",
+    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "jest"
   },
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "@babel/parser": "^7.1.3"

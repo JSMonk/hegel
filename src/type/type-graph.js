@@ -12,6 +12,7 @@ import NODE from "../utils/nodes";
 import checkCalls from "../checking";
 import HegelError from "../utils/errors";
 import mixBaseGlobals from "../utils/globals";
+import mixUtilityTypes from "../utils/utility-types";
 import mixBaseOperators from "../utils/operators";
 import {
   getInvocationType,
@@ -101,6 +102,7 @@ const addCallToTypeGraph = (
   let target: ?VariableInfo = null;
   let targetName: string = "";
   let args: ?Array<CallableArguments> = null;
+  let genericArguments: ?Array<CallableArguments> = null;
   const typeScope = findNearestTypeScope(currentScope, typeGraph);
   if (!(typeScope instanceof Scope)) {
     throw new Error("Never!");
@@ -187,13 +189,13 @@ const addCallToTypeGraph = (
     case NODE.MEMBER_EXPRESSION:
       args = [
         addCallToTypeGraph(node.object, typeGraph, currentScope),
-        new Type(node.name, {
-          isLiteralOf: Type.createTypeWithName(
-            "string",
-            typeGraph.body.get(TYPE_SCOPE)
-          )
-        })
+        node.property.type === NODE.IDENTIFIER && !node.computed
+          ? Type.createTypeWithName(node.property.name, typeScope, {
+              isLiteralOf: Type.createTypeWithName("string", typeScope)
+            })
+          : addCallToTypeGraph(node.property, typeGraph, currentScope)
       ];
+      genericArguments = args;
       targetName = ".";
       target = findVariableInfo({ name: targetName }, currentScope);
       break;
@@ -255,13 +257,18 @@ const addCallToTypeGraph = (
       target.type.subordinateType instanceof FunctionType)
   ) {
     const callMeta = new CallMeta((target: any), args, node.loc, targetName);
-    callsScope.calls.push(callMeta);
-    return getInvocationType(
+    const invocationType = getInvocationType(
       (target.type: any),
-      args.map(a => (a instanceof Type ? a : a.type))
+      args.map(a => (a instanceof Type ? a : a.type)),
+      // $FlowIssue
+      genericArguments &&
+        genericArguments.map(a => (a instanceof Type ? a : a.type)),
+      node.loc
     );
+    callsScope.calls.push(callMeta);
+    return invocationType;
   }
-  throw new Error(target.constructor.name);
+  throw new Error(target.type.constructor.name);
 };
 
 const getVariableInfoFromDelcaration = (
@@ -570,6 +577,7 @@ const createModuleScope = (ast: Program): [ModuleScope, Array<HegelError>] => {
   const result = new ModuleScope();
   const typeScope = new Scope("block", result);
   result.body.set(TYPE_SCOPE, typeScope);
+  mixUtilityTypes(result);
   mixBaseGlobals(result);
   mixBaseOperators(result);
   try {

@@ -234,7 +234,8 @@ const resolveOuterTypeVarsFromCall = (
 
 export const implicitApplyGeneric = (
   fn: GenericType<FunctionType>,
-  argumentsTypes: Array<Type>
+  argumentsTypes: Array<Type>,
+  loc: any
 ): FunctionType => {
   const genericArguments = argumentsTypes.reduce((res, t, i) => {
     const argumentType = fn.subordinateType.argumentsTypes[i];
@@ -248,21 +249,23 @@ export const implicitApplyGeneric = (
     return res;
   }, {});
   return fn.applyGeneric(
-    fn.genericArguments.map(t => genericArguments[String(t.name)])
+    fn.genericArguments.map(t => genericArguments[String(t.name)]),
+    loc
   );
 };
 
 export const getInvocationType = (
   fn: FunctionType | GenericType<FunctionType>,
   argumentsTypes: Array<Type>,
-  genericArguments?: Array<Type>
+  genericArguments?: Array<Type>,
+  loc: any
 ): Type => {
   if (fn instanceof FunctionType) {
     return fn.returnType;
   }
   const resultFn = genericArguments
-    ? fn.applyGeneric(genericArguments)
-    : implicitApplyGeneric(fn, argumentsTypes);
+    ? fn.applyGeneric(genericArguments, loc)
+    : implicitApplyGeneric(fn, argumentsTypes, loc);
   return resultFn.returnType;
 };
 
