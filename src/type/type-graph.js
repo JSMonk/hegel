@@ -322,7 +322,8 @@ const getVariableInfoFromDelcaration = (
   const currentTypeScope = findNearestTypeScope(parentScope, typeGraph);
   const annotatedType = getTypeFromTypeAnnotation(
     currentNode.id && currentNode.id.typeAnnotation,
-    currentTypeScope
+    currentTypeScope,
+    false
   );
   return new VariableInfo(
     /*type:*/ annotatedType,

@@ -134,7 +134,7 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "string" is incompatible with type "A"'
+      'Type "string" is incompatible with type "number"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 22, line: 3 },
