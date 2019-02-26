@@ -21,6 +21,7 @@ import {
   Type,
   TYPE_SCOPE,
   Meta,
+  POSITIONS,
   UNDEFINED_TYPE,
   ZeroLocation
 } from "../type/types";
@@ -110,12 +111,49 @@ export const addTypeVar = (
   return typeVar;
 };
 
+export const addPosition = (
+  node: Node,
+  variableInfo: VariableInfo,
+  typeGraph: ModuleScope
+) => {
+  const positions = typeGraph.body.get(POSITIONS);
+  if (!(positions instanceof Scope)) {
+    throw new Error("Never!");
+  }
+  const line = positions.body.get(node.loc.start.line) || new Map();
+  // $FlowIssue
+  line.set([node.loc.start.column, node.loc.end.column], variableInfo);
+  // $FlowIssue
+  positions.body.set(node.loc.start.line, line);
+};
+
+export const getVarAtPosition = (loc: any, typeGraph: ModuleScope) => {
+  const positions = typeGraph.body.get(POSITIONS);
+  if (!(positions instanceof Scope)) {
+    throw new Error("Never!");
+  }
+  const line: ?Map<[number, number], VariableInfo> = (positions.body.get(
+    loc.line
+  ): any);
+  if (!line) {
+    return;
+  }
+  let varInfo = null;
+  for (const [[start, end], vi] of line.entries()) {
+    if (loc.column >= start && loc.column <= end) {
+      varInfo = vi;
+      break;
+    }
+  }
+  return varInfo;
+};
+
 export const getParentFromNode = (
   currentNode: Node,
   parentNode: ?Node,
   typeGraph: ModuleScope
 ): ModuleScope | Scope => {
-  if (!parentNode) {
+  if (!parentNode || parentNode.type === NODE.PROGRAM) {
     return typeGraph;
   }
   const name = getScopeKey(parentNode);

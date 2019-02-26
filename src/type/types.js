@@ -17,6 +17,7 @@ import type {
 } from "@babel/parser";
 
 export const UNDEFINED_TYPE = "?";
+export const POSITIONS = "[[Positions]]";
 export const TYPE_SCOPE = "[[TypeScope]]";
 
 export type GraphElement = Scope | VariableInfo;
@@ -77,7 +78,7 @@ type TypeMeta = {
 const createTypeWithName = <T: Type>(BaseType: Class<T>) => (
   name: string,
   typeScope: Scope | ModuleScope,
-  ...args
+  ...args: Array<any>
 ): T => {
   if (name === UNDEFINED_TYPE) {
     return new BaseType(name, ...args);
@@ -410,8 +411,16 @@ export class FunctionType extends Type {
   }
 }
 
+// $FlowIssue
 export class UnionType extends Type {
-  static createTypeWithName = createTypeWithName(UnionType);
+  static _createTypeWithName = createTypeWithName(UnionType);
+
+  static createTypeWithName(name: string, typeScope: Scope, variants: any) {
+    if (variants.every(variant => variant.name === variants[0].name)) {
+      return variants[0];
+    }
+    return this._createTypeWithName(name, typeScope, variants);
+  }
 
   variants: Array<Type>;
 

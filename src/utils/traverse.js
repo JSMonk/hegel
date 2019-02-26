@@ -66,6 +66,7 @@ const mixTryCatchInfo = (currentNode: Node) => {
 const getBody = (currentNode: any) =>
   currentNode.body ||
   currentNode.declarations ||
+  currentNode.declaration ||
   currentNode.properties ||
   [
     currentNode.block,
@@ -109,12 +110,12 @@ const traverseTree = (
   }
   const nextParent = getNextParent(currentNode, parentNode);
   if (Array.isArray(body)) {
-    body.forEach(childNode =>
-      traverseTree(childNode, pre, post, nextParent, {
+    for (let i = 0; i < body.length; i++) {
+      traverseTree(body[i], pre, post, nextParent, {
         ...meta,
         kind: currentNode.kind
-      })
-    );
+      });
+    }
   } else {
     traverseTree(body, pre, post, nextParent, meta);
   }

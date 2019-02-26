@@ -280,6 +280,18 @@ const mixBaseOperators = moduleScope => {
         )
       ],
       [
+        "*",
+        FunctionType.createTypeWithName(
+          "(number, number) => number",
+          typeScope,
+          [
+            Type.createTypeWithName("number", typeScope),
+            Type.createTypeWithName("number", typeScope)
+          ],
+          Type.createTypeWithName("number", typeScope)
+        )
+      ],
+      [
         "^",
         FunctionType.createTypeWithName(
           "(number, number) => number",

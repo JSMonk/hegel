@@ -21,6 +21,7 @@ import {
   inferenceFunctionTypeByScope
 } from "../inference";
 import {
+  addPosition,
   getScopeKey,
   getNameForType,
   getAnonymousKey,
@@ -44,6 +45,7 @@ import {
   Scope,
   Meta,
   ModuleScope,
+  POSITIONS,
   TYPE_SCOPE,
   UNDEFINED_TYPE
 } from "./types";
@@ -109,19 +111,22 @@ const addCallToTypeGraph = (
   }
   switch (node.type) {
     case NODE.IF_STATEMENT:
-      target = findVariableInfo({ name: "if" }, currentScope);
+      target = findVariableInfo({ name: "if", loc: node.loc }, currentScope);
       args = [addCallToTypeGraph(node.test, typeGraph, currentScope)];
       break;
     case NODE.WHILE_STATEMENT:
-      target = findVariableInfo({ name: "while" }, currentScope);
+      target = findVariableInfo({ name: "while", loc: node.loc }, currentScope);
       args = [addCallToTypeGraph(node.test, typeGraph, currentScope)];
       break;
     case NODE.DO_WHILE_STATEMENT:
-      target = findVariableInfo({ name: "do-while" }, currentScope);
+      target = findVariableInfo(
+        { name: "do-while", loc: node.loc },
+        currentScope
+      );
       args = [addCallToTypeGraph(node.test, typeGraph, currentScope)];
       break;
     case NODE.FOR_STATEMENT:
-      target = findVariableInfo({ name: "for" }, currentScope);
+      target = findVariableInfo({ name: "for", loc: node.loc }, currentScope);
       args = [
         Type.createTypeWithName("mixed", typeScope),
         node.test
@@ -140,10 +145,17 @@ const addCallToTypeGraph = (
     case NODE.CLASS_DECLARATION:
     case NODE.IDENTIFIER:
       const nodeName =
-        node.type === NODE.IDENTIFIER ? node : { name: getAnonymousKey(node) };
-      return findVariableInfo(nodeName, currentScope);
+        node.type === NODE.IDENTIFIER
+          ? node
+          : { name: getAnonymousKey(node), loc: node.loc };
+      const varInfo = findVariableInfo(nodeName, currentScope);
+      if (node.type === NODE.IDENTIFIER) {
+        addPosition(node, varInfo, typeGraph);
+      }
+      return varInfo;
     case NODE.VARIABLE_DECLARATOR:
       const variableType = findVariableInfo(node.id, currentScope);
+      addPosition(node.id, variableType, typeGraph);
       if (!node.init) {
         return variableType;
       }
@@ -152,14 +164,20 @@ const addCallToTypeGraph = (
         addCallToTypeGraph(node.init, typeGraph, currentScope)
       ];
       targetName = "=";
-      target = findVariableInfo({ name: targetName }, currentScope);
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
       break;
     case NODE.EXPRESSION_STATEMENT:
       return addCallToTypeGraph(node.expression, typeGraph, currentScope);
     case NODE.THROW_STATEMENT:
       args = [addCallToTypeGraph(node.argument, typeGraph, currentScope)];
       targetName = "throw";
-      target = findVariableInfo({ name: targetName }, currentScope);
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
       addToThrowable(args[0], currentScope);
       break;
     case NODE.RETURN_STATEMENT:
@@ -167,7 +185,10 @@ const addCallToTypeGraph = (
     case NODE.UPDATE_EXPRESSION:
       args = [addCallToTypeGraph(node.argument, typeGraph, currentScope)];
       targetName = node.operator || "return";
-      target = findVariableInfo({ name: targetName }, currentScope);
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
       break;
     case NODE.BINARY_EXPRESSION:
     case NODE.LOGICAL_EXPRESSION:
@@ -176,7 +197,10 @@ const addCallToTypeGraph = (
         addCallToTypeGraph(node.right, typeGraph, currentScope)
       ];
       targetName = node.operator;
-      target = findVariableInfo({ name: targetName }, currentScope);
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
       break;
     case NODE.ASSIGNMENT_EXPRESSION:
       args = [
@@ -184,7 +208,10 @@ const addCallToTypeGraph = (
         addCallToTypeGraph(node.right, typeGraph, currentScope)
       ];
       targetName = node.operator;
-      target = findVariableInfo({ name: targetName }, currentScope);
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
       break;
     case NODE.MEMBER_EXPRESSION:
       args = [
@@ -197,7 +224,10 @@ const addCallToTypeGraph = (
       ];
       genericArguments = args;
       targetName = ".";
-      target = findVariableInfo({ name: targetName }, currentScope);
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
       break;
     case NODE.CONDITIONAL_EXPRESSION:
       args = [
@@ -206,16 +236,25 @@ const addCallToTypeGraph = (
         addCallToTypeGraph(node.alternate, typeGraph, currentScope)
       ];
       targetName = "?:";
-      target = findVariableInfo({ name: targetName }, currentScope);
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
       break;
     case NODE.CALL_EXPRESSION:
       args = node.arguments.map(n =>
         addCallToTypeGraph(n, typeGraph, currentScope)
       );
-      target =
-        node.callee.type === NODE.IDENTIFIER
-          ? findVariableInfo(node.callee, currentScope)
-          : (addCallToTypeGraph(node.callee, typeGraph, currentScope): any);
+      if (node.callee.type === NODE.IDENTIFIER) {
+        target = findVariableInfo(node.callee, currentScope);
+        addPosition(node.callee, target, typeGraph);
+      } else {
+        target = (addCallToTypeGraph(
+          node.callee,
+          typeGraph,
+          currentScope
+        ): any);
+      }
       const { throwable } = target;
       if (throwable) {
         addToThrowable(throwable, currentScope);
@@ -242,7 +281,10 @@ const addCallToTypeGraph = (
           : ObjectType.createTypeWithName("{ }", typeScope, [])
       ];
       targetName = "new";
-      target = findVariableInfo({ name: targetName }, currentScope);
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
       break;
     default:
       return inferenceTypeForNode(node, typeScope, currentScope, typeGraph);
@@ -341,7 +383,9 @@ export const addFunctionScopeToTypeGraph = (
       : variableInfo.type;
   currentNode.params.forEach((id, index) => {
     const type = (functionType: any).argumentsTypes[index];
-    scope.body.set(id.name, new VariableInfo(type, scope, new Meta(id.loc)));
+    const varInfo = new VariableInfo(type, scope, new Meta(id.loc));
+    scope.body.set(id.name, varInfo);
+    addPosition(id, varInfo, typeGraph);
   });
 };
 
@@ -366,6 +410,9 @@ const addFunctionToTypeGraph = (
     variableInfo.parent,
     typeGraph
   );
+  if (currentNode.id) {
+    addPosition(currentNode.id, variableInfo, typeGraph);
+  }
   addFunctionScopeToTypeGraph(currentNode, parentNode, typeGraph, variableInfo);
 };
 
@@ -444,13 +491,13 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
         break;
       case NODE.BLOCK_STATEMENT:
         if (NODE.isFunction(parentNode)) {
-          return;
+          break;
         }
       case NODE.CLASS_DECLARATION:
       case NODE.CLASS_EXPRESSION:
         const scopeName = getScopeKey(currentNode);
         if (typeGraph.body.get(scopeName)) {
-          return;
+          break;
         }
         typeGraph.body.set(
           scopeName,
@@ -533,6 +580,7 @@ const afterFillierActions = (
           )
         );
         errorVariable.type = inferenceErrorType(currentNode, typeGraph);
+        addPosition(currentNode.catchBlock.param, errorVariable, typeGraph);
         break;
       case NODE.CALL_EXPRESSION:
       case NODE.RETURN_STATEMENT:
@@ -577,6 +625,7 @@ const createModuleScope = (ast: Program): [ModuleScope, Array<HegelError>] => {
   const result = new ModuleScope();
   const typeScope = new Scope("block", result);
   result.body.set(TYPE_SCOPE, typeScope);
+  result.body.set(POSITIONS, new Scope("block", result));
   mixUtilityTypes(result);
   mixBaseGlobals(result);
   mixBaseOperators(result);
