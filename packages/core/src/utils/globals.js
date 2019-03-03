@@ -17,10 +17,7 @@ const zeroMetaLocation = new Meta();
 const genericType = (name, typeScope, genericArguments, typeFactory) => {
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
   genericArguments.forEach(([key, type]) => {
-    localTypeScope.body.set(
-      key,
-      new VariableInfo(type, localTypeScope)
-    );
+    localTypeScope.body.set(key, new VariableInfo(type, localTypeScope));
   });
   genericArguments = genericArguments.map(([, t]) => t);
   return GenericType.createTypeWithName(
@@ -34,7 +31,7 @@ const genericType = (name, typeScope, genericArguments, typeFactory) => {
 
 const mixBaseGlobals = moduleScope => {
   const typeScope = moduleScope.body.get(TYPE_SCOPE);
-  const globals = new Map([
+  const globalTypes = new Map([
     ["mixed", new VariableInfo(Type.createTypeWithName("mixed", typeScope))],
     ["void", new VariableInfo(Type.createTypeWithName("void", typeScope))],
     [
@@ -61,6 +58,17 @@ const mixBaseGlobals = moduleScope => {
     ],
     ["Symbol", new VariableInfo(Type.createTypeWithName("Symbol", typeScope))],
     [
+      "SyntaxError",
+      new VariableInfo(
+        ObjectType.createTypeWithName("{ message: string }", typeScope, [
+          [
+            "message",
+            new VariableInfo(Type.createTypeWithName("string", typeScope))
+          ]
+        ])
+      )
+    ],
+    [
       "Array",
       new VariableInfo(
         genericType(
@@ -76,7 +84,15 @@ const mixBaseGlobals = moduleScope => {
             )
         )
       )
+    ]
+  ]);
+  typeScope.body = new Map([...typeScope.body, ...globalTypes]);
+  const globals = new Map([
+    [
+      "undefined",
+      new VariableInfo(Type.createTypeWithName("undefined", typeScope))
     ],
+    [null, new VariableInfo(Type.createTypeWithName(null, typeScope))],
     [
       "Error",
       new VariableInfo(
@@ -84,12 +100,7 @@ const mixBaseGlobals = moduleScope => {
           "(string) => { message: string }",
           typeScope,
           [Type.createTypeWithName("string", typeScope)],
-          ObjectType.createTypeWithName("{ message: string }", typeScope, [
-            [
-              "message",
-              new VariableInfo(Type.createTypeWithName("string", typeScope))
-            ]
-          ])
+          typeScope.body.get("SyntaxError").type
         )
       )
     ],
@@ -100,12 +111,7 @@ const mixBaseGlobals = moduleScope => {
           "(string) => { message: string }",
           typeScope,
           [Type.createTypeWithName("string", typeScope)],
-          ObjectType.createTypeWithName("{ message: string }", typeScope, [
-            [
-              "message",
-              new VariableInfo(Type.createTypeWithName("string", typeScope))
-            ]
-          ])
+          typeScope.body.get("SyntaxError").type
         )
       )
     ]

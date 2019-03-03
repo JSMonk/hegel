@@ -19,13 +19,21 @@ export function inferenceTypeForNode(
 ): Type {
   switch (currentNode.type) {
     case NODE.NUMERIC_LITERAL:
-      return Type.createTypeWithName("number", typeScope);
+      return Type.createTypeWithName(currentNode.value, typeScope, {
+        isLiteralOf: Type.createTypeWithName("number", typeScope)
+      });
     case NODE.STRING_LITERAL:
-      return Type.createTypeWithName("string", typeScope);
+      return Type.createTypeWithName(currentNode.value, typeScope, {
+        isLiteralOf: Type.createTypeWithName("string", typeScope)
+      });
     case NODE.BOOLEAN_LITERAL:
-      return Type.createTypeWithName("boolean", typeScope);
+      return Type.createTypeWithName(currentNode.value, typeScope, {
+        isLiteralOf: Type.createTypeWithName("boolean", typeScope)
+      });
     case NODE.NULL_LITERAL:
-      return Type.createTypeWithName(null, typeScope);
+      return Type.createTypeWithName(null, typeScope, {
+        isLiteralOf: Type.createTypeWithName("void", typeScope)
+      });
     case NODE.REG_EXP_LITERAL:
       return ObjectType.createTypeWithName("RegExp", typeScope);
     case NODE.IDENTIFIER:

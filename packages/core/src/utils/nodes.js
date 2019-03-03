@@ -10,7 +10,10 @@ export const DECLARATION_TYPES = {
   VARIABLE_DECLARATOR: "VariableDeclarator",
   TYPE_ALIAS: "TypeAlias",
   TYPE_PARAMETER: "TypeParameter",
-  TYPE_PARAMETER_DECLARATION: "TypeParameterDeclaration"
+  TYPE_PARAMETER_DECLARATION: "TypeParameterDeclaration",
+  EXPORT_NAMED_DECLARATION: "ExportNamedDeclaration",
+  EXPORT_DEFAULT_DECLARATION: "ExportDefaultDeclaration",
+  IMPORT_DECLARATION: "ImportDeclaration"
 };
 
 export const STATEMENTS_TYPES = {
@@ -80,24 +83,30 @@ export const ANNOTATION_TYPES = {
   TUPLE_TYPE_ANNOTATION: "TupleTypeAnnotation"
 };
 
-const INITIALIZATION_TYPES = {
+export const INITIALIZATION_TYPES = {
   IDENTIFIER: "Identifier",
   PROGRAM: "Program"
 };
 
-const DECLARATION_KINDS = {
+export const DECLARATION_KINDS = {
   VAR: "var",
   CONST: "const",
   LET: "let"
 };
 
-const isUnscopableDeclaration = ({ kind }: Object) =>
+export const SPECIFIERS_TYPES = {
+  IMPORT_DEFAULT_SPECIFIER: "ImportDefaultSpecifier",
+  IMPORT_NAMESPACE_SPECIFIER: "ImportNamespaceSpecifier",
+  IMPORT_SPECIFIER: "ImportSpecifier"
+};
+
+export const isUnscopableDeclaration = ({ kind }: Object) =>
   kind === DECLARATION_KINDS.VAR;
 
-const isObject = (node: Node) =>
+export const isObject = (node: Node) =>
   node.type === OBJECT_PROPERTIES.OBJECT_EXPRESSION;
 
-const isScopeCreator = (node: Node) =>
+export const isScopeCreator = (node: Node) =>
   [
     INITIALIZATION_TYPES.PROGRAM,
     DECLARATION_TYPES.FUNCTION_DECLARATION,
@@ -108,7 +117,7 @@ const isScopeCreator = (node: Node) =>
     STATEMENTS_TYPES.BLOCK_STATEMENT
   ].includes(node.type);
 
-const isFunction = (node: Node) =>
+export const isFunction = (node: Node) =>
   [
     DECLARATION_TYPES.FUNCTION_DECLARATION,
     EXPRESSIONS_TYPES.FUNCTION_EXPRESSION,
@@ -128,5 +137,6 @@ export default {
   ...EXPRESSIONS_TYPES,
   ...INITIALIZATION_TYPES,
   ...OBJECT_PROPERTIES,
-  ...LITERAL_TYPES
+  ...LITERAL_TYPES,
+  ...SPECIFIERS_TYPES
 };

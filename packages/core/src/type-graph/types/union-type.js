@@ -27,7 +27,7 @@ export class UnionType extends Type {
 
   variants: Array<Type>;
 
-  constructor(name: string, variants: Array<Type>, meta: TypeMeta) {
+  constructor(name: string, variants: Array<Type>, meta?: TypeMeta = {}) {
     super(name, meta);
     this.variants = variants;
   }

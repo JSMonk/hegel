@@ -7,6 +7,7 @@ import { ObjectType } from "./types/object-type";
 import { ModuleScope } from "./module-scope";
 import { addPosition } from "../utils/position-utils";
 import { GenericType } from "./types/generic-type";
+import { $BottomType } from "./types/bottom-type";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { addToThrowable } from "../utils/throwable";
@@ -146,6 +147,14 @@ export function addCallToTypeGraph(
             })
           : addCallToTypeGraph(node.property, typeGraph, currentScope)
       ];
+      if (node.property.type === NODE.IDENTIFIER) {
+        addPosition(
+          node.property,
+          // $FlowIssue
+          (args[0].type || args[0]).properties.get(node.property.name),
+          typeGraph
+        );
+      }
       genericArguments = args;
       targetName = ".";
       target = findVariableInfo(
@@ -218,21 +227,26 @@ export function addCallToTypeGraph(
       ? currentScope
       : findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
   if (
-    target.type instanceof FunctionType ||
-    (target.type instanceof GenericType &&
-      target.type.subordinateType instanceof FunctionType)
+    !(target.type instanceof $BottomType) &&
+    !(target.type instanceof FunctionType) &&
+    !(
+      target.type instanceof GenericType &&
+      target.type.subordinateType instanceof FunctionType
+    )
   ) {
-    const callMeta = new CallMeta((target: any), args, node.loc, targetName);
-    const invocationType = getInvocationType(
-      (target.type: any),
-      args.map(a => (a instanceof Type ? a : a.type)),
-      // $FlowIssue
-      genericArguments &&
-        genericArguments.map(a => (a instanceof Type ? a : a.type)),
-      node.loc
-    );
-    callsScope.calls.push(callMeta);
-    return invocationType;
+    throw new Error(target.type.constructor.name);
   }
-  throw new Error(target.type.constructor.name);
+  const invocationType = getInvocationType(
+    (target.type: any),
+    args.map(a => (a instanceof Type ? a : a.type)),
+    // $FlowIssue
+    genericArguments &&
+      genericArguments.map(a => (a instanceof Type ? a : a.type)),
+    node.loc
+  );
+  if (!(target.type instanceof $BottomType)) {
+    const callMeta = new CallMeta((target: any), args, node.loc, targetName);
+    callsScope.calls.push(callMeta);
+  }
+  return invocationType;
 }

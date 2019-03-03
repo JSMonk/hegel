@@ -7,6 +7,7 @@ import { ObjectType } from "../type-graph/types/object-type";
 import { TYPE_SCOPE } from "../type-graph/constants";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
+import { $BottomType } from "../type-graph/types/bottom-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { findVariableInfo } from "./variable-utils";
@@ -21,10 +22,7 @@ const genericFunction = (
 ) => {
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
   genericArguments.forEach(([key, type]) => {
-    localTypeScope.body.set(
-      key,
-      new VariableInfo(type, localTypeScope)
-    );
+    localTypeScope.body.set(key, new VariableInfo(type, localTypeScope));
   });
   genericArguments = genericArguments.map(([, t]) => t);
   const parametersTypes = getTypeParameters(localTypeScope);
@@ -628,7 +626,7 @@ const mixBaseOperators = moduleScope => {
           Type.createTypeWithName("void", typeScope)
         )
       ],
-      [".", typeScope.body.get("$PropertyType").type],
+      [".", new $BottomType(typeScope.body.get("$PropertyType").type)],
       [
         "return",
         genericFunction(

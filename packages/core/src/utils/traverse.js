@@ -50,6 +50,30 @@ function mixDeclarationsInideForBlock(currentNode: Node) {
   return currentNode;
 }
 
+function mixExportInfo(currentNode: Node) {
+  if (
+    currentNode.type !== NODE.EXPORT_NAMED_DECLARATION &&
+    currentNode.type !== NODE.EXPORT_DEFAULT_DECLARATION
+  ) {
+    return currentNode;
+  }
+  return currentNode.declaration.type !== NODE.VARIABLE_DECLARATION
+    ? {
+        ...currentNode.declaration,
+        exportAs:
+          currentNode.type === NODE.EXPORT_DEFAULT_DECLARATION
+            ? "default"
+            : currentNode.declaration.id.name
+      }
+    : {
+        ...currentNode.declaration,
+        declarations: currentNode.declaration.declarations.map(declaration => ({
+          ...declaration,
+          exportAs: declaration.id.name
+        }))
+      };
+}
+
 function mixTryCatchInfo(currentNode: Node) {
   if (currentNode.type !== NODE.TRY_STATEMENT) {
     return currentNode;
@@ -66,7 +90,6 @@ function mixTryCatchInfo(currentNode: Node) {
 const getBody = (currentNode: any) =>
   currentNode.body ||
   currentNode.declarations ||
-  currentNode.declaration ||
   currentNode.properties ||
   [
     currentNode.block,
@@ -92,7 +115,8 @@ const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
 const getCurrentNode = compose(
   mixDeclarationsInideForBlock,
   mixBodyToArrowFunctionExpression,
-  mixTryCatchInfo
+  mixTryCatchInfo,
+  mixExportInfo
 );
 
 function traverseTree(

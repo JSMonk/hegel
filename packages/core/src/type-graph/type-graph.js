@@ -6,6 +6,7 @@ import traverseTree from "../utils/traverse";
 import mixBaseGlobals from "../utils/globals";
 import mixUtilityTypes from "../utils/utility-types";
 import mixBaseOperators from "../utils/operators";
+import mixImportedDependencies from "../utils/imports";
 import { Meta } from "./meta/meta";
 import { Scope } from "./scope";
 import { addPosition } from "../utils/position-utils";
@@ -15,14 +16,17 @@ import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { getScopeFromNode } from "../utils/scope-utils";
 import { findVariableInfo } from "../utils/common";
+import { inferenceErrorType } from "../inference/error-type";
 import { addCallToTypeGraph } from "./call";
+import { inferenceTypeForNode } from "../inference";
 import { getTypeFromTypeAnnotation } from "../utils/type-utils";
 import { getDeclarationName, getAnonymousKey } from "../utils/common";
 import { POSITIONS, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
 import { findNearestTypeScope, getParentForNode } from "../utils/scope-utils";
-import { inferenceErrorType } from "../inference/error-type";
-import { inferenceTypeForNode } from "../inference";
-import { getVariableInfoFromDelcaration } from "../utils/variable-utils";
+import {
+  getVariableType,
+  getVariableInfoFromDelcaration
+} from "../utils/variable-utils";
 import {
   getInvocationType,
   inferenceFunctionTypeByScope
@@ -149,6 +153,9 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
     : type;
   const typeAlias = new VariableInfo(typeFor, typeScope, new Meta(node.loc));
   typeScope.body.set(node.id.name, typeAlias);
+  if (node.exportAs) {
+    typeGraph.exportsTypes.set(node.exportAs, typeAlias);
+  }
 };
 
 const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
@@ -215,6 +222,9 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
           typeGraph,
           currentNode.handler.param.name
         );
+        break;
+      case NODE.IMPORT_DECLARATION:
+        break;
     }
   };
 };
@@ -245,10 +255,10 @@ const afterFillierActions = (
           newTypeOrVar instanceof VariableInfo
             ? newTypeOrVar.type
             : newTypeOrVar;
-        variableInfo.type =
-          variableInfo.type.name === UNDEFINED_TYPE
-            ? newType
-            : variableInfo.type;
+        variableInfo.type = getVariableType(variableInfo, newType);
+        if (currentNode.exportAs) {
+          typeGraph.exports.set(currentNode.exportAs, variableInfo);
+        }
         break;
       case NODE.BLOCK_STATEMENT:
         if (!currentNode.catchBlock || !currentNode.catchBlock.param) {
@@ -276,7 +286,14 @@ const afterFillierActions = (
       case NODE.DO_WHILE_STATEMENT:
       case NODE.FOR_STATEMENT:
       case NODE.THROW_STATEMENT:
-        addCallToTypeGraph(currentNode, typeGraph, currentScope);
+        const resultOfCall = addCallToTypeGraph(
+          currentNode,
+          typeGraph,
+          currentScope
+        );
+        if (currentNode.exportAs) {
+          typeGraph.exports.set(currentNode.exportAs, resultOfCall);
+        }
         break;
       case NODE.OBJECT_METHOD:
       case NODE.FUNCTION_EXPRESSION:
@@ -300,26 +317,47 @@ const afterFillierActions = (
           declaration.throwable = (functionScope.throwable || []).length
             ? inferenceErrorType(currentNode, typeGraph)
             : undefined;
+          if (currentNode.exportAs) {
+            typeGraph.exports.set(currentNode.exportAs, declaration);
+          }
         }
         break;
+      default:
+        if (currentNode.exportAs) {
+          typeGraph.exports.set(
+            currentNode.exportAs,
+            inferenceTypeForNode(currentNode, typeScope, parentNode, typeGraph)
+          );
+        }
     }
   };
 };
 
-const createModuleScope = (ast: Program): [ModuleScope, Array<HegelError>] => {
-  const errors: Array<HegelError> = [];
-  const result = new ModuleScope();
-  const typeScope = new Scope("block", result);
-  result.body.set(TYPE_SCOPE, typeScope);
-  result.body.set(POSITIONS, new Scope("block", result));
-  mixUtilityTypes(result);
-  mixBaseGlobals(result);
-  mixBaseOperators(result);
+async function createModuleScope(
+  ast: Program,
+  errors: Array<HegelError>,
+  getModuleTypeGraph: string => Promise<ModuleScope>,
+  globalModule: ModuleScope
+): Promise<ModuleScope> {
+  const module = new ModuleScope(new Map(), globalModule);
+  const typeScope = new Scope(
+    "block",
+    /*::(*/ globalModule.body.get(TYPE_SCOPE) /*:::any)*/
+  );
+  module.body.set(TYPE_SCOPE, typeScope);
+  module.body.set(POSITIONS, new Scope("block", module));
+  await mixImportedDependencies(
+    ast,
+    errors,
+    module,
+    typeScope,
+    getModuleTypeGraph
+  );
   try {
     traverseTree(
       ast,
-      fillModuleScope(result, errors),
-      afterFillierActions(result, errors)
+      fillModuleScope(module, errors),
+      afterFillierActions(module, errors)
     );
   } catch (e) {
     if (!(e instanceof HegelError)) {
@@ -327,8 +365,35 @@ const createModuleScope = (ast: Program): [ModuleScope, Array<HegelError>] => {
     }
     errors.push(e);
   }
-  checkCalls(result, typeScope, errors);
-  return [result, errors];
-};
+  checkCalls(module, typeScope, errors);
+  return module;
+}
 
-export default createModuleScope;
+async function createGlobalScope(
+  ast: Array<Program>,
+  getModuleAST: string => Promise<Program>
+): Promise<[Array<ModuleScope>, Array<HegelError>, ModuleScope]> {
+  const errors: Array<HegelError> = [];
+  const globalModule = new ModuleScope();
+  const globalTypeScope = new Scope("block", globalModule);
+  globalModule.body.set(TYPE_SCOPE, globalTypeScope);
+  globalModule.body.set(POSITIONS, new Scope("block", globalModule));
+  mixUtilityTypes(globalModule);
+  mixBaseGlobals(globalModule);
+  mixBaseOperators(globalModule);
+  const getModuleFromString = async path =>
+    createModuleScope(
+      await getModuleAST(path),
+      errors,
+      getModuleFromString,
+      globalModule
+    );
+  const modules = await Promise.all(
+    ast.map(module =>
+      createModuleScope(module, errors, getModuleFromString, globalModule)
+    )
+  );
+  return [modules, errors, globalModule];
+}
+
+export default createGlobalScope;

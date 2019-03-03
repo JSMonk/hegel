@@ -1,9 +1,10 @@
 {
-  "name": "static-type-checker",
+  "name": "@hegel/core",
   "author": "",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "index.js",
+  "files": "./build",
   "scripts": {
     "build": "npm run build:check && npm run build:clean && npm run build:start",
     "build:check": "flow",
@@ -25,7 +26,7 @@
     "babel-jest": "^23.6.0",
     "babel-plugin-syntax-flow": "^6.18.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
-    "flow-bin": "^0.91.0",
+    "flow-bin": "^0.94.0",
     "jest": "^23.6.0"
   }
 }

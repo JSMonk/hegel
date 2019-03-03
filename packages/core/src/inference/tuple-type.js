@@ -1,4 +1,5 @@
 // @flow
+import { Type } from "../type-graph/types/type";
 import { Scope } from "../type-graph/scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { ModuleScope } from "../type-graph/module-scope";
@@ -11,9 +12,17 @@ export function inferenceTupleType(
   parentScope: ModuleScope | Scope,
   typeGraph: ModuleScope
 ): TupleType {
-  const items = currentNode.elements.map(a =>
-    inferenceTypeForNode(a, typeScope, parentScope, typeGraph)
-  );
+  const items = currentNode.elements.map(a => {
+    const inferencedType = inferenceTypeForNode(
+      a,
+      typeScope,
+      parentScope,
+      typeGraph
+    );
+    return inferencedType.constructor === Type && inferencedType.isLiteralOf
+      ? inferencedType.isLiteralOf
+      : inferencedType;
+  });
   return TupleType.createTypeWithName(
     TupleType.getName(items),
     typeScope,

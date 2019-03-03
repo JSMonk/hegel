@@ -9,101 +9,165 @@ const { VariableInfo } = require("../build/type-graph/variable-info");
 const { UNDEFINED_TYPE, TYPE_SCOPE } = require("../build/type-graph/constants");
 
 describe("Variable declrataion and assignment", () => {
-  test("Simple typed const declaration with number type", () => {
+  test("Simple typed const declaration with number literal type", async () => {
     const sourceAST = prepareAST(`
-      const a: number = ""; 
+      const a: 2 = 2; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(0);
+  });
+  test("Simple typed const declaration with number literal type should throw error", async () => {
+    const sourceAST = prepareAST(`
+      const a: 2 = 4; 
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual('Type "4" is incompatible with type "2"');
+    expect(errors[0].loc).toEqual({
+      end: { column: 20, line: 2 },
+      start: { column: 12, line: 2 }
+    });
+  });
+  test("Simple typed const declaration with string literal type", async () => {
+    const sourceAST = prepareAST(`
+      const a: "" = ""; 
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(0);
+  });
+  test("Simple typed const declaration with string literal type should throw error", async () => {
+    const sourceAST = prepareAST(`
+      const a: "" = "test"; 
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "string" is incompatible with type "number"'
+      "Type \"'test'\" is incompatible with type \"''\""
     );
     expect(errors[0].loc).toEqual({
       start: { line: 2, column: 12 },
       end: { line: 2, column: 26 }
     });
   });
-  test("Simple typed const declaration with string type", () => {
+  test("Simple typed const declaration with boolean literal type", async () => {
     const sourceAST = prepareAST(`
-      const a: string = 2; 
+      const a: true = true; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(0);
+  });
+  test("Simple typed const declaration with true literal type should throw error", async () => {
+    const sourceAST = prepareAST(`
+      const a: true = false; 
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "number" is incompatible with type "string"'
+      'Type "false" is incompatible with type "true"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 27, line: 2 },
+      start: { column: 12, line: 2 }
+    });
+  });
+  test("Simple typed const declaration with number type", async () => {
+    const sourceAST = prepareAST(`
+      const a: number = ""; 
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type "\'\'" is incompatible with type "number"'
+    );
+    expect(errors[0].loc).toEqual({
+      start: { line: 2, column: 12 },
+      end: { line: 2, column: 26 }
+    });
+  });
+  test("Simple typed const declaration with string type", async () => {
+    const sourceAST = prepareAST(`
+      const a: string = 2; 
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type "2" is incompatible with type "string"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 25, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with boolean type", () => {
+  test("Simple typed const declaration with boolean type", async () => {
     const sourceAST = prepareAST(`
       const a: boolean = 2; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "number" is incompatible with type "boolean"'
+      'Type "2" is incompatible with type "boolean"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 26, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with null type", () => {
+  test("Simple typed const declaration with null type", async () => {
     const sourceAST = prepareAST(`
       const a: null = 2; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "number" is incompatible with type "null"'
+      'Type "2" is incompatible with type "null"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 23, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with undefined type", () => {
+  test("Simple typed const declaration with undefined type", async () => {
     const sourceAST = prepareAST(`
       const a: undefined = 2; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "number" is incompatible with type "undefined"'
+      'Type "2" is incompatible with type "undefined"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 28, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with union type", () => {
+  test("Simple typed const declaration with union type", async () => {
     const sourceAST = prepareAST(`
       const a: number | string = true; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "boolean" is incompatible with type "number | string"'
+      'Type "true" is incompatible with type "number | string"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 37, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with tuple type", () => {
+  test("Simple typed const declaration with tuple type", async () => {
     const sourceAST = prepareAST(`
       const a: [number, string] = [2, 2]; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -114,50 +178,50 @@ describe("Variable declrataion and assignment", () => {
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with tuple type without error", () => {
+  test("Simple typed const declaration with tuple type without error", async () => {
     const sourceAST = prepareAST(`
       const a: [number, string] = [2, '2']; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
-  test("Simple typed const declaration with type alias", () => {
+  test("Simple typed const declaration with type alias", async () => {
     const sourceAST = prepareAST(`
       type A = number;
       const a: A = "2"; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "string" is incompatible with type "number"'
+      'Type "\'2\'" is incompatible with type "number"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 22, line: 3 },
       start: { column: 12, line: 3 }
     });
   });
-  test("Simple typed const declaration with generic type alias", () => {
+  test("Simple typed const declaration with generic type alias", async () => {
     const sourceAST = prepareAST(`
       type A<T> = T;
       const a: A<number> = "2"; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "string" is incompatible with type "number"'
+      'Type "\'2\'" is incompatible with type "number"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 30, line: 3 },
       start: { column: 12, line: 3 }
     });
   });
-  test("Simple typed const declaration with array type", () => {
+  test("Simple typed const declaration with array type", async () => {
     const sourceAST = prepareAST(`
       const a: Array<number> = [2, "2"]; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -168,18 +232,18 @@ describe("Variable declrataion and assignment", () => {
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with array type without error", () => {
+  test("Simple typed const declaration with array type without error", async () => {
     const sourceAST = prepareAST(`
       const a: Array<number> = [2]; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
-  test("Simple typed const declaration with object type without required property", () => {
+  test("Simple typed const declaration with object type without required property", async () => {
     const sourceAST = prepareAST(`
       const a: { a: number } = {}; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -190,32 +254,32 @@ describe("Variable declrataion and assignment", () => {
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with object type without optional property", () => {
+  test("Simple typed const declaration with object type without optional property", async () => {
     const sourceAST = prepareAST(`
       const a: { a: ?number } = {}; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
-  test("Simple typed const declaration with object type with additional property", () => {
+  test("Simple typed const declaration with object type with additional property", async () => {
     const sourceAST = prepareAST(`
       const a: { a: ?number } = { a: 2 }; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
-  test("Simple typed const declaration with object type without property", () => {
+  test("Simple typed const declaration with object type without property", async () => {
     const sourceAST = prepareAST(`
       const a: { a: ?number } = { b: 3 }; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
-  test("Simple typed const declaration with function type without argument", () => {
+  test("Simple typed const declaration with function type without argument", async () => {
     const sourceAST = prepareAST(`
       const a: number => void = () => {}; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -226,26 +290,26 @@ describe("Variable declrataion and assignment", () => {
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with function type with wrong argument", () => {
+  test("Simple typed const declaration with function type with wrong argument", async () => {
     const sourceAST = prepareAST(`
       const a: number => void = (a: ?number) => 2; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number | void) => number" is incompatible with type "(number) => void"'
+      'Type "(number | void) => 2" is incompatible with type "(number) => void"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 49, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with function type with wrong return", () => {
+  test("Simple typed const declaration with function type with wrong return", async () => {
     const sourceAST = prepareAST(`
       const a: number => void = (a: number) => a; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -256,18 +320,18 @@ describe("Variable declrataion and assignment", () => {
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with function type with non-princiapl return by right", () => {
+  test("Simple typed const declaration with function type with non-princiapl return by right", async () => {
     const sourceAST = prepareAST(`
       const a: number => ?number = (a: number) => a; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
-  test("Simple typed const declaration with function type with non-princiapl return by left", () => {
+  test("Simple typed const declaration with function type with non-princiapl return by left", async () => {
     const sourceAST = prepareAST(`
       const a: number => number = (a: number) => a == 2 ? a : undefined; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -278,22 +342,22 @@ describe("Variable declrataion and assignment", () => {
       start: { column: 12, line: 2 }
     });
   });
-  test("Simple typed const declaration with function type with non-princiapl return", () => {
+  test("Simple typed const declaration with function type with non-princiapl return", async () => {
     const sourceAST = prepareAST(`
       const a: number => number = (a: number) => a; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
-  test("Simple typed const declaration with function type with wrong argument", () => {
+  test("Simple typed const declaration with function type with wrong argument", async () => {
     const sourceAST = prepareAST(`
       const a: ?number => void = (a: number) => 2; 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => number" is incompatible with type "(number | void) => void"'
+      'Type "(number) => 2" is incompatible with type "(number | void) => void"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 49, line: 2 },
@@ -302,99 +366,111 @@ describe("Variable declrataion and assignment", () => {
   });
 });
 
-describe("Test calls meta for operatos and functions in global scope", () => {
-  test("Unary operator call with literal", () => {
+describe("Test calls meta for operatos and functions in globals scope", () => {
+  test("Unary operator call with literal", async () => {
     const sourceAST = prepareAST(`
       !2;
     `);
-    const [actual] = createTypeGraph(sourceAST);
+    const [[actual], , globals] = await createTypeGraph([sourceAST]);
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
-      target: actual.body.get("!"),
-      arguments: [new Type("number")]
+      target: globals.body.get("!"),
+      arguments: [new Type(2, { isLiteralOf: new Type("number") })]
     });
     expect(actualCall).toEqual(expectedCall);
   });
-  test("Unary operator call with variable", () => {
+  test("Unary operator call with variable", async () => {
     const sourceAST = prepareAST(`
       const a:number = 2;
       !a;
     `);
-    const [actual] = createTypeGraph(sourceAST);
+    const [[actual], , globals] = await createTypeGraph([sourceAST]);
     const actualCall = actual.calls[1];
     const expectedCall = expect.objectContaining({
-      target: actual.body.get("!"),
+      target: globals.body.get("!"),
       arguments: [actual.body.get("a")]
     });
     expect(actualCall).toEqual(expectedCall);
   });
-  test("Double unary operator call", () => {
+  test("Double unary operator call", async () => {
     const sourceAST = prepareAST(`
       !!2;
     `);
-    const [actual] = createTypeGraph(sourceAST);
+    const [[actual], , globals] = await createTypeGraph([sourceAST]);
     const firstActualCall = actual.calls[0];
     const secondActualCall = actual.calls[1];
     const firstExpectedCall = expect.objectContaining({
-      target: actual.body.get("!"),
-      arguments: [new Type("number")]
+      target: globals.body.get("!"),
+      arguments: [new Type(2, { isLiteralOf: new Type("number") })]
     });
     const secondExpectedCall = expect.objectContaining({
-      target: actual.body.get("!"),
+      target: globals.body.get("!"),
       arguments: [new Type("boolean")]
     });
     expect(firstActualCall).toEqual(firstExpectedCall);
     expect(secondActualCall).toEqual(secondExpectedCall);
   });
-  test("Binary operator call with literal", () => {
+  test("Binary operator call with literal", async () => {
     const sourceAST = prepareAST(`
       2 - 2;
     `);
-    const [actual] = createTypeGraph(sourceAST);
+    const [[actual], , globals] = await createTypeGraph([sourceAST]);
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
-      target: actual.body.get("-"),
-      arguments: [new Type("number"), new Type("number")]
+      target: globals.body.get("-"),
+      arguments: [
+        new Type(2, { isLiteralOf: new Type("number") }),
+        new Type(2, { isLiteralOf: new Type("number") })
+      ]
     });
     expect(actualCall).toEqual(expectedCall);
   });
-  test("Binary operator call with variable", () => {
+  test("Binary operator call with variable", async () => {
     const sourceAST = prepareAST(`
       const a:number = 2;
       a - 2;
     `);
-    const [actual] = createTypeGraph(sourceAST);
+    const [[actual], , globals] = await createTypeGraph([sourceAST]);
     const actualCall = actual.calls[1];
     const expectedCall = expect.objectContaining({
-      target: actual.body.get("-"),
-      arguments: [actual.body.get("a"), new Type("number")]
+      target: globals.body.get("-"),
+      arguments: [
+        actual.body.get("a"),
+        new Type(2, { isLiteralOf: new Type("number") })
+      ]
     });
     expect(actualCall).toEqual(expectedCall);
   });
-  test("Double binary operator call", () => {
+  test("Double binary operator call", async () => {
     const sourceAST = prepareAST(`
       2 - 2 - 2;
     `);
-    const [actual] = createTypeGraph(sourceAST);
+    const [[actual], , globals] = await createTypeGraph([sourceAST]);
     const firstActualCall = actual.calls[0];
     const secondActualCall = actual.calls[1];
     const firstExpectedCall = expect.objectContaining({
-      target: actual.body.get("-"),
-      arguments: [new Type("number"), new Type("number")]
+      target: globals.body.get("-"),
+      arguments: [
+        new Type(2, { isLiteralOf: new Type("number") }),
+        new Type(2, { isLiteralOf: new Type("number") })
+      ]
     });
     const secondExpectedCall = expect.objectContaining({
-      target: actual.body.get("-"),
-      arguments: [new Type("number"), new Type("number")]
+      target: globals.body.get("-"),
+      arguments: [
+        new Type("number"),
+        new Type(2, { isLiteralOf: new Type("number") })
+      ]
     });
     expect(firstActualCall).toEqual(firstExpectedCall);
     expect(secondActualCall).toEqual(secondExpectedCall);
   });
-  test("Call function with wrong count of arguments", () => {
+  test("Call function with wrong count of arguments", async () => {
     const sourceAST = prepareAST(`
        function fn(a: number) {}
        fn();
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual("1 arguments are required. Given 0.");
@@ -403,20 +479,20 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       start: { column: 7, line: 3 }
     });
   });
-  test("Call function with right count of arguments", () => {
+  test("Call function with right count of arguments", async () => {
     const sourceAST = prepareAST(`
        function fn(a: ?number) {}
        fn();
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
-  test("Function declaration with signed argument will throw error", () => {
+  test("Function declaration with signed argument will throw error", async () => {
     const sourceAST = prepareAST(`
        function fn(a?: number) {}
        fn();
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -428,12 +504,12 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       start: { column: 19, line: 2 }
     });
   });
-  test("Call function with different type", () => {
+  test("Call function with different type", async () => {
     const sourceAST = prepareAST(`
        function fn(a: number) {}
        fn("string");
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -444,61 +520,61 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       start: { column: 7, line: 3 }
     });
   });
-  test("Call if statement with non-boolean type", () => {
+  test("Call if statement with non-boolean type", async () => {
     const sourceAST = prepareAST(`
        if(2) {
 
        } 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "number" is incompatible with type "boolean"'
+      'Type "2" is incompatible with type "boolean"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 8, line: 4 },
       start: { column: 7, line: 2 }
     });
   });
-  test("Call while statement with non-boolean type", () => {
+  test("Call while statement with non-boolean type", async () => {
     const sourceAST = prepareAST(`
        while(2) {
 
        } 
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "number" is incompatible with type "boolean"'
+      'Type "2" is incompatible with type "boolean"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 8, line: 4 },
       start: { column: 7, line: 2 }
     });
   });
-  test("Call do-while statement with non-boolean type", () => {
+  test("Call do-while statement with non-boolean type", async () => {
     const sourceAST = prepareAST(`
        do {
        } while(2);
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "number" is incompatible with type "boolean"'
+      'Type "2" is incompatible with type "boolean"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 18, line: 3 },
       start: { column: 7, line: 2 }
     });
   });
-  test("Call for statement with non-boolean type", () => {
+  test("Call for statement with non-boolean type", async () => {
     const sourceAST = prepareAST(`
        for(let i = 5; i--;);
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -509,15 +585,15 @@ describe("Test calls meta for operatos and functions in global scope", () => {
       start: { column: 7, line: 2 }
     });
   });
-  test("Call ternary expression with non-boolean type", () => {
+  test("Call ternary expression with non-boolean type", async () => {
     const sourceAST = prepareAST(`
        2 ? true : false;
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "number" is incompatible with type "boolean"'
+      'Type "2" is incompatible with type "boolean"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 23, line: 2 },
@@ -527,12 +603,12 @@ describe("Test calls meta for operatos and functions in global scope", () => {
 });
 
 describe("Object and collection properties", () => {
-  test("Get undefined property in object", () => {
+  test("Get undefined property in object", async () => {
     const sourceAST = prepareAST(`
        const a = { a: 1 };
        a.b;
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -543,20 +619,20 @@ describe("Object and collection properties", () => {
       start: { column: 7, line: 3 }
     });
   });
-  test("Get existed property in object", () => {
+  test("Get existed property in object", async () => {
     const sourceAST = prepareAST(`
        const a = { a: 1 };
        a.a;
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
-  test("Get undefined property in nested object", () => {
+  test("Get undefined property in nested object", async () => {
     const sourceAST = prepareAST(`
        const a = { a: { b: 2 } };
        a.a.c;
     `);
-    const [, errors] = createTypeGraph(sourceAST);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors[0].message).toEqual(
       'Property "c" are not exists in "{ b: number }"'
     );

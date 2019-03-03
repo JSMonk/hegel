@@ -1,6 +1,7 @@
 // @flow
 import NODE from "../utils/nodes";
 import { Meta } from "../type-graph/meta/meta";
+import { Type } from "../type-graph/types/type";
 import { Scope } from "../type-graph/scope";
 import { ObjectType } from "../type-graph/types/object-type";
 import { ModuleScope } from "../type-graph/module-scope";
@@ -19,13 +20,18 @@ export function inferenceObjectType(
     if (p.computed || p.kind === "set") {
       return res;
     }
+    const inferencedType = inferenceTypeForNode(
+      p.type === NODE.OBJECT_PROPERTY ? p.value : p,
+      typeScope,
+      parentScope,
+      typeGraph
+    );
     let varInfo = new VariableInfo(
-      inferenceTypeForNode(
-        p.type === NODE.OBJECT_PROPERTY ? p.value : p,
-        typeScope,
-        parentScope,
-        typeGraph
-      ),
+      inferencedType.constructor === Type &&
+      inferencedType.isLiteralOf &&
+      inferencedType.name !== null
+        ? inferencedType.isLiteralOf
+        : inferencedType,
       parentScope,
       new Meta(p.loc)
     );

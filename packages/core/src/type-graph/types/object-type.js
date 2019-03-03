@@ -31,15 +31,16 @@ export class ObjectType extends Type {
     this.properties = new Map(properties);
   }
 
-  hasProperty(propertyName: any) {
+  hasProperty(propertyName: any): boolean {
     return this.properties.has(propertyName);
   }
 
-  getPropertyType(propertyName: any) {
+  getPropertyType(propertyName: any): Type {
     if (!this.hasProperty(propertyName)) {
       throw new Error("Unknow property");
     }
-    return this.properties.get(propertyName);
+    // $FlowIssue
+    return this.properties.get(propertyName).type;
   }
 
   isAllProperties(

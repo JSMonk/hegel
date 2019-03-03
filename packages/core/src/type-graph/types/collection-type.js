@@ -1,6 +1,7 @@
 // @flow
 import { Type } from "./type";
 import { TupleType } from "./tuple-type";
+import { UnionType } from "./union-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
@@ -24,14 +25,22 @@ export class CollectionType<K: Type, V: Type> extends Type {
   }
 
   hasProperty(property: mixed) {
-    return typeof property === typeof this.keyType;
+    return (
+      typeof property === this.keyType.name || property === this.keyType.name
+    );
   }
 
   getPropertyType(propertyName: mixed) {
     if (!this.hasProperty(propertyName)) {
       throw new Error("Unknow property");
     }
-    return this.valueType;
+    return this.valueType instanceof UnionType &&
+      this.valueType.variants.find(a => a.name === "void")
+      ? this.valueType
+      : new UnionType(UnionType.getName([this.valueType, new Type("void")]), [
+          this.valueType,
+          new Type("void")
+        ]);
   }
 
   equalsTo(anotherType: Type) {
