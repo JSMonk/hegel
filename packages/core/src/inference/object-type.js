@@ -27,11 +27,7 @@ export function inferenceObjectType(
       typeGraph
     );
     let varInfo = new VariableInfo(
-      inferencedType.constructor === Type &&
-      inferencedType.isLiteralOf &&
-      inferencedType.name !== null
-        ? inferencedType.isLiteralOf
-        : inferencedType,
+      inferencedType,
       parentScope,
       new Meta(p.loc)
     );

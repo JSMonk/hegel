@@ -252,10 +252,15 @@ const afterFillierActions = (
           currentScope
         );
         const newType =
-          newTypeOrVar instanceof VariableInfo
-            ? newTypeOrVar.type
-            : newTypeOrVar;
-        variableInfo.type = getVariableType(variableInfo, newType);
+          newTypeOrVar.result instanceof VariableInfo
+            ? newTypeOrVar.result.type
+            : newTypeOrVar.result;
+        variableInfo.type = getVariableType(
+          variableInfo,
+          newType,
+          typeScope,
+          newTypeOrVar.inferenced
+        );
         if (currentNode.exportAs) {
           typeGraph.exports.set(currentNode.exportAs, variableInfo);
         }
@@ -290,7 +295,7 @@ const afterFillierActions = (
           currentNode,
           typeGraph,
           currentScope
-        );
+        ).result;
         if (currentNode.exportAs) {
           typeGraph.exports.set(currentNode.exportAs, resultOfCall);
         }

@@ -69,6 +69,10 @@ const mixBaseGlobals = moduleScope => {
       )
     ],
     [
+      "RegExp",
+      new VariableInfo(ObjectType.createTypeWithName("RegExp", typeScope, []))
+    ],
+    [
       "Array",
       new VariableInfo(
         genericType(

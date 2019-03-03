@@ -1,5 +1,7 @@
 // @flow
 import { Type } from "./type";
+import { UnionType } from "./union-type";
+import { CollectionType } from "./collection-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
@@ -17,7 +19,16 @@ export class TupleType extends Type {
   items: Array<Type>;
 
   constructor(name: string, items: Array<Type>) {
-    super(name);
+    const valueType = UnionType.shouldBeUnion(items)
+      ? new UnionType(UnionType.getName(items), items)
+      : items[0];
+    super(name, {
+      isLiteralOf: new CollectionType(
+        `{ [key: nunmber]: ${getNameForType(valueType)} }`,
+        new Type("number"),
+        valueType
+      )
+    });
     this.items = items;
   }
 

@@ -62,7 +62,7 @@ describe("Simple inference for module variables by literal", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type("void"),
+      type: new Type("undefined", { isLiteralOf: new Type("void") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -191,7 +191,7 @@ describe("Simple inference for module variables by function return", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type("void"),
+      type: new Type("undefined", { isLiteralOf: new Type("void") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -360,10 +360,8 @@ describe("Simple inference for module functions", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(FunctionType);
-    expect(actualA.type.name).toEqual("() => 2");
-    expect(actualA.type.returnType).toEqual(
-      new Type(2, { isLiteralOf: new Type("number") })
-    );
+    expect(actualA.type.name).toEqual("() => number");
+    expect(actualA.type.returnType).toEqual(new Type("number"));
     expect(actualA.type.argumentsTypes).toEqual([]);
   });
   test("Inference global module function return type by free variable return", async () => {
@@ -469,10 +467,8 @@ describe("Simple inference for module functions", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(FunctionType);
-    expect(actualA.type.name).toEqual("(number) => 'test'");
-    expect(actualA.type.returnType).toEqual(
-      new Type("test", { isLiteralOf: new Type("string") })
-    );
+    expect(actualA.type.name).toEqual("(number) => string");
+    expect(actualA.type.returnType).toEqual(new Type("string"));
     expect(actualA.type.argumentsTypes).toEqual([new Type("number")]);
   });
   test("Inference function local variable type", async () => {
@@ -549,10 +545,8 @@ describe("Simple inference for module functions", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(FunctionType);
-    expect(actualA.type.name).toEqual("() => 2");
-    expect(actualA.type.returnType).toEqual(
-      new Type(2, { isLiteralOf: new Type("number") })
-    );
+    expect(actualA.type.name).toEqual("() => number");
+    expect(actualA.type.returnType).toEqual(new Type("number"));
     expect(actualA.type.argumentsTypes).toEqual([]);
   });
   test("Inference global module function return type by free variable return inside function expression", async () => {
@@ -658,10 +652,8 @@ describe("Simple inference for module functions", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(FunctionType);
-    expect(actualA.type.name).toEqual("(number) => 'test'");
-    expect(actualA.type.returnType).toEqual(
-      new Type("test", { isLiteralOf: new Type("string") })
-    );
+    expect(actualA.type.name).toEqual("(number) => string");
+    expect(actualA.type.returnType).toEqual(new Type("string"));
     expect(actualA.type.argumentsTypes).toEqual([new Type("number")]);
   });
   test("Inference function local variable type inside function expression", async () => {
@@ -731,30 +723,26 @@ describe("Simple inference for module functions", () => {
   });
   test("Inference global module function by single return 1 type inside arrow function", async () => {
     const sourceAST = prepareAST(`
-      const a =  () => {
+      const a = () => {
       	return 2;
       }
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(FunctionType);
-    expect(actualA.type.name).toEqual("() => 2");
-    expect(actualA.type.returnType).toEqual(
-      new Type(2, { isLiteralOf: new Type("number") })
-    );
+    expect(actualA.type.name).toEqual("() => number");
+    expect(actualA.type.returnType).toEqual(new Type("number"));
     expect(actualA.type.argumentsTypes).toEqual([]);
   });
   test("Inference global module function by single return 2 type inside arrow function", async () => {
     const sourceAST = prepareAST(`
-      const a =  () => 2
+      const a = () => 2
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(FunctionType);
-    expect(actualA.type.name).toEqual("() => 2");
-    expect(actualA.type.returnType).toEqual(
-      new Type(2, { isLiteralOf: new Type("number") })
-    );
+    expect(actualA.type.name).toEqual("() => number");
+    expect(actualA.type.returnType).toEqual(new Type("number"));
     expect(actualA.type.argumentsTypes).toEqual([]);
   });
   test("Inference global module function return type by free variable return 1 inside arrow function", async () => {
@@ -909,10 +897,8 @@ describe("Simple inference for module functions", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(FunctionType);
-    expect(actualA.type.name).toEqual("(number) => 'test'");
-    expect(actualA.type.returnType).toEqual(
-      new Type("test", { isLiteralOf: new Type("string") })
-    );
+    expect(actualA.type.name).toEqual("(number) => string");
+    expect(actualA.type.returnType).toEqual(new Type("string"));
     expect(actualA.type.argumentsTypes).toEqual([new Type("number")]);
   });
   test("Inference function local variable type inside arrow function", async () => {
@@ -975,10 +961,14 @@ describe("Object type inference", () => {
     expect(actualA.properties.get("4").type).toEqual(
       new Type(null, { isLiteralOf: new Type("void") })
     );
-    expect(actualA.properties.get("5").type).toEqual(new Type("void"));
-    expect(actualA.properties.get("6").type).toEqual(new ObjectType("RegExp"));
+    expect(actualA.properties.get("5").type).toEqual(
+      new Type("undefined", { isLiteralOf: new Type("void") })
+    );
+    expect(actualA.properties.get("6").type).toEqual(
+      new ObjectType("RegExp", [])
+    );
     expect(actualA.name).toEqual(
-      "{ 1: number, 2: string, 3: boolean, 4: null, 5: void, 6: RegExp }"
+      "{ 1: number, 2: string, 3: boolean, 4: null, 5: undefined, 6: RegExp }"
     );
   });
   test("Inference object type with all function types", async () => {
@@ -992,11 +982,7 @@ describe("Object type inference", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a").type;
     expect(actualA.properties.get("a").type).toEqual(
-      new FunctionType(
-        "() => 2",
-        [],
-        new Type(2, { isLiteralOf: new Type("number") })
-      )
+      new FunctionType("() => number", [], new Type("number"))
     );
     expect(actualA.properties.get("b").type.subordinateType).toEqual(
       new FunctionType("<α>(α) => void", [new TypeVar("α")], new Type("void"))
@@ -1005,7 +991,7 @@ describe("Object type inference", () => {
       new FunctionType("<α>(α) => α", [new TypeVar("α")], new TypeVar("α"))
     );
     expect(actualA.name).toEqual(
-      "{ a: () => 2, b: <α>(α) => void, c: <α>(α) => α }"
+      "{ a: () => number, b: <α>(α) => void, c: <α>(α) => α }"
     );
   });
   test("Inference object type with nested object", async () => {
@@ -1017,13 +1003,9 @@ describe("Object type inference", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a").type;
     expect(actualA.properties.get("b").type.properties.get("c").type).toEqual(
-      new FunctionType(
-        "() => 2",
-        [],
-        new Type(2, { isLiteralOf: new Type("number") })
-      )
+      new FunctionType("() => number", [], new Type("number"))
     );
-    expect(actualA.name).toEqual("{ b: { c: () => 2 } }");
+    expect(actualA.name).toEqual("{ b: { c: () => number } }");
   });
 });
 
@@ -1067,9 +1049,7 @@ describe("Error inference", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope4-17]]");
     const actualE = actualCatchScope.body.get("e");
-    expect(actualE.type).toEqual(
-      new Type(2, { isLiteralOf: new Type("number") })
-    );
+    expect(actualE.type).toEqual(new Type("number"));
   });
   test("Inference simple throw with object type", async () => {
     const sourceAST = prepareAST(`
@@ -1135,9 +1115,7 @@ describe("Error inference", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope7-17]]");
     const actualE = actualCatchScope.body.get("e");
-    expect(actualE.type).toEqual(
-      new Type(2, { isLiteralOf: new Type("number") })
-    );
+    expect(actualE.type).toEqual(new Type("number"));
   });
   test("Inference function call with conditional throw", async () => {
     const sourceAST = prepareAST(`
@@ -1152,9 +1130,7 @@ describe("Error inference", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope8-17]]");
     const actualE = actualCatchScope.body.get("e");
-    expect(actualE.type).toEqual(
-      new Type(2, { isLiteralOf: new Type("number") })
-    );
+    expect(actualE.type).toEqual(new Type("number"));
   });
   test("Inference function call with implicit throw", async () => {
     const sourceAST = prepareAST(`
@@ -1170,9 +1146,7 @@ describe("Error inference", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope9-17]]");
     const actualE = actualCatchScope.body.get("e");
-    expect(actualE.type).toEqual(
-      new Type(2, { isLiteralOf: new Type("number") })
-    );
+    expect(actualE.type).toEqual(new Type("number"));
   });
 });
 describe("Collection type inference", () => {

@@ -9,8 +9,15 @@ import type { TypeMeta } from "./type";
 export class UnionType extends Type {
   static _createTypeWithName = createTypeWithName(UnionType);
 
+  static shouldBeUnion(variants: any) {
+    return (
+      variants.length !== 1 &&
+      variants.every(variant => variant.name === variants[0].name)
+    );
+  }
+
   static createTypeWithName(name: string, typeScope: Scope, variants: any) {
-    if (variants.every(variant => variant.name === variants[0].name)) {
+    if (this.shouldBeUnion(variants)) {
       return variants[0];
     }
     return this._createTypeWithName(name, typeScope, variants);

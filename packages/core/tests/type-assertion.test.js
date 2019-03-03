@@ -298,7 +298,7 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number | void) => 2" is incompatible with type "(number) => void"'
+      'Type "(number | void) => number" is incompatible with type "(number) => void"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 49, line: 2 },
@@ -357,7 +357,7 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => 2" is incompatible with type "(number | void) => void"'
+      'Type "(number) => number" is incompatible with type "(number | void) => void"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 49, line: 2 },
@@ -640,5 +640,12 @@ describe("Object and collection properties", () => {
       end: { column: 12, line: 3 },
       start: { column: 7, line: 3 }
     });
+  });
+  test("Object with literal type should finish without error", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: true } = { a: true };
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
   });
 });
