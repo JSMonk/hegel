@@ -1,5 +1,6 @@
 // @flow
 import NODE from "../utils/nodes";
+import HegelError from "../utils/errors";
 import { Type } from "./types/type";
 import { Scope } from "./scope";
 import { CallMeta } from "./meta/call-meta";
@@ -10,6 +11,7 @@ import { GenericType } from "./types/generic-type";
 import { $BottomType } from "./types/bottom-type";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
+import { $PropertyType } from "./types/property-type";
 import { addToThrowable } from "../utils/throwable";
 import { getVariableType } from "../utils/variable-utils";
 import { getInvocationType } from "../inference/function-type";
@@ -169,10 +171,15 @@ export function addCallToTypeGraph(
           : addCallToTypeGraph(node.property, typeGraph, currentScope).result
       ];
       if (node.property.type === NODE.IDENTIFIER) {
+        const property = new $PropertyType();
         addPosition(
           node.property,
-          // $FlowIssue
-          (args[0].type || args[0]).properties.get(node.property.name),
+          property.applyGeneric(
+            [args[0].type || args[0], args[1]],
+            node.loc,
+            true,
+            true
+          ),
           typeGraph
         );
       }
@@ -256,7 +263,7 @@ export function addCallToTypeGraph(
       target.type.subordinateType instanceof FunctionType
     )
   ) {
-    throw new Error(target.type.constructor.name);
+    throw new HegelError("The target is not callable type.", node.loc);
   }
   const invocationType = getInvocationType(
     (target.type: any),

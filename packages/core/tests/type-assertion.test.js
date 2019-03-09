@@ -648,4 +648,66 @@ describe("Object and collection properties", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(0);
   });
+  test("Get property from Union type when both types has property", async () => {
+    const sourceAST = prepareAST(`
+      type A = { a: number };
+      type B = { a: string };
+      const c: A | B = { a : 2 };
+      c.a;
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
+  });
+  test("Get property from Union type when second type has not property", async () => {
+    const sourceAST = prepareAST(`
+      type A = { b: string };
+      type B = { a: number };
+      const c: A | B = { a : 2 };
+      c.a;
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].message).toEqual('Property "a" are not exists in "{ b: string }"');
+  });
+  test("Get property from Union type when first type has not property", async () => {
+    const sourceAST = prepareAST(`
+      type A = { b: string };
+      type B = { a: number };
+      const c: B | A = { a : 2 };
+      c.a;
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].message).toEqual('Property "a" are not exists in "{ b: string }"');
+  });
+});
+describe("Callable types", () => {
+  test("Call non-function variable", async () => {
+    const sourceAST = prepareAST(`
+      const a = 2;
+      a();
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual("The target is not callable type.");
+    expect(errors[0].loc).toEqual({
+      end: { column: 9, line: 3 },
+      start: { column: 6, line: 3 }
+    });
+  });
+  test("Call non-function property", async () => {
+    const sourceAST = prepareAST(`
+      const a = { b: 2 };
+      a.b();
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual("The target is not callable type.");
+    expect(errors[0].loc).toEqual({
+      end: { column: 11, line: 3 },
+      start: { column: 6, line: 3 }
+    });
+  });
 });
