@@ -11,8 +11,11 @@ import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
 import { getTypeFromTypeAnnotation } from "../utils/type-utils";
-import type { CallableTarget } from "../type-graph/meta/call-meta";
 import type { Function, SourceLocation } from "@babel/parser";
+import type {
+  CallableTarget,
+  CallableType
+} from "../type-graph/meta/call-meta";
 
 type GenericFunctionScope = {
   calls: Array<CallMeta>,
@@ -46,7 +49,7 @@ export function inferenceFunctionLiteralType(
   currentNode: Function,
   typeScope: Scope,
   parentNode: ModuleScope | Scope
-): $PropertyType<CallableTarget, "type"> {
+): CallableType {
   let shouldBeGeneric =
     currentNode.typeParameters !== undefined ||
     currentNode.returnType === undefined;
@@ -55,7 +58,11 @@ export function inferenceFunctionLiteralType(
   if (currentNode.typeParameters) {
     currentNode.typeParameters.params.forEach(typeAnnotation =>
       genericArguments.push(
-        (getTypeFromTypeAnnotation({ typeAnnotation }, localTypeScope): any)
+        (getTypeFromTypeAnnotation(
+          { typeAnnotation },
+          localTypeScope,
+          parentNode
+        ): any)
       )
     );
   }
@@ -69,6 +76,7 @@ export function inferenceFunctionLiteralType(
     const paramType = getTypeFromTypeAnnotation(
       param.typeAnnotation,
       localTypeScope,
+      parentNode,
       false
     );
     if (paramType.name === UNDEFINED_TYPE) {
@@ -83,6 +91,7 @@ export function inferenceFunctionLiteralType(
     ? (getTypeFromTypeAnnotation(
         currentNode.returnType,
         localTypeScope,
+        parentNode,
         false
       ): any)
     : addTypeVar(typeVarNames[argumentsTypes.length], localTypeScope);
@@ -111,7 +120,7 @@ export function inferenceFunctionLiteralType(
     : type;
 }
 
-function getCallTarget(callTarget: $PropertyType<CallableTarget, "type">) {
+function getCallTarget(callTarget: CallableType) {
   if (callTarget instanceof GenericType) {
     callTarget = callTarget.subordinateType;
   }
@@ -132,6 +141,7 @@ function resolveOuterTypeVarsFromCall(
     return;
   }
   const callTarget: FunctionType = getCallTarget(
+    // $FlowIssue
     call.target.type || call.target
   );
 

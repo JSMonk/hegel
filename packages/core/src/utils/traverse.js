@@ -28,9 +28,42 @@ function mixBodyToArrowFunctionExpression(currentNode: Node) {
       {
         type: NODE.RETURN_STATEMENT,
         argument: currentNode.body,
-        loc: currentNode.loc
+        loc: currentNode.body.loc
       }
-    ]
+    ],
+    loc: currentNode.body.loc
+  };
+  return currentNode;
+}
+
+function mixBlockForStatements(currentNode: Node) {
+  if (
+    currentNode.type !== NODE.IF_STATEMENT &&
+    currentNode.type !== NODE.WHILE_STATEMENT &&
+    currentNode.type !== NODE.FOR_STATEMENT
+  ) {
+    return currentNode;
+  }
+  if (
+    currentNode.type === NODE.IF_STATEMENT &&
+    currentNode.alternate &&
+    currentNode.alternate.type !== NODE.BLOCK_STATEMENT
+  ) {
+    currentNode.alternate = {
+      type: NODE.BLOCK_STATEMENT,
+      body: [currentNode.alternate],
+      loc: currentNode.alternate.loc
+    };
+  }
+  const propertyName =
+    currentNode.type === NODE.IF_STATEMENT ? "consequent" : "body";
+  if (currentNode[propertyName].type === NODE.BLOCK_STATEMENT) {
+    return currentNode;
+  }
+  currentNode[propertyName] = {
+    type: NODE.BLOCK_STATEMENT,
+    body: [currentNode[propertyName]],
+    loc: currentNode[propertyName].loc
   };
   return currentNode;
 }
@@ -96,6 +129,7 @@ const getBody = (currentNode: any) =>
     currentNode.handler,
     currentNode.finalizer,
     currentNode.consequent,
+    currentNode.alternate,
     currentNode.value,
     currentNode.init,
     currentNode.right,
@@ -116,6 +150,7 @@ const getCurrentNode = compose(
   mixDeclarationsInideForBlock,
   mixBodyToArrowFunctionExpression,
   mixTryCatchInfo,
+  mixBlockForStatements,
   mixExportInfo
 );
 

@@ -3,6 +3,7 @@ import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
 import { Type } from "./types/type";
 import { Scope } from "./scope";
+import { TypeVar } from "./types/type-var";
 import { CallMeta } from "./meta/call-meta";
 import { ObjectType } from "./types/object-type";
 import { ModuleScope } from "./module-scope";
@@ -34,7 +35,7 @@ export function addCallToTypeGraph(
   typeGraph: ModuleScope,
   currentScope: Scope | ModuleScope
 ): CallResult {
-  let target: ?VariableInfo = null;
+  let target: ?VariableInfo | Type = null;
   let inferenced = undefined;
   let targetName: string = "";
   let args: ?Array<CallableArguments> = null;
@@ -147,14 +148,37 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.RETURN_STATEMENT:
-    case NODE.UNARY_EXPRESSION:
-    case NODE.UPDATE_EXPRESSION:
-      targetName = node.operator || "return";
+      targetName = "return";
       const arg = addCallToTypeGraph(node.argument, typeGraph, currentScope);
       args = [
-        targetName === "return" && arg.result instanceof Type
+        arg.result instanceof Type
           ? getVariableType(null, arg.result, typeScope, arg.inferenced)
           : arg.result
+      ];
+      const fn: any = findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
+      if (fn instanceof ModuleScope) {
+        throw new HegelError("Call return outside function", node.loc);
+      }
+      const declaration =
+        fn.declaration.type instanceof GenericType
+          ? fn.declaration.type.subordinateType
+          : fn.declaration.type;
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
+      target =
+        declaration.returnType instanceof TypeVar &&
+        declaration.returnType.isUserDefined
+          ? target
+          : // $FlowIssue
+            target.type.applyGeneric([declaration.returnType], node.loc);
+      break;
+    case NODE.UNARY_EXPRESSION:
+    case NODE.UPDATE_EXPRESSION:
+      targetName = node.operator;
+      args = [
+        addCallToTypeGraph(node.argument, typeGraph, currentScope).result
       ];
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
@@ -166,7 +190,7 @@ export function addCallToTypeGraph(
         addCallToTypeGraph(node.object, typeGraph, currentScope).result,
         node.property.type === NODE.IDENTIFIER && !node.computed
           ? Type.createTypeWithName(node.property.name, typeScope, {
-              isLiteralOf: Type.createTypeWithName("string", typeScope)
+              isSubtypeOf: Type.createTypeWithName("string", typeScope)
             })
           : addCallToTypeGraph(node.property, typeGraph, currentScope).result
       ];
@@ -174,12 +198,16 @@ export function addCallToTypeGraph(
         const property = new $PropertyType();
         addPosition(
           node.property,
-          property.applyGeneric(
-            [args[0].type || args[0], args[1]],
-            node.loc,
-            true,
-            true
-          ),
+          args[1].type instanceof TypeVar
+            ? new Type(
+                GenericType.getName(property.name, [args[1].type || args[1]])
+              )
+            : property.applyGeneric(
+                [args[0].type || args[0], args[1]],
+                node.loc,
+                true,
+                true
+              ),
           typeGraph
         );
       }
@@ -255,25 +283,26 @@ export function addCallToTypeGraph(
     currentScope.type === Scope.FUNCTION_TYPE
       ? currentScope
       : findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
+  const targetType = target instanceof Type ? target : target.type;
   if (
-    !(target.type instanceof $BottomType) &&
-    !(target.type instanceof FunctionType) &&
+    !(targetType instanceof $BottomType) &&
+    !(targetType instanceof FunctionType) &&
     !(
-      target.type instanceof GenericType &&
-      target.type.subordinateType instanceof FunctionType
+      targetType instanceof GenericType &&
+      targetType.subordinateType instanceof FunctionType
     )
   ) {
     throw new HegelError("The target is not callable type.", node.loc);
   }
   const invocationType = getInvocationType(
-    (target.type: any),
+    targetType,
     args.map(a => (a instanceof Type ? a : a.type)),
     // $FlowIssue
     genericArguments &&
       genericArguments.map(a => (a instanceof Type ? a : a.type)),
     node.loc
   );
-  if (!(target.type instanceof $BottomType)) {
+  if (!(targetType instanceof $BottomType)) {
     const callMeta = new CallMeta((target: any), args, node.loc, targetName);
     callsScope.calls.push(callMeta);
   }

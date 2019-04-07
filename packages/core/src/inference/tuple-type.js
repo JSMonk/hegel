@@ -19,8 +19,8 @@ export function inferenceTupleType(
       parentScope,
       typeGraph
     );
-    return inferencedType.constructor === Type && inferencedType.isLiteralOf
-      ? inferencedType.isLiteralOf
+    return inferencedType.constructor === Type && inferencedType.isSubtypeOf
+      ? inferencedType.isSubtypeOf
       : inferencedType;
   });
   return TupleType.createTypeWithName(

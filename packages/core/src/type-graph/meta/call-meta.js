@@ -1,14 +1,18 @@
 // @flow
 import { Meta } from "./meta";
 import { Type } from "../types/type";
-import { GenericType } from "../types/generic-type"; 
-import { FunctionType } from "../types/function-type"; 
+import { GenericType } from "../types/generic-type";
+import { FunctionType } from "../types/function-type";
 import { VariableInfo } from "../variable-info";
-import type { SourceLocation } from "@babel/parser"; 
+import type { SourceLocation } from "@babel/parser";
 
-export type CallableTarget = {
-  type: FunctionType | GenericType<FunctionType>
-};
+export type CallableType = FunctionType | GenericType<FunctionType>;
+
+export type CallableTarget =
+  | CallableType
+  | {
+      type: CallableType
+    };
 
 export type CallableArguments = Type | VariableInfo;
 
@@ -29,4 +33,3 @@ export class CallMeta extends Meta {
     this.arguments = args;
   }
 }
-

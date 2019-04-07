@@ -1,3 +1,4 @@
+const HegelError = require("../build/utils/errors").default;
 const prepareAST = require("./preparation");
 const createTypeGraph = require("../build/type-graph/type-graph").default;
 const { Type } = require("../build/type-graph/types/type");
@@ -51,7 +52,7 @@ describe("Simple inference for module variables by literal", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type(null, { isLiteralOf: new Type("void") }),
+      type: new Type(null, { isSubtypeOf: new Type("void") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -62,7 +63,7 @@ describe("Simple inference for module variables by literal", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type("undefined", { isLiteralOf: new Type("void") }),
+      type: new Type("undefined", { isSubtypeOf: new Type("void") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -179,7 +180,7 @@ describe("Simple inference for module variables by function return", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type(null, { isLiteralOf: new Type("void") }),
+      type: new Type(null, { isSubtypeOf: new Type("void") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -191,7 +192,7 @@ describe("Simple inference for module variables by function return", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type("undefined", { isLiteralOf: new Type("void") }),
+      type: new Type("undefined", { isSubtypeOf: new Type("void") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -959,10 +960,10 @@ describe("Object type inference", () => {
     expect(actualA.properties.get("2").type).toEqual(new Type("string"));
     expect(actualA.properties.get("3").type).toEqual(new Type("boolean"));
     expect(actualA.properties.get("4").type).toEqual(
-      new Type(null, { isLiteralOf: new Type("void") })
+      new Type(null, { isSubtypeOf: new Type("void") })
     );
     expect(actualA.properties.get("5").type).toEqual(
-      new Type("undefined", { isLiteralOf: new Type("void") })
+      new Type("undefined", { isSubtypeOf: new Type("void") })
     );
     expect(actualA.properties.get("6").type).toEqual(
       new ObjectType("RegExp", [])
@@ -1170,6 +1171,384 @@ describe("Collection type inference", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].message).toEqual(
       'Property "0" are not exists in "{ [key: number]: number }"'
+    );
+  });
+});
+describe("Type refinement", () => {
+  test("Typeof refinement for union variable(number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | string = 2;
+      if (typeof a === "number") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(actualScope.body.get("b").type).toEqual(new Type("number"));
+  });
+  test("Typeof refinement for union variable(number) in else", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | string = 2;
+      if (typeof a === "number") {
+      } else {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope4-13]]");
+    expect(actualScope.body.get("b").type).toEqual(new Type("string"));
+  });
+  test("Typeof refinement for union variable(number) in if-else", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | string | boolean = 2;
+      if (typeof a === "number") {
+      } else if (typeof a !== "string" ){
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope4-40]]");
+    expect(actualScope.body.get("b").type).toEqual(new Type("boolean"));
+  });
+  test("Typeof refinement for union variable(number) in and operator", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | string = 2;
+      const c = typeof a === "number" && a;
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      new UnionType("boolean | number", [
+        new Type("boolean"),
+        new Type("number")
+      ])
+    );
+  });
+  test("Typeof refinement for union variable(string)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | string = 2;
+      if (typeof a === "string") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(actualScope.body.get("b").type).toEqual(new Type("string"));
+  });
+  test("Typeof refinement for union variable(boolean)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | boolean = 2;
+      if (typeof a === "boolean") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-34]]");
+    expect(actualScope.body.get("b").type).toEqual(new Type("boolean"));
+  });
+  test("Typeof refinement for union variable(number literal)", async () => {
+    const sourceAST = prepareAST(`
+      const a: 2 | string = 2;
+      if (typeof a === "number") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      new Type(2, { isSubtypeOf: new Type("number") })
+    );
+  });
+  test("Typeof refinement for union variable(string literal)", async () => {
+    const sourceAST = prepareAST(`
+      const a: "2" | number = "2";
+      if (typeof a === "string") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      new Type("2", { isSubtypeOf: new Type("string") })
+    );
+  });
+  test("Typeof refinement for union variable(boolean literal)", async () => {
+    const sourceAST = prepareAST(`
+      const a: true | number = true;
+      if (typeof a === "boolean") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-34]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      new Type(true, { isSubtypeOf: new Type("boolean") })
+    );
+  });
+  test("Typeof refinement for union variable(object)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | { a: number } = 2;
+      if (typeof a === "object") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ a: number }").type
+    );
+  });
+  test("Typeof refinement for union variable(function)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | () => number = 2;
+      if (typeof a === "function") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("() => number").type
+    );
+  });
+  test("Typeof refinement for union property(number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: { b: string } | { b: number, c: number } = { b: "2" };
+      if (typeof a.b === "number") {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ b: number, c: number }").type
+    );
+  });
+  test("Typeof refinement for union property(string)", async () => {
+    const sourceAST = prepareAST(`
+      const a: { b: number } | { b: string, c: number } = { b: 2 };
+      if (typeof a.b === "string") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ b: string, c: number }").type
+    );
+  });
+  test("Typeof refinement for union variable(boolean)", async () => {
+    const sourceAST = prepareAST(`
+      const a: { b: number } | { b: boolean, c: number } = { b: 2 };
+      if (typeof a.b === "boolean") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-36]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ b: boolean, c: number }").type
+    );
+  });
+  test("Typeof refinement for union property(number literal)", async () => {
+    const sourceAST = prepareAST(`
+      const a: { b: string } | { b: 2, c: number } = { b: "2" };
+      if (typeof a.b === "number") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ b: 2, c: number }").type
+    );
+  });
+  test("Typeof refinement for union property(string literal)", async () => {
+    const sourceAST = prepareAST(`
+      const a: { b: number } | { b: "2", c: number } = { b: "2" };
+      if (typeof a.b === "string") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ b: '2', c: number }").type
+    );
+  });
+  test("Typeof refinement for union property(boolean literal)", async () => {
+    const sourceAST = prepareAST(`
+      const a: { b: string } | { b: true, c: number } = { b: "2" };
+      if (typeof a.b === "boolean") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-36]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ b: true, c: number }").type
+    );
+  });
+  test("Typeof refinement for union variable(object)", async () => {
+    const sourceAST = prepareAST(`
+      const a: { b: number } | { b: { d: number }, c: number } = { b: 2 };
+      if (typeof a.b === "object") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ b: { d: number }, c: number }")
+        .type
+    );
+  });
+  test("Typeof refinement for union property(function)", async () => {
+    const sourceAST = prepareAST(`
+      const a: { b: number } | { b: () => number, c: number } = { b: 2 };
+      if (typeof a.b === "function") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-37]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ b: () => number, c: number }")
+        .type
+    );
+  });
+  test("Multiple typeof refinement for union variable", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | boolean | string = 2;
+      if (typeof a === "number" || typeof a === "string") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-58]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      new UnionType("number | string", [new Type("number"), new Type("string")])
+    );
+  });
+  test("Multiple typeof refinement for property", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: string } | { a: number, b: string } | { a: number, b: number } = { a: 2, b: 2 };
+      if (typeof a.a === "number" && typeof a.b === "number") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-62]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ a: number, b: number }").type
+    );
+  });
+  test("Typeof refinement for property in nested member expression", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: { b: number } } | { a: { b: string }, b: string } = { a: { b: 2 } };
+      if (typeof a.a.b === "number") {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-37]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ a: { b: number } }").type
+    );
+  });
+  test("Useless typeof", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: number, b: string } | { a: number, b: number } = { a: 2, b: 2 };
+      if (typeof a.a === "number") {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toBe(HegelError);
+    expect(errors[0].message).toEqual(
+      'Property can\'t be "number" type or always have type "number"'
+    );
+  });
+  test("Typeof refinement for variable without variant", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | boolean = 2;
+      if (typeof a === "string") {
+        const b = a;
+      }
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toBe(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type boolean | number can\'t be "string" type'
+    );
+  });
+  test("Instanceof refinement for union variable", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | Array<number> = 2;
+      if (a instanceof Array) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-30]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.parent.body.get(TYPE_SCOPE).body.get("{ [key: number]: number }")
+        .type
+    );
+  });
+  test("Instanceof refinement for union property", async () => {
+    const sourceAST = prepareAST(`
+      const a: { b: number } | { b: Array<number> } = { b: 2 };
+      if (a.b instanceof Array) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-32]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ b: { [key: number]: number } }")
+        .type
+    );
+  });
+  test("In refinement for union variable", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: number } | { b: string } = { a: 2 };
+      if ('a' in a) {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-20]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ a: number }").type
+    );
+  });
+  test("In refinement for union property", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: { b: string } | { c: string } } = { a: { b: '2' } };
+      if ('b' in a.a) {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-22]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ a: { b: string } }").type
+    );
+  });
+  test("In refinement for property in union variable", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: { c: string } } | { a: { b: string } } = { a: { b: '2' } };
+      if ('b' in a.a) {
+        const b = a;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-22]]");
+    expect(actualScope.body.get("b").type).toEqual(
+      actual.body.get(TYPE_SCOPE).body.get("{ a: { b: string } }").type
     );
   });
 });

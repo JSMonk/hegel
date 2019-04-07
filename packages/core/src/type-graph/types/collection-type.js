@@ -17,6 +17,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
 
   keyType: K;
   valueType: V;
+  onlyLiteral = true;
 
   constructor(name: string, keyType: K, valueType: V) {
     super(name);
@@ -44,6 +45,10 @@ export class CollectionType<K: Type, V: Type> extends Type {
   }
 
   equalsTo(anotherType: Type) {
+    if (this.referenceEqualsTo(anotherType)) {
+      return true;
+    }
+
     return (
       anotherType instanceof CollectionType &&
       super.equalsTo(anotherType) &&

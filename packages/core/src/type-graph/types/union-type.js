@@ -1,5 +1,6 @@
 // @flow
 import { Type } from "./type";
+import { unique } from "../../utils/common";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
@@ -12,19 +13,19 @@ export class UnionType extends Type {
   static shouldBeUnion(variants: any) {
     return (
       variants.length !== 1 &&
-      variants.every(variant => variant.name === variants[0].name)
+      variants.slice(1).every(variant => variant.name !== variants[0].name)
     );
   }
 
   static createTypeWithName(name: string, typeScope: Scope, variants: any) {
-    if (this.shouldBeUnion(variants)) {
+    if (!this.shouldBeUnion(variants)) {
       return variants[0];
     }
     return this._createTypeWithName(name, typeScope, variants);
   }
 
   static getName(params: Array<Type>) {
-    return `${params
+    return `${unique(params, a => getNameForType(a))
       .sort((t1, t2) => getNameForType(t1).localeCompare(getNameForType(t2)))
       .reduce(
         (res, t) => `${res}${res ? " | " : ""}${getNameForType(t)}`,
@@ -36,7 +37,9 @@ export class UnionType extends Type {
 
   constructor(name: string, variants: Array<Type>, meta?: TypeMeta = {}) {
     super(name, meta);
-    this.variants = variants;
+    this.variants = unique(variants, a => getNameForType(a)).sort((t1, t2) =>
+      getNameForType(t1).localeCompare(getNameForType(t2))
+    );
   }
 
   changeAll(
@@ -64,6 +67,9 @@ export class UnionType extends Type {
   }
 
   equalsTo(anotherType: Type) {
+    if (this.referenceEqualsTo(anotherType)) {
+      return true;
+    }
     const anotherVariants =
       anotherType instanceof UnionType ? anotherType.variants : [];
     return (

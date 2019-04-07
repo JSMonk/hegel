@@ -1,5 +1,6 @@
 // @flow
 import { Type } from "./type";
+import { ObjectType } from "./object-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
@@ -31,7 +32,7 @@ export class FunctionType extends Type {
   returnType: Type;
 
   constructor(name: string, argumentsTypes: Array<Type>, returnType: Type) {
-    super(name);
+    super(name, { isSubtypeOf: new ObjectType("Function", []) });
     this.argumentsTypes = argumentsTypes;
     this.returnType = returnType;
   }
@@ -67,6 +68,9 @@ export class FunctionType extends Type {
   }
 
   equalsTo(anotherType: Type) {
+    if (this.referenceEqualsTo(anotherType)) {
+      return true;
+    }
     const argumentsTypes =
       anotherType instanceof FunctionType ? anotherType.argumentsTypes : [];
     return (

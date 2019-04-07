@@ -10,6 +10,7 @@ import { ModuleScope } from "../type-graph/module-scope";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { CollectionType } from "../type-graph/types/collection-type";
+import { genericFunction } from "./operators";
 import { findVariableInfo } from "./variable-utils";
 
 const zeroMetaLocation = new Meta();
@@ -33,12 +34,13 @@ const mixBaseGlobals = moduleScope => {
   const typeScope = moduleScope.body.get(TYPE_SCOPE);
   const globalTypes = new Map([
     ["mixed", new VariableInfo(Type.createTypeWithName("mixed", typeScope))],
+    ["never", new VariableInfo(Type.createTypeWithName("never", typeScope))],
     ["void", new VariableInfo(Type.createTypeWithName("void", typeScope))],
     [
       "undefined",
       new VariableInfo(
         Type.createTypeWithName("undefined", typeScope, {
-          isLiteralOf: Type.createTypeWithName("void", typeScope)
+          isSubtypeOf: Type.createTypeWithName("void", typeScope)
         })
       )
     ],
@@ -46,7 +48,7 @@ const mixBaseGlobals = moduleScope => {
       null,
       new VariableInfo(
         Type.createTypeWithName(null, typeScope, {
-          isLiteralOf: Type.createTypeWithName("void", typeScope)
+          isSubtypeOf: Type.createTypeWithName("void", typeScope)
         })
       )
     ],
@@ -56,7 +58,39 @@ const mixBaseGlobals = moduleScope => {
       "boolean",
       new VariableInfo(Type.createTypeWithName("boolean", typeScope))
     ],
+    [
+      "Function",
+      new VariableInfo(ObjectType.createTypeWithName("Function", typeScope, []))
+    ],
+    [
+      "Object",
+      new VariableInfo(ObjectType.createTypeWithName("Object", typeScope, []))
+    ],
+    [
+      "function",
+      new VariableInfo(ObjectType.createTypeWithName("Function", typeScope, []))
+    ],
+    [
+      "object",
+      new VariableInfo(ObjectType.createTypeWithName("Object", typeScope, []))
+    ],
+    [
+      "Object",
+      new VariableInfo(ObjectType.createTypeWithName("Function", typeScope, []))
+    ],
     ["Symbol", new VariableInfo(Type.createTypeWithName("Symbol", typeScope))],
+    [
+      "Number",
+      new VariableInfo(ObjectType.createTypeWithName("Number", typeScope, []))
+    ],
+    [
+      "String",
+      new VariableInfo(ObjectType.createTypeWithName("String", typeScope, []))
+    ],
+    [
+      "Boolean",
+      new VariableInfo(ObjectType.createTypeWithName("String", typeScope, []))
+    ],
     [
       "SyntaxError",
       new VariableInfo(
@@ -71,6 +105,18 @@ const mixBaseGlobals = moduleScope => {
     [
       "RegExp",
       new VariableInfo(ObjectType.createTypeWithName("RegExp", typeScope, []))
+    ],
+    [
+      "Promise",
+      new VariableInfo(
+        genericType(
+          "Promise",
+          typeScope,
+          [["T", new TypeVar("T")]],
+          localTypeScope =>
+            ObjectType.createTypeWithName("{   }", typeScope, [])
+        )
+      )
     ],
     [
       "Array",
@@ -97,6 +143,53 @@ const mixBaseGlobals = moduleScope => {
       new VariableInfo(Type.createTypeWithName("undefined", typeScope))
     ],
     [null, new VariableInfo(Type.createTypeWithName(null, typeScope))],
+    [
+      "Array",
+      new VariableInfo(
+        genericFunction(
+          typeScope,
+          [["T", new TypeVar("T")]],
+          l => [l.body.get("T").type],
+          l =>
+            typeScope.body
+              .get("Array")
+              .type.applyGeneric([l.body.get("T").type])
+        )
+      )
+    ],
+    [
+      "Number",
+      new VariableInfo(
+        FunctionType.createTypeWithName(
+          "(mixed) => number",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("number", typeScope)
+        )
+      )
+    ],
+    [
+      "String",
+      new VariableInfo(
+        FunctionType.createTypeWithName(
+          "(mixed) => string",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("string", typeScope)
+        )
+      )
+    ],
+    [
+      "Boolean",
+      new VariableInfo(
+        FunctionType.createTypeWithName(
+          "(mixed) => boolean",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("boolean", typeScope)
+        )
+      )
+    ],
     [
       "Error",
       new VariableInfo(

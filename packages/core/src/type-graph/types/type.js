@@ -3,19 +3,19 @@ import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
 
 export type TypeMeta = {
-  isLiteralOf?: Type
+  isSubtypeOf?: Type
 };
 
 export class Type {
   static createTypeWithName = createTypeWithName(Type);
 
   name: mixed;
-  isLiteralOf: ?Type;
+  isSubtypeOf: ?Type;
 
   constructor(name: mixed, meta?: TypeMeta = {}) {
-    const { isLiteralOf = null } = meta;
+    const { isSubtypeOf = null } = meta;
     this.name = name;
-    this.isLiteralOf = isLiteralOf;
+    this.isSubtypeOf = isSubtypeOf;
   }
 
   changeAll(
@@ -27,12 +27,21 @@ export class Type {
     return indexOfNewType === -1 ? this : targetTypes[indexOfNewType];
   }
 
+  referenceEqualsTo(anotherType: Type) {
+    return this === anotherType;
+  }
+
   equalsTo(anotherType: Type) {
-    return this.name === anotherType.name;
+    return (
+      this.referenceEqualsTo(anotherType) || this.name === anotherType.name
+    );
   }
 
   isSuperTypeFor(type: Type): boolean {
-    return type.isLiteralOf === this;
+    if (!type.isSubtypeOf) {
+      return false;
+    }
+    return this.isPrincipalTypeFor(type.isSubtypeOf);
   }
 
   isPrincipalTypeFor(type: Type): boolean {

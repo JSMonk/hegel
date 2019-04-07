@@ -9,6 +9,7 @@ import mixBaseOperators from "../utils/operators";
 import mixImportedDependencies from "../utils/imports";
 import { Meta } from "./meta/meta";
 import { Scope } from "./scope";
+import { refinement } from "../inference/refinement";
 import { addPosition } from "../utils/position-utils";
 import { GenericType } from "./types/generic-type";
 import { ModuleScope } from "./module-scope";
@@ -19,10 +20,9 @@ import { findVariableInfo } from "../utils/common";
 import { inferenceErrorType } from "../inference/error-type";
 import { addCallToTypeGraph } from "./call";
 import { inferenceTypeForNode } from "../inference";
-import { getTypeFromTypeAnnotation } from "../utils/type-utils";
 import { getDeclarationName, getAnonymousKey } from "../utils/common";
-import { POSITIONS, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
-import { findNearestTypeScope, getParentForNode } from "../utils/scope-utils";
+import { getTypeFromTypeAnnotation, createSelf } from "../utils/type-utils";
+import { POSITIONS, SELF, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
 import {
   getVariableType,
   getVariableInfoFromDelcaration
@@ -31,6 +31,11 @@ import {
   getInvocationType,
   inferenceFunctionTypeByScope
 } from "../inference/function-type";
+import {
+  getParentForNode,
+  addScopeToTypeGraph,
+  findNearestTypeScope
+} from "../utils/scope-utils";
 import type { TraverseMeta } from "../utils/traverse";
 import type { Node, Program } from "@babel/parser";
 import type { CallableArguments } from "./meta/call-meta";
@@ -131,16 +136,20 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   }
   const genericNode = getGenericNode(node);
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
-  const usedTypeScope = genericNode ? localTypeScope : typeScope;
+  const typeName = node.id.name;
+  const self = createSelf(node, localTypeScope);
+  localTypeScope.body.set(typeName, self);
   const genericArguments =
     genericNode &&
     genericNode.typeParameters.params.map(typeAnnotation =>
-      getTypeFromTypeAnnotation({ typeAnnotation }, localTypeScope)
+      getTypeFromTypeAnnotation({ typeAnnotation }, localTypeScope, typeGraph)
     );
   const type = getTypeFromTypeAnnotation(
     { typeAnnotation: node.right },
-    usedTypeScope,
-    false
+    localTypeScope,
+    typeGraph,
+    false,
+    self.type
   );
   const typeFor = genericArguments
     ? GenericType.createTypeWithName(
@@ -151,8 +160,9 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
         type
       )
     : type;
+  self.type.constraint = typeFor;
   const typeAlias = new VariableInfo(typeFor, typeScope, new Meta(node.loc));
-  typeScope.body.set(node.id.name, typeAlias);
+  typeScope.body.set(typeName, typeAlias);
   if (node.exportAs) {
     typeGraph.exportsTypes.set(node.exportAs, typeAlias);
   }
@@ -175,6 +185,22 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
           typeGraph
         );
         break;
+      case NODE.IF_STATEMENT:
+      case NODE.WHILE_STATEMENT:
+      case NODE.DO_WHILE_STATEMENT:
+      case NODE.FOR_STATEMENT:
+        const block = currentNode.body || currentNode.consequent;
+        addScopeToTypeGraph(block, parentNode, typeGraph);
+        if (currentNode.alternate) {
+          addScopeToTypeGraph(currentNode.alternate, parentNode, typeGraph);
+        }
+        refinement(
+          currentNode,
+          getParentForNode(block, parentNode, typeGraph),
+          typeScope,
+          typeGraph
+        );
+        break;
       case NODE.OBJECT_METHOD:
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
@@ -188,14 +214,7 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
         }
       case NODE.CLASS_DECLARATION:
       case NODE.CLASS_EXPRESSION:
-        const scopeName = Scope.getName(currentNode);
-        if (typeGraph.body.get(scopeName)) {
-          break;
-        }
-        typeGraph.body.set(
-          scopeName,
-          getScopeFromNode(currentNode, parentNode, typeGraph)
-        );
+        addScopeToTypeGraph(currentNode, parentNode, typeGraph);
         break;
       case NODE.TRY_STATEMENT:
         const tryBlock = getScopeFromNode(
@@ -283,10 +302,10 @@ const afterFillierActions = (
         errorVariable.type = inferenceErrorType(currentNode, typeGraph);
         addPosition(currentNode.catchBlock.param, errorVariable, typeGraph);
         break;
+      case NODE.IF_STATEMENT:
       case NODE.CALL_EXPRESSION:
       case NODE.RETURN_STATEMENT:
       case NODE.EXPRESSION_STATEMENT:
-      case NODE.IF_STATEMENT:
       case NODE.WHILE_STATEMENT:
       case NODE.DO_WHILE_STATEMENT:
       case NODE.FOR_STATEMENT:
@@ -309,23 +328,25 @@ const afterFillierActions = (
         if (!(functionScope instanceof Scope)) {
           throw new Error("Never!");
         }
-        if (
-          functionScope.declaration instanceof VariableInfo &&
-          functionScope.declaration.type instanceof GenericType &&
-          functionScope.type === Scope.FUNCTION_TYPE &&
-          functionScope.declaration.type.subordinateType instanceof FunctionType
-        ) {
+        if (functionScope.declaration instanceof VariableInfo) {
+          if (
+            functionScope.declaration.type instanceof GenericType &&
+            functionScope.type === Scope.FUNCTION_TYPE &&
+            functionScope.declaration.type.subordinateType instanceof
+              FunctionType
+          ) {
+            // $FlowIssue - Type refinements
+            inferenceFunctionTypeByScope(functionScope, typeGraph);
+          }
           const { declaration } = functionScope;
-          // $FlowIssue - Type refinements
-          inferenceFunctionTypeByScope(functionScope, typeGraph);
-          checkCalls(functionScope, typeScope, errors);
-          declaration.throwable = (functionScope.throwable || []).length
-            ? inferenceErrorType(currentNode, typeGraph)
-            : undefined;
           if (currentNode.exportAs) {
             typeGraph.exports.set(currentNode.exportAs, declaration);
           }
+          declaration.throwable = (functionScope.throwable || []).length
+            ? inferenceErrorType(currentNode, typeGraph)
+            : undefined;
         }
+        checkCalls(functionScope, typeScope, errors, currentNode.loc);
         break;
       default:
         if (currentNode.exportAs) {

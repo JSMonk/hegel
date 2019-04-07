@@ -8,6 +8,7 @@ const { ObjectType } = require("../build/type-graph/types/object-type");
 const { GenericType } = require("../build/type-graph/types/generic-type");
 const { FunctionType } = require("../build/type-graph/types/function-type");
 const { VariableInfo } = require("../build/type-graph/variable-info");
+const { CollectionType } = require("../build/type-graph/types/collection-type");
 const { UNDEFINED_TYPE, TYPE_SCOPE } = require("../build/type-graph/constants");
 
 describe("Simple global variable nodes", () => {
@@ -87,7 +88,7 @@ describe("Simple global variable nodes", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type(null, { isLiteralOf: new Type("void") }),
+      type: new Type(null, { isSubtypeOf: new Type("void") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -99,7 +100,7 @@ describe("Simple global variable nodes", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const typeScope = actual.body.get(TYPE_SCOPE);
     const expected = expect.objectContaining({
-      type: new Type(2, { isLiteralOf: new Type("number") }),
+      type: new Type(2, { isSubtypeOf: new Type("number") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -111,7 +112,7 @@ describe("Simple global variable nodes", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const typeScope = actual.body.get(TYPE_SCOPE);
     const expected = expect.objectContaining({
-      type: new Type("2", { isLiteralOf: new Type("string") }),
+      type: new Type("2", { isSubtypeOf: new Type("string") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -124,7 +125,7 @@ describe("Simple global variable nodes", () => {
     const typeScope = actual.body.get(TYPE_SCOPE);
     const expected = expect.objectContaining({
       type: new Type(false, {
-        isLiteralOf: new Type("boolean")
+        isSubtypeOf: new Type("boolean")
       }),
       parent: actual
     });
@@ -136,7 +137,7 @@ describe("Simple global variable nodes", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type("undefined", { isLiteralOf: new Type("void") }),
+      type: new Type("undefined", { isSubtypeOf: new Type("void") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -759,7 +760,7 @@ describe("Unnamed object types", () => {
         [
           "n",
           new VariableInfo(
-            new Type(2, { isLiteralOf: new Type("number") }),
+            new Type(2, { isSubtypeOf: new Type("number") }),
             undefined,
             actualA.meta
           )
@@ -781,7 +782,7 @@ describe("Unnamed object types", () => {
         [
           "n",
           new VariableInfo(
-            new Type("", { isLiteralOf: new Type("string") }),
+            new Type("", { isSubtypeOf: new Type("string") }),
             undefined,
             actualA.meta
           )
@@ -803,7 +804,7 @@ describe("Unnamed object types", () => {
         [
           "n",
           new VariableInfo(
-            new Type(true, { isLiteralOf: new Type("boolean") }),
+            new Type(true, { isSubtypeOf: new Type("boolean") }),
             undefined,
             actualA.meta
           )
@@ -824,7 +825,7 @@ describe("Unnamed object types", () => {
         [
           "n",
           new VariableInfo(
-            new Type(null, { isLiteralOf: new Type("void") }),
+            new Type(null, { isSubtypeOf: new Type("void") }),
             undefined,
             actualA.meta
           )
@@ -846,7 +847,7 @@ describe("Unnamed object types", () => {
         [
           "n",
           new VariableInfo(
-            new Type("undefined", { isLiteralOf: new Type("void") }),
+            new Type("undefined", { isSubtypeOf: new Type("void") }),
             undefined,
             actualN.meta
           )
@@ -960,7 +961,7 @@ describe("Type alias", () => {
       const actualType = typeAlias.body.get("UndefinedAlias");
       const expectedType = expect.objectContaining({
         parent: typeAlias,
-        type: new Type("undefined", { isLiteralOf: new Type("void") })
+        type: new Type("undefined", { isSubtypeOf: new Type("void") })
       });
       expect(actualType).toEqual(expectedType);
     });
@@ -988,7 +989,7 @@ describe("Type alias", () => {
       const actualType = typeScope.body.get("NumberAlias");
       const expectedType = expect.objectContaining({
         parent: typeScope,
-        type: new Type(2, { isLiteralOf: new Type("number") })
+        type: new Type(2, { isSubtypeOf: new Type("number") })
       });
       expect(actualType).toEqual(expectedType);
     });
@@ -1002,7 +1003,7 @@ describe("Type alias", () => {
       const expectedType = expect.objectContaining({
         parent: typeScope,
         type: new Type(false, {
-          isLiteralOf: new Type("boolean")
+          isSubtypeOf: new Type("boolean")
         })
       });
       expect(actualType).toEqual(expectedType);
@@ -1016,7 +1017,7 @@ describe("Type alias", () => {
       const actualType = typeScope.body.get("StringAlias");
       const expectedType = expect.objectContaining({
         parent: typeScope,
-        type: new Type("", { isLiteralOf: new Type("string") })
+        type: new Type("", { isSubtypeOf: new Type("string") })
       });
       expect(actualType).toEqual(expectedType);
     });
@@ -1029,7 +1030,7 @@ describe("Type alias", () => {
       const actualType = typeAlias.body.get("NullAlias");
       const expectedType = expect.objectContaining({
         parent: typeAlias,
-        type: new Type(null, { isLiteralOf: new Type("void") })
+        type: new Type(null, { isSubtypeOf: new Type("void") })
       });
       expect(actualType).toEqual(expectedType);
     });
@@ -1186,6 +1187,25 @@ describe("Generic types", () => {
       const actualTypeT = actualGenericType.localTypeScope.body.get("T");
       expect(actualFunctionType).not.toBe(undefined);
       expect(actualTypeT).not.toBe(undefined);
+    });
+  });
+  describe("Recursive types", () => {
+    test("Simple recursive Tree types", async () => {
+      const sourceAST = prepareAST(`
+          type Tree = {
+            nodes: Array<Tree>,
+            parent: ?Tree
+          }
+        `);
+      const [[actual]] = await createTypeGraph([sourceAST]);
+      const typeScope = actual.body.get(TYPE_SCOPE);
+      const actualType = typeScope.body.get("Tree");
+      expect(actualType.type.name).not.toEqual(
+        "{ nodes: Array<Tree>, parent: Tree | void }"
+      );
+      expect(
+        actualType.type.properties.get("nodes").type.valueType.constraint
+      ).toBe(actualType.type);
     });
   });
   describe("Union types", () => {

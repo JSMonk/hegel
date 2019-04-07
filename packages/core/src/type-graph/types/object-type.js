@@ -1,5 +1,6 @@
 // @flow
 import { Type } from "./type";
+import { unique } from "../../utils/common";
 import { UnionType } from "./union-type";
 import { VariableInfo } from "../variable-info";
 import { getNameForType } from "../../utils/type-utils";
@@ -10,7 +11,8 @@ export class ObjectType extends Type {
   static createTypeWithName = createTypeWithName(ObjectType);
 
   static getName(params: Array<[string | number, any]>) {
-    return `{ ${params
+    const filteredProperties = params ? unique(params, ([key]) => key) : [];
+    return `{ ${filteredProperties
       .sort(([name1], [name2]) => String(name1).localeCompare(String(name2)))
       .map(
         ([name, type]) =>
@@ -22,13 +24,19 @@ export class ObjectType extends Type {
   }
 
   properties: Map<string | number, VariableInfo>;
+  onlyLiteral = true;
 
   constructor(
     name: string,
     properties: Array<[string | number, VariableInfo]>
   ) {
-    super(name, { isLiteralOf: new Type("Object") });
-    this.properties = new Map(properties);
+    super(name, {
+      isSubtypeOf: name === "Object" ? undefined : new ObjectType("Object", [])
+    });
+    const filteredProperties = properties
+      ? unique(properties, ([key]) => key)
+      : [];
+    this.properties = new Map(filteredProperties);
   }
 
   hasProperty(propertyName: any): boolean {
@@ -89,6 +97,9 @@ export class ObjectType extends Type {
   }
 
   equalsTo(anotherType: Type) {
+    if (this.referenceEqualsTo(anotherType)) {
+      return true;
+    }
     if (
       !(anotherType instanceof ObjectType) ||
       anotherType.properties.size !== this.properties.size ||
@@ -105,10 +116,10 @@ export class ObjectType extends Type {
         !(type instanceof UnionType) ||
         !type.variants.some(t => t.equalsTo(new Type("void")))
     );
-    return (
-      anotherType instanceof ObjectType &&
-      anotherType.properties.size >= requiredProperties.length &&
-      this.isAllProperties("isPrincipalTypeFor", anotherType)
-    );
+    return anotherType instanceof ObjectType
+      ? anotherType.properties.size >= requiredProperties.length &&
+          this.isAllProperties("isPrincipalTypeFor", anotherType)
+      : anotherType.isSubtypeOf != undefined &&
+          this.isPrincipalTypeFor(anotherType.isSubtypeOf);
   }
 }

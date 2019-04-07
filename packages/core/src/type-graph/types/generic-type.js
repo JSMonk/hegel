@@ -13,6 +13,16 @@ import type { SourceLocation } from "@babel/parser";
 export class GenericType<T: Type> extends Type {
   static createTypeWithName = createTypeWithName(GenericType);
 
+  static getName(name: mixed, parameters: Array<Type>) {
+    if (parameters.length === 0) {
+      return String(name);
+    }
+    return `${String(name)}<${parameters.reduce(
+      (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
+      ""
+    )}>`;
+  }
+
   genericArguments: Array<Type>;
   subordinateType: T;
   localTypeScope: Scope;
@@ -36,11 +46,24 @@ export class GenericType<T: Type> extends Type {
   assertParameters(parameters: Array<Type>, loc?: SourceLocation) {
     if (parameters.length !== this.genericArguments.length) {
       throw new HegelError(
-        `Generic '${String(
+        `Generic "${String(
           this.name
-        )}' called with wrong number of arguments. Expect: ${
+        )}" called with wrong number of arguments. Expect: ${
           this.genericArguments.length
         }, Actual: ${parameters.length}`,
+        loc
+      );
+    }
+    const wrongArgumentIndex = this.genericArguments.findIndex(
+      (arg, i) => !arg.isPrincipalTypeFor(parameters[i])
+    );
+    if (wrongArgumentIndex !== -1) {
+      throw new HegelError(
+        `Parameter "${getNameForType(
+          parameters[wrongArgumentIndex]
+        )}" is incompatible with restriction of type argument "${String(
+          this.genericArguments[wrongArgumentIndex].name
+        )}"`,
         loc
       );
     }
@@ -60,10 +83,7 @@ export class GenericType<T: Type> extends Type {
     shouldBeMemoize?: boolean = true
   ): T {
     this.assertParameters(parameters, loc);
-    const appliedTypeName = `${String(this.name)}<${parameters.reduce(
-      (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
-      ""
-    )}>`;
+    const appliedTypeName = GenericType.getName(this.name, parameters);
     const existedType = this.localTypeScope.parent.body.get(appliedTypeName);
     if (existedType && existedType instanceof VariableInfo) {
       return (existedType.type: any);

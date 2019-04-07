@@ -21,14 +21,16 @@ export class TypeVar extends Type {
   }
 
   equalsTo(anotherType: Type) {
-    if (!this.constraint) {
+    if (!this.constraint || this.referenceEqualsTo(anotherType)) {
       return true;
     }
-    return this.constraint.isSuperTypeFor(anotherType);
+    return this.constraint.equalsTo(anotherType);
   }
 
   isSuperTypeFor(type: Type): boolean {
-    return this.equalsTo(type);
+    if (!this.constraint) {
+      return true;
+    }
+    return this.constraint.isSuperTypeFor(type);
   }
 }
-

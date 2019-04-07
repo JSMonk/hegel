@@ -375,7 +375,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
       target: globals.body.get("!"),
-      arguments: [new Type(2, { isLiteralOf: new Type("number") })]
+      arguments: [new Type(2, { isSubtypeOf: new Type("number") })]
     });
     expect(actualCall).toEqual(expectedCall);
   });
@@ -401,7 +401,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const secondActualCall = actual.calls[1];
     const firstExpectedCall = expect.objectContaining({
       target: globals.body.get("!"),
-      arguments: [new Type(2, { isLiteralOf: new Type("number") })]
+      arguments: [new Type(2, { isSubtypeOf: new Type("number") })]
     });
     const secondExpectedCall = expect.objectContaining({
       target: globals.body.get("!"),
@@ -419,8 +419,8 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const expectedCall = expect.objectContaining({
       target: globals.body.get("-"),
       arguments: [
-        new Type(2, { isLiteralOf: new Type("number") }),
-        new Type(2, { isLiteralOf: new Type("number") })
+        new Type(2, { isSubtypeOf: new Type("number") }),
+        new Type(2, { isSubtypeOf: new Type("number") })
       ]
     });
     expect(actualCall).toEqual(expectedCall);
@@ -436,7 +436,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
       target: globals.body.get("-"),
       arguments: [
         actual.body.get("a"),
-        new Type(2, { isLiteralOf: new Type("number") })
+        new Type(2, { isSubtypeOf: new Type("number") })
       ]
     });
     expect(actualCall).toEqual(expectedCall);
@@ -451,15 +451,15 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const firstExpectedCall = expect.objectContaining({
       target: globals.body.get("-"),
       arguments: [
-        new Type(2, { isLiteralOf: new Type("number") }),
-        new Type(2, { isLiteralOf: new Type("number") })
+        new Type(2, { isSubtypeOf: new Type("number") }),
+        new Type(2, { isSubtypeOf: new Type("number") })
       ]
     });
     const secondExpectedCall = expect.objectContaining({
       target: globals.body.get("-"),
       arguments: [
         new Type("number"),
-        new Type(2, { isLiteralOf: new Type("number") })
+        new Type(2, { isSubtypeOf: new Type("number") })
       ]
     });
     expect(firstActualCall).toEqual(firstExpectedCall);
@@ -519,6 +519,43 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
       end: { column: 19, line: 3 },
       start: { column: 7, line: 3 }
     });
+  });
+  test("Function without return", async () => {
+    const sourceAST = prepareAST(`
+       function fn(a: number): number {}
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Function should return something with type "number"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 40, line: 2 },
+      start: { column: 7, line: 2 }
+    });
+  });
+  test("Function with worng return type", async () => {
+    const sourceAST = prepareAST(`
+       function fn(a: number): string { return 2 }
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type "number" is incompatible with type "string"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 48, line: 2 },
+      start: { column: 40, line: 2 }
+    });
+  });
+  test("Function with right return type", async () => {
+    const sourceAST = prepareAST(`
+       function fn(a: number): number { return 2 }
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(0);
   });
   test("Call if statement with non-boolean type", async () => {
     const sourceAST = prepareAST(`
@@ -667,7 +704,9 @@ describe("Object and collection properties", () => {
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
-    expect(errors[0].message).toEqual('Property "a" are not exists in "{ b: string }"');
+    expect(errors[0].message).toEqual(
+      'Property "a" are not exists in "{ b: string }"'
+    );
   });
   test("Get property from Union type when first type has not property", async () => {
     const sourceAST = prepareAST(`
@@ -678,7 +717,9 @@ describe("Object and collection properties", () => {
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
-    expect(errors[0].message).toEqual('Property "a" are not exists in "{ b: string }"');
+    expect(errors[0].message).toEqual(
+      'Property "a" are not exists in "{ b: string }"'
+    );
   });
 });
 describe("Callable types", () => {
@@ -708,6 +749,110 @@ describe("Callable types", () => {
     expect(errors[0].loc).toEqual({
       end: { column: 11, line: 3 },
       start: { column: 6, line: 3 }
+    });
+  });
+});
+describe("Checking objects and collections reference behavior", () => {
+  test("Object reference behavior", async () => {
+    const sourceAST = prepareAST(`
+      type A = { a: number | string };
+      type B = { a: number };
+      const b: B = { a: 2 };
+      const a: A = b;
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type "{ a: number }" is incompatible with type "{ a: number | string }"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 20, line: 5 },
+      start: { column: 12, line: 5 }
+    });
+  });
+  test("Object reference behavior with literal", async () => {
+    const sourceAST = prepareAST(`
+      type A = { a: number | string };
+      const a: A = { a: 2 };
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
+  });
+  test("Collection reference behavior", async () => {
+    const sourceAST = prepareAST(`
+      type A = Array<number | string>;
+      type B = Array<number>;
+      const b: B = [2];
+      const a: A = b;
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type "{ [key: number]: number }" is incompatible with type "{ [key: number]: number | string }"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 20, line: 5 },
+      start: { column: 12, line: 5 }
+    });
+  });
+  test("Collection reference behavior with literal", async () => {
+    const sourceAST = prepareAST(`
+      type A = Array<number | string>;
+      const a: A = [2];
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
+  });
+});
+describe("Nullable types", () => {
+  test("Nullable type without value without error", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: ?string } = {};
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
+  });
+  test("Nullable type with value without error", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: ?string } = { a: "test" };
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
+  });
+  test("Nullable type with value with error", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: ?string } = { a: 2 };
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type "{ a: 2 }" is incompatible with type "{ a: string | void }"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 40, line: 2 },
+      start: { column: 12, line: 2 }
+    });
+  });
+});
+
+describe("Generics", () => {
+  test("Generic type with restriction", async () => {
+    const sourceAST = prepareAST(`
+      type A<T: 2 | 3> = { a: T };
+      const a: A<1> = { a: 1 };
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Parameter "1" is incompatible with restriction of type argument "T"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 19, line: 3 },
+      start: { column: 15, line: 3 }
     });
   });
 });

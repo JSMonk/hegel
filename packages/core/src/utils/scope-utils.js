@@ -103,3 +103,18 @@ export function getScopeFromNode(
     declaration
   );
 }
+
+export function addScopeToTypeGraph(
+  currentNode: Node,
+  parentNode: Node,
+  typeGraph: ModuleScope
+) {
+  const scopeName = Scope.getName(currentNode);
+  if (typeGraph.body.get(scopeName)) {
+    return;
+  }
+  typeGraph.body.set(
+    scopeName,
+    getScopeFromNode(currentNode, parentNode, typeGraph)
+  );
+}

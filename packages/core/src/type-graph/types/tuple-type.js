@@ -23,7 +23,7 @@ export class TupleType extends Type {
       ? new UnionType(UnionType.getName(items), items)
       : items[0];
     super(name, {
-      isLiteralOf: new CollectionType(
+      isSubtypeOf: new CollectionType(
         `{ [key: nunmber]: ${getNameForType(valueType)} }`,
         new Type("number"),
         valueType
@@ -65,6 +65,9 @@ export class TupleType extends Type {
   }
 
   equalsTo(anotherType: Type) {
+    if (this.referenceEqualsTo(anotherType)) {
+      return true;
+    }
     const anotherVariants =
       anotherType instanceof TupleType ? anotherType.items : [];
     return (

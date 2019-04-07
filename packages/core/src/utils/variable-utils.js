@@ -4,6 +4,7 @@ import { Type } from "../type-graph/types/type";
 import { UnionType } from "../type-graph/types/union-type";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { ObjectType } from "../type-graph/types/object-type";
+import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
 import { getTypeFromTypeAnnotation } from "./type-utils";
@@ -22,6 +23,7 @@ export function getVariableInfoFromDelcaration(
   const annotatedType = getTypeFromTypeAnnotation(
     currentNode.id && currentNode.id.typeAnnotation,
     currentTypeScope,
+    parentScope,
     false
   );
   return new VariableInfo(
@@ -33,9 +35,10 @@ export function getVariableInfoFromDelcaration(
 
 export function getSuperTypeOf(type: Type, typeScope: Scope): Type {
   if (
-    !type.isLiteralOf ||
+    !type.isSubtypeOf ||
     type.name === null ||
     type.name === "undefined" ||
+    type instanceof FunctionType ||
     (type instanceof ObjectType && String(type.name)[0] !== "{")
   ) {
     return type;
@@ -67,7 +70,7 @@ export function getSuperTypeOf(type: Type, typeScope: Scope): Type {
       newProperties
     );
   }
-  return type.isLiteralOf;
+  return type.isSubtypeOf;
 }
 
 export function getVariableType(

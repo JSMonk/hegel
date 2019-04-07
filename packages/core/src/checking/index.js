@@ -10,15 +10,29 @@ import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { getNameForType } from "../utils/type-utils";
 import { implicitApplyGeneric } from "../inference/function-type";
+import type { CallableType } from "../type-graph/meta/call-meta";
+import type { SourceLocation } from "@babel/parser";
 
-function getCallTargetType(
-  target: $PropertyType<CallMeta, "target">,
-  args
-): FunctionType {
+function getCallTargetType(target: CallableType, args): FunctionType {
+  // $FlowIssue
   const targetType = target instanceof VariableInfo ? target.type : target;
   return targetType instanceof GenericType
     ? implicitApplyGeneric(targetType, args)
     : (targetType: any);
+}
+
+function isValidTypes(
+  declaratedType: Type,
+  actual: Type | VariableInfo,
+  typeScope: Scope
+): boolean {
+  const actualType =
+    (actual instanceof VariableInfo ? actual.type : actual) ||
+    Type.createTypeWithName("undefined", typeScope);
+  if ("onlyLiteral" in declaratedType && actual instanceof VariableInfo) {
+    return declaratedType.equalsTo(actualType);
+  }
+  return declaratedType.isPrincipalTypeFor(actualType);
 }
 
 function checkSingleCall(call: CallMeta, typeScope: Scope): void {
@@ -26,7 +40,8 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
     t => (t instanceof VariableInfo ? t.type : t)
   );
   const targetFunctionType = getCallTargetType(
-    call.target,
+    // $FlowIssue
+    call.target.type || call.target,
     givenArgumentsTypes
   );
   const targetArguments = targetFunctionType.argumentsTypes;
@@ -44,9 +59,10 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
     );
   }
   for (let i = 0; i < targetArguments.length; i++) {
-    const actualArgumentType =
-      givenArgumentsTypes[i] || Type.createTypeWithName("undefined", typeScope);
-    if (!targetArguments[i].isPrincipalTypeFor(actualArgumentType)) {
+    if (!isValidTypes(targetArguments[i], call.arguments[i], typeScope)) {
+      const actualArgumentType =
+        givenArgumentsTypes[i] ||
+        Type.createTypeWithName("undefined", typeScope);
       throw new HegelError(
         `Type "${getNameForType(
           actualArgumentType
@@ -60,13 +76,40 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
 function checkCalls(
   scope: Scope | ModuleScope,
   typeScope: Scope,
-  errors: Array<HegelError>
+  errors: Array<HegelError>,
+  loc: SourceLocation
 ): void {
+  let returnWasCalled = false;
   for (let i = 0; i < scope.calls.length; i++) {
+    if (scope.calls[i].targetName === "return") {
+      returnWasCalled = true;
+    }
     try {
       checkSingleCall(scope.calls[i], typeScope);
     } catch (e) {
       errors.push(e);
+    }
+  }
+  if (
+    scope.type === Scope.FUNCTION_TYPE &&
+    scope.declaration instanceof VariableInfo &&
+    !returnWasCalled
+  ) {
+    const functionDeclaration: any =
+      scope.declaration.type instanceof GenericType
+        ? scope.declaration.type.subordinateType
+        : scope.declaration.type;
+    if (
+      !functionDeclaration.returnType.isPrincipalTypeFor(
+        new Type("undefined", { isSubtypeOf: new Type("void") })
+      )
+    ) {
+      throw new HegelError(
+        `Function should return something with type "${getNameForType(
+          functionDeclaration.returnType
+        )}"`,
+        loc
+      );
     }
   }
 }

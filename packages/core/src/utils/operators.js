@@ -14,7 +14,7 @@ import { findVariableInfo } from "./variable-utils";
 
 const zeroMetaLocation = new Meta();
 
-const genericFunction = (
+export const genericFunction = (
   typeScope,
   genericArguments,
   getTypeParameters,
@@ -84,10 +84,39 @@ const mixBaseOperators = moduleScope => {
       [
         "typeof",
         FunctionType.createTypeWithName(
-          "(mixed) => string",
+          '(mixed) => "string" | "boolean" | "number" | "function" | "object" | "undefined" | "symbol" | "bigint"',
           typeScope,
           [Type.createTypeWithName("mixed", typeScope)],
-          Type.createTypeWithName("string", typeScope)
+          UnionType.createTypeWithName(
+            '"string" | "boolean" | "number" | "function" | "object" | "undefined" | "symbol" | "bigint"',
+            typeScope,
+            [
+              Type.createTypeWithName("string", typeScope, {
+                isSubtypeOf: Type.createTypeWithName("string", typeScope)
+              }),
+              Type.createTypeWithName("number", typeScope, {
+                isSubtypeOf: Type.createTypeWithName("string", typeScope)
+              }),
+              Type.createTypeWithName("boolean", typeScope, {
+                isSubtypeOf: Type.createTypeWithName("string", typeScope)
+              }),
+              Type.createTypeWithName("undefined", typeScope, {
+                isSubtypeOf: Type.createTypeWithName("string", typeScope)
+              }),
+              Type.createTypeWithName("object", typeScope, {
+                isSubtypeOf: Type.createTypeWithName("string", typeScope)
+              }),
+              Type.createTypeWithName("bigint", typeScope, {
+                isSubtypeOf: Type.createTypeWithName("string", typeScope)
+              }),
+              Type.createTypeWithName("symbol", typeScope, {
+                isSubtypeOf: Type.createTypeWithName("string", typeScope)
+              }),
+              Type.createTypeWithName("function", typeScope, {
+                isSubtypeOf: Type.createTypeWithName("string", typeScope)
+              })
+            ]
+          )
         )
       ],
       [
@@ -108,16 +137,19 @@ const mixBaseOperators = moduleScope => {
           Type.createTypeWithName("undefined", typeScope)
         )
       ],
-      // [
-      // "await",
-      // genericFunction(typeScope, [["T", new Type("T")]], [[]]),
-      // GenericType.createTypeWithName(
-      //   "<T>(Promise<T>) => <T>",
-      //   typeScope,
-      //   typeScope,
-      //   AwaitDeclaration
-      // )
-      // ],
+      [
+        "await",
+        genericFunction(
+          typeScope,
+          [["T", new TypeVar("T")]],
+          l => [
+            Type.createTypeWithName("Promise", typeScope).applyGeneric([
+              l.body.get("T").type
+            ])
+          ],
+          l => l.body.get("T").type
+        )
+      ],
       [
         "==",
         genericFunction(
@@ -364,10 +396,10 @@ const mixBaseOperators = moduleScope => {
           "(mixed, mixed) => boolean",
           typeScope,
           [
-            Type.createTypeWithName("number", typeScope),
-            Type.createTypeWithName("number", typeScope)
+            Type.createTypeWithName("mixed", typeScope),
+            Type.createTypeWithName("mixed", typeScope)
           ],
-          Type.createTypeWithName("number", typeScope)
+          Type.createTypeWithName("boolean", typeScope)
         )
       ],
       [

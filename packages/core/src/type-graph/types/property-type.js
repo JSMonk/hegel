@@ -45,7 +45,7 @@ export class $PropertyType extends GenericType {
       );
       return new UnionType(UnionType.getName(variants), variants);
     }
-    if (!property.isLiteralOf && !isCalledAsBottom) {
+    if (!property.isSubtypeOf && !isCalledAsBottom) {
       throw new HegelError("Second parameter should be an literal", loc);
     }
     try {

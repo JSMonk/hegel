@@ -8,12 +8,14 @@ import { TypeVar } from "../type-graph/types/type-var";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
+import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
-import { findVariableInfo } from "./common";
-import type { TypeAnnotation } from "@babel/parser";
+import { unique, findVariableInfo } from "./common";
+import type { ModuleScope } from "../type-graph/module-scope";
+import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
 
 export function addTypeVar(
   name: string,
@@ -29,8 +31,8 @@ export function addTypeVar(
 
 export function getNameForType(type: Type): string {
   return typeof type.name === "string" &&
-    type.isLiteralOf &&
-    type.isLiteralOf.name === "string" &&
+    type.isSubtypeOf &&
+    type.isSubtypeOf.name === "string" &&
     !(type instanceof ObjectType) &&
     !(type instanceof FunctionType)
     ? `'${String(type.name)}'`
@@ -40,7 +42,9 @@ export function getNameForType(type: Type): string {
 export function getTypeFromTypeAnnotation(
   typeAnnotation: ?TypeAnnotation,
   typeScope: Scope,
-  rewritable: ?boolean = true
+  currentScope: Scope | ModuleScope,
+  rewritable: ?boolean = true,
+  self: ?Type = null
 ): Type {
   if (!typeAnnotation || !typeAnnotation.typeAnnotation) {
     return TypeVar.createTypeWithName(UNDEFINED_TYPE, typeScope);
@@ -69,24 +73,27 @@ export function getTypeFromTypeAnnotation(
       return Type.createTypeWithName(
         typeAnnotation.typeAnnotation.value,
         typeScope,
-        { isLiteralOf: Type.createTypeWithName("number", typeScope) }
+        { isSubtypeOf: Type.createTypeWithName("number", typeScope) }
       );
     case NODE.BOOLEAN_LITERAL_TYPE_ANNOTATION:
       return Type.createTypeWithName(
         typeAnnotation.typeAnnotation.value,
         typeScope,
-        { isLiteralOf: Type.createTypeWithName("boolean", typeScope) }
+        { isSubtypeOf: Type.createTypeWithName("boolean", typeScope) }
       );
     case NODE.STRING_LITERAL_TYPE_ANNOTATION:
       return Type.createTypeWithName(
         typeAnnotation.typeAnnotation.value,
         typeScope,
-        { isLiteralOf: Type.createTypeWithName("string", typeScope) }
+        { isSubtypeOf: Type.createTypeWithName("string", typeScope) }
       );
     case NODE.NULLABLE_TYPE_ANNOTATION:
       const resultType = getTypeFromTypeAnnotation(
         typeAnnotation.typeAnnotation,
-        typeScope
+        typeScope,
+        currentScope,
+        rewritable,
+        self
       );
       return UnionType.createTypeWithName(
         `${getNameForType(resultType)} | void`,
@@ -96,7 +103,13 @@ export function getTypeFromTypeAnnotation(
     case NODE.UNION_TYPE_ANNOTATION:
       const unionVariants = typeAnnotation.typeAnnotation.types.map(
         typeAnnotation =>
-          getTypeFromTypeAnnotation({ typeAnnotation }, typeScope, false)
+          getTypeFromTypeAnnotation(
+            { typeAnnotation },
+            typeScope,
+            currentScope,
+            false,
+            self
+          )
       );
       return UnionType.createTypeWithName(
         UnionType.getName(unionVariants),
@@ -106,7 +119,13 @@ export function getTypeFromTypeAnnotation(
     case NODE.TUPLE_TYPE_ANNOTATION:
       const tupleVariants = typeAnnotation.typeAnnotation.types.map(
         typeAnnotation =>
-          getTypeFromTypeAnnotation({ typeAnnotation }, typeScope)
+          getTypeFromTypeAnnotation(
+            { typeAnnotation },
+            typeScope,
+            currentScope,
+            false,
+            self
+          )
       );
       return TupleType.createTypeWithName(
         TupleType.getName(tupleVariants),
@@ -121,7 +140,9 @@ export function getTypeFromTypeAnnotation(
           getTypeFromTypeAnnotation(
             typeAnnotation.typeAnnotation.bound,
             typeScope,
-            rewritable
+            currentScope,
+            false,
+            self
           ),
         true
       );
@@ -144,16 +165,44 @@ export function getTypeFromTypeAnnotation(
             typeAnnotation.typeAnnotation.loc
           );
         }
-        return existedGenericType.type.applyGeneric(
-          genericArguments.map(arg =>
-            getTypeFromTypeAnnotation(
-              { typeAnnotation: arg },
-              typeScope,
-              rewritable
-            )
-          ),
-          typeAnnotation.typeAnnotation.loc
+        if (existedGenericType.type.name === "$TypeOf") {
+          if (
+            genericArguments.length !== 1 ||
+            (genericArguments[0].id &&
+              genericArguments[0].id.type !== NODE.IDENTIFIER)
+          ) {
+            throw new HegelError(
+              `"$TypeOf" work only with identifier`,
+              typeAnnotation.typeAnnotation.loc
+            );
+          }
+          return existedGenericType.type.applyGeneric(
+            // $FlowIssue
+            [findVariableInfo(genericArguments[0].id, currentScope)],
+            typeAnnotation.typeAnnotation.loc,
+            false
+          );
+        }
+        const genericParams = genericArguments.map(arg =>
+          getTypeFromTypeAnnotation(
+            { typeAnnotation: arg },
+            typeScope,
+            currentScope,
+            rewritable,
+            self
+          )
         );
+        return genericParams.some(t => t instanceof TypeVar && t !== self)
+          ? new $BottomType(
+              existedGenericType.type,
+              genericParams,
+              typeAnnotation.typeAnnotation.loc
+            )
+          : // $FlowIssue
+            existedGenericType.type.applyGeneric(
+              genericParams,
+              typeAnnotation.typeAnnotation.loc
+            );
       }
       if (!rewritable) {
         return findVariableInfo({ name: genericName }, typeScope).type;
@@ -162,19 +211,33 @@ export function getTypeFromTypeAnnotation(
     case NODE.FUNCTION_TYPE_ANNOTATION:
       const genericParams = typeAnnotation.typeAnnotation.typeParameters
         ? typeAnnotation.typeAnnotation.typeParameters.params.map(param =>
-            getTypeFromTypeAnnotation(param, typeScope, rewritable)
+            getTypeFromTypeAnnotation(
+              param,
+              typeScope,
+              currentScope,
+              rewritable,
+              self
+            )
           )
         : [];
       const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
       const args = typeAnnotation.typeAnnotation.params.map(annotation =>
-        getTypeFromTypeAnnotation(annotation, typeScope, rewritable)
+        getTypeFromTypeAnnotation(
+          annotation,
+          typeScope,
+          currentScope,
+          rewritable,
+          self
+        )
       );
       const returnType = getTypeFromTypeAnnotation(
         {
           typeAnnotation: typeAnnotation.typeAnnotation.returnType
         },
         typeScope,
-        rewritable
+        currentScope,
+        rewritable,
+        self
       );
       const typeName = FunctionType.getName(args, returnType, genericParams);
       const type = FunctionType.createTypeWithName(
@@ -197,7 +260,13 @@ export function getTypeFromTypeAnnotation(
       const params = typeAnnotation.typeAnnotation.properties.map(
         ({ value: typeAnnotation, key }) => [
           key.name,
-          getTypeFromTypeAnnotation({ typeAnnotation }, typeScope, rewritable)
+          getTypeFromTypeAnnotation(
+            { typeAnnotation },
+            typeScope,
+            currentScope,
+            rewritable,
+            self
+          )
         ]
       );
       const objectName = ObjectType.getName(params);
@@ -215,4 +284,62 @@ export function getTypeFromTypeAnnotation(
       );
   }
   return TypeVar.createTypeWithName(UNDEFINED_TYPE, typeScope);
+}
+
+export function mergeObjectsTypes(
+  obj1?: ObjectType = new ObjectType("{  }", []),
+  obj2?: ObjectType = new ObjectType("{  }", []),
+  typeScope: Scope
+): ObjectType {
+  const resultProperties = unique(
+    [...obj1.properties.entries(), ...obj2.properties.entries()],
+    ([key]) => key
+  );
+  return ObjectType.createTypeWithName(
+    ObjectType.getName(resultProperties),
+    typeScope,
+    resultProperties
+  );
+}
+
+export function createObjectWith(
+  key: string,
+  type: Type,
+  typeScope: Scope,
+  meta?: Meta
+): ObjectType {
+  const properties = [[key, new VariableInfo(type, null, meta)]];
+  return ObjectType.createTypeWithName(
+    ObjectType.getName(properties),
+    typeScope,
+    properties
+  );
+}
+
+export function get(
+  variable: VariableInfo,
+  propertyChaining: ?Array<string>,
+  memberExpressionLoc: SourceLocation
+): ?Type {
+  if (!propertyChaining) {
+    return;
+  }
+  return propertyChaining.reduce((type, propertyName) => {
+    if (!(type instanceof ObjectType)) {
+      return;
+    }
+    const property = type.properties.get(propertyName);
+    if (property === undefined) {
+      return;
+    }
+    return property.type;
+  }, variable.type);
+}
+
+export function createSelf(node: Node, parent: Scope | ModuleScope) {
+  return new VariableInfo(
+    new TypeVar(node.id.name),
+    parent,
+    new Meta(node.loc)
+  );
 }
