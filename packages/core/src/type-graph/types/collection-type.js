@@ -2,9 +2,11 @@
 import { Type } from "./type";
 import { TupleType } from "./tuple-type";
 import { UnionType } from "./union-type";
+import { ObjectType } from "./object-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
+import type { TypeMeta } from "./type";
 
 export class CollectionType<K: Type, V: Type> extends Type {
   static createTypeWithName = createTypeWithName(CollectionType);
@@ -19,29 +21,33 @@ export class CollectionType<K: Type, V: Type> extends Type {
   valueType: V;
   onlyLiteral = true;
 
-  constructor(name: string, keyType: K, valueType: V) {
-    super(name);
+  constructor(name: string, keyType: K, valueType: V, meta?: TypeMeta = {}) {
+    super(name, meta);
     this.keyType = keyType;
     this.valueType = valueType;
   }
 
-  hasProperty(property: mixed) {
-    return (
-      typeof property === this.keyType.name || property === this.keyType.name
-    );
-  }
-
-  getPropertyType(propertyName: mixed) {
-    if (!this.hasProperty(propertyName)) {
-      throw new Error("Unknow property");
+  getPropertyType(propertyName: mixed): ?Type {
+    if (
+      typeof propertyName === this.keyType.name ||
+      propertyName === this.keyType.name
+    ) {
+      const result =
+        this.valueType instanceof UnionType &&
+        this.valueType.variants.some(a => a.name === "void")
+          ? this.valueType
+          : new UnionType(
+              UnionType.getName([this.valueType, new Type("void")]),
+              [this.valueType, new Type("void")]
+            );
+      if (result) {
+        return result;
+      }
     }
-    return this.valueType instanceof UnionType &&
-      this.valueType.variants.find(a => a.name === "void")
-      ? this.valueType
-      : new UnionType(UnionType.getName([this.valueType, new Type("void")]), [
-          this.valueType,
-          new Type("void")
-        ]);
+    if (!this.isSubtypeOf || !(this.isSubtypeOf instanceof ObjectType)) {
+      return null;
+    }
+    return this.isSubtypeOf.getPropertyType(propertyName);
   }
 
   equalsTo(anotherType: Type) {
@@ -85,7 +91,12 @@ export class CollectionType<K: Type, V: Type> extends Type {
       CollectionType.getName(this.keyType, newValueType),
       typeScope,
       this.keyType,
-      newValueType
+      newValueType,
+      {
+        isSubtypeOf:
+          this.isSubtypeOf &&
+          this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope)
+      }
     );
   }
 }

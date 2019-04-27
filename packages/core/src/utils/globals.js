@@ -114,8 +114,26 @@ const mixBaseGlobals = moduleScope => {
           typeScope,
           [["T", new TypeVar("T")]],
           localTypeScope =>
-            ObjectType.createTypeWithName("{   }", typeScope, [])
+            ObjectType.createTypeWithName("Promise", typeScope, [])
         )
+      )
+    ],
+    [
+      "Math",
+      new VariableInfo(
+        ObjectType.createTypeWithName("Math", typeScope, [
+          [
+            "random",
+            new VariableInfo(
+              FunctionType.createTypeWithName(
+                "() => number",
+                typeScope,
+                [],
+                Type.createTypeWithName("number", typeScope)
+              )
+            )
+          ]
+        ])
       )
     ],
     [
@@ -130,7 +148,40 @@ const mixBaseGlobals = moduleScope => {
               "{ [key: number]: T }",
               localTypeScope,
               Type.createTypeWithName("number", localTypeScope),
-              TypeVar.createTypeWithName("T", localTypeScope)
+              TypeVar.createTypeWithName("T", localTypeScope),
+              {
+                isSubtypeOf: ObjectType.createTypeWithName(
+                  "Array.__proto__",
+                  localTypeScope,
+                  [
+                    [
+                      "find",
+                      new VariableInfo(
+                        FunctionType.createTypeWithName(
+                          "<T>(T => boolean) => T | void",
+                          localTypeScope,
+                          [
+                            FunctionType.createTypeWithName(
+                              "<T>(T) => boolean",
+                              localTypeScope,
+                              [localTypeScope.body.get("T").type],
+                              Type.createTypeWithName("boolean", typeScope)
+                            )
+                          ],
+                          UnionType.createTypeWithName(
+                            "T | void",
+                            localTypeScope,
+                            [
+                              localTypeScope.body.get("T").type,
+                              Type.createTypeWithName("void", typeScope)
+                            ]
+                          )
+                        )
+                      )
+                    ]
+                  ]
+                )
+              }
             )
         )
       )
@@ -157,6 +208,7 @@ const mixBaseGlobals = moduleScope => {
         )
       )
     ],
+    ["Math", typeScope.body.get("Math")],
     [
       "Number",
       new VariableInfo(

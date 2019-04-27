@@ -26,7 +26,7 @@ import type { Node } from "@babel/parser";
 import type { CallableArguments } from "./meta/call-meta";
 
 type CallResult = {
-  inferenced?: true,
+  inferenced?: boolean,
   result: CallableArguments
 };
 
@@ -124,13 +124,23 @@ export function addCallToTypeGraph(
       );
       addToThrowable(args[0], currentScope);
       break;
+    case NODE.AWAIT_EXPRESSION:
+      args = [
+        addCallToTypeGraph(node.argument, typeGraph, currentScope).result,
+      ];
+      targetName = "await";
+      target = findVariableInfo(
+        { name: targetName, loc: node.loc },
+        currentScope
+      );
+      break;
     case NODE.BINARY_EXPRESSION:
     case NODE.LOGICAL_EXPRESSION:
       args = [
         addCallToTypeGraph(node.left, typeGraph, currentScope).result,
         addCallToTypeGraph(node.right, typeGraph, currentScope).result
       ];
-      targetName = node.operator;
+      targetName = node.operator === "+" ? "b+" : node.operator;
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
         currentScope
@@ -241,10 +251,17 @@ export function addCallToTypeGraph(
         target = (addCallToTypeGraph(node.callee, typeGraph, currentScope)
           .result: any);
       }
-      const { throwable } = target;
-      if (throwable) {
-        addToThrowable(throwable, currentScope);
+      const targetType = target instanceof VariableInfo ? target.type : target;
+      const throwableType: any =
+        targetType instanceof GenericType
+          ? targetType.subordinateType
+          : targetType;
+      if (throwableType.throwable) {
+        addToThrowable(throwableType.throwable, currentScope);
       }
+      inferenced =
+        targetType instanceof GenericType &&
+        targetType.subordinateType.returnType instanceof TypeVar;
       break;
     case NODE.NEW_EXPRESSION:
       const argument = addCallToTypeGraph(node.callee, typeGraph, currentScope)
@@ -283,7 +300,7 @@ export function addCallToTypeGraph(
     currentScope.type === Scope.FUNCTION_TYPE
       ? currentScope
       : findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
-  const targetType = target instanceof Type ? target : target.type;
+  const targetType = target instanceof VariableInfo ? target.type : target;
   if (
     !(targetType instanceof $BottomType) &&
     !(targetType instanceof FunctionType) &&

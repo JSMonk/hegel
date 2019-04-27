@@ -30,6 +30,7 @@ export class FunctionType extends Type {
 
   argumentsTypes: Array<Type>;
   returnType: Type;
+  throwable: ?Type;
 
   constructor(name: string, argumentsTypes: Array<Type>, returnType: Type) {
     super(name, { isSubtypeOf: new ObjectType("Function", []) });

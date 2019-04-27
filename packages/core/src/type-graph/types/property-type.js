@@ -48,13 +48,13 @@ export class $PropertyType extends GenericType {
     if (!property.isSubtypeOf && !isCalledAsBottom) {
       throw new HegelError("Second parameter should be an literal", loc);
     }
-    try {
-      return target.getPropertyType(property.name);
-    } catch {
-      throw new HegelError(
-        `Property "${property.name}" are not exists in "${target.name}"`,
-        loc
-      );
+    const fieldType = target.getPropertyType(property.name);
+    if (fieldType) {
+      return fieldType;
     }
+    throw new HegelError(
+      `Property "${property.name}" are not exists in "${target.name}"`,
+      loc
+    );
   }
 }

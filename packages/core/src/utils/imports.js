@@ -36,19 +36,21 @@ export function importDependencies(
     importNode.importKind === "value"
       ? currentModuleTypeGraph
       : currentModuleTypeScope;
+  const importEntries = [...importSource.entries()];
   importNode.specifiers.forEach(specifier => {
     const importName = getImportName(specifier);
     const importElement = importName
       ? importSource.get(importName)
       : ObjectType.createTypeWithName(
           // $FlowIssue
-          ObjectType.getName([...importSource.entries()]),
+          ObjectType.getName(importEntries),
           currentModuleTypeScope,
-          importSource
+          importEntries
         );
     if (!importElement) {
       throw new HegelError(
-        `Module "${importNode.source.value}" hasn't "${importName || "*"}" export`,
+        `Module "${importNode.source.value}" hasn't "${importName ||
+          "*"}" export`,
         specifier.loc
       );
     }

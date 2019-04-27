@@ -5,6 +5,8 @@ import { UnionType } from "../type-graph/types/union-type";
 import { TYPE_SCOPE } from "../type-graph/constants";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
+import { findVariableInfo } from "../utils/common";
+import { getInvocationType } from "../inference/function-type";
 import type { Node } from "@babel/parser";
 
 export function inferenceErrorType(
@@ -24,7 +26,7 @@ export function inferenceErrorType(
   const variants =
     throwable.map(t => (t instanceof VariableInfo ? t.type : t)) || [];
   if (!variants.length) {
-    const errorType = typeGraph.body.get("Error");
+    const errorType = findVariableInfo({ name: "Error" }, typeGraph);
     if (!(errorType instanceof VariableInfo)) {
       throw new Error("Never");
     }

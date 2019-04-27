@@ -1305,10 +1305,10 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], _, global] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-35]]");
     expect(actualScope.body.get("b").type).toEqual(
-      actual.body.get(TYPE_SCOPE).body.get("() => number").type
+      global.body.get(TYPE_SCOPE).body.get("() => number").type
     );
   });
   test("Typeof refinement for union property(number)", async () => {
@@ -1550,5 +1550,17 @@ describe("Type refinement", () => {
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ a: { b: string } }").type
     );
+  });
+});
+describe("Other", () => {
+  test("Should refinement paramtetric polymorphism", async () => {
+    const sourceAST = prepareAST(`
+      const id = x => x;
+      const a = id(2);
+      const b = id("str");
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    expect(actual.body.get("a").type).toEqual(new Type("number"));
+    expect(actual.body.get("b").type).toEqual(new Type("string"));
   });
 });

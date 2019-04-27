@@ -22,11 +22,12 @@ export function addToThrowable(
   currentScope: Scope | ModuleScope
 ) {
   const throwableScope = findThrowableBlock(currentScope);
-  if (!throwableScope || !throwableScope.throwable) {
+  if (
+    !throwableScope ||
+    !(currentScope instanceof Scope) ||
+    !throwableScope.throwable
+  ) {
     return;
   }
-  const { throwable } = throwableScope;
-  if (currentScope instanceof Scope) {
-    throwable.push(throwType);
-  }
+  throwableScope.throwable.push(throwType);
 }

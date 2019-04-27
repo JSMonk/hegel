@@ -16,6 +16,7 @@ export function getScopeType(node: Node): ScopeType {
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
     case NODE.OBJECT_METHOD:
+    case NODE.CLASS_METHOD:
     case NODE.FUNCTION_TYPE_ANNOTATION:
       return Scope.FUNCTION_TYPE;
     case NODE.OBJECT_EXPRESSION:

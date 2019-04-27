@@ -1,12 +1,12 @@
 // @flow
 import NODE from "../utils/nodes";
 import checkCalls from "../checking";
-import HegelError from "../utils/errors";
 import traverseTree from "../utils/traverse";
 import mixBaseGlobals from "../utils/globals";
 import mixUtilityTypes from "../utils/utility-types";
 import mixBaseOperators from "../utils/operators";
 import mixImportedDependencies from "../utils/imports";
+import HegelError, { UnreachableError } from "../utils/errors";
 import { Meta } from "./meta/meta";
 import { Scope } from "./scope";
 import { refinement } from "../inference/refinement";
@@ -15,6 +15,7 @@ import { GenericType } from "./types/generic-type";
 import { ModuleScope } from "./module-scope";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
+import { inferenceClass } from "../inference/class-inference";
 import { getScopeFromNode } from "../utils/scope-utils";
 import { findVariableInfo } from "../utils/common";
 import { inferenceErrorType } from "../inference/error-type";
@@ -127,6 +128,31 @@ const getGenericNode = (node: Node): ?Node => {
   return null;
 };
 
+const addClassToTypeGraph = (
+  classNode: Node,
+  typeScope: Scope,
+  parentScope: Scope | ModuleScope,
+  typeGraph: ModuleScope
+) => {
+  const classType = inferenceClass(
+    classNode,
+    typeScope,
+    parentScope,
+    typeGraph
+  );
+  const constructor: any = classType.properties.get("constructor") || {
+    type: new FunctionType("", [], classType)
+  };
+  constructor.type.returnType = classType;
+  constructor.type.name = classType.name;
+  const variableInfo = new VariableInfo(
+    constructor.type,
+    parentScope,
+    new Meta(classNode.loc)
+  );
+  parentScope.body.set(String(classType.name), variableInfo);
+};
+
 const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
   if (typeScope === undefined || !(typeScope instanceof Scope)) {
@@ -202,9 +228,9 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
         );
         break;
       case NODE.OBJECT_METHOD:
+      case NODE.CLASS_METHOD:
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
-      case NODE.CLASS_DECLARATION:
       case NODE.FUNCTION_DECLARATION:
         addFunctionToTypeGraph(currentNode, parentNode, typeGraph);
         break;
@@ -212,8 +238,6 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
         if (NODE.isFunction(parentNode)) {
           break;
         }
-      case NODE.CLASS_DECLARATION:
-      case NODE.CLASS_EXPRESSION:
         addScopeToTypeGraph(currentNode, parentNode, typeGraph);
         break;
       case NODE.TRY_STATEMENT:
@@ -263,6 +287,10 @@ const afterFillierActions = (
   ) => {
     const currentScope = getParentForNode(currentNode, parentNode, typeGraph);
     switch (currentNode.type) {
+      case NODE.CLASS_DECLARATION:
+      case NODE.CLASS_EXPRESSION:
+        addClassToTypeGraph(currentNode, typeScope, currentScope, typeGraph);
+        break;
       case NODE.VARIABLE_DECLARATOR:
         const variableInfo = findVariableInfo(currentNode.id, currentScope);
         const newTypeOrVar = addCallToTypeGraph(
@@ -270,16 +298,18 @@ const afterFillierActions = (
           typeGraph,
           currentScope
         );
-        const newType =
-          newTypeOrVar.result instanceof VariableInfo
-            ? newTypeOrVar.result.type
-            : newTypeOrVar.result;
-        variableInfo.type = getVariableType(
-          variableInfo,
-          newType,
-          typeScope,
-          newTypeOrVar.inferenced
-        );
+        if (variableInfo.type.name === UNDEFINED_TYPE) {
+          const newType =
+            newTypeOrVar.result instanceof VariableInfo
+              ? newTypeOrVar.result.type
+              : newTypeOrVar.result;
+          variableInfo.type = getVariableType(
+            variableInfo,
+            newType,
+            typeScope,
+            newTypeOrVar.inferenced
+          );
+        }
         if (currentNode.exportAs) {
           typeGraph.exports.set(currentNode.exportAs, variableInfo);
         }
@@ -322,7 +352,6 @@ const afterFillierActions = (
       case NODE.OBJECT_METHOD:
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
-      case NODE.CLASS_DECLARATION:
       case NODE.FUNCTION_DECLARATION:
         const functionScope = typeGraph.body.get(Scope.getName(currentNode));
         if (!(functionScope instanceof Scope)) {
@@ -342,7 +371,11 @@ const afterFillierActions = (
           if (currentNode.exportAs) {
             typeGraph.exports.set(currentNode.exportAs, declaration);
           }
-          declaration.throwable = (functionScope.throwable || []).length
+          const declarationType: any =
+            declaration.type instanceof GenericType
+              ? declaration.type.subordinateType
+              : declaration.type;
+          declarationType.throwable = (functionScope.throwable || []).length
             ? inferenceErrorType(currentNode, typeGraph)
             : undefined;
         }
@@ -355,6 +388,12 @@ const afterFillierActions = (
             inferenceTypeForNode(currentNode, typeScope, parentNode, typeGraph)
           );
         }
+    }
+    if (
+      currentNode.type === NODE.THROW_STATEMENT ||
+      currentNode.type === NODE.RETURN_STATEMENT
+    ) {
+      throw new UnreachableError(currentNode.loc);
     }
   };
 };

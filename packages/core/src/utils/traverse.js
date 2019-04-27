@@ -1,6 +1,7 @@
 // @flow
 import NODE from "./nodes";
 import { compose } from "./common";
+import HegelError, { UnreachableError } from "./errors";
 import type { Node, Declaration, Block, SourceLocation } from "@babel/parser";
 
 type Tree =
@@ -141,7 +142,7 @@ const getBody = (currentNode: any) =>
 
 const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
   parentNode &&
-  ((NODE.isFunction(parentNode) && currentNode.type === NODE.BLOCK_STATEMENT) ||
+  ((NODE.isFunction(parentNode) && currentNode === parentNode.body) ||
     (NODE.isScopeCreator(parentNode) && !NODE.isScopeCreator(currentNode)))
     ? parentNode
     : currentNode;
@@ -169,11 +170,21 @@ function traverseTree(
   }
   const nextParent = getNextParent(currentNode, parentNode);
   if (Array.isArray(body)) {
-    for (let i = 0; i < body.length; i++) {
-      traverseTree(body[i], pre, post, nextParent, {
-        ...meta,
-        kind: currentNode.kind
-      });
+    let i = 0;
+    try {
+      for (i = 0; i < body.length; i++) {
+        traverseTree(body[i], pre, post, nextParent, {
+          ...meta,
+          kind: currentNode.kind
+        });
+      }
+    } catch (e) {
+      if (!(e instanceof UnreachableError)) {
+        throw e;
+      }
+      if (i < body.length - 1) {
+        throw new HegelError("Unreachable code after this line", e.loc);
+      }
     }
   } else {
     traverseTree(body, pre, post, nextParent, meta);

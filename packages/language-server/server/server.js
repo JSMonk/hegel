@@ -66,7 +66,7 @@ connection.onHover(meta => {
     return;
   }
   return {
-    contents: [{ language: 'typescript', value: varInfo.type.name }],
+    contents: [{ language: 'typescript', value: String(varInfo.type.name) }],
   };
 });
 

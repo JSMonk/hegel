@@ -45,13 +45,19 @@ export const EXPRESSIONS_TYPES = {
   CALL_EXPRESSION: "CallExpression",
   MEMBER_EXPRESSION: "MemberExpression",
   UPDATE_EXPRESSION: "UpdateExpression",
-  NEW_EXPRESSION: "NewExpression"
+  NEW_EXPRESSION: "NewExpression",
+  THIS_EXPRESSION: "ThisExpression",
 };
 
 export const OBJECT_PROPERTIES = {
   OBJECT_EXPRESSION: "ObjectExpression",
   OBJECT_METHOD: "ObjectMethod",
   OBJECT_PROPERTY: "ObjectProperty"
+};
+
+export const CLASS_PROPERTIES = {
+  CLASS_METHOD: "ClassMethod",
+  CLASS_PROPERTY: "ClassProperty",
 };
 
 export const LITERAL_TYPES = {
@@ -138,6 +144,7 @@ export default {
   ...EXPRESSIONS_TYPES,
   ...INITIALIZATION_TYPES,
   ...OBJECT_PROPERTIES,
+  ...CLASS_PROPERTIES,
   ...LITERAL_TYPES,
   ...SPECIFIERS_TYPES
 };

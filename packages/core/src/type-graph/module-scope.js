@@ -18,5 +18,6 @@ export class ModuleScope {
     this.body = body;
     this.parent = parent;
     this.exports = new Map();
+    this.exportsTypes = new Map();
   }
 }

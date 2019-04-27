@@ -6,6 +6,7 @@ import { VariableInfo } from "../variable-info";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
+import type { TypeMeta } from "./type";
 
 export class ObjectType extends Type {
   static createTypeWithName = createTypeWithName(ObjectType);
@@ -28,10 +29,12 @@ export class ObjectType extends Type {
 
   constructor(
     name: string,
-    properties: Array<[string | number, VariableInfo]>
+    properties: Array<[string | number, VariableInfo]>,
+    options: TypeMeta = {}
   ) {
     super(name, {
-      isSubtypeOf: name === "Object" ? undefined : new ObjectType("Object", [])
+      isSubtypeOf: name === "Object" ? undefined : new ObjectType("Object", []),
+      ...options
     });
     const filteredProperties = properties
       ? unique(properties, ([key]) => key)
@@ -39,16 +42,26 @@ export class ObjectType extends Type {
     this.properties = new Map(filteredProperties);
   }
 
-  hasProperty(propertyName: any): boolean {
-    return this.properties.has(propertyName);
-  }
-
-  getPropertyType(propertyName: any): Type {
-    if (!this.hasProperty(propertyName)) {
-      throw new Error("Unknow property");
+  getPropertyType(propertyName: any): ?Type {
+    let fieldOwner = this;
+    let field = null;
+    while (fieldOwner) {
+      // $FlowIssue
+      field = fieldOwner.properties.get(propertyName);
+      if (
+        field ||
+        !(
+          fieldOwner.isSubtypeOf && fieldOwner.isSubtypeOf instanceof ObjectType
+        )
+      ) {
+        break;
+      }
+      fieldOwner = fieldOwner.isSubtypeOf;
     }
-    // $FlowIssue
-    return this.properties.get(propertyName).type;
+    if (!field) {
+      return null;
+    }
+    return field.type;
   }
 
   isAllProperties(
@@ -91,7 +104,6 @@ export class ObjectType extends Type {
     return ObjectType.createTypeWithName(
       ObjectType.getName(newProperties),
       typeScope,
-      /* $FlowIssue - Couldn't inferece ObjectType */
       newProperties
     );
   }

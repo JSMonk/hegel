@@ -143,7 +143,7 @@ const mixBaseOperators = moduleScope => {
           typeScope,
           [["T", new TypeVar("T")]],
           l => [
-            Type.createTypeWithName("Promise", typeScope).applyGeneric([
+            new $BottomType(typeScope.body.get("Promise").type, [
               l.body.get("T").type
             ])
           ],
@@ -223,27 +223,23 @@ const mixBaseOperators = moduleScope => {
         )
       ],
       [
-        "+<number>",
-        FunctionType.createTypeWithName(
-          "(number, number) => number",
+        "b+",
+        genericFunction(
           typeScope,
           [
-            Type.createTypeWithName("number", typeScope),
-            Type.createTypeWithName("number", typeScope)
+            [
+              "T",
+              new TypeVar(
+                "T",
+                new UnionType("number | string", [
+                  new Type("number"),
+                  new Type("string")
+                ])
+              )
+            ]
           ],
-          Type.createTypeWithName("number", typeScope)
-        )
-      ],
-      [
-        "+<string>",
-        FunctionType.createTypeWithName(
-          "(string, string) => string",
-          typeScope,
-          [
-            Type.createTypeWithName("string", typeScope),
-            Type.createTypeWithName("string", typeScope)
-          ],
-          Type.createTypeWithName("string", typeScope)
+          l => [l.body.get("T").type, l.body.get("T").type],
+          l => l.body.get("T").type
         )
       ],
       [
@@ -412,27 +408,23 @@ const mixBaseOperators = moduleScope => {
         )
       ],
       [
-        "+=<string>",
-        FunctionType.createTypeWithName(
-          "(string, string) => string",
+        "+=",
+        genericFunction(
           typeScope,
           [
-            Type.createTypeWithName("string", typeScope),
-            Type.createTypeWithName("string", typeScope)
+            [
+              "T",
+              new TypeVar(
+                "T",
+                new UnionType("number | string", [
+                  new Type("number"),
+                  new Type("string")
+                ])
+              )
+            ]
           ],
-          Type.createTypeWithName("string", typeScope)
-        )
-      ],
-      [
-        "+=<number>",
-        FunctionType.createTypeWithName(
-          "(number, number) => number",
-          typeScope,
-          [
-            Type.createTypeWithName("number", typeScope),
-            Type.createTypeWithName("number", typeScope)
-          ],
-          Type.createTypeWithName("number", typeScope)
+          l => [l.body.get("T").type, l.body.get("T").type],
+          l => l.body.get("T").type
         )
       ],
       [

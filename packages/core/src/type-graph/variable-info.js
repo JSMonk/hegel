@@ -7,7 +7,6 @@ import type { ModuleScope } from "./module-scope";
 export class VariableInfo {
   type: Type;
   parent: ?Scope | ?ModuleScope;
-  throwable: ?Type;
   meta: Meta;
 
   constructor(

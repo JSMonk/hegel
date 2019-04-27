@@ -43,7 +43,7 @@ function inIdentifier(
   }
   const [refinementedVariants, alternateVariants] = type.variants.reduce(
     ([refinementedVariants, alternateVariants], variant) => {
-      if (variant instanceof ObjectType && variant.hasProperty(propertyName)) {
+      if (variant instanceof ObjectType && variant.getPropertyType(propertyName)) {
         return [refinementedVariants.concat([variant]), alternateVariants];
       }
       return [refinementedVariants, alternateVariants.concat([variant])];
@@ -83,7 +83,7 @@ function refinementProperty(
         );
       }
       if (property.type instanceof ObjectType) {
-        return property.type.hasProperty(propertyName)
+        return property.type.getPropertyType(propertyName)
           ? [property.type, undefined]
           : [undefined, property.type];
       }
@@ -92,7 +92,7 @@ function refinementProperty(
         alternateVariants
       ] = property.type.variants.reduce(
         ([refinementedVariants, alternateVariants], variant) =>
-          variant instanceof ObjectType && variant.hasProperty(propertyName)
+          variant instanceof ObjectType && variant.getPropertyType(propertyName)
             ? [refinementedVariants.concat([variant]), alternateVariants]
             : [refinementedVariants, alternateVariants.concat([variant])],
         [[], []]
@@ -132,7 +132,7 @@ function refinementProperty(
       ([refinementedVariants, alternateVariants], variant) => {
         const isNotAlternateVariant =
           variant instanceof ObjectType &&
-          variant.hasProperty(currentPropertyName);
+          variant.getPropertyType(currentPropertyName);
         const refinementedTypeAndAlternateType = isNotAlternateVariant
           ? refinementProperty(
               variableName,

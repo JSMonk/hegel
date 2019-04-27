@@ -1272,3 +1272,36 @@ describe("Generic types", () => {
     });
   });
 });
+
+describe("Classes", () => {
+  test("Simple class declaration", async () => {
+    const sourceAST = prepareAST(`
+      class A {}
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const typeScope = actual.body.get(TYPE_SCOPE);
+    const actualAType = typeScope.body.get("A").type;
+    const actualAClass = actual.body.get("A");
+    expect(actualAClass.type.returnType).toEqual(actualAType);
+  });
+  test("Simple class declaration with constructor", async () => {
+    const sourceAST = prepareAST(`
+      class A {
+        a: number;
+
+        constructor(a: number) {
+          this.a = a;  
+        }
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const typeScope = actual.body.get(TYPE_SCOPE);
+    const actualAType = typeScope.body.get("A").type;
+    const actualAClass = actual.body.get("A");
+    expect(actualAClass.type.returnType).toEqual(actualAType);
+    expect(actualAClass.type.argumentsTypes.length).toEqual(1);
+    expect(actualAClass.type.argumentsTypes[0]).toEqual(
+      new Type("number")
+    );
+  });
+});

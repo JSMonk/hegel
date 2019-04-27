@@ -9,3 +9,12 @@ export default class HegelError extends Error {
     this.loc = loc;
   }
 }
+
+export class UnreachableError extends Error {
+  loc: SourceLocation;
+  
+  constructor(loc: SourceLocation) {
+    super("");
+    this.loc = loc;
+  }
+}

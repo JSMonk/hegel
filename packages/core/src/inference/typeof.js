@@ -259,7 +259,7 @@ function refinementProperty(
       ([refinementedVariants, alternateVariants], variant) => {
         const isNotAlternateVariant =
           variant instanceof ObjectType &&
-          variant.hasProperty(currentPropertyName);
+          variant.getPropertyType(currentPropertyName);
         const refinementedTypeAndAlternateType = isNotAlternateVariant
           ? refinementProperty(
               variableName,

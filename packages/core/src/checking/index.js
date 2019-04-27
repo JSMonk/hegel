@@ -29,6 +29,11 @@ function isValidTypes(
   const actualType =
     (actual instanceof VariableInfo ? actual.type : actual) ||
     Type.createTypeWithName("undefined", typeScope);
+  if (actualType instanceof UnionType) {
+    return actualType.variants.every(t =>
+      isValidTypes(declaratedType, t, typeScope)
+    );
+  }
   if ("onlyLiteral" in declaratedType && actual instanceof VariableInfo) {
     return declaratedType.equalsTo(actualType);
   }
