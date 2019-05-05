@@ -59,9 +59,9 @@ describe("Test $Keys", () => {
     expect(errors.length).toEqual(0);
     expect(typeScope.body.get("A").type).toEqual(
       new UnionType("'a' | 'b' | 'c'", [
-        new Type("a", { isSubtypeOf: new Type("string") }),
-        new Type("b", { isSubtypeOf: new Type("string") }),
-        new Type("c", { isSubtypeOf: new Type("string") })
+        new Type("'a'", { isSubtypeOf: new Type("string") }),
+        new Type("'b'", { isSubtypeOf: new Type("string") }),
+        new Type("'c'", { isSubtypeOf: new Type("string") })
       ])
     );
   });

@@ -43,7 +43,7 @@ export class $Pick extends GenericType {
     });
     const oldProperties = [...realTarget.properties.entries()];
     const newProperties = oldProperties.filter(([name, property]) =>
-      pickedProperties.includes(name)
+      pickedProperties.includes(`'${name}'`)
     );
     return new ObjectType(ObjectType.getName(newProperties), newProperties);
   }

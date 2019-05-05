@@ -199,7 +199,7 @@ export function addCallToTypeGraph(
       args = [
         addCallToTypeGraph(node.object, typeGraph, currentScope).result,
         node.property.type === NODE.IDENTIFIER && !node.computed
-          ? Type.createTypeWithName(node.property.name, typeScope, {
+          ? Type.createTypeWithName(`'${node.property.name}'`, typeScope, {
               isSubtypeOf: Type.createTypeWithName("string", typeScope)
             })
           : addCallToTypeGraph(node.property, typeGraph, currentScope).result

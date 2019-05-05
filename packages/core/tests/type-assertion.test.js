@@ -513,7 +513,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "string" is incompatible with type "number"'
+      'Type "\'string\'" is incompatible with type "number"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 19, line: 3 },

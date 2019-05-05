@@ -30,13 +30,7 @@ export function addTypeVar(
 }
 
 export function getNameForType(type: Type): string {
-  return typeof type.name === "string" &&
-    type.isSubtypeOf &&
-    type.isSubtypeOf.name === "string" &&
-    !(type instanceof ObjectType) &&
-    !(type instanceof FunctionType)
-    ? `'${String(type.name)}'`
-    : String(type.name);
+  return String(type.name);
 }
 
 export function getTypeFromTypeAnnotation(
@@ -83,7 +77,7 @@ export function getTypeFromTypeAnnotation(
       );
     case NODE.STRING_LITERAL_TYPE_ANNOTATION:
       return Type.createTypeWithName(
-        typeAnnotation.typeAnnotation.value,
+        `'${typeAnnotation.typeAnnotation.value}'`,
         typeScope,
         { isSubtypeOf: Type.createTypeWithName("string", typeScope) }
       );

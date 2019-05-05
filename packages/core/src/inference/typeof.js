@@ -53,7 +53,7 @@ function isReturnTypeOfTypeof(node: Node, typeofOperator: VariableInfo) {
   const returnTypes = typeofOperator.type.returnType;
   return (
     node.type === NODE.STRING_LITERAL &&
-    returnTypes.variants.some(type => type.name === node.value)
+    returnTypes.variants.some(type => type.name === `'${node.value}'`)
   );
 }
 

@@ -88,31 +88,31 @@ const mixBaseOperators = moduleScope => {
           typeScope,
           [Type.createTypeWithName("mixed", typeScope)],
           UnionType.createTypeWithName(
-            '"string" | "boolean" | "number" | "function" | "object" | "undefined" | "symbol" | "bigint"',
+            "'string' | 'boolean' | 'number' | 'function' | 'object' | 'undefined' | 'symbol' | 'bigint'",
             typeScope,
             [
-              Type.createTypeWithName("string", typeScope, {
+              Type.createTypeWithName("'string'", typeScope, {
                 isSubtypeOf: Type.createTypeWithName("string", typeScope)
               }),
-              Type.createTypeWithName("number", typeScope, {
+              Type.createTypeWithName("'number'", typeScope, {
                 isSubtypeOf: Type.createTypeWithName("string", typeScope)
               }),
-              Type.createTypeWithName("boolean", typeScope, {
+              Type.createTypeWithName("'boolean'", typeScope, {
                 isSubtypeOf: Type.createTypeWithName("string", typeScope)
               }),
-              Type.createTypeWithName("undefined", typeScope, {
+              Type.createTypeWithName("'undefined'", typeScope, {
                 isSubtypeOf: Type.createTypeWithName("string", typeScope)
               }),
-              Type.createTypeWithName("object", typeScope, {
+              Type.createTypeWithName("'object'", typeScope, {
                 isSubtypeOf: Type.createTypeWithName("string", typeScope)
               }),
-              Type.createTypeWithName("bigint", typeScope, {
+              Type.createTypeWithName("'bigint'", typeScope, {
                 isSubtypeOf: Type.createTypeWithName("string", typeScope)
               }),
-              Type.createTypeWithName("symbol", typeScope, {
+              Type.createTypeWithName("'symbol'", typeScope, {
                 isSubtypeOf: Type.createTypeWithName("string", typeScope)
               }),
-              Type.createTypeWithName("function", typeScope, {
+              Type.createTypeWithName("'function'", typeScope, {
                 isSubtypeOf: Type.createTypeWithName("string", typeScope)
               })
             ]

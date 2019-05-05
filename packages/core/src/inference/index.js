@@ -24,7 +24,7 @@ export function inferenceTypeForNode(
         isSubtypeOf: Type.createTypeWithName("number", typeScope)
       });
     case NODE.STRING_LITERAL:
-      return Type.createTypeWithName(currentNode.value, typeScope, {
+      return Type.createTypeWithName(`'${currentNode.value}'`, typeScope, {
         isSubtypeOf: Type.createTypeWithName("string", typeScope)
       });
     case NODE.BOOLEAN_LITERAL:

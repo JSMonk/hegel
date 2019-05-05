@@ -27,6 +27,10 @@ export class $PropertyType extends GenericType {
     super.assertParameters(parameters, loc);
     const [target, property] = parameters;
     const realTarget = target.constraint || target;
+    const propertyName =
+      property.isSubtypeOf && property.isSubtypeOf.name === "string"
+        ? property.name.slice(1, -1)
+        : property.name;
     if (
       !(
         target instanceof ObjectType ||
@@ -48,12 +52,12 @@ export class $PropertyType extends GenericType {
     if (!property.isSubtypeOf && !isCalledAsBottom) {
       throw new HegelError("Second parameter should be an literal", loc);
     }
-    const fieldType = target.getPropertyType(property.name);
+    const fieldType = target.getPropertyType(propertyName);
     if (fieldType) {
       return fieldType;
     }
     throw new HegelError(
-      `Property "${property.name}" are not exists in "${target.name}"`,
+      `Property "${propertyName}" are not exists in "${target.name}"`,
       loc
     );
   }

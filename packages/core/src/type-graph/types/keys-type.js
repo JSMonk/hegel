@@ -24,7 +24,7 @@ export class $Keys extends GenericType {
     }
     const keys = [...realTarget.properties.keys()];
     const variants = keys.map(
-      key => new Type(key, { isSubtypeOf: new Type("string") })
+      key => new Type(`'${key}'`, { isSubtypeOf: new Type("string") })
     );
     return new UnionType(UnionType.getName(variants), variants);
   }

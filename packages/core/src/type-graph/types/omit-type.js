@@ -43,7 +43,7 @@ export class $Omit extends GenericType {
     });
     const oldProperties = [...realTarget.properties.entries()];
     const newProperties = oldProperties.filter(
-      ([name, property]) => !pickedProperties.includes(name)
+      ([name, property]) => !pickedProperties.includes(`'${name}'`)
     );
     return new ObjectType(ObjectType.getName(newProperties), newProperties);
   }

@@ -112,7 +112,7 @@ describe("Simple global variable nodes", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const typeScope = actual.body.get(TYPE_SCOPE);
     const expected = expect.objectContaining({
-      type: new Type("2", { isSubtypeOf: new Type("string") }),
+      type: new Type("'2'", { isSubtypeOf: new Type("string") }),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -782,7 +782,7 @@ describe("Unnamed object types", () => {
         [
           "n",
           new VariableInfo(
-            new Type("", { isSubtypeOf: new Type("string") }),
+            new Type("''", { isSubtypeOf: new Type("string") }),
             undefined,
             actualA.meta
           )
@@ -1017,7 +1017,7 @@ describe("Type alias", () => {
       const actualType = typeScope.body.get("StringAlias");
       const expectedType = expect.objectContaining({
         parent: typeScope,
-        type: new Type("", { isSubtypeOf: new Type("string") })
+        type: new Type("''", { isSubtypeOf: new Type("string") })
       });
       expect(actualType).toEqual(expectedType);
     });

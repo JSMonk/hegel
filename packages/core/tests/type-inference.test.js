@@ -1269,7 +1269,7 @@ describe("Type refinement", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-33]]");
     expect(actualScope.body.get("b").type).toEqual(
-      new Type("2", { isSubtypeOf: new Type("string") })
+      new Type("'2'", { isSubtypeOf: new Type("string") })
     );
   });
   test("Typeof refinement for union variable(boolean literal)", async () => {
