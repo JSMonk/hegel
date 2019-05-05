@@ -47,7 +47,7 @@ export function inferenceClass(
     classNode.id ? classNode.id.name : ObjectType.getName(fieldsAndMethods),
     typeScope,
     fieldsAndMethods,
-    isSubtypeOf && { isSubtypeOf }
+    { isSubtypeOf, isNominal: true }
   );
   methods.forEach(methodScope => {
     if (methodScope instanceof Scope) {

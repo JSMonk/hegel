@@ -364,6 +364,43 @@ describe("Variable declrataion and assignment", () => {
       start: { column: 12, line: 2 }
     });
   });
+  test("Simple typed function declaration with with wrong return", async () => {
+    const sourceAST = prepareAST(`
+      function fn(): number {
+        return "2";
+      }
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type "string" is incompatible with type "number"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 19, line: 3 },
+      start: { column: 8, line: 3 }
+    });
+  });
+  test("Simple typed function declaration with with wrong object return", async () => {
+    const sourceAST = prepareAST(`
+      class User {}
+      class Chat {}
+
+      function fn(): Chat {
+        return new User();
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type "User" is incompatible with type "Chat"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 26, line: 6 },
+      start: { column: 8, line: 6 }
+    });
+  });
 });
 
 describe("Test calls meta for operatos and functions in globals scope", () => {

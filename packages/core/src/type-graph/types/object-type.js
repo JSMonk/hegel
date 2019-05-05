@@ -8,6 +8,8 @@ import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
 import type { TypeMeta } from "./type";
 
+type ExtendedTypeMeta = { ...TypeMeta, isNominal?: boolean };
+
 export class ObjectType extends Type {
   static createTypeWithName = createTypeWithName(ObjectType);
 
@@ -24,18 +26,20 @@ export class ObjectType extends Type {
       .join(", ")} }`;
   }
 
+  isNominal: boolean;
   properties: Map<string | number, VariableInfo>;
   onlyLiteral = true;
 
   constructor(
     name: string,
     properties: Array<[string | number, VariableInfo]>,
-    options: TypeMeta = {}
+    options: ExtendedTypeMeta = {}
   ) {
     super(name, {
       isSubtypeOf: name === "Object" ? undefined : new ObjectType("Object", []),
       ...options
     });
+    this.isNominal = Boolean(options.isNominal);
     const filteredProperties = properties
       ? unique(properties, ([key]) => key)
       : [];
@@ -128,7 +132,7 @@ export class ObjectType extends Type {
         !(type instanceof UnionType) ||
         !type.variants.some(t => t.equalsTo(new Type("void")))
     );
-    return anotherType instanceof ObjectType
+    return anotherType instanceof ObjectType && !this.isNominal
       ? anotherType.properties.size >= requiredProperties.length &&
           this.isAllProperties("isPrincipalTypeFor", anotherType)
       : anotherType.isSubtypeOf != undefined &&
