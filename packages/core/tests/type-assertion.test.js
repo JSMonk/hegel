@@ -185,6 +185,26 @@ describe("Variable declrataion and assignment", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
+  test("Simple class instance usage", async () => {
+    const sourceAST = prepareAST(`
+      class User {}
+
+      const user: User = new User();
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(0);
+  });
+  test("Simple class instance usage with reference", async () => {
+    const sourceAST = prepareAST(`
+      class User {}
+
+      const SameUser = User;
+
+      const user: User = new SameUser();
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(0);
+  });
   test("Simple typed const declaration with type alias", async () => {
     const sourceAST = prepareAST(`
       type A = number;

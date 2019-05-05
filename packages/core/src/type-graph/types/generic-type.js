@@ -85,9 +85,6 @@ export class GenericType<T: Type> extends Type {
     this.assertParameters(parameters, loc);
     const appliedTypeName = GenericType.getName(this.name, parameters);
     const existedType = this.localTypeScope.parent.body.get(appliedTypeName);
-    if (existedType && existedType instanceof VariableInfo) {
-      return (existedType.type: any);
-    }
     if (this.localTypeScope.parent instanceof ModuleScope) {
       throw new Error("Never!");
     }
@@ -96,15 +93,6 @@ export class GenericType<T: Type> extends Type {
       parameters,
       this.localTypeScope.parent
     );
-    if (shouldBeMemoize) {
-      this.localTypeScope.parent.body.set(
-        appliedTypeName,
-        findVariableInfo(
-          { name: getNameForType(result) },
-          this.localTypeScope.parent
-        )
-      );
-    }
     return result;
   }
 }

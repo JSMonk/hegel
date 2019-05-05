@@ -1043,7 +1043,6 @@ describe("Type alias", () => {
       const typeScope = actual.body.get(TYPE_SCOPE);
       const actualType = typeScope.body.get("B");
       expect(actualType.type).toEqual(new Type("number"));
-      expect(typeScope.body.get("A<number>").type).toEqual(new Type("number"));
     });
   });
   describe("Object type alias", () => {
