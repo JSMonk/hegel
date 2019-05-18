@@ -1,6 +1,7 @@
 // @flow
 import { Type } from "./type";
 import { unique } from "../../utils/common";
+import { TypeVar } from "./type-var";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
@@ -10,18 +11,21 @@ import type { TypeMeta } from "./type";
 export class UnionType extends Type {
   static _createTypeWithName = createTypeWithName(UnionType);
 
-  static shouldBeUnion(variants: any) {
-    return (
-      variants.length !== 1 &&
-      variants.slice(1).every(variant => variant.name !== variants[0].name)
-    );
+  static getPrincipalTypeInside(variants: any) {
+    return variants.length === 1
+      ? variants[0]
+      : variants.find(
+          variant =>
+            !(variant instanceof TypeVar) &&
+            variants.every(subVariant => variant.isPrincipalTypeFor(subVariant))
+        );
   }
 
   static createTypeWithName(name: string, typeScope: Scope, variants: any) {
-    if (!this.shouldBeUnion(variants)) {
-      return variants[0];
-    }
-    return this._createTypeWithName(name, typeScope, variants);
+    return (
+      UnionType.getPrincipalTypeInside(variants) ||
+      this._createTypeWithName(name, typeScope, variants)
+    );
   }
 
   static getName(params: Array<Type>) {
@@ -37,6 +41,10 @@ export class UnionType extends Type {
 
   constructor(name: string, variants: Array<Type>, meta?: TypeMeta = {}) {
     super(name, meta);
+    const principalTypeInside = UnionType.getPrincipalTypeInside(variants);
+    if (principalTypeInside) {
+      return principalTypeInside;
+    }
     this.variants = unique(variants, a => getNameForType(a)).sort((t1, t2) =>
       getNameForType(t1).localeCompare(getNameForType(t2))
     );

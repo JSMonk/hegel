@@ -2,6 +2,7 @@
 import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
 import { Scope } from "../type-graph/scope";
+import { TypeVar } from "../type-graph/types/type-var";
 import { CallMeta } from "../type-graph/meta/call-meta";
 import { UnionType } from "../type-graph/types/union-type";
 import { GenericType } from "../type-graph/types/generic-type";
@@ -29,15 +30,23 @@ function isValidTypes(
   const actualType =
     (actual instanceof VariableInfo ? actual.type : actual) ||
     Type.createTypeWithName("undefined", typeScope);
-  if (actualType instanceof UnionType) {
-    return actualType.variants.every(t =>
-      isValidTypes(declaratedType, t, typeScope)
+  const actualRootType =
+    actualType instanceof TypeVar && actualType.root
+      ? actualType.root
+      : actualType;
+  const declaratedRootType =
+    declaratedType instanceof TypeVar && declaratedType.root
+      ? declaratedType.root
+      : declaratedType;
+  if (actualRootType instanceof UnionType) {
+    return actualRootType.variants.every(t =>
+      isValidTypes(declaratedRootType, t, typeScope)
     );
   }
-  if ("onlyLiteral" in declaratedType && actual instanceof VariableInfo) {
-    return declaratedType.equalsTo(actualType);
+  if ("onlyLiteral" in declaratedRootType && actual instanceof VariableInfo) {
+    return declaratedRootType.equalsTo(actualRootType);
   }
-  return declaratedType.isPrincipalTypeFor(actualType);
+  return declaratedRootType.isPrincipalTypeFor(actualRootType);
 }
 
 function checkSingleCall(call: CallMeta, typeScope: Scope): void {

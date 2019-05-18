@@ -19,9 +19,7 @@ export class TupleType extends Type {
   items: Array<Type>;
 
   constructor(name: string, items: Array<Type>) {
-    const valueType = UnionType.shouldBeUnion(items)
-      ? new UnionType(UnionType.getName(items), items)
-      : items[0];
+    const valueType = new UnionType(UnionType.getName(items), items);
     super(name, {
       isSubtypeOf: new CollectionType(
         `{ [key: nunmber]: ${getNameForType(valueType)} }`,
