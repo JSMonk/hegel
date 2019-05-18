@@ -188,7 +188,7 @@ export function implicitApplyGeneric(
     return res;
   }, {});
   return fn.applyGeneric(
-    fn.genericArguments.map(t => genericArguments[String(t.name)]),
+    fn.genericArguments.map(t => genericArguments[String(t.name)] || t),
     loc
   );
 }
