@@ -42,7 +42,7 @@ export function inferenceClass(
     return res.concat([[String(p.key.name || p.key.value), varInfo]]);
   }, []);
   const isSubtypeOf =
-    classNode.superClass && findVariableInfo(classNode.superClass, typeScope);
+    classNode.superClass && findVariableInfo(classNode.superClass, typeScope).type;
   const thisType = ObjectType.createTypeWithName(
     classNode.id ? classNode.id.name : ObjectType.getName(fieldsAndMethods),
     typeScope,
