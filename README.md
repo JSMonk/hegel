@@ -1,0 +1,3 @@
+# Hegel
+
+Static type checker
