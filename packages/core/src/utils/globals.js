@@ -245,14 +245,19 @@ const mixBaseGlobals = moduleScope => {
     [
       "Uint32Array",
       new VariableInfo(
-        genericFunction(
+        FunctionType.createTypeWithName(
+          "(number | Array<number>) => Uint32Array",
           typeScope,
-          [["T", new TypeVar("T")]],
-          l => [l.body.get("T").type],
-          l =>
-            typeScope.body
-              .get("Uint32Array")
-              .type.applyGeneric([l.body.get("T").type])
+          [
+            UnionType.createTypeWithName("Array<number> | number", typeScope, [
+              Type.createTypeWithName("number", typeScope),
+              CollectionType.createTypeWithName(
+                "Array",
+                typeScope
+              ).applyGeneric(Type.createTypeWithName("number", typeScope))
+            ])
+          ],
+          CollectionType.createTypeWithName("Uint32Array", typeScope)
         )
       )
     ],
