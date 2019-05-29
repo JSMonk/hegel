@@ -23,6 +23,10 @@ export function inferenceTypeForNode(
       return Type.createTypeWithName(currentNode.value, typeScope, {
         isSubtypeOf: Type.createTypeWithName("number", typeScope)
       });
+    case NODE.BIGINT_LITERAL:
+      return Type.createTypeWithName(`${currentNode.value}n`, typeScope, {
+        isSubtypeOf: Type.createTypeWithName("bigint", typeScope)
+      });
     case NODE.STRING_LITERAL:
       return Type.createTypeWithName(`'${currentNode.value}'`, typeScope, {
         isSubtypeOf: Type.createTypeWithName("string", typeScope)

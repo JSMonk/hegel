@@ -53,6 +53,7 @@ const mixBaseGlobals = moduleScope => {
       )
     ],
     ["number", new VariableInfo(Type.createTypeWithName("number", typeScope))],
+    ["bigint", new VariableInfo(Type.createTypeWithName("bigint", typeScope))],
     ["string", new VariableInfo(Type.createTypeWithName("string", typeScope))],
     [
       "boolean",
@@ -185,6 +186,39 @@ const mixBaseGlobals = moduleScope => {
             )
         )
       )
+    ],
+    [
+      "Uint32Array",
+      new VariableInfo(
+        CollectionType.createTypeWithName(
+          "{ [key: number]: number }",
+          localTypeScope,
+          Type.createTypeWithName("number", localTypeScope),
+          TypeVar.createTypeWithName("number", localTypeScope),
+          {
+            isSubtypeOf: ObjectType.createTypeWithName(
+              "Array.__proto__",
+              localTypeScope,
+              [
+                [
+                  "slice",
+                  new VariableInfo(
+                    FunctionType.createTypeWithName(
+                      "(number, number) => Uint32Array",
+                      localTypeScope,
+                      [
+                        Type.createTypeWithName("number", localTypeScope),
+                        Type.createTypeWithName("number", localTypeScope)
+                      ],
+                      Type.createTypeWithName("Uint32Array", localTypeScope)
+                    )
+                  )
+                ]
+              ]
+            )
+          }
+        )
+      )
     ]
   ]);
   typeScope.body = new Map([...typeScope.body, ...globalTypes]);
@@ -204,6 +238,20 @@ const mixBaseGlobals = moduleScope => {
           l =>
             typeScope.body
               .get("Array")
+              .type.applyGeneric([l.body.get("T").type])
+        )
+      )
+    ],
+    [
+      "Uint32Array",
+      new VariableInfo(
+        genericFunction(
+          typeScope,
+          [["T", new TypeVar("T")]],
+          l => [l.body.get("T").type],
+          l =>
+            typeScope.body
+              .get("Uint32Array")
               .type.applyGeneric([l.body.get("T").type])
         )
       )

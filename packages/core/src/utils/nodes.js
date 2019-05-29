@@ -62,6 +62,7 @@ export const CLASS_PROPERTIES = {
 
 export const LITERAL_TYPES = {
   NUMERIC_LITERAL: "NumericLiteral",
+  BIGINT_LITERAL: "BigIntLiteral",
   STRING_LITERAL: "StringLiteral",
   BOOLEAN_LITERAL: "BooleanLiteral",
   NULL_LITERAL: "NullLiteral",

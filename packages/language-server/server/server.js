@@ -17,7 +17,7 @@ const readFile = utils.promisify(fs.readFile);
 
 const babelrc = {
   sourceType: 'module',
-  plugins: ['flow'],
+  plugins: ['flow', 'bigInt'],
 };
 
 const connection = createConnection(
