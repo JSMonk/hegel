@@ -1210,20 +1210,20 @@ describe("Type refinement", () => {
     const actualScope = actual.body.get("[[Scope4-40]]");
     expect(actualScope.body.get("b").type).toEqual(new Type("boolean"));
   });
-  test("Typeof refinement for union variable(number) in and operator", async () => {
-    const sourceAST = prepareAST(`
-      const a: number | string = 2;
-      const c = typeof a === "number" && a;
-    `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
-    const actualScope = actual.body.get("[[Scope3-33]]");
-    expect(actualScope.body.get("b").type).toEqual(
-      new UnionType("boolean | number", [
-        new Type("boolean"),
-        new Type("number")
-      ])
-    );
-  });
+  // test("Typeof refinement for union variable(number) in and operator", async () => {
+  //   const sourceAST = prepareAST(`
+  //     const a: number | string = 2;
+  //     const c = typeof a === "number" && a;
+  //   `);
+  //   const [[actual]] = await createTypeGraph([sourceAST]);
+  //   const actualScope = actual.body.get("[[Scope3-33]]");
+  //   expect(actualScope.body.get("b").type).toEqual(
+  //     new UnionType("boolean | number", [
+  //       new Type("boolean"),
+  //       new Type("number")
+  //     ])
+  //   );
+  // });
   test("Typeof refinement for union variable(string)", async () => {
     const sourceAST = prepareAST(`
       const a: number | string = 2;

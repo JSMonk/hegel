@@ -191,26 +191,26 @@ const mixBaseGlobals = moduleScope => {
       "Uint32Array",
       new VariableInfo(
         CollectionType.createTypeWithName(
-          "{ [key: number]: number }",
-          localTypeScope,
-          Type.createTypeWithName("number", localTypeScope),
-          TypeVar.createTypeWithName("number", localTypeScope),
+          "Uint32Array",
+          typeScope,
+          Type.createTypeWithName("number", typeScope),
+          TypeVar.createTypeWithName("number", typeScope),
           {
             isSubtypeOf: ObjectType.createTypeWithName(
               "Array.__proto__",
-              localTypeScope,
+              typeScope,
               [
                 [
                   "slice",
                   new VariableInfo(
                     FunctionType.createTypeWithName(
                       "(number, number) => Uint32Array",
-                      localTypeScope,
+                      typeScope,
                       [
-                        Type.createTypeWithName("number", localTypeScope),
-                        Type.createTypeWithName("number", localTypeScope)
+                        Type.createTypeWithName("number", typeScope),
+                        Type.createTypeWithName("number", typeScope)
                       ],
-                      Type.createTypeWithName("Uint32Array", localTypeScope)
+                      Type.createTypeWithName("Uint32Array", typeScope)
                     )
                   )
                 ]
@@ -251,13 +251,14 @@ const mixBaseGlobals = moduleScope => {
           [
             UnionType.createTypeWithName("Array<number> | number", typeScope, [
               Type.createTypeWithName("number", typeScope),
-              CollectionType.createTypeWithName(
-                "Array",
-                typeScope
-              ).applyGeneric(Type.createTypeWithName("number", typeScope))
+              typeScope.body
+                .get("Array")
+                .type.applyGeneric([
+                  Type.createTypeWithName("number", typeScope)
+                ])
             ])
           ],
-          CollectionType.createTypeWithName("Uint32Array", typeScope)
+          typeScope.body.get("Uint32Array").type
         )
       )
     ],
