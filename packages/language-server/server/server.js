@@ -1,23 +1,23 @@
-const fs = require('fs');
-const path = require('path');
-const utils = require('util');
-const babylon = require('@babel/parser');
-const createTypeGraph = require('@hegel/core/type-graph/type-graph').default;
-const { POSITIONS } = require('@hegel/core/type-graph/constants');
-const { getVarAtPosition } = require('@hegel/core/utils/position-utils');
+const fs = require("fs");
+const path = require("path");
+const utils = require("util");
+const babylon = require("@babel/parser");
+const createTypeGraph = require("@hegel/core/type-graph/type-graph").default;
+const { POSITIONS } = require("@hegel/core/type-graph/constants");
+const { getVarAtPosition } = require("@hegel/core/utils/position-utils");
 const {
   createConnection,
   TextDocuments,
   DiagnosticSeverity,
   IPCMessageReader,
-  IPCMessageWriter,
-} = require('vscode-languageserver');
+  IPCMessageWriter
+} = require("vscode-languageserver");
 
 const readFile = utils.promisify(fs.readFile);
 
 const babelrc = {
-  sourceType: 'module',
-  plugins: ['flow', 'bigInt'],
+  sourceType: "module",
+  plugins: ["flow", "bigInt"]
 };
 
 const connection = createConnection(
@@ -27,7 +27,7 @@ const connection = createConnection(
 
 let ast = {},
   types = {},
-  text = '',
+  text = "",
   errors = [];
 
 const documents = new TextDocuments();
@@ -40,22 +40,22 @@ connection.onInitialize(() => {
   return {
     capabilities: {
       textDocumentSync: documents.syncKind,
-      hoverProvider: true,
-    },
+      hoverProvider: true
+    }
   };
 });
 
 function convertLocToRange(loc) {
   return {
     line: loc.line - 1,
-    character: loc.column,
+    character: loc.column
   };
 }
 
 function convertRangeToLoc(loc) {
   return {
     line: loc.line + 1,
-    column: loc.character,
+    column: loc.character
   };
 }
 
@@ -66,7 +66,7 @@ connection.onHover(meta => {
     return;
   }
   return {
-    contents: [{ language: 'typescript', value: String(varInfo.type.name) }],
+    contents: [{ language: "typescript", value: String(varInfo.type.name) }]
   };
 });
 
@@ -77,14 +77,16 @@ documents.onDidChangeContent(change => {
 function getModuleAST(currentModulePath) {
   return async importModulePath => {
     const importPath =
-      importModulePath[0] === '.'
+      importModulePath[0] === "."
         ? path.join(
-            currentModulePath.slice(0, currentModulePath.lastIndexOf('/')),
+            currentModulePath.slice(0, currentModulePath.lastIndexOf("/")),
             `${importModulePath}.js`
           )
-        : '';
-    const moduleContent = await readFile(importPath, { encoding: 'utf8' });
-    return babylon.parse(moduleContent, babelrc).program;
+        : "";
+    const moduleContent = await readFile(importPath, { encoding: "utf8" });
+    return Object.assign(babylon.parse(moduleContent, babelrc).program, {
+      path: currentModulePath
+    });
   };
 }
 
@@ -92,8 +94,8 @@ async function validateTextDocument(textDocument) {
   text = textDocument.getText();
   ast = babylon.parse(text, babelrc);
   [[types], errors] = await createTypeGraph(
-    [ast.program],
-    getModuleAST(textDocument.uri.replace('file://', ''))
+    [Object.assign(ast.program, { path: textDocument.uri })],
+    getModuleAST(textDocument.uri.replace("file://", ""))
   );
   const diagnostics = [];
   for (let i = 0; i < errors.length; i++) {
@@ -102,10 +104,10 @@ async function validateTextDocument(textDocument) {
       severity: DiagnosticSeverity.Error,
       range: {
         start: convertLocToRange(error.loc.start),
-        end: convertLocToRange(error.loc.end),
+        end: convertLocToRange(error.loc.end)
       },
       message: error.message,
-      source: 'ex',
+      source: "ex"
     };
     diagnostics.push(diagnostic);
   }
@@ -114,10 +116,10 @@ async function validateTextDocument(textDocument) {
 
 function getQuickInfo(file, position) {
   try {
-    return this.tspClient.request('quickinfo', {
+    return this.tspClient.request("quickinfo", {
       file,
       line: position.line + 1,
-      offset: position.character + 1,
+      offset: position.character + 1
     });
   } catch (err) {
     return undefined;
