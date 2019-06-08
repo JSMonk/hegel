@@ -88,6 +88,7 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
 }
 
 function checkCalls(
+  path: string,
   scope: Scope | ModuleScope,
   typeScope: Scope,
   errors: Array<HegelError>,
@@ -101,6 +102,7 @@ function checkCalls(
     try {
       checkSingleCall(scope.calls[i], typeScope);
     } catch (e) {
+      e.source = path;
       errors.push(e);
     }
   }
@@ -122,7 +124,8 @@ function checkCalls(
         `Function should return something with type "${getNameForType(
           functionDeclaration.returnType
         )}"`,
-        loc
+        loc,
+        path
       );
     }
   }

@@ -1,0 +1,34 @@
+{
+  "name": "hegel-cli",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build:check && npm run build:clean && npm run build:start",
+    "build:check": "flow",
+    "build:start": "babel src -d build",
+    "build:clean": "rm -rf build && mkdir build",
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/code-frame": "^7.0.0",
+    "@hegel/core": "0.0.5",
+    "chalk": "^2.4.2",
+    "cosmiconfig": "^5.2.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.2",
+    "@babel/core": "^7.4.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-flow": "^7.0.0",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-jest": "^23.6.0",
+    "babel-plugin-syntax-flow": "^6.18.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+    "flow-bin": "^0.94.0",
+    "jest": "^23.6.0"
+  }
+}

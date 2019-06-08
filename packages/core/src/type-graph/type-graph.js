@@ -273,6 +273,7 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
 };
 
 const afterFillierActions = (
+  path: string,
   typeGraph: ModuleScope,
   errors: Array<HegelError>
 ) => {
@@ -379,7 +380,7 @@ const afterFillierActions = (
             ? inferenceErrorType(currentNode, typeGraph)
             : undefined;
         }
-        checkCalls(functionScope, typeScope, errors, currentNode.loc);
+        checkCalls(path, functionScope, typeScope, errors, currentNode.loc);
         break;
       default:
         if (currentNode.exportAs) {
@@ -399,6 +400,7 @@ const afterFillierActions = (
 };
 
 async function createModuleScope(
+  path: string,
   ast: Program,
   errors: Array<HegelError>,
   getModuleTypeGraph: string => Promise<ModuleScope>,
@@ -422,15 +424,16 @@ async function createModuleScope(
     traverseTree(
       ast,
       fillModuleScope(module, errors),
-      afterFillierActions(module, errors)
+      afterFillierActions(path, module, errors)
     );
   } catch (e) {
     if (!(e instanceof HegelError)) {
       throw e;
     }
+    e.source = path;
     errors.push(e);
   }
-  checkCalls(module, typeScope, errors);
+  checkCalls(path, module, typeScope, errors);
   return module;
 }
 
@@ -448,6 +451,7 @@ async function createGlobalScope(
   mixBaseOperators(globalModule);
   const getModuleFromString = async path =>
     createModuleScope(
+      path,
       await getModuleAST(path),
       errors,
       getModuleFromString,
@@ -455,7 +459,13 @@ async function createGlobalScope(
     );
   const modules = await Promise.all(
     ast.map(module =>
-      createModuleScope(module, errors, getModuleFromString, globalModule)
+      createModuleScope(
+        module.path,
+        module,
+        errors,
+        getModuleFromString,
+        globalModule
+      )
     )
   );
   return [modules, errors, globalModule];
