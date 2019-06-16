@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@babel/code-frame": "^7.0.0",
-    "@hegel/core": "0.0.5",
+    "@hegel/core": "0.0.6",
     "chalk": "^2.4.2",
     "cosmiconfig": "^5.2.1",
     "readdirp": "^3.0.2"

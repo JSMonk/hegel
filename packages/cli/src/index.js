@@ -1,25 +1,21 @@
-import chalk from "chalk";
-import { join } from "path";
-import { parse } from "@babel/parser";
-import { readFileSync } from "fs";
-import { codeFrameColumns } from "@babel/code-frame";
+// @flow
+import { getConfig } from "./lib/config";
+import { getLogger } from "./lib/logger";
+import { createASTGenerator } from "./lib/parser";
+import { getSources, importModule } from "./lib/file-system";
+import { getErrorsPrint, getVerdictPrint } from "./lib/printer";
 import createTypeGraph from "@hegel/core/type-graph/type-graph";
-import printError from "./printer";
-
-const babelrc = {
-  sourceType: 'module',
-  plugins: ['flow', 'bigInt'],
-};
 
 (async () => {
-  const path = join(__dirname, "../src/test.js");
-  const fileContent = readFileSync(path, "utf8");
-  const ast = parse(fileContent, babelrc);
-  const [modules, errors] = await createTypeGraph([{ ...ast.program, path }], () => {});
-  let result = ""; 
-  for (const error of errors) {
-    result = `${result}\n\n${printError(error, fileContent)}`;
-  }
-  console.log(result);
+  const logger = getLogger();
+  const config = await getConfig();
+  const getFileAST = createASTGenerator(config);
+  const sources = await getSources(config);
+  const asts = await Promise.all(sources.map(file => getFileAST(file.path)));
+  const [modules, errors] = await createTypeGraph(asts, importModule);
+  const result = await getErrorsPrint(errors, getFileAST);
+  const verdict = getVerdictPrint(errors);
+  logger.log(result);
+  logger.log(`\n${verdict}\n`);
   process.exit(errors.length);
-})()
+})();
