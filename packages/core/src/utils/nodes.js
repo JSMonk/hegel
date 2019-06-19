@@ -37,6 +37,7 @@ export const EXPRESSIONS_TYPES = {
   OBJECT_EXPRESSION: "ObjectExpression",
   CLASS_EXPRESSION: "ClassExpression",
   ASSIGNMENT_EXPRESSION: "AssignmentExpression",
+  ASSIGNMENT_PATTERN: "AssignmentPattern",
   BINARY_EXPRESSION: "BinaryExpression",
   UNARY_EXPRESSION: "UnaryExpression",
   CONDITIONAL_EXPRESSION: "ConditionalExpression",

@@ -324,6 +324,15 @@ describe("Simple inference for module variables by function return", () => {
     });
     expect(actual.body.get("a")).toEqual(expected);
   });
+  test("Inference function with default paramter and type", async () => {
+    const sourceAST = prepareAST(`
+      const fn = (a: number = 1) => a;
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    expect(actual.body.get("fn").type).toEqual(
+      new FunctionType("(number) => number", [new Type("number")], new Type("number"))
+    );
+  });
 });
 describe("Simple inference for module functions", () => {
   test("Inference global module function arguments", async () => {
@@ -939,6 +948,26 @@ describe("Simple inference for module functions", () => {
     expect(actualAScope.body.get("x").type).toEqual(new Type("number"));
     expect(actualAScope.body.get("fn").type).toEqual(
       new FunctionType("() => number", [], new Type("number"))
+    );
+  });
+  test("Inference function with default paramters", async () => {
+    const sourceAST = prepareAST(`
+      const fn = (a = 1) => a;
+    `);
+    debugger;
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    expect(actual.body.get("fn").type).toEqual(
+      new FunctionType("(number) => number", [new Type("number")], new Type("number"))
+    );
+  });
+  test("Inference function with default paramter and inner call", async () => {
+    const sourceAST = prepareAST(`
+      const getNum = () => 2;
+      const fn = (a = getNum()) => a;
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    expect(actual.body.get("fn").type).toEqual(
+      new FunctionType("(number) => number", [new Type("number")], new Type("number"))
     );
   });
 });

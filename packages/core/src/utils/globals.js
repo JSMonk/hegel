@@ -188,6 +188,39 @@ const mixBaseGlobals = moduleScope => {
       )
     ],
     [
+      "Uint8Array",
+      new VariableInfo(
+        CollectionType.createTypeWithName(
+          "Uint8Array",
+          typeScope,
+          Type.createTypeWithName("number", typeScope),
+          TypeVar.createTypeWithName("number", typeScope),
+          {
+            isSubtypeOf: ObjectType.createTypeWithName(
+              "Array.__proto__",
+              typeScope,
+              [
+                [
+                  "slice",
+                  new VariableInfo(
+                    FunctionType.createTypeWithName(
+                      "(number, number) => Uint8Array",
+                      typeScope,
+                      [
+                        Type.createTypeWithName("number", typeScope),
+                        Type.createTypeWithName("number", typeScope)
+                      ],
+                      Type.createTypeWithName("Uint8Array", typeScope)
+                    )
+                  )
+                ]
+              ]
+            )
+          }
+        )
+      )
+    ],
+    [
       "Uint32Array",
       new VariableInfo(
         CollectionType.createTypeWithName(
@@ -239,6 +272,26 @@ const mixBaseGlobals = moduleScope => {
             typeScope.body
               .get("Array")
               .type.applyGeneric([l.body.get("T").type])
+        )
+      )
+    ],
+    [
+      "Uint8Array",
+      new VariableInfo(
+        FunctionType.createTypeWithName(
+          "(number | Array<number>) => Uint8Array",
+          typeScope,
+          [
+            UnionType.createTypeWithName("Array<number> | number", typeScope, [
+              Type.createTypeWithName("number", typeScope),
+              typeScope.body
+                .get("Array")
+                .type.applyGeneric([
+                  Type.createTypeWithName("number", typeScope)
+                ])
+            ])
+          ],
+          typeScope.body.get("Uint8Array").type
         )
       )
     ],

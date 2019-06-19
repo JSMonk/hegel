@@ -73,16 +73,7 @@ export const addFunctionScopeToTypeGraph = (
   if (currentNode.type === NODE.FUNCTION_EXPRESSION && currentNode.id) {
     scope.body.set(getDeclarationName(currentNode), variableInfo);
   }
-  const functionType =
-    variableInfo.type instanceof GenericType
-      ? variableInfo.type.subordinateType
-      : variableInfo.type;
-  currentNode.params.forEach((id, index) => {
-    const type = (functionType: any).argumentsTypes[index];
-    const varInfo = new VariableInfo(type, scope, new Meta(id.loc));
-    scope.body.set(id.name, varInfo);
-    addPosition(id, varInfo, typeGraph);
-  });
+  return scope;
 };
 
 const addFunctionToTypeGraph = (
@@ -100,16 +91,32 @@ const addFunctionToTypeGraph = (
     name
   );
   const currentTypeScope = findNearestTypeScope(variableInfo.parent, typeGraph);
+  const scope = addFunctionScopeToTypeGraph(
+    currentNode,
+    parentNode,
+    typeGraph,
+    variableInfo
+  );
   variableInfo.type = inferenceTypeForNode(
     currentNode,
     currentTypeScope,
     variableInfo.parent,
     typeGraph
   );
+  const functionType =
+    variableInfo.type instanceof GenericType
+      ? variableInfo.type.subordinateType
+      : variableInfo.type;
+  currentNode.params.forEach((param, index) => {
+    const type = (functionType: any).argumentsTypes[index];
+    const id = param.left || param; 
+    const varInfo = new VariableInfo(type, scope, new Meta(id.loc));
+    scope.body.set(id.name, varInfo);
+    addPosition(id, varInfo, typeGraph);
+  });
   if (currentNode.id) {
     addPosition(currentNode.id, variableInfo, typeGraph);
   }
-  addFunctionScopeToTypeGraph(currentNode, parentNode, typeGraph, variableInfo);
 };
 
 const hasTypeParams = (node: Node): boolean =>

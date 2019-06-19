@@ -147,15 +147,18 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.ASSIGNMENT_EXPRESSION:
+    case NODE.ASSIGNMENT_PATTERN:
+      const left = addCallToTypeGraph(node.right, typeGraph, currentScope);
       args = [
         addCallToTypeGraph(node.left, typeGraph, currentScope).result,
-        addCallToTypeGraph(node.right, typeGraph, currentScope).result
+        left.result
       ];
-      targetName = node.operator;
+      targetName = node.operator || "=";
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
         currentScope
       );
+      inferenced = left.inferenced;
       break;
     case NODE.RETURN_STATEMENT:
       targetName = "return";

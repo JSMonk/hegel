@@ -1,6 +1,7 @@
 // @flow
 import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
+import { Meta } from "../type-graph/meta/meta";
 import { Scope } from "../type-graph/scope";
 import { TypeVar } from "../type-graph/types/type-var";
 import { CallMeta } from "../type-graph/meta/call-meta";
@@ -10,6 +11,8 @@ import { ModuleScope } from "../type-graph/module-scope";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
+import { getVariableType } from "../utils/variable-utils";
+import { addCallToTypeGraph } from "../type-graph/call";
 import { getTypeFromTypeAnnotation } from "../utils/type-utils";
 import type { Function, SourceLocation } from "@babel/parser";
 import type {
@@ -48,12 +51,17 @@ const typeVarNames = [
 export function inferenceFunctionLiteralType(
   currentNode: Function,
   typeScope: Scope,
-  parentNode: ModuleScope | Scope
+  parentNode: ModuleScope | Scope,
+  typeGraph: ModuleScope
 ): CallableType {
   let shouldBeGeneric =
     currentNode.typeParameters !== undefined ||
     currentNode.returnType === undefined;
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
+  const functionScope = typeGraph.body.get(Scope.getName(currentNode));
+  if (!(functionScope instanceof Scope)) {
+    throw new Error("Function scope should be created before inference");
+  }
   const genericArguments: Array<TypeVar> = [];
   if (currentNode.typeParameters) {
     currentNode.typeParameters.params.forEach(typeAnnotation =>
@@ -73,12 +81,40 @@ export function inferenceFunctionLiteralType(
         param.loc
       );
     }
-    const paramType = getTypeFromTypeAnnotation(
-      param.typeAnnotation,
+    const typeAnnotation =
+      param.left !== undefined
+        ? param.left.typeAnnotation
+        : param.typeAnnotation;
+    let paramType = getTypeFromTypeAnnotation(
+      typeAnnotation,
       localTypeScope,
       parentNode,
       false
     );
+    if (param.left !== undefined) {
+      functionScope.body.set(
+        param.left.name,
+        new VariableInfo(paramType, localTypeScope, new Meta(param.loc))
+      );
+      const callResultType = addCallToTypeGraph(
+        param,
+        typeGraph,
+        functionScope
+      );
+      const newType =
+        callResultType.result instanceof VariableInfo
+          ? callResultType.result.type
+          : callResultType.result;
+      paramType =
+        paramType.name !== UNDEFINED_TYPE
+          ? paramType
+          : getVariableType(
+              undefined,
+              newType,
+              typeScope,
+              callResultType.inferenced
+            );
+    }
     if (paramType.name === UNDEFINED_TYPE) {
       shouldBeGeneric = true;
       const typeVar = addTypeVar(typeVarNames[index], localTypeScope);

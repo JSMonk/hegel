@@ -50,7 +50,7 @@ export function inferenceTypeForNode(
     case NODE.FUNCTION_DECLARATION:
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
-      return inferenceFunctionLiteralType(currentNode, typeScope, parentNode);
+      return inferenceFunctionLiteralType(currentNode, typeScope, parentNode, typeGraph);
     case NODE.NEW_EXPRESSION:
       const constructor: any = findVariableInfo(currentNode.callee, parentNode);
       return constructor.type.returnType;

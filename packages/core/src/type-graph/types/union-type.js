@@ -17,7 +17,7 @@ export class UnionType extends Type {
       : variants.find(
           variant =>
             !(variant instanceof TypeVar) &&
-            variants.every(subVariant => variant.isPrincipalTypeFor(subVariant))
+            variants.every(subVariant => variant.equalsTo(subVariant))
         );
   }
 
