@@ -85,11 +85,16 @@ function getRefinmentType(typeName: string): Type {
     case "number":
     case "string":
     case "boolean":
+    case "undefined":
+    case "bigint":
       return new Type(typeName);
     case "function":
       return new ObjectType("Function", []);
     case "object":
-      return new ObjectType("Object", []);
+      return new UnionType("Object | null", [
+        new ObjectType("Object", []),
+        new Type("null")
+      ]);
   }
   throw new Error("Never!");
 }

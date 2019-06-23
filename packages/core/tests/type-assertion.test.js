@@ -318,7 +318,7 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number | void) => number" is incompatible with type "(number) => void"'
+      'Type "(number | undefined) => number" is incompatible with type "(number) => void"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 49, line: 2 },
@@ -377,7 +377,7 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => number" is incompatible with type "(number | void) => void"'
+      'Type "(number) => number" is incompatible with type "(number | undefined) => void"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 49, line: 2 },
@@ -886,7 +886,7 @@ describe("Nullable types", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "{ a: 2 }" is incompatible with type "{ a: string | void }"'
+      'Type "{ a: 2 }" is incompatible with type "{ a: string | undefined }"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 40, line: 2 },

@@ -266,11 +266,10 @@ describe("Simple inference for module variables by function return", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new UnionType("number | void", [
+      type: new UnionType("number | undefined", [
         new Type("number"),
-        new Type("void")
-      ]),
-      parent: actual
+        new Type("undefined", { isSubtypeOf: new Type("void") })
+      ])
     });
     expect(actual.body.get("a")).toEqual(expected);
   });
@@ -330,7 +329,11 @@ describe("Simple inference for module variables by function return", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     expect(actual.body.get("fn").type).toEqual(
-      new FunctionType("(number) => number", [new Type("number")], new Type("number"))
+      new FunctionType(
+        "(number) => number",
+        [new Type("number")],
+        new Type("number")
+      )
     );
   });
 });
@@ -346,7 +349,7 @@ describe("Simple inference for module functions", () => {
     expect(actualA.type.name).toEqual("<α>(α) => void");
     expect(actualA.type.subordinateType.returnType).toEqual(new Type("void"));
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α")
+      new TypeVar("α", undefined, true)
     ]);
   });
   test("Inference global module function without return type", async () => {
@@ -398,9 +401,11 @@ describe("Simple inference for module functions", () => {
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => α");
-    expect(actualA.type.subordinateType.returnType).toEqual(new TypeVar("α"));
+    expect(actualA.type.subordinateType.returnType).toEqual(
+      new TypeVar("α", undefined, true)
+    );
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α")
+      new TypeVar("α", undefined, true)
     ]);
   });
   test("Inference global module function type by arguments usage", async () => {
@@ -430,6 +435,45 @@ describe("Simple inference for module functions", () => {
       new FunctionType("() => number", [], new Type("number"))
     );
     expect(actualA.type.argumentsTypes).toEqual([new Type("number")]);
+  });
+  test("Inference global module function type by arguments usage", async () => {
+    const sourceAST = prepareAST(`
+      function mul(a, b) {
+        return a * b;
+      }
+    `);
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualA = actual.body.get("mul");
+    const expectedT = new TypeVar(
+      "T",
+      new UnionType("bigint | number", [
+        new Type("bigint"),
+        new Type("number")
+      ]),
+      true
+    );
+    expect(actualA.type.constructor).toBe(GenericType);
+    expect(actualA.type.name).toEqual("<T: bigint | number>(T, T) => T");
+    expect(actualA.type.subordinateType.returnType).toEqual(expectedT);
+    expect(actualA.type.subordinateType.argumentsTypes).toEqual([
+      expectedT,
+      expectedT
+    ]);
+  });
+  test("Inference global module function type by multiple arguments usage", async () => {
+    const sourceAST = prepareAST(`
+      const rol = (x, i) => (x << i) | (x >>> (32 - i));
+    `);
+    debugger;
+    const [[actual]] = await createTypeGraph([sourceAST]);
+    const actualA = actual.body.get("rol");
+    expect(actualA.type.constructor).toBe(FunctionType);
+    expect(actualA.type.name).toEqual("(number, number) => number");
+    expect(actualA.type.returnType).toEqual(new Type("number"));
+    expect(actualA.type.argumentsTypes).toEqual([
+      new Type("number"),
+      new Type("number")
+    ]);
   });
   test("Inference global module function type by inner function arguments link", async () => {
     const sourceAST = prepareAST(`
@@ -498,6 +542,7 @@ describe("Simple inference for module functions", () => {
         return x - 2;
       }
     `);
+    debugger;
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-6]]");
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
@@ -531,7 +576,7 @@ describe("Simple inference for module functions", () => {
     expect(actualA.type.name).toEqual("<α>(α) => void");
     expect(actualA.type.subordinateType.returnType).toEqual(new Type("void"));
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α")
+      new TypeVar("α", undefined, true)
     ]);
   });
   test("Inference global module function without return type inside function expression", async () => {
@@ -583,9 +628,11 @@ describe("Simple inference for module functions", () => {
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => α");
-    expect(actualA.type.subordinateType.returnType).toEqual(new TypeVar("α"));
+    expect(actualA.type.subordinateType.returnType).toEqual(
+      new TypeVar("α", undefined, true)
+    );
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α")
+      new TypeVar("α", undefined, true)
     ]);
   });
   test("Inference global module function type by arguments usage inside function expression", async () => {
@@ -716,7 +763,7 @@ describe("Simple inference for module functions", () => {
     expect(actualA.type.name).toEqual("<α>(α) => void");
     expect(actualA.type.subordinateType.returnType).toEqual(new Type("void"));
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α")
+      new TypeVar("α", undefined, true)
     ]);
   });
   test("Inference global module function without return type inside arrow function", async () => {
@@ -791,9 +838,11 @@ describe("Simple inference for module functions", () => {
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => α");
-    expect(actualA.type.subordinateType.returnType).toEqual(new TypeVar("α"));
+    expect(actualA.type.subordinateType.returnType).toEqual(
+      new TypeVar("α", undefined, true)
+    );
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α")
+      new TypeVar("α", undefined, true)
     ]);
   });
   test("Inference global module function type 2 inside arrow function", async () => {
@@ -804,9 +853,11 @@ describe("Simple inference for module functions", () => {
     const actualA = actual.body.get("a");
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => α");
-    expect(actualA.type.subordinateType.returnType).toEqual(new TypeVar("α"));
+    expect(actualA.type.subordinateType.returnType).toEqual(
+      new TypeVar("α", undefined, true)
+    );
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α")
+      new TypeVar("α", undefined, true)
     ]);
   });
   test("Inference global module function type by arguments usage 1 inside arrow function", async () => {
@@ -954,10 +1005,18 @@ describe("Simple inference for module functions", () => {
     const sourceAST = prepareAST(`
       const fn = (a = 1) => a;
     `);
-    debugger;
     const [[actual]] = await createTypeGraph([sourceAST]);
     expect(actual.body.get("fn").type).toEqual(
-      new FunctionType("(number) => number", [new Type("number")], new Type("number"))
+      new FunctionType(
+        "(number | undefined) => number",
+        [
+          new UnionType("number | undefined", [
+            new Type("number"),
+            new Type("undefined", { isSubtypeOf: new Type("void") })
+          ])
+        ],
+        new Type("number")
+      )
     );
   });
   test("Inference function with default paramter and inner call", async () => {
@@ -967,7 +1026,16 @@ describe("Simple inference for module functions", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     expect(actual.body.get("fn").type).toEqual(
-      new FunctionType("(number) => number", [new Type("number")], new Type("number"))
+      new FunctionType(
+        "(number | undefined) => number",
+        [
+          new UnionType("number | undefined", [
+            new Type("number"),
+            new Type("undefined", { isSubtypeOf: new Type("void") })
+          ])
+        ],
+        new Type("number")
+      )
     );
   });
 });
@@ -1015,10 +1083,18 @@ describe("Object type inference", () => {
       new FunctionType("() => number", [], new Type("number"))
     );
     expect(actualA.properties.get("b").type.subordinateType).toEqual(
-      new FunctionType("<α>(α) => void", [new TypeVar("α")], new Type("void"))
+      new FunctionType(
+        "<α>(α) => void",
+        [new TypeVar("α", undefined, true)],
+        new Type("void")
+      )
     );
     expect(actualA.properties.get("c").type.subordinateType).toEqual(
-      new FunctionType("<α>(α) => α", [new TypeVar("α")], new TypeVar("α"))
+      new FunctionType(
+        "<α>(α) => α",
+        [new TypeVar("α", undefined, true)],
+        new TypeVar("α", undefined, true)
+      )
     );
     expect(actualA.name).toEqual(
       "{ a: () => number, b: <α>(α) => void, c: <α>(α) => α }"
@@ -1188,7 +1264,10 @@ describe("Collection type inference", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
     expect(actualA.type).toEqual(
-      new UnionType("number | void", [new Type("number"), new Type("void")])
+      new UnionType("number | undefined", [
+        new Type("number"),
+        new Type("undefined")
+      ])
     );
   });
   test("Simple inference of array type", async () => {

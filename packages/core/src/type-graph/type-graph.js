@@ -9,6 +9,7 @@ import mixImportedDependencies from "../utils/imports";
 import HegelError, { UnreachableError } from "../utils/errors";
 import { Meta } from "./meta/meta";
 import { Scope } from "./scope";
+import { UnionType } from "./types/union-type";
 import { refinement } from "../inference/refinement";
 import { addPosition } from "../utils/position-utils";
 import { GenericType } from "./types/generic-type";
@@ -108,10 +109,23 @@ const addFunctionToTypeGraph = (
       ? variableInfo.type.subordinateType
       : variableInfo.type;
   currentNode.params.forEach((param, index) => {
-    const type = (functionType: any).argumentsTypes[index];
-    const id = param.left || param; 
-    const varInfo = new VariableInfo(type, scope, new Meta(id.loc));
-    scope.body.set(id.name, varInfo);
+    let type = (functionType: any).argumentsTypes[index];
+    if (param.left !== undefined && param.left.typeAnnotation === undefined) {
+      const types = (type.variants: any).filter(a => a.name !== "undefined");
+      type = UnionType.createTypeWithName(
+        UnionType.getName(types),
+        currentTypeScope,
+        types
+      );
+    }
+    const id = param.left || param;
+    let varInfo = scope.body.get(id.name);
+    if (varInfo !== undefined) {
+      varInfo.type = type;
+    } else {
+      varInfo = new VariableInfo(type, scope, new Meta(id.loc));
+      scope.body.set(id.name, varInfo);
+    }
     addPosition(id, varInfo, typeGraph);
   });
   if (currentNode.id) {
@@ -410,7 +424,7 @@ async function createModuleScope(
   path: string,
   ast: Program,
   errors: Array<HegelError>,
-  getModuleTypeGraph: string => Promise<ModuleScope>,
+  getModuleTypeGraph: (string, string) => Promise<ModuleScope>,
   globalModule: ModuleScope
 ): Promise<ModuleScope> {
   const module = new ModuleScope(new Map(), globalModule);
@@ -446,7 +460,7 @@ async function createModuleScope(
 
 async function createGlobalScope(
   ast: Array<Program>,
-  getModuleAST: string => Promise<Program>
+  getModuleAST: (string, string) => Promise<Program>
 ): Promise<[Array<ModuleScope>, Array<HegelError>, ModuleScope]> {
   const errors: Array<HegelError> = [];
   const globalModule = new ModuleScope();
@@ -456,14 +470,16 @@ async function createGlobalScope(
   mixUtilityTypes(globalModule);
   mixBaseGlobals(globalModule);
   mixBaseOperators(globalModule);
-  const getModuleFromString = async path =>
-    createModuleScope(
-      path,
-      await getModuleAST(path),
+  const getModuleFromString = async (path: string, currentPath: string) => {
+    const ast = await getModuleAST(path, currentPath);
+    return createModuleScope(
+      ast.path,
+      ast,
       errors,
       getModuleFromString,
       globalModule
     );
+  };
   const modules = await Promise.all(
     ast.map(module =>
       createModuleScope(

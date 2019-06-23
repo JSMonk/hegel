@@ -126,7 +126,7 @@ export function addCallToTypeGraph(
       break;
     case NODE.AWAIT_EXPRESSION:
       args = [
-        addCallToTypeGraph(node.argument, typeGraph, currentScope).result,
+        addCallToTypeGraph(node.argument, typeGraph, currentScope).result
       ];
       targetName = "await";
       target = findVariableInfo(
@@ -148,17 +148,17 @@ export function addCallToTypeGraph(
       break;
     case NODE.ASSIGNMENT_EXPRESSION:
     case NODE.ASSIGNMENT_PATTERN:
-      const left = addCallToTypeGraph(node.right, typeGraph, currentScope);
+      const right = addCallToTypeGraph(node.right, typeGraph, currentScope);
       args = [
         addCallToTypeGraph(node.left, typeGraph, currentScope).result,
-        left.result
+        right.result
       ];
       targetName = node.operator || "=";
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
         currentScope
       );
-      inferenced = left.inferenced;
+      inferenced = right.inferenced;
       break;
     case NODE.RETURN_STATEMENT:
       targetName = "return";
@@ -216,7 +216,7 @@ export function addCallToTypeGraph(
                 GenericType.getName(property.name, [args[1].type || args[1]])
               )
             : property.applyGeneric(
-                [args[0].type || args[0], args[1]],
+                [args[0].type || args[0], args[1].type || args[1]],
                 node.loc,
                 true,
                 true
@@ -282,10 +282,11 @@ export function addCallToTypeGraph(
               )
             )
           : argumentType;
+      const defaultObject = ObjectType.createTypeWithName("{ }", typeScope, []);
       args = [
-        potentialArgument instanceof ObjectType
+        defaultObject.isPrincipalTypeFor(potentialArgument)
           ? potentialArgument
-          : ObjectType.createTypeWithName("{ }", typeScope, [])
+          : defaultObject
       ];
       targetName = "new";
       target = findVariableInfo(

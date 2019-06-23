@@ -1,3 +1,4 @@
+// @flow
 import chalk from "chalk";
 import { codeFrameColumns } from "@babel/code-frame";
 import type { AST } from "./parser";
@@ -24,7 +25,7 @@ export async function getErrorsPrint(
   return result;
 }
 
-export function getVerdictPrint(errors) {
+export function getVerdictPrint(errors: Array<HegelError>) {
   let verdict = "";
   if (errors.length > 0) {
     verdict = `Found ${errors.length} error${errors.length > 1 ? "s" : ""}`;

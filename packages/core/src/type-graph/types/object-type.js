@@ -74,7 +74,7 @@ export class ObjectType extends Type {
   ): boolean {
     for (const [key, { type }] of this.properties) {
       const anotherProperty = anotherType.properties.get(key) || {
-        type: new Type("void")
+        type: new Type("undefined")
       };
       /* $FlowIssue - flow doesn't type methods by name */
       if (!type[predicate](anotherProperty.type)) {
@@ -130,7 +130,9 @@ export class ObjectType extends Type {
     const requiredProperties = [...this.properties.values()].filter(
       ({ type }) =>
         !(type instanceof UnionType) ||
-        !type.variants.some(t => t.equalsTo(new Type("void")))
+        !type.variants.some(t =>
+          t.equalsTo(new Type("undefined", { isSubtypeOf: new Type("void") }))
+        )
     );
     return anotherType instanceof ObjectType && !this.isNominal
       ? anotherType.properties.size >= requiredProperties.length &&

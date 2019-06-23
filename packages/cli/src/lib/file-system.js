@@ -1,3 +1,4 @@
+// @flow
 import readdirp from "readdirp";
 import type { Config } from "./config";
 
@@ -11,5 +12,3 @@ export function getSources(config: Config) {
     directoryFilter: ["!node_modules", ...dirFilter]
   });
 }
-
-export function importModule() {}

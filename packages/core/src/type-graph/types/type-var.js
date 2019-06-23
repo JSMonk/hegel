@@ -21,7 +21,13 @@ export class TypeVar extends Type {
   }
 
   equalsTo(anotherType: Type) {
-    if (!this.constraint || this.referenceEqualsTo(anotherType)) {
+    if (
+      !this.constraint ||
+      (this.isUserDefined &&
+        anotherType instanceof TypeVar &&
+        !anotherType.isUserDefined) ||
+      this.referenceEqualsTo(anotherType)
+    ) {
       return true;
     }
     return this.constraint.equalsTo(anotherType);

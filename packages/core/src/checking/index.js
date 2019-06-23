@@ -62,7 +62,7 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
   const requiredTargetArguments = targetArguments.filter(
     a =>
       !(a instanceof UnionType) ||
-      !a.variants.includes(Type.createTypeWithName("void", typeScope))
+      !a.variants.includes(Type.createTypeWithName("undefined", typeScope))
   );
   if (requiredTargetArguments.length > givenArgumentsTypes.length) {
     throw new HegelError(

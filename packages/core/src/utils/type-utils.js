@@ -90,9 +90,9 @@ export function getTypeFromTypeAnnotation(
         self
       );
       return UnionType.createTypeWithName(
-        `${getNameForType(resultType)} | void`,
+        `${getNameForType(resultType)} | undefined`,
         typeScope,
-        [resultType, Type.createTypeWithName("void", typeScope)]
+        [resultType, Type.createTypeWithName("undefined", typeScope)]
       );
     case NODE.UNION_TYPE_ANNOTATION:
       const unionVariants = typeAnnotation.typeAnnotation.types.map(
@@ -332,7 +332,7 @@ export function get(
 
 export function createSelf(node: Node, parent: Scope | ModuleScope) {
   return new VariableInfo(
-    new TypeVar(node.id.name),
+    new TypeVar(node.id.name, undefined, true),
     parent,
     new Meta(node.loc)
   );

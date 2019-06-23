@@ -25,7 +25,7 @@ describe("Test $PropertyType", () => {
     const typeScope = actual.body.get(TYPE_SCOPE);
     expect(errors.length).toEqual(0);
     expect(typeScope.body.get("B").type).toEqual(
-      new UnionType("number | void", [new Type("number"), new Type("void")])
+      new UnionType("number | undefined", [new Type("number"), new Type("undefined")])
     );
   });
   test("Should throw error with non-object property", async () => {
@@ -112,19 +112,19 @@ describe("Test $Partial", () => {
     const typeScope = actual.body.get(TYPE_SCOPE);
     expect(errors.length).toEqual(0);
     const type = typeScope.body.get("A").type;
-    expect(type.name).toEqual("{ a: 1 | void, b: 2 | void, c: 3 | void }");
+    expect(type.name).toEqual("{ a: 1 | undefined, b: 2 | undefined, c: 3 | undefined }");
     expect([...type.properties.values()].map(a => a.type)).toEqual([
-      new UnionType("1 | void", [
+      new UnionType("1 | undefined", [
         new Type(1, { isSubtypeOf: new Type("number") }),
-        new Type("void")
+        new Type("undefined")
       ]),
-      new UnionType("2 | void", [
+      new UnionType("2 | undefined", [
         new Type(2, { isSubtypeOf: new Type("number") }),
-        new Type("void")
+        new Type("undefined")
       ]),
-      new UnionType("3 | void", [
+      new UnionType("3 | undefined", [
         new Type(3, { isSubtypeOf: new Type("number") }),
-        new Type("void")
+        new Type("undefined")
       ])
     ]);
   });

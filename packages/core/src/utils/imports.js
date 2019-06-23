@@ -72,14 +72,14 @@ export default async function mixImportedDependencies(
   errors: Array<HegelError>,
   currentModuleScope: ModuleScope,
   currentTypeScope: Scope,
-  getModuleTypeGraph: string => Promise<ModuleScope>
+  getModuleTypeGraph: (string, string) => Promise<ModuleScope>
 ): Promise<void> {
   const importRequests = [];
   for (let i = 0; i < ast.body.length; i++) {
     const node = ast.body[i];
     if (node.type === NODE.IMPORT_DECLARATION) {
       importRequests.push(
-        Promise.all([node, getModuleTypeGraph(node.source.value)])
+        Promise.all([node, getModuleTypeGraph(node.source.value, ast.path)])
       );
     }
   }

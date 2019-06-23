@@ -26,7 +26,7 @@ export class $Partial extends GenericType {
     const oldProperties = [...realTarget.properties.entries()];
     const newProperties = oldProperties.map(([name, property]) => {
       const variants = [
-        new Type("void"),
+        new Type("undefined"),
         ...(property.type instanceof UnionType
           ? property.type.variants
           : [property.type])

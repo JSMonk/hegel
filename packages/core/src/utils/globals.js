@@ -30,6 +30,56 @@ const genericType = (name, typeScope, genericArguments, typeFactory) => {
   );
 };
 
+const mixProrotypes = typeScope => {
+  const protos = [
+    ObjectType.createTypeWithName("Uint32Array.prototype", typeScope, [
+      [
+        "length",
+        new VariableInfo(Type.createTypeWithName("number", typeScope))
+      ],
+      [
+        "slice",
+        new VariableInfo(
+          FunctionType.createTypeWithName(
+            "(number, number) => Uint32Array",
+            typeScope,
+            [
+              Type.createTypeWithName("number", typeScope),
+              Type.createTypeWithName("number", typeScope)
+            ],
+            typeScope.body.get("Uint32Array").type
+          )
+        )
+      ]
+    ]),
+    ObjectType.createTypeWithName("Uint8Array.prototype", typeScope, [
+      [
+        "length",
+        new VariableInfo(Type.createTypeWithName("number", typeScope))
+      ],
+      [
+        "slice",
+        new VariableInfo(
+          FunctionType.createTypeWithName(
+            "(number, number) => Uint8Array",
+            typeScope,
+            [
+              Type.createTypeWithName("number", typeScope),
+              Type.createTypeWithName("number", typeScope)
+            ],
+            typeScope.body.get("Uint8Array").type
+          )
+        )
+      ]
+    ])
+  ];
+  for (const prototype of protos) {
+    const prototypeFor = prototype.name.slice(0, -10);
+    const typeFor = typeScope.body.get(prototypeFor);
+    typeFor.type.isSubtypeOf = prototype
+  }
+};
+
 const mixBaseGlobals = moduleScope => {
   const typeScope = moduleScope.body.get(TYPE_SCOPE);
   const globalTypes = new Map([
@@ -156,6 +206,12 @@ const mixBaseGlobals = moduleScope => {
                   localTypeScope,
                   [
                     [
+                      "length",
+                      new VariableInfo(
+                        Type.createTypeWithName("number", typeScope)
+                      )
+                    ],
+                    [
                       "find",
                       new VariableInfo(
                         FunctionType.createTypeWithName(
@@ -194,12 +250,16 @@ const mixBaseGlobals = moduleScope => {
           "Uint8Array",
           typeScope,
           Type.createTypeWithName("number", typeScope),
-          TypeVar.createTypeWithName("number", typeScope),
+          Type.createTypeWithName("number", typeScope),
           {
             isSubtypeOf: ObjectType.createTypeWithName(
-              "Array.__proto__",
+              "Uint8Array.__proto__",
               typeScope,
               [
+                [
+                  "length",
+                  new VariableInfo(Type.createTypeWithName("number", typeScope))
+                ],
                 [
                   "slice",
                   new VariableInfo(
@@ -227,34 +287,13 @@ const mixBaseGlobals = moduleScope => {
           "Uint32Array",
           typeScope,
           Type.createTypeWithName("number", typeScope),
-          TypeVar.createTypeWithName("number", typeScope),
-          {
-            isSubtypeOf: ObjectType.createTypeWithName(
-              "Array.__proto__",
-              typeScope,
-              [
-                [
-                  "slice",
-                  new VariableInfo(
-                    FunctionType.createTypeWithName(
-                      "(number, number) => Uint32Array",
-                      typeScope,
-                      [
-                        Type.createTypeWithName("number", typeScope),
-                        Type.createTypeWithName("number", typeScope)
-                      ],
-                      Type.createTypeWithName("Uint32Array", typeScope)
-                    )
-                  )
-                ]
-              ]
-            )
-          }
+          Type.createTypeWithName("number", typeScope)
         )
       )
     ]
   ]);
   typeScope.body = new Map([...typeScope.body, ...globalTypes]);
+  mixProrotypes(typeScope);
   const globals = new Map([
     [
       "undefined",
@@ -324,6 +363,17 @@ const mixBaseGlobals = moduleScope => {
           typeScope,
           [Type.createTypeWithName("mixed", typeScope)],
           Type.createTypeWithName("number", typeScope)
+        )
+      )
+    ],
+    [
+      "BigInt",
+      new VariableInfo(
+        FunctionType.createTypeWithName(
+          "(mixed) => bigint",
+          typeScope,
+          [Type.createTypeWithName("mixed", typeScope)],
+          Type.createTypeWithName("bigint", typeScope)
         )
       )
     ],

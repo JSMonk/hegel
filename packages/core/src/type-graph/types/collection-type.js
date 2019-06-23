@@ -34,11 +34,11 @@ export class CollectionType<K: Type, V: Type> extends Type {
     ) {
       const result =
         this.valueType instanceof UnionType &&
-        this.valueType.variants.some(a => a.name === "void")
+        this.valueType.variants.some(a => a.name === "undefined")
           ? this.valueType
           : new UnionType(
-              UnionType.getName([this.valueType, new Type("void")]),
-              [this.valueType, new Type("void")]
+              UnionType.getName([this.valueType, new Type("undefined")]),
+              [this.valueType, new Type("undefined")]
             );
       if (result) {
         return result;

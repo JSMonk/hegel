@@ -1200,7 +1200,7 @@ describe("Generic types", () => {
       const typeScope = actual.body.get(TYPE_SCOPE);
       const actualType = typeScope.body.get("Tree");
       expect(actualType.type.name).not.toEqual(
-        "{ nodes: Array<Tree>, parent: Tree | void }"
+        "{ nodes: Array<Tree>, parent: Tree | undefined }"
       );
       expect(
         actualType.type.properties.get("nodes").type.valueType.constraint
@@ -1289,7 +1289,7 @@ describe("Classes", () => {
   //       a: number;
 
   //       constructor(a: number) {
-  //         this.a = a;  
+  //         this.a = a;
   //       }
   //     }
   //   `);

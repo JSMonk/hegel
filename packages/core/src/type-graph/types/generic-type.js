@@ -1,13 +1,14 @@
 // @flow
 import HegelError from "../../utils/errors";
 import { Type } from "./type";
+import { TypeVar } from "./type-var";
+import { UnionType } from "./union-type";
 import { ModuleScope } from "../module-scope";
 import { VariableInfo } from "../variable-info";
 import { getNameForType } from "../../utils/type-utils";
 import { findVariableInfo } from "../../utils/common";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
-import type { TypeVar } from "./type-var";
 import type { SourceLocation } from "@babel/parser";
 
 export class GenericType<T: Type> extends Type {
@@ -23,13 +24,13 @@ export class GenericType<T: Type> extends Type {
     )}>`;
   }
 
-  genericArguments: Array<Type>;
+  genericArguments: Array<TypeVar>;
   subordinateType: T;
   localTypeScope: Scope;
 
   constructor(
     name: string,
-    genericArguments: Array<Type>,
+    genericArguments: Array<TypeVar>,
     typeScope: Scope,
     type: T
   ) {
@@ -78,18 +79,40 @@ export class GenericType<T: Type> extends Type {
   }
 
   applyGeneric(
-    parameters: Array<Type>,
+    appliedParameters: Array<Type>,
     loc?: SourceLocation,
     shouldBeMemoize?: boolean = true
   ): T {
-    this.assertParameters(parameters, loc);
+    this.assertParameters(appliedParameters, loc);
+    const parameters: Array<Type> = this.genericArguments.map((t, i) => {
+      const appliedType = appliedParameters[i];
+      // Needed for type inferencing
+      if (
+        appliedType instanceof TypeVar &&
+        !appliedType.isUserDefined &&
+        t.isUserDefined &&
+        appliedType.constraint !== t.constraint
+      ) {
+        return t;
+      }
+      if (t.constraint === undefined || !(t.constraint instanceof UnionType)) {
+        return appliedType;
+      }
+      const variant = t.constraint.variants.find(v =>
+        v.isPrincipalTypeFor(appliedType)
+      );
+      if (variant === undefined) {
+        throw new Error("Never!");
+      }
+      return variant;
+    });
     const appliedTypeName = GenericType.getName(this.name, parameters);
     const existedType = this.localTypeScope.parent.body.get(appliedTypeName);
     if (this.localTypeScope.parent instanceof ModuleScope) {
       throw new Error("Never!");
     }
     const result = this.subordinateType.changeAll(
-      this.genericArguments,
+      [...this.genericArguments],
       parameters,
       this.localTypeScope.parent
     );

@@ -5,6 +5,7 @@ import { Meta } from "../type-graph/meta/meta";
 import { Scope } from "../type-graph/scope";
 import { TypeVar } from "../type-graph/types/type-var";
 import { CallMeta } from "../type-graph/meta/call-meta";
+import { UnionType } from "../type-graph/types/union-type";
 import { addTypeVar } from "../utils/type-utils";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
@@ -81,6 +82,7 @@ export function inferenceFunctionLiteralType(
         param.loc
       );
     }
+    const { name } = param.left || param;
     const typeAnnotation =
       param.left !== undefined
         ? param.left.typeAnnotation
@@ -91,11 +93,12 @@ export function inferenceFunctionLiteralType(
       parentNode,
       false
     );
+    const isWithoutAnnotation = paramType.name === UNDEFINED_TYPE;
+    functionScope.body.set(
+      name,
+      new VariableInfo(paramType, localTypeScope, new Meta(param.loc))
+    );
     if (param.left !== undefined) {
-      functionScope.body.set(
-        param.left.name,
-        new VariableInfo(paramType, localTypeScope, new Meta(param.loc))
-      );
       const callResultType = addCallToTypeGraph(
         param,
         typeGraph,
@@ -105,15 +108,25 @@ export function inferenceFunctionLiteralType(
         callResultType.result instanceof VariableInfo
           ? callResultType.result.type
           : callResultType.result;
-      paramType =
-        paramType.name !== UNDEFINED_TYPE
-          ? paramType
-          : getVariableType(
-              undefined,
-              newType,
-              typeScope,
-              callResultType.inferenced
-            );
+      paramType = !isWithoutAnnotation
+        ? paramType
+        : getVariableType(
+            undefined,
+            newType,
+            typeScope,
+            callResultType.inferenced
+          );
+      const variants = [
+        paramType,
+        Type.createTypeWithName("undefined", localTypeScope)
+      ];
+      paramType = !isWithoutAnnotation
+        ? paramType
+        : UnionType.createTypeWithName(
+            UnionType.getName(variants),
+            localTypeScope,
+            variants
+          );
     }
     if (paramType.name === UNDEFINED_TYPE) {
       shouldBeGeneric = true;
@@ -156,11 +169,12 @@ export function inferenceFunctionLiteralType(
     : type;
 }
 
-function getCallTarget(callTarget: CallableType) {
-  if (callTarget instanceof GenericType) {
-    callTarget = callTarget.subordinateType;
+function getCallTarget(call: CallMeta): FunctionType {
+  let callTargetType = call.target.type || call.target;
+  if (callTargetType instanceof GenericType) {
+    callTargetType = getRawFunctionType(callTargetType, call.arguments);
   }
-  return callTarget;
+  return (callTargetType: any);
 }
 
 const isArgumentVariable = x => {
@@ -176,10 +190,7 @@ function resolveOuterTypeVarsFromCall(
   if (!call.arguments.some(isArgumentVariable)) {
     return;
   }
-  const callTarget: FunctionType = getCallTarget(
-    // $FlowIssue
-    call.target.type || call.target
-  );
+  const callTarget: FunctionType = getCallTarget(call);
 
   const newArguments = [];
   for (let i = 0; i < call.arguments.length; i++) {
@@ -194,11 +205,17 @@ function resolveOuterTypeVarsFromCall(
       newArguments.push(callArgumentType);
       continue;
     }
-    if (callArgumentType.root) {
+    if (
+      callArgumentType.root !== undefined &&
+      !(callArgumentType.root instanceof TypeVar)
+    ) {
       newArguments.push(callArgumentType.root);
       continue;
     }
-    if (callTarget.argumentsTypes[i] instanceof TypeVar) {
+    if (
+      callTarget.argumentsTypes[i] instanceof TypeVar &&
+      callTarget.argumentsTypes[i].constraint === undefined
+    ) {
       newArguments.push(call.arguments[i]);
       continue;
     }
@@ -214,10 +231,11 @@ export function implicitApplyGeneric(
 ): FunctionType {
   const genericArguments = argumentsTypes.reduce((res, t, i) => {
     const argumentType = fn.subordinateType.argumentsTypes[i];
+    const existed = res[String(argumentType.name)];
     if (
       argumentType instanceof TypeVar &&
-      !res[String(argumentType.name)] &&
-      t.name !== UNDEFINED_TYPE
+      t.name !== UNDEFINED_TYPE &&
+      (existed === undefined || existed instanceof TypeVar)
     ) {
       return Object.assign(res, { [String(argumentType.name)]: t });
     }
@@ -229,18 +247,33 @@ export function implicitApplyGeneric(
   );
 }
 
+export function getRawFunctionType(
+  fn: FunctionType | GenericType<FunctionType>,
+  args: Array<Type | VariableInfo>,
+  genericArguments?: Array<Type>,
+  loc: SourceLocation
+) {
+  if (fn instanceof FunctionType) {
+    return fn;
+  }
+  const argumentsTypes = args.map(
+    arg => (arg instanceof VariableInfo ? arg.type : arg)
+  );
+  return genericArguments
+    ? fn.applyGeneric(genericArguments, loc)
+    : implicitApplyGeneric(fn, argumentsTypes, loc);
+}
+
 export function getInvocationType(
   fn: FunctionType | GenericType<FunctionType>,
-  argumentsTypes: Array<Type>,
+  argumentsTypes: Array<Type | VariableInfo>,
   genericArguments?: Array<Type>,
   loc: SourceLocation
 ): Type {
   if (fn instanceof FunctionType) {
     return fn.returnType;
   }
-  const resultFn = genericArguments
-    ? fn.applyGeneric(genericArguments, loc)
-    : implicitApplyGeneric(fn, argumentsTypes, loc);
+  const resultFn = getRawFunctionType(fn, argumentsTypes, genericArguments);
   return resultFn.returnType;
 }
 
@@ -284,11 +317,18 @@ export function inferenceFunctionTypeByScope(
     }
   }
   // $FlowIssue - Untyped filter method
-  const newGenericArguments: Array<TypeVar> = genericArguments.filter(
-    t => t instanceof TypeVar && !t.root
-  );
   const newArgumentsTypes = argumentsTypes.map(
     t => (t instanceof TypeVar && t.root ? t.root : t)
+  );
+  const newGenericArguments: Array<TypeVar> = newArgumentsTypes.reduce(
+    (res, t) => {
+      const existed = res.find(t1 => t1.name === t.name);
+      if (existed !== undefined || !(t instanceof TypeVar)) {
+        return res;
+      }
+      return res.concat([Object.assign(t, { isUserDefined: true })]);
+    },
+    []
   );
   const newReturnType =
     returnType instanceof TypeVar && returnType.root

@@ -92,7 +92,10 @@ export class FunctionType extends Type {
       anotherType instanceof FunctionType &&
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
       this.argumentsTypes.every((type, index) =>
-        (argumentsTypes[index] || new Type("void")).isPrincipalTypeFor(type)
+        (
+          argumentsTypes[index] ||
+          new Type("undefined", { isSubtypeOf: new Type("void") })
+        ).isPrincipalTypeFor(type)
       )
     );
   }

@@ -3,7 +3,7 @@ import { Type } from "../type-graph/types/type";
 import { Scope } from "../type-graph/scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { ModuleScope } from "../type-graph/module-scope";
-import { inferenceTypeForNode } from "./index";
+import { addCallToTypeGraph } from "../type-graph/call";
 import type { ArrayExpression } from "@babel/parser";
 
 export function inferenceTupleType(
@@ -13,12 +13,8 @@ export function inferenceTupleType(
   typeGraph: ModuleScope
 ): TupleType {
   const items = currentNode.elements.map(a => {
-    const inferencedType = inferenceTypeForNode(
-      a,
-      typeScope,
-      parentScope,
-      typeGraph
-    );
+    const inferenced = addCallToTypeGraph(a, typeGraph, parentScope);
+    const inferencedType = inferenced.result.type || inferenced.result;
     return inferencedType.constructor === Type && inferencedType.isSubtypeOf
       ? inferencedType.isSubtypeOf
       : inferencedType;
