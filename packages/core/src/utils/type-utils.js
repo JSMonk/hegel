@@ -337,3 +337,23 @@ export function createSelf(node: Node, parent: Scope | ModuleScope) {
     new Meta(node.loc)
   );
 }
+
+export function copyTypeInScopeIfNeeded(type: Type, typeScope: Scope) {
+  if (!(type instanceof TypeVar) || !type.isUserDefined) {
+    return type;
+  }
+  const name = String(type.name);
+  try {
+    const existedInScopeType = findVariableInfo({ name }, typeScope);
+    return existedInScopeType.type;
+  } catch {
+    const copiedType = Object.create(Object.getPrototypeOf(type));
+    // $FlowIssue
+    Object.assign(copiedType, type);
+    if (copiedType instanceof TypeVar) {
+      copiedType.isUserDefined = false;
+    }
+    typeScope.body.set(name, new VariableInfo(copiedType)); 
+    return copiedType;
+  }
+}

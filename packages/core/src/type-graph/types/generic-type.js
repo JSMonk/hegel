@@ -41,7 +41,11 @@ export class GenericType<T: Type> extends Type {
   }
 
   isSuperTypeFor(anotherType: Type) {
-    return this.subordinateType.isSuperTypeFor(anotherType);
+    const otherType =
+      anotherType instanceof GenericType
+        ? anotherType.subordinateType
+        : anotherType;
+    return this.subordinateType.isSuperTypeFor(otherType);
   }
 
   assertParameters(parameters: Array<Type>, loc?: SourceLocation) {
@@ -95,7 +99,11 @@ export class GenericType<T: Type> extends Type {
       ) {
         return t;
       }
-      if (t.constraint === undefined || !(t.constraint instanceof UnionType)) {
+      if (
+        t.constraint === undefined ||
+        !(t.constraint instanceof UnionType) ||
+        appliedType.equalsTo(t)
+      ) {
         return appliedType;
       }
       const variant = t.constraint.variants.find(v =>

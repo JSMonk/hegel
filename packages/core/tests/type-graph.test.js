@@ -1187,6 +1187,18 @@ describe("Generic types", () => {
       expect(actualFunctionType).not.toBe(undefined);
       expect(actualTypeT).not.toBe(undefined);
     });
+    test("Simple typed function type equalence", async () => {
+      const sourceAST = prepareAST(`
+        type Id = <T>(T) => T;
+        const id: Id = x => x;
+      `);
+      const [[actual], errors] = await createTypeGraph([sourceAST]);
+      const typeScope = actual.body.get(TYPE_SCOPE);
+      const idTypeAlias = typeScope.body.get("Id");
+      const actualFunction = actual.body.get("id");
+      expect(errors.length).toEqual(0);
+      expect(actualFunction.type).toBe(idTypeAlias.type);
+    });
   });
   describe("Recursive types", () => {
     test("Simple recursive Tree types", async () => {

@@ -76,11 +76,23 @@ const mixBaseOperators = moduleScope => {
       ],
       [
         "~",
-        FunctionType.createTypeWithName(
-          "(number) => number",
+        genericFunction(
           typeScope,
-          [Type.createTypeWithName("number", typeScope)],
-          Type.createTypeWithName("number", typeScope)
+          [
+            [
+              "T",
+              new TypeVar(
+                "T",
+                new UnionType("bigint | number | string", [
+                  new Type("bigint"),
+                  new Type("number"),
+                  new Type("string")
+                ])
+              )
+            ]
+          ],
+          l => [l.body.get("T").type],
+          l => l.body.get("T").type
         )
       ],
       [

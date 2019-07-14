@@ -17,6 +17,7 @@ import { addToThrowable } from "../utils/throwable";
 import { getVariableType } from "../utils/variable-utils";
 import { getInvocationType } from "../inference/function-type";
 import { inferenceTypeForNode } from "../inference";
+import { copyTypeInScopeIfNeeded } from "../utils/type-utils";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
 import {
   findNearestTypeScope,
@@ -323,9 +324,10 @@ export function addCallToTypeGraph(
       genericArguments.map(a => (a instanceof Type ? a : a.type)),
     node.loc
   );
+  const copiedType = copyTypeInScopeIfNeeded(invocationType, typeScope);
   if (!(targetType instanceof $BottomType)) {
     const callMeta = new CallMeta((target: any), args, node.loc, targetName);
     callsScope.calls.push(callMeta);
   }
-  return { result: invocationType, inferenced };
+  return { result: copiedType, inferenced };
 }

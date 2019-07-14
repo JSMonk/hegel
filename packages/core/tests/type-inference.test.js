@@ -464,7 +464,6 @@ describe("Simple inference for module functions", () => {
     const sourceAST = prepareAST(`
       const rol = (x, i) => (x << i) | (x >>> (32 - i));
     `);
-    debugger;
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("rol");
     expect(actualA.type.constructor).toBe(FunctionType);
@@ -542,7 +541,6 @@ describe("Simple inference for module functions", () => {
         return x - 2;
       }
     `);
-    debugger;
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-6]]");
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
@@ -1037,6 +1035,47 @@ describe("Simple inference for module functions", () => {
         new Type("number")
       )
     );
+  });
+  test("Inference function with paramter application to generic function", async () => {
+    const sourceAST = prepareAST(`
+      const fn = (a: number) => a;
+      const res = (a, b) => fn(a + b);
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualRes = actual.body.get("res").type;
+    expect(errors.length).toBe(0);
+    expect(actualRes.constructor).toBe(FunctionType);
+    expect(actualRes).toEqual(
+      new FunctionType(
+        "(number, number) => number",
+        [new Type("number"), new Type("number")],
+        new Type("number")
+      )
+    );
+  });
+  test("Inference function with multiple paramter application to generic function", async () => {
+    const sourceAST = prepareAST(`
+      const res = (a, b, c) => a * b * c;
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualRes = actual.body.get("res").type;
+    expect(errors.length).toBe(0);
+    const expectedT = new TypeVar(
+      "T",
+      new UnionType("bigint | number", [
+        new Type("bigint"),
+        new Type("number")
+      ]),
+      true
+    );
+    expect(actualRes.constructor).toBe(GenericType);
+    expect(actualRes.name).toEqual("<T: bigint | number>(T, T, T) => T");
+    expect(actualRes.subordinateType.returnType).toEqual(expectedT);
+    expect(actualRes.subordinateType.argumentsTypes).toEqual([
+      expectedT,
+      expectedT,
+      expectedT
+    ]);
   });
 });
 describe("Object type inference", () => {

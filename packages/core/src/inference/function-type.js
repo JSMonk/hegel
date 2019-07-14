@@ -14,7 +14,10 @@ import { VariableInfo } from "../type-graph/variable-info";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
 import { getVariableType } from "../utils/variable-utils";
 import { addCallToTypeGraph } from "../type-graph/call";
-import { getTypeFromTypeAnnotation } from "../utils/type-utils";
+import {
+  copyTypeInScopeIfNeeded,
+  getTypeFromTypeAnnotation
+} from "../utils/type-utils";
 import type { Function, SourceLocation } from "@babel/parser";
 import type {
   CallableTarget,
@@ -198,11 +201,16 @@ function resolveOuterTypeVarsFromCall(
       call.arguments[i] instanceof VariableInfo
         ? call.arguments[i].type
         : call.arguments[i];
+    const callTargetType = copyTypeInScopeIfNeeded(
+      callTarget.argumentsTypes[i],
+      typeScope
+    );
     if (
       !(callArgumentType instanceof TypeVar) ||
-      callArgumentType.isUserDefined
+      callArgumentType.isUserDefined ||
+      callArgumentType === callTargetType
     ) {
-      newArguments.push(callArgumentType);
+      newArguments.push(callTargetType);
       continue;
     }
     if (
@@ -219,8 +227,8 @@ function resolveOuterTypeVarsFromCall(
       newArguments.push(call.arguments[i]);
       continue;
     }
-    newArguments.push(callTarget.argumentsTypes[i]);
-    callArgumentType.root = callTarget.argumentsTypes[i];
+    newArguments.push(callTargetType);
+    callArgumentType.root = callTargetType;
   }
 }
 
@@ -256,8 +264,8 @@ export function getRawFunctionType(
   if (fn instanceof FunctionType) {
     return fn;
   }
-  const argumentsTypes = args.map(
-    arg => (arg instanceof VariableInfo ? arg.type : arg)
+  const argumentsTypes = args.map(arg =>
+    arg instanceof VariableInfo ? arg.type : arg
   );
   return genericArguments
     ? fn.applyGeneric(genericArguments, loc)
@@ -277,6 +285,17 @@ export function getInvocationType(
   return resultFn.returnType;
 }
 
+export function getTypeRoot(type: TypeVar) {
+  if (type.root == undefined) {
+    return type;
+  }
+  let potentialRoot = type.root;
+  while (potentialRoot instanceof TypeVar && potentialRoot.root != undefined) {
+    potentialRoot = potentialRoot.root;
+  }
+  return potentialRoot;
+}
+
 export function inferenceFunctionTypeByScope(
   functionScope: GenericFunctionScope,
   typeGraph: ModuleScope
@@ -290,6 +309,14 @@ export function inferenceFunctionTypeByScope(
   let returnWasCalled = false;
   for (let i = 0; i < calls.length; i++) {
     resolveOuterTypeVarsFromCall(calls[i], localTypeScope, typeGraph);
+  }
+  for (const [_, v] of functionScope.body) {
+    if (v.type instanceof TypeVar && v.type.root != undefined) {
+      // $FlowIssue
+      v.type = getTypeRoot(v.type);
+    }
+  }
+  for (let i = 0; i < calls.length; i++) {
     if (
       calls[i].targetName === "return" &&
       returnType instanceof TypeVar &&
@@ -310,15 +337,8 @@ export function inferenceFunctionTypeByScope(
   ) {
     returnType.root = Type.createTypeWithName("void", localTypeScope);
   }
-  for (const [_, v] of functionScope.body) {
-    if (v.type instanceof TypeVar && v.type.root) {
-      // $FlowIssue
-      v.type = v.type.root;
-    }
-  }
-  // $FlowIssue - Untyped filter method
-  const newArgumentsTypes = argumentsTypes.map(
-    t => (t instanceof TypeVar && t.root ? t.root : t)
+  const newArgumentsTypes = argumentsTypes.map(t =>
+    t instanceof TypeVar && t.root != undefined ? getTypeRoot(t) : t
   );
   const newGenericArguments: Array<TypeVar> = newArgumentsTypes.reduce(
     (res, t) => {
@@ -331,8 +351,8 @@ export function inferenceFunctionTypeByScope(
     []
   );
   const newReturnType =
-    returnType instanceof TypeVar && returnType.root
-      ? returnType.root
+    returnType instanceof TypeVar && returnType.root != undefined
+      ? getTypeRoot(returnType)
       : returnType;
   const newFunctionTypeName = FunctionType.getName(
     newArgumentsTypes,

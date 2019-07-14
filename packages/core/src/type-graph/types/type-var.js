@@ -21,16 +21,25 @@ export class TypeVar extends Type {
   }
 
   equalsTo(anotherType: Type) {
+    const isDifferenceInDefinition =
+      this.isUserDefined &&
+      anotherType instanceof TypeVar &&
+      !anotherType.isUserDefined;
     if (
-      !this.constraint ||
-      (this.isUserDefined &&
-        anotherType instanceof TypeVar &&
-        !anotherType.isUserDefined) ||
+      this.constraint === undefined ||
+      isDifferenceInDefinition ||
       this.referenceEqualsTo(anotherType)
     ) {
       return true;
     }
-    return this.constraint.equalsTo(anotherType);
+    const isEqualsTypes =
+      anotherType instanceof TypeVar &&
+      anotherType.constraint !== undefined &&
+      super.equalsTo(anotherType) &&
+      // $FlowIssue
+      this.constraint.equalsTo(anotherType.constraint);
+    // $FlowIssue
+    return isEqualsTypes || this.constraint.equalsTo(anotherType);
   }
 
   isSuperTypeFor(type: Type): boolean {
