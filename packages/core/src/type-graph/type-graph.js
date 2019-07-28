@@ -46,7 +46,7 @@ const addVariableToGraph = (
   currentNode: Node,
   parentNode: ?Node,
   typeGraph: ModuleScope,
-  customName?: string = getDeclarationName(currentNode)
+  customName?: string = getDeclarationName(currentNode),
 ) => {
   const variableInfo = getVariableInfoFromDelcaration(
     currentNode,

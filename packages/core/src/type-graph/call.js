@@ -92,10 +92,13 @@ export function addCallToTypeGraph(
     case NODE.VARIABLE_DECLARATOR:
       const variableType = findVariableInfo(node.id, currentScope);
       addPosition(node.id, variableType, typeGraph);
-      if (!node.init) {
-        return { result: variableType };
-      }
-      const value = addCallToTypeGraph(node.init, typeGraph, currentScope);
+      const value =
+        node.init === null
+          ? {
+              result: Type.createTypeWithName("undefined", typeScope),
+              inferenced: false
+            }
+          : addCallToTypeGraph(node.init, typeGraph, currentScope);
       inferenced = value.inferenced;
       args = [variableType, value.result];
       targetName = "=";

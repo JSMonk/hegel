@@ -16,6 +16,21 @@ describe("Variable declrataion and assignment", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(0);
   });
+  test("Simple typed let declaration without value", async () => {
+    const sourceAST = prepareAST(`
+      let a: 2; 
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      'Type "undefined" is incompatible with type "2"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 14, line: 2 },
+      start: { column: 10, line: 2 }
+    });
+  });
   test("Simple typed const declaration with number literal type should throw error", async () => {
     const sourceAST = prepareAST(`
       const a: 2 = 4; 
