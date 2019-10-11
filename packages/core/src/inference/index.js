@@ -16,7 +16,8 @@ export function inferenceTypeForNode(
   currentNode: Node,
   typeScope: Scope,
   parentNode: Scope | ModuleScope,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  isTypeDefinitions: boolean = false
 ): Type {
   switch (currentNode.type) {
     case NODE.NUMERIC_LITERAL:
@@ -50,7 +51,14 @@ export function inferenceTypeForNode(
     case NODE.FUNCTION_DECLARATION:
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
-      return inferenceFunctionLiteralType(currentNode, typeScope, parentNode, typeGraph);
+    case NODE.TS_FUNCTION_DECLARATION:
+      return inferenceFunctionLiteralType(
+        currentNode,
+        typeScope,
+        parentNode,
+        typeGraph,
+        isTypeDefinitions
+      );
     case NODE.NEW_EXPRESSION:
       const constructor: any = findVariableInfo(currentNode.callee, parentNode);
       return constructor.type.returnType;

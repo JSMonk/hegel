@@ -5,11 +5,15 @@ import { CollectionType } from "./collection-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
+import type { TypeMeta } from "./type";
 
 export class TupleType extends Type {
   static createTypeWithName = createTypeWithName(TupleType);
 
-  static getName(params: Array<Type>) {
+  static getName(params: Array<Type> | Type) {
+    if (params instanceof Type) {
+      return String(params.name);
+    }
     return `[${params.reduce(
       (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
       ""
@@ -18,15 +22,9 @@ export class TupleType extends Type {
 
   items: Array<Type>;
 
-  constructor(name: string, items: Array<Type>) {
+  constructor(name: mixed, items: Array<Type>, meta: TypeMeta = {}) {
     const valueType = new UnionType(UnionType.getName(items), items);
-    super(name, {
-      isSubtypeOf: new CollectionType(
-        `{ [key: nunmber]: ${getNameForType(valueType)} }`,
-        new Type("number"),
-        valueType
-      )
-    });
+    super(name, meta);
     this.items = items;
   }
 
@@ -44,13 +42,17 @@ export class TupleType extends Type {
       isItemsChanged = true;
       return newT;
     });
-    if (!isItemsChanged) {
+    const isSubtypeOf =
+      this.isSubtypeOf &&
+      this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
+    if (!isItemsChanged && isSubtypeOf === this.isSubtypeOf) {
       return this;
     }
     return TupleType.createTypeWithName(
-      TupleType.getName(newItems),
+      this.getChangedName(sourceTypes, targetTypes),
       typeScope,
-      newItems
+      newItems,
+      { isSubtypeOf }
     );
   }
 
@@ -74,5 +76,15 @@ export class TupleType extends Type {
       this.items.length === anotherVariants.length &&
       this.items.every((type, index) => type.equalsTo(anotherVariants[index]))
     );
+  }
+
+  getPropertyType(propertyIndex: mixed): ?Type {
+    if (
+      typeof propertyIndex === "number" &&
+      propertyIndex < this.items.length
+    ) {
+      return this.items[propertyIndex];
+    }
+    return super.getPropertyType(propertyIndex);
   }
 }

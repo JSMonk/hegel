@@ -29,6 +29,10 @@ export function findVariableInfo(
   do {
     const variableInfo = parent.body.get(name);
     if (variableInfo && variableInfo instanceof VariableInfo) {
+      if ("subordinateMagicType" in variableInfo.type && name !== ".") {
+        const newType = (variableInfo.type: any).unpack();
+        variableInfo.type = newType;
+      }
       return variableInfo;
     }
     parent = parent.parent;
@@ -95,6 +99,6 @@ export function getMemberExressionTarget(node: MemberExpression): Node {
   let target = node;
   do {
     target = target.object;
-  } while(target.type === NODE.MEMBER_EXPRESSION);
+  } while (target.type === NODE.MEMBER_EXPRESSION);
   return target;
 }

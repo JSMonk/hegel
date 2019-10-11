@@ -119,11 +119,17 @@ export class GenericType<T: Type> extends Type {
     if (this.localTypeScope.parent instanceof ModuleScope) {
       throw new Error("Never!");
     }
+    const appliedSelf = new TypeVar(appliedTypeName);
     const result = this.subordinateType.changeAll(
-      [...this.genericArguments],
-      parameters,
+      [...this.genericArguments, this],
+      [...parameters, appliedSelf],
       this.localTypeScope.parent
     );
+    appliedSelf.root = result;
     return result;
+  }
+
+  getPropertyType(propertyName: mixed): ?Type {
+    return this.subordinateType.getPropertyType(propertyName);
   }
 }

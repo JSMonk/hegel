@@ -1,6 +1,8 @@
 // @flow
 import { Type } from "./type";
 import { createTypeWithName } from "./create-type";
+import type { Scope } from "../scope";
+import type { TypeMeta } from "./type";
 
 export class TypeVar extends Type {
   static createTypeWithName = createTypeWithName(TypeVar);
@@ -12,9 +14,10 @@ export class TypeVar extends Type {
   constructor(
     name: string,
     constraint: ?Type,
-    isUserDefined?: boolean = false
+    isUserDefined?: boolean = false,
+    meta?: TypeMeta = {}
   ) {
-    super(name);
+    super(name, meta);
     this.name = name;
     this.constraint = constraint;
     this.isUserDefined = isUserDefined;
@@ -32,6 +35,9 @@ export class TypeVar extends Type {
     ) {
       return true;
     }
+    if (this.root != undefined) {
+      return this.root.equalsTo(anotherType);
+    }
     const isEqualsTypes =
       anotherType instanceof TypeVar &&
       anotherType.constraint !== undefined &&
@@ -46,6 +52,31 @@ export class TypeVar extends Type {
     if (!this.constraint) {
       return true;
     }
+    if (this.root != undefined) {
+      return this.root.isSuperTypeFor(type);
+    }
     return this.constraint.isSuperTypeFor(type);
+  }
+
+  changeAll(
+    sourceTypes: Array<Type>,
+    targetTypes: Array<Type>,
+    typeScope: Scope
+  ): Type {
+    const indexOfNewType = sourceTypes.indexOf(this);
+    const indexOfNewRootType = sourceTypes.findIndex(
+      a => this.root === a && a != undefined
+    );
+    if (indexOfNewType !== -1) {
+      return targetTypes[indexOfNewType];
+    }
+    if (indexOfNewRootType !== -1) {
+      return targetTypes[indexOfNewRootType];
+    }
+    return this;
+  }
+
+  applyGeneric() {
+    return this;
   }
 }

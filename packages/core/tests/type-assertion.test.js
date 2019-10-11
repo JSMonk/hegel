@@ -1,5 +1,4 @@
 const HegelError = require("../build/utils/errors").default;
-const prepareAST = require("./preparation");
 const createTypeGraph = require("../build/type-graph/type-graph").default;
 const { Type } = require("../build/type-graph/types/type");
 const { UnionType } = require("../build/type-graph/types/union-type");
@@ -7,6 +6,11 @@ const { ObjectType } = require("../build/type-graph/types/object-type");
 const { FunctionType } = require("../build/type-graph/types/function-type");
 const { VariableInfo } = require("../build/type-graph/variable-info");
 const { UNDEFINED_TYPE, TYPE_SCOPE } = require("../build/type-graph/constants");
+const {
+  prepareAST,
+  mixTypeDefinitions,
+  getModuleAST
+} = require("./preparation");
 
 describe("Variable declrataion and assignment", () => {
   test("Simple typed const declaration with number literal type", async () => {
@@ -182,7 +186,12 @@ describe("Variable declrataion and assignment", () => {
     const sourceAST = prepareAST(`
       const a: [number, string] = [2, 2]; 
     `);
-    const [, errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -197,7 +206,12 @@ describe("Variable declrataion and assignment", () => {
     const sourceAST = prepareAST(`
       const a: [number, string] = [2, '2']; 
     `);
-    const [, errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
     expect(errors.length).toEqual(0);
   });
   test("Simple class instance usage", async () => {
@@ -256,11 +270,16 @@ describe("Variable declrataion and assignment", () => {
     const sourceAST = prepareAST(`
       const a: Array<number> = [2, "2"]; 
     `);
-    const [, errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "[number, string]" is incompatible with type "{ [key: number]: number }"'
+      'Type "[number, string]" is incompatible with type "Array<number>"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 39, line: 2 },
@@ -271,7 +290,12 @@ describe("Variable declrataion and assignment", () => {
     const sourceAST = prepareAST(`
       const a: Array<number> = [2]; 
     `);
-    const [, errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
     expect(errors.length).toEqual(0);
   });
   test("Simple typed const declaration with object type without required property", async () => {
@@ -858,11 +882,16 @@ describe("Checking objects and collections reference behavior", () => {
       const b: B = [2];
       const a: A = b;
     `);
-    const [, errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "{ [key: number]: number }" is incompatible with type "{ [key: number]: number | string }"'
+      'Type "Array<number>" is incompatible with type "Array<number | string>"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 20, line: 5 },
@@ -874,7 +903,12 @@ describe("Checking objects and collections reference behavior", () => {
       type A = Array<number | string>;
       const a: A = [2];
     `);
-    const [, errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
     expect(errors.length).toBe(0);
   });
 });
@@ -925,6 +959,102 @@ describe("Generics", () => {
     expect(errors[0].loc).toEqual({
       end: { column: 19, line: 3 },
       start: { column: 15, line: 3 }
+    });
+  });
+});
+
+describe("Rest parameter typing", () => {
+  test("Full rest param", async () => {
+    const sourceAST = prepareAST(`
+      function a(...args: Array<string>) {}
+      a("1", "2", "3");
+    `);
+    debugger;
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    expect(errors.length).toBe(0);
+  });
+  test("Empty rest param", async () => {
+    const sourceAST = prepareAST(`
+      function a(...args: Array<string>) {}
+      a();
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    expect(errors.length).toBe(0);
+  });
+  test("Wrong rest param", async () => {
+    const sourceAST = prepareAST(`
+      function a(...args: Array<string>) {}
+      a(2);
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'Type "[2]" is incompatible with type "...Array<string>"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 10, line: 3 },
+      start: { column: 6, line: 3 }
+    });
+  });
+  test("Required and full rest param", async () => {
+    const sourceAST = prepareAST(`
+      function a(a: string, ...args: Array<string>) {}
+      a("sas", "1", "2", "3");
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    expect(errors.length).toBe(0);
+  });
+  test("Required and empty rest param", async () => {
+    const sourceAST = prepareAST(`
+      function a(a: string, ...args: Array<string>) {}
+      a("sas");
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    expect(errors.length).toBe(0);
+  });
+  test("Empty required and empty rest param", async () => {
+    const sourceAST = prepareAST(`
+      function a(a: string, ...args: Array<string>) {}
+      a();
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual("1 arguments are required. Given 0.");
+    expect(errors[0].loc).toEqual({
+      end: { column: 9, line: 3 },
+      start: { column: 6, line: 3 }
     });
   });
 });

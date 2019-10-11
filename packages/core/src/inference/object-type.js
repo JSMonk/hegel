@@ -21,7 +21,9 @@ export function inferenceObjectType(
       return res;
     }
     const inferencedType = inferenceTypeForNode(
-      p.type === NODE.OBJECT_PROPERTY ? p.value : p,
+      p.type === NODE.OBJECT_PROPERTY || p.type === NODE.TS_OBJECT_PROPERTY
+        ? p.value
+        : p,
       typeScope,
       parentScope,
       typeGraph
@@ -33,6 +35,7 @@ export function inferenceObjectType(
     );
     if (
       p.type === NODE.OBJECT_METHOD ||
+      p.type === NODE.TS_OBJECT_METHOD ||
       (p.value && NODE.isFunction(p.value))
     ) {
       varInfo = findVariableInfo(

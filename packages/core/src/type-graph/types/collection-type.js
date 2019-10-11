@@ -44,10 +44,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
         return result;
       }
     }
-    if (!this.isSubtypeOf || !(this.isSubtypeOf instanceof ObjectType)) {
-      return null;
-    }
-    return this.isSubtypeOf.getPropertyType(propertyName);
+    return super.getPropertyType(propertyName);
   }
 
   equalsTo(anotherType: Type) {
@@ -84,19 +81,18 @@ export class CollectionType<K: Type, V: Type> extends Type {
       targetTypes,
       typeScope
     );
-    if (newValueType === this.valueType) {
+    const isSubtypeOf =
+      this.isSubtypeOf &&
+      this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
+    if (newValueType === this.valueType && isSubtypeOf === this.isSubtypeOf) {
       return this;
     }
     return CollectionType.createTypeWithName(
-      CollectionType.getName(this.keyType, newValueType),
+      this.getChangedName(sourceTypes, targetTypes),
       typeScope,
       this.keyType,
       newValueType,
-      {
-        isSubtypeOf:
-          this.isSubtypeOf &&
-          this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope)
-      }
+      { isSubtypeOf }
     );
   }
 }

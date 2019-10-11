@@ -104,4 +104,8 @@ export class UnionType extends Type {
     }
     return this.variants.some(type => type.isPrincipalTypeFor(anotherType));
   }
+
+  getPropertyType(propertyName: mixed): ?Type {
+    return null;
+  }
 }

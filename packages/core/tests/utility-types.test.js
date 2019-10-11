@@ -1,9 +1,13 @@
-const prepareAST = require("./preparation");
 const createTypeGraph = require("../build/type-graph/type-graph").default;
 const { Type } = require("../build/type-graph/types/type");
 const { UnionType } = require("../build/type-graph/types/union-type");
 const { ObjectType } = require("../build/type-graph/types/object-type");
 const { TYPE_SCOPE } = require("../build/type-graph/constants");
+const {
+  prepareAST,
+  getModuleAST,
+  mixTypeDefinitions
+} = require("./preparation");
 
 describe("Test $PropertyType", () => {
   test("Simple test of object property", async () => {
@@ -21,11 +25,20 @@ describe("Test $PropertyType", () => {
       type A = Array<number>;
       type B = $PropertyType<A, 0>;
     `);
-    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    debugger;
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
     const typeScope = actual.body.get(TYPE_SCOPE);
     expect(errors.length).toEqual(0);
     expect(typeScope.body.get("B").type).toEqual(
-      new UnionType("number | undefined", [new Type("number"), new Type("undefined")])
+      new UnionType("number | undefined", [
+        new Type("number"),
+        new Type("undefined")
+      ])
     );
   });
   test("Should throw error with non-object property", async () => {
@@ -35,7 +48,7 @@ describe("Test $PropertyType", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].message).toEqual(
-      "First parameter should be an object or collection"
+      'Property "a" are not exists in "number"'
     );
   });
   test("Should throw error with non-literal property", async () => {
@@ -112,7 +125,9 @@ describe("Test $Partial", () => {
     const typeScope = actual.body.get(TYPE_SCOPE);
     expect(errors.length).toEqual(0);
     const type = typeScope.body.get("A").type;
-    expect(type.name).toEqual("{ a: 1 | undefined, b: 2 | undefined, c: 3 | undefined }");
+    expect(type.name).toEqual(
+      "{ a: 1 | undefined, b: 2 | undefined, c: 3 | undefined }"
+    );
     expect([...type.properties.values()].map(a => a.type)).toEqual([
       new UnionType("1 | undefined", [
         new Type(1, { isSubtypeOf: new Type("number") }),
@@ -170,7 +185,12 @@ describe("Test $Pick", () => {
     const sourceAST = prepareAST(`
       type A = $Pick<{ a: 1 }, "a" | 2 | Array>;
     `);
-    const [, errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
     expect(errors.length).toEqual(1);
     expect(errors[0].message).toEqual(
       "The second parameter should be an string literals type"
@@ -207,7 +227,12 @@ describe("Test $Omit", () => {
     const sourceAST = prepareAST(`
       type A = $Omit<{ a: 2 }, "a" | 2 | Array>;
     `);
-    const [, errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
     expect(errors.length).toEqual(1);
     expect(errors[0].message).toEqual(
       "The second parameter should be an string literals type"

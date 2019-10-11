@@ -18,6 +18,16 @@ export class Type {
     this.isSubtypeOf = isSubtypeOf;
   }
 
+  getChangedName(sourceTypes: Array<Type>, targetTypes: Array<Type>) {
+    return `${String(this.name)}<${targetTypes.reduce(
+      (res, target, i) =>
+        "root" in sourceTypes[i]
+          ? `${res}${i === 0 ? "" : ", "}${String(target.name)}`
+          : res,
+      ""
+    )}>`;
+  }
+
   changeAll(
     sourceTypes: Array<Type>,
     targetTypes: Array<Type>,
@@ -42,6 +52,13 @@ export class Type {
       return false;
     }
     return this.isPrincipalTypeFor(type.isSubtypeOf);
+  }
+
+  getPropertyType(propertyName: mixed): ?Type {
+    if (this.isSubtypeOf != null) {
+      return this.isSubtypeOf.getPropertyType(propertyName);
+    }
+    return null;
   }
 
   isPrincipalTypeFor(type: Type): boolean {

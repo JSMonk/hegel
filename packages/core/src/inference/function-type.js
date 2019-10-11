@@ -1,4 +1,5 @@
 // @flow
+import NODES from "../utils/nodes";
 import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
 import { Meta } from "../type-graph/meta/meta";
@@ -9,11 +10,12 @@ import { UnionType } from "../type-graph/types/union-type";
 import { addTypeVar } from "../utils/type-utils";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
-import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
+import { CollectionType } from "../type-graph/types/collection-type";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
 import { getVariableType } from "../utils/variable-utils";
 import { addCallToTypeGraph } from "../type-graph/call";
+import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import {
   copyTypeInScopeIfNeeded,
   getTypeFromTypeAnnotation
@@ -56,13 +58,16 @@ export function inferenceFunctionLiteralType(
   currentNode: Function,
   typeScope: Scope,
   parentNode: ModuleScope | Scope,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  isTypeDefinitions: boolean
 ): CallableType {
   let shouldBeGeneric =
     currentNode.typeParameters !== undefined ||
     currentNode.returnType === undefined;
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
-  const functionScope = typeGraph.body.get(Scope.getName(currentNode));
+  const functionScope = isTypeDefinitions
+    ? new Scope(Scope.FUNCTION_TYPE, parentNode)
+    : typeGraph.body.get(Scope.getName(currentNode));
   if (!(functionScope instanceof Scope)) {
     throw new Error("Function scope should be created before inference");
   }
@@ -79,17 +84,22 @@ export function inferenceFunctionLiteralType(
     );
   }
   const argumentsTypes = currentNode.params.map((param, index) => {
-    if (param.optional) {
+    if (param.optional && !isTypeDefinitions) {
       throw new HegelError(
         "The optional argument syntax is not allowed. Please use maybe type syntax.",
         param.loc
       );
     }
     const { name } = param.left || param;
-    const typeAnnotation =
+    const typeNode =
       param.left !== undefined
         ? param.left.typeAnnotation
         : param.typeAnnotation;
+    const typeAnnotation = param.optional
+      ? {
+          typeAnnotation: { ...typeNode, type: NODES.NULLABLE_TYPE_ANNOTATION }
+        }
+      : typeNode;
     let paramType = getTypeFromTypeAnnotation(
       typeAnnotation,
       localTypeScope,
@@ -130,6 +140,15 @@ export function inferenceFunctionLiteralType(
             localTypeScope,
             variants
           );
+    }
+    if (param.type === NODES.REST_ELEMENT) {
+      if (!(paramType instanceof CollectionType)) {
+        throw new HegelError(
+          "Rest argument type should be an array-like",
+          param.typeAnnotation.loc
+        );
+      }
+      paramType = new RestArgument(paramType);
     }
     if (paramType.name === UNDEFINED_TYPE) {
       shouldBeGeneric = true;
@@ -264,8 +283,8 @@ export function getRawFunctionType(
   if (fn instanceof FunctionType) {
     return fn;
   }
-  const argumentsTypes = args.map(arg =>
-    arg instanceof VariableInfo ? arg.type : arg
+  const argumentsTypes = args.map(
+    arg => (arg instanceof VariableInfo ? arg.type : arg)
   );
   return genericArguments
     ? fn.applyGeneric(genericArguments, loc)
@@ -281,8 +300,17 @@ export function getInvocationType(
   if (fn instanceof FunctionType) {
     return fn.returnType;
   }
-  const resultFn = getRawFunctionType(fn, argumentsTypes, genericArguments);
-  return resultFn.returnType;
+  let { returnType } = getRawFunctionType(
+    fn,
+    argumentsTypes,
+    genericArguments,
+    loc
+  );
+  returnType =
+    returnType instanceof TypeVar && returnType.root != undefined
+      ? returnType.root
+      : returnType;
+  return returnType;
 }
 
 export function getTypeRoot(type: TypeVar) {
@@ -337,8 +365,8 @@ export function inferenceFunctionTypeByScope(
   ) {
     returnType.root = Type.createTypeWithName("void", localTypeScope);
   }
-  const newArgumentsTypes = argumentsTypes.map(t =>
-    t instanceof TypeVar && t.root != undefined ? getTypeRoot(t) : t
+  const newArgumentsTypes = argumentsTypes.map(
+    t => (t instanceof TypeVar && t.root != undefined ? getTypeRoot(t) : t)
   );
   const newGenericArguments: Array<TypeVar> = newArgumentsTypes.reduce(
     (res, t) => {

@@ -8,6 +8,7 @@ import mixBaseOperators from "../utils/operators";
 import mixImportedDependencies from "../utils/imports";
 import HegelError, { UnreachableError } from "../utils/errors";
 import { Meta } from "./meta/meta";
+import { Type } from "./types/type";
 import { Scope } from "./scope";
 import { UnionType } from "./types/union-type";
 import { refinement } from "../inference/refinement";
@@ -46,7 +47,7 @@ const addVariableToGraph = (
   currentNode: Node,
   parentNode: ?Node,
   typeGraph: ModuleScope,
-  customName?: string = getDeclarationName(currentNode),
+  customName?: string = getDeclarationName(currentNode)
 ) => {
   const variableInfo = getVariableInfoFromDelcaration(
     currentNode,
@@ -80,7 +81,8 @@ export const addFunctionScopeToTypeGraph = (
 const addFunctionToTypeGraph = (
   currentNode: Node,
   parentNode: Node,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  isTypeDefinitions: boolean
 ) => {
   const name = currentNode.id
     ? getDeclarationName(currentNode)
@@ -92,17 +94,20 @@ const addFunctionToTypeGraph = (
     name
   );
   const currentTypeScope = findNearestTypeScope(variableInfo.parent, typeGraph);
-  const scope = addFunctionScopeToTypeGraph(
-    currentNode,
-    parentNode,
-    typeGraph,
-    variableInfo
-  );
+  const scope = isTypeDefinitions
+    ? new Scope(Scope.FUNCTION_TYPE, currentTypeScope)
+    : addFunctionScopeToTypeGraph(
+        currentNode,
+        parentNode,
+        typeGraph,
+        variableInfo
+      );
   variableInfo.type = inferenceTypeForNode(
     currentNode,
     currentTypeScope,
     variableInfo.parent,
-    typeGraph
+    typeGraph,
+    isTypeDefinitions
   );
   const functionType =
     variableInfo.type instanceof GenericType
@@ -135,7 +140,8 @@ const addFunctionToTypeGraph = (
 
 const hasTypeParams = (node: Node): boolean =>
   node.typeParameters &&
-  node.typeParameters.type === NODE.TYPE_PARAMETER_DECLARATION &&
+  (node.typeParameters.type === NODE.TYPE_PARAMETER_DECLARATION ||
+    node.typeParameters.type === NODE.TS_TYPE_PARAMETER_DECLARATION) &&
   Array.isArray(node.typeParameters.params) &&
   node.typeParameters.params.length !== 0;
 
@@ -174,6 +180,18 @@ const addClassToTypeGraph = (
   parentScope.body.set(String(classType.name), variableInfo);
 };
 
+const getAliasBody = (node: Node) => {
+  switch (node.type) {
+    case NODE.TYPE_ALIAS:
+      return { typeAnnotation: node.right };
+    case NODE.TS_INTERFACE_DECLARATION:
+      return { typeAnnotation: node };
+    case NODE.TS_TYPE_ALIAS:
+      return node;
+  }
+  throw new Error("Never!");
+};
+
 const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
   if (typeScope === undefined || !(typeScope instanceof Scope)) {
@@ -192,7 +210,7 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
       getTypeFromTypeAnnotation({ typeAnnotation }, localTypeScope, typeGraph)
     );
   const type = getTypeFromTypeAnnotation(
-    { typeAnnotation: node.right },
+    getAliasBody(node),
     localTypeScope,
     typeGraph,
     false,
@@ -200,14 +218,16 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   );
   const typeFor = genericArguments
     ? GenericType.createTypeWithName(
-        node.id.name,
+        typeName,
         typeScope,
         genericArguments,
         localTypeScope,
         type
       )
     : type;
-  self.type.constraint = typeFor;
+  self.type.root = typeFor;
+  self.type.name = typeFor.name;
+  localTypeScope.body.delete(typeName);
   const typeAlias = new VariableInfo(typeFor, typeScope, new Meta(node.loc));
   typeScope.body.set(typeName, typeAlias);
   if (node.exportAs) {
@@ -215,7 +235,11 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   }
 };
 
-const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
+const fillModuleScope = (
+  typeGraph: ModuleScope,
+  errors: Array<HegelError>,
+  isTypeDefinitions: boolean
+) => {
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
   if (!typeScope || !(typeScope instanceof Scope)) {
     throw new Error("Type scope is not a scope.");
@@ -223,6 +247,8 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
   return (currentNode: Node, parentNode: Node, meta?: TraverseMeta = {}) => {
     switch (currentNode.type) {
       case NODE.TYPE_ALIAS:
+      case NODE.TS_TYPE_ALIAS:
+      case NODE.TS_INTERFACE_DECLARATION:
         addTypeAlias(currentNode, typeGraph);
         break;
       case NODE.VARIABLE_DECLARATOR:
@@ -253,7 +279,13 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
       case NODE.FUNCTION_DECLARATION:
-        addFunctionToTypeGraph(currentNode, parentNode, typeGraph);
+      case NODE.TS_FUNCTION_DECLARATION:
+        addFunctionToTypeGraph(
+          currentNode,
+          parentNode,
+          typeGraph,
+          isTypeDefinitions
+        );
         break;
       case NODE.BLOCK_STATEMENT:
         if (NODE.isFunction(parentNode)) {
@@ -296,7 +328,8 @@ const fillModuleScope = (typeGraph: ModuleScope, errors: Array<HegelError>) => {
 const afterFillierActions = (
   path: string,
   typeGraph: ModuleScope,
-  errors: Array<HegelError>
+  errors: Array<HegelError>,
+  isTypeDefinitions: boolean
 ) => {
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
   if (!typeScope || !(typeScope instanceof Scope)) {
@@ -315,11 +348,10 @@ const afterFillierActions = (
         break;
       case NODE.VARIABLE_DECLARATOR:
         const variableInfo = findVariableInfo(currentNode.id, currentScope);
-        const newTypeOrVar = addCallToTypeGraph(
-          currentNode,
-          typeGraph,
-          currentScope
-        );
+        const newTypeOrVar =
+          isTypeDefinitions && !currentNode.init
+            ? new Type("mixed")
+            : addCallToTypeGraph(currentNode, typeGraph, currentScope);
         if (variableInfo.type.name === UNDEFINED_TYPE) {
           const newType =
             newTypeOrVar.result instanceof VariableInfo
@@ -407,7 +439,13 @@ const afterFillierActions = (
         if (currentNode.exportAs) {
           typeGraph.exports.set(
             currentNode.exportAs,
-            inferenceTypeForNode(currentNode, typeScope, parentNode, typeGraph)
+            inferenceTypeForNode(
+              currentNode,
+              typeScope,
+              parentNode,
+              typeGraph,
+              isTypeDefinitions
+            )
           );
         }
     }
@@ -425,7 +463,8 @@ async function createModuleScope(
   ast: Program,
   errors: Array<HegelError>,
   getModuleTypeGraph: (string, string) => Promise<ModuleScope>,
-  globalModule: ModuleScope
+  globalModule: ModuleScope,
+  isTypeDefinitions: boolean
 ): Promise<ModuleScope> {
   const module = new ModuleScope(new Map(), globalModule);
   const typeScope = new Scope(
@@ -444,8 +483,8 @@ async function createModuleScope(
   try {
     traverseTree(
       ast,
-      fillModuleScope(module, errors),
-      afterFillierActions(path, module, errors)
+      fillModuleScope(module, errors, isTypeDefinitions),
+      afterFillierActions(path, module, errors, isTypeDefinitions)
     );
   } catch (e) {
     if (!(e instanceof HegelError)) {
@@ -460,7 +499,9 @@ async function createModuleScope(
 
 async function createGlobalScope(
   ast: Array<Program>,
-  getModuleAST: (string, string) => Promise<Program>
+  getModuleAST: (string, string) => Promise<Program>,
+  isTypeDefinitions: boolean = false,
+  mixTypeDefinitions: Scope => void = a => {}
 ): Promise<[Array<ModuleScope>, Array<HegelError>, ModuleScope]> {
   const errors: Array<HegelError> = [];
   const globalModule = new ModuleScope();
@@ -469,6 +510,7 @@ async function createGlobalScope(
   globalModule.body.set(POSITIONS, new Scope("block", globalModule));
   mixUtilityTypes(globalModule);
   mixBaseGlobals(globalModule);
+  mixTypeDefinitions(globalModule);
   mixBaseOperators(globalModule);
   const getModuleFromString = async (path: string, currentPath: string) => {
     const ast = await getModuleAST(path, currentPath);
@@ -477,7 +519,8 @@ async function createGlobalScope(
       ast,
       errors,
       getModuleFromString,
-      globalModule
+      globalModule,
+      isTypeDefinitions
     );
   };
   const modules = await Promise.all(
@@ -487,7 +530,8 @@ async function createGlobalScope(
         module,
         errors,
         getModuleFromString,
-        globalModule
+        globalModule,
+        isTypeDefinitions
       )
     )
   );

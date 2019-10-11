@@ -5,12 +5,18 @@ export const DECLARATION_TYPES = {
   VARIABLE_DECLARATOR: "VariableDeclarator",
   VARIABLE_DECLARATION: "VariableDeclaration",
   FUNCTION_DECLARATION: "FunctionDeclaration",
+  TS_FUNCTION_DECLARATION: "TSDeclareFunction",
+  TS_CALL_SIGNATURE_DECLARATION: "TSCallSignatureDeclaration",
   CLASS_DECLARATION: "ClassDeclaration",
   VARIABLE_DECLARATOR: "VariableDeclarator",
   VARIABLE_DECLARATOR: "VariableDeclarator",
   TYPE_ALIAS: "TypeAlias",
+  TS_TYPE_ALIAS: "TSTypeAliasDeclaration",
+  TS_INTERFACE_DECLARATION: "TSInterfaceDeclaration",
   TYPE_PARAMETER: "TypeParameter",
   TYPE_PARAMETER_DECLARATION: "TypeParameterDeclaration",
+  TS_TYPE_PARAMETER_DECLARATION: "TSTypeParameterDeclaration",
+  TS_TYPE_PARAMETER: "TSTypeParameter",
   EXPORT_NAMED_DECLARATION: "ExportNamedDeclaration",
   EXPORT_DEFAULT_DECLARATION: "ExportDefaultDeclaration",
   IMPORT_DECLARATION: "ImportDeclaration"
@@ -48,17 +54,23 @@ export const EXPRESSIONS_TYPES = {
   UPDATE_EXPRESSION: "UpdateExpression",
   NEW_EXPRESSION: "NewExpression",
   THIS_EXPRESSION: "ThisExpression",
+  TS_EXPRESSION_WITH_TYPE_ARGUMENTS: "TSExpressionWithTypeArguments",
+  REST_ELEMENT: "RestElement"
 };
 
 export const OBJECT_PROPERTIES = {
   OBJECT_EXPRESSION: "ObjectExpression",
   OBJECT_METHOD: "ObjectMethod",
-  OBJECT_PROPERTY: "ObjectProperty"
+  TS_OBJECT_METHOD: "TSMethodSignature",
+  OBJECT_PROPERTY: "ObjectProperty",
+  TS_OBJECT_PROPERTY: "TSPropertySignature",
+  TS_INDEX_PROPERTY: "TSIndexSignature",
+  TS_CONSTRUCT_SIGNATURE_DECLARATION: "TSConstructSignatureDeclaration"
 };
 
 export const CLASS_PROPERTIES = {
   CLASS_METHOD: "ClassMethod",
-  CLASS_PROPERTY: "ClassProperty",
+  CLASS_PROPERTY: "ClassProperty"
 };
 
 export const LITERAL_TYPES = {
@@ -67,7 +79,8 @@ export const LITERAL_TYPES = {
   STRING_LITERAL: "StringLiteral",
   BOOLEAN_LITERAL: "BooleanLiteral",
   NULL_LITERAL: "NullLiteral",
-  REG_EXP_LITERAL: "RegExpLiteral"
+  REG_EXP_LITERAL: "RegExpLiteral",
+  TS_LITERAL_TYPE: "TSLiteralType"
 };
 
 export const ANNOTATION_TYPES = {
@@ -88,7 +101,29 @@ export const ANNOTATION_TYPES = {
   OBJECT_TYPE_PROPERTY: "ObjectTypeProperty",
   UNION_TYPE_ANNOTATION: "UnionTypeAnnotation",
   NULLABLE_TYPE_ANNOTATION: "NullableTypeAnnotation",
-  TUPLE_TYPE_ANNOTATION: "TupleTypeAnnotation"
+  TUPLE_TYPE_ANNOTATION: "TupleTypeAnnotation",
+  TS_FUNCTION_TYPE_ANNOTATION: "TSFunctionType",
+  TS_ANY_TYPE_ANNOTATION: "TSAnyKeyword",
+  TS_SYMBOL_TYPE_ANNOTATION: "TSSymbolKeyword",
+  TS_VOID_TYPE_ANNOTATION: "TSVoidKeyword",
+  TS_BOOLEAN_TYPE_ANNOTATION: "TSBooleanKeyword",
+  TS_UNKNOWN_TYPE_ANNOTATION: "TSUnknownKeyword",
+  TS_NEVER_TYPE_ANNOTATION: "TSNeverKeyword",
+  TS_NUMBER_TYPE_ANNOTATION: "TSNumberKeyword",
+  TS_BIGINT_TYPE_ANNOTATION: "TSBigIntKeyword",
+  TS_SYMBOL_TYPE_ANNOTATION: "TSSymbolKeyword",
+  TS_STRING_TYPE_ANNOTATION: "TSStringKeyword",
+  TS_NULL_LITERAL_TYPE_ANNOTATION: "TSNullKeyword",
+  TS_GENERIC_TYPE_ANNOTATION: "TSTypeReference",
+  TS_OBJECT_TYPE_ANNOTATION: "TSTypeLiteral",
+  TS_UNION_TYPE_ANNOTATION: "TSUnionType",
+  TS_TUPLE_TYPE_ANNOTATION: "TSTupleType",
+  TS_TYPE_ANNOTATION: "TSTypeAnnotation",
+  TS_TYPE_REFERENCE_ANNOTATION: "TSTypeReference",
+  THIS_TYPE_ANNOTATION: "ThisTypeAnnotation",
+  TS_THIS_TYPE_ANNOTATION: "TSThisType",
+  TS_UNDEFINED_TYPE_ANNOTATION: "TSUndefinedKeyword",
+  TS_ARRAY_TYPE_ANNOTATION: "TSArrayType"
 };
 
 export const INITIALIZATION_TYPES = {

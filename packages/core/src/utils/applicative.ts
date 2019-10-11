@@ -13,8 +13,8 @@ import { GenericType } from "../type-graph/types/generic-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
-import { UNDEFINED_TYPE, CALLABLE, INDEXABLE, THIS_TYPE } from "../type-graph/constants";
-import { unique, findVariableInfo } from "./common";
+import { UNDEFINED_TYPE, CALLABLE, INDEXABLE } from "../type-graph/constants";
+import { unique, findVariableInfo, createSelf } from "./common";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
 
@@ -341,8 +341,7 @@ export function getTypeFromTypeAnnotation(
             self
           )
         );
-        return genericParams.some(t => t instanceof TypeVar && t !== self) ||
-          isSelf(existedGenericType)
+        return genericParams.some(t => t instanceof TypeVar && t !== self)
           ? new $BottomType(
               existedGenericType,
               genericParams,
@@ -385,8 +384,8 @@ export function getTypeFromTypeAnnotation(
       const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
       const { params: paramsNode, parameters } = typeNode.typeAnnotation;
       const argNodes = paramsNode || parameters;
-      const args = argNodes.map(annotation => {
-        const result = getTypeFromTypeAnnotation(
+      const args = argNodes.map(annotation =>
+        getTypeFromTypeAnnotation(
           // Ohhh, TS is beautiful ❤️
           annotation.typeAnnotation.type === NODE.TS_TYPE_ANNOTATION
             ? nullable(annotation)
@@ -395,11 +394,8 @@ export function getTypeFromTypeAnnotation(
           currentScope,
           rewritable,
           self
-        );
-        return annotation.type === NODE.REST_ELEMENT
-          ? new RestArgument(result)
-          : result;
-      });
+        )
+      );
       const { returnType: returnTypeNode } = typeNode.typeAnnotation;
       const returnType = getTypeFromTypeAnnotation(
         returnTypeNode
@@ -479,20 +475,6 @@ export function get(
     }
     return property.type;
   }, variable.type);
-}
-
-const self = new TypeVar(THIS_TYPE);
-
-export function createSelf(node: Node, parent: Scope | ModuleScope) {
-  return new VariableInfo(
-    new TypeVar(node.id.name, undefined, false, { isSubtypeOf: self }),
-    parent,
-    new Meta(node.loc)
-  );
-}
-
-export function isSelf(type: Type) {
-  return type.isSubtypeOf === self;
 }
 
 export function copyTypeInScopeIfNeeded(type: Type, typeScope: Scope) {

@@ -102,13 +102,17 @@ export class ObjectType extends Type {
         new VariableInfo(newType, vInfo.parent, vInfo.meta)
       ]);
     });
-    if (!isAnyPropertyChanged) {
+    const isSubtypeOf =
+      this.isSubtypeOf &&
+      this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
+    if (!isAnyPropertyChanged && this.isSubtypeOf === isSubtypeOf) {
       return this;
     }
     return ObjectType.createTypeWithName(
       ObjectType.getName(newProperties),
       typeScope,
-      newProperties
+      newProperties,
+      { isSubtypeOf }
     );
   }
 
