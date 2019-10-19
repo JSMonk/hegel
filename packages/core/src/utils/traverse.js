@@ -125,6 +125,7 @@ const getBody = (currentNode: any) =>
   currentNode.body ||
   currentNode.declarations ||
   currentNode.properties ||
+  currentNode.expression ||
   [
     currentNode.block,
     currentNode.handler,

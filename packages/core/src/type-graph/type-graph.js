@@ -387,7 +387,6 @@ const afterFillierActions = (
         addPosition(currentNode.catchBlock.param, errorVariable, typeGraph);
         break;
       case NODE.IF_STATEMENT:
-      case NODE.CALL_EXPRESSION:
       case NODE.RETURN_STATEMENT:
       case NODE.EXPRESSION_STATEMENT:
       case NODE.WHILE_STATEMENT:
