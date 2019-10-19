@@ -433,7 +433,6 @@ const afterFillierActions = (
             ? inferenceErrorType(currentNode, typeGraph)
             : undefined;
         }
-        checkCalls(path, functionScope, typeScope, errors, currentNode.loc);
         break;
       default:
         if (currentNode.exportAs) {
@@ -493,6 +492,11 @@ async function createModuleScope(
     e.source = path;
     errors.push(e);
   }
+  module.body.forEach(scope => {
+    if (scope instanceof Scope) {
+      checkCalls(path, scope, typeScope, errors);
+    }
+  });
   checkCalls(path, module, typeScope, errors);
   return module;
 }

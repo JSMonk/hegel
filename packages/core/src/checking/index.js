@@ -131,8 +131,7 @@ function checkCalls(
   path: string,
   scope: Scope | ModuleScope,
   typeScope: Scope,
-  errors: Array<HegelError>,
-  loc: SourceLocation
+  errors: Array<HegelError>
 ): void {
   let returnWasCalled = false;
   for (let i = 0; i < scope.calls.length; i++) {
@@ -147,25 +146,32 @@ function checkCalls(
     }
   }
   if (
+    scope instanceof Scope &&
     scope.type === Scope.FUNCTION_TYPE &&
     scope.declaration instanceof VariableInfo &&
     !returnWasCalled
   ) {
+    const { declaration } = scope;
     const functionDeclaration: any =
-      scope.declaration.type instanceof GenericType
-        ? scope.declaration.type.subordinateType
-        : scope.declaration.type;
+      declaration.type instanceof GenericType
+        ? declaration.type.subordinateType
+        : declaration.type;
+    if (functionDeclaration.returnType === undefined) {
+      return;
+    }
     if (
       !functionDeclaration.returnType.isPrincipalTypeFor(
         new Type("undefined", { isSubtypeOf: new Type("void") })
       )
     ) {
-      throw new HegelError(
-        `Function should return something with type "${getNameForType(
-          functionDeclaration.returnType
-        )}"`,
-        loc,
-        path
+      errors.push(
+        new HegelError(
+          `Function should return something with type "${getNameForType(
+            functionDeclaration.returnType
+          )}"`,
+          declaration.meta.loc,
+          path
+        )
       );
     }
   }
