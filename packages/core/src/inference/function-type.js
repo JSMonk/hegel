@@ -352,20 +352,11 @@ export function getInvocationType(
   genericArguments?: Array<Type> | null,
   loc: SourceLocation
 ): Type {
-  if (fn instanceof FunctionType) {
-    return fn.returnType;
-  }
-  let { returnType } = getRawFunctionType(
-    fn,
-    argumentsTypes,
-    genericArguments,
-    loc
-  );
-  returnType =
-    returnType instanceof TypeVar && returnType.root != undefined
-      ? returnType.root
-      : returnType;
-  return returnType;
+  let { returnType } =
+    fn instanceof FunctionType
+      ? fn
+      : getRawFunctionType(fn, argumentsTypes, genericArguments, loc);
+  return returnType instanceof TypeVar ? getTypeRoot(returnType) : returnType;
 }
 
 export function clearRoot(type: Type) {
