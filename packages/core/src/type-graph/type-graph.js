@@ -20,8 +20,8 @@ import { VariableInfo } from "./variable-info";
 import { inferenceClass } from "../inference/class-inference";
 import { getScopeFromNode } from "../utils/scope-utils";
 import { findVariableInfo } from "../utils/common";
-import { inferenceErrorType } from "../inference/error-type";
 import { addCallToTypeGraph } from "./call";
+import { inferenceErrorType } from "../inference/error-type";
 import { inferenceTypeForNode } from "../inference";
 import { getDeclarationName, getAnonymousKey } from "../utils/common";
 import { getTypeFromTypeAnnotation, createSelf } from "../utils/type-utils";
@@ -84,9 +84,11 @@ const addFunctionToTypeGraph = (
   typeGraph: ModuleScope,
   isTypeDefinitions: boolean
 ) => {
-  const name = currentNode.id
-    ? getDeclarationName(currentNode)
-    : getAnonymousKey(currentNode);
+  const name =
+    currentNode.type === NODE.FUNCTION_DECLARATION ||
+    currentNode.type === NODE.TS_FUNCTION_DECLARATION
+      ? getDeclarationName(currentNode)
+      : getAnonymousKey(currentNode);
   const variableInfo = addVariableToGraph(
     currentNode,
     parentNode,
@@ -251,13 +253,6 @@ const fillModuleScope = (
       case NODE.TS_INTERFACE_DECLARATION:
         addTypeAlias(currentNode, typeGraph);
         break;
-      case NODE.VARIABLE_DECLARATOR:
-        addVariableToGraph(
-          Object.assign(currentNode, meta),
-          parentNode,
-          typeGraph
-        );
-        break;
       case NODE.IF_STATEMENT:
       case NODE.WHILE_STATEMENT:
       case NODE.DO_WHILE_STATEMENT:
@@ -319,8 +314,6 @@ const fillModuleScope = (
           currentNode.handler.param.name
         );
         break;
-      case NODE.IMPORT_DECLARATION:
-        break;
     }
   };
 };
@@ -347,7 +340,11 @@ const afterFillierActions = (
         addClassToTypeGraph(currentNode, typeScope, currentScope, typeGraph);
         break;
       case NODE.VARIABLE_DECLARATOR:
-        const variableInfo = findVariableInfo(currentNode.id, currentScope);
+        const variableInfo = addVariableToGraph(
+          Object.assign(currentNode, meta),
+          parentNode,
+          typeGraph
+        );
         const newTypeOrVar =
           isTypeDefinitions && !currentNode.init
             ? new Type("mixed")

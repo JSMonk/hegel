@@ -21,66 +21,72 @@ describe("Simple inference for module variables by literal", () => {
     const sourceAST = prepareAST(`
       const a = 2;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("number"),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with boolean type", async () => {
     const sourceAST = prepareAST(`
       const a = true;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("boolean"),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with string type", async () => {
     const sourceAST = prepareAST(`
       const a = "test";
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("string"),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with null type", async () => {
     const sourceAST = prepareAST(`
       const a = null;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type(null, { isSubtypeOf: new Type("void") }),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with undefined type", async () => {
     const sourceAST = prepareAST(`
       const a = undefined;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("undefined", { isSubtypeOf: new Type("void") }),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with object type", async () => {
     const sourceAST = prepareAST(`
       const a = {};
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new ObjectType("{  }", []),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with empty array type", async () => {
@@ -98,6 +104,7 @@ describe("Simple inference for module variables by literal", () => {
       parent: actual
     });
     const a = actual.body.get("a").type;
+    expect(errors.length).toBe(0);
     expect(a).toBeInstanceOf(TupleType);
     expect(a.name).toBe("[]");
     expect(a.items).toEqual([]);
@@ -113,6 +120,7 @@ describe("Simple inference for module variables by literal", () => {
       await mixTypeDefinitions(createTypeGraph)
     );
     const a = actual.body.get("a").type;
+    expect(errors.length).toBe(0);
     expect(a).toBeInstanceOf(TupleType);
     expect(a.name).toBe("[number]");
     expect(a.items).toEqual([new Type("number")]);
@@ -128,6 +136,7 @@ describe("Simple inference for module variables by literal", () => {
       await mixTypeDefinitions(createTypeGraph)
     );
     const a = actual.body.get("a").type;
+    expect(errors.length).toBe(0);
     expect(a).toBeInstanceOf(TupleType);
     expect(a.name).toBe("[number, string]");
     expect(a.items).toEqual([new Type("number"), new Type("string")]);
@@ -137,11 +146,12 @@ describe("Simple inference for module variables by literal", () => {
       const a = { a: 1 };
       const b = a.a;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("number"),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("b")).toEqual(expected);
   });
 });
@@ -153,11 +163,12 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("number"),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with boolean type", async () => {
@@ -167,11 +178,12 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("boolean"),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with string type", async () => {
@@ -181,11 +193,12 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("string"),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with null type", async () => {
@@ -195,11 +208,12 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type(null, { isSubtypeOf: new Type("void") }),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with undefined type", async () => {
@@ -207,11 +221,12 @@ describe("Simple inference for module variables by function return", () => {
       function getA(): undefined {}
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("undefined", { isSubtypeOf: new Type("void") }),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with void type", async () => {
@@ -220,11 +235,12 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("void"),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with mixed type", async () => {
@@ -233,11 +249,12 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new Type("mixed"),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with union type", async () => {
@@ -247,7 +264,7 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new UnionType("number | string", [
         new Type("number"),
@@ -255,12 +272,13 @@ describe("Simple inference for module variables by function return", () => {
       ]),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with tuple type", async () => {
     const sourceAST = prepareAST(`
       function getA(): [string, number] {
-        return 2;
+        return ["", 2];
       }
       const a = getA();
     `);
@@ -271,6 +289,7 @@ describe("Simple inference for module variables by function return", () => {
       await mixTypeDefinitions(createTypeGraph)
     );
     const a = actual.body.get("a").type;
+    expect(errors.length).toBe(0);
     expect(a).toBeInstanceOf(TupleType);
     expect(a.name).toBe("[string, number]");
     expect(a.items).toEqual([new Type("string"), new Type("number")]);
@@ -282,13 +301,14 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new UnionType("number | undefined", [
         new Type("number"),
         new Type("undefined", { isSubtypeOf: new Type("void") })
       ])
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with object type", async () => {
@@ -298,13 +318,14 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new ObjectType("{ a: number }", [
         ["a", new VariableInfo(new Type("number"), actual)]
       ]),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with alias type", async () => {
@@ -315,13 +336,14 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new ObjectType("{ a: number }", [
         ["a", new VariableInfo(new Type("number"), actual)]
       ]),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference global module variable with generic alias type", async () => {
@@ -332,20 +354,21 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
       type: new ObjectType("{ a: number }", [
         ["a", new VariableInfo(new Type("number"), actual)]
       ]),
       parent: actual
     });
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
   test("Inference function with default paramter and type", async () => {
     const sourceAST = prepareAST(`
       const fn = (a: number = 1) => a;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     expect(actual.body.get("fn").type).toEqual(
       new FunctionType(
         "(number) => number",
@@ -361,13 +384,14 @@ describe("Simple inference for module functions", () => {
       function a(b): void {
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => void");
     expect(actualA.type.subordinateType.returnType).toEqual(new Type("void"));
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     ]);
   });
   test("Inference global module function without return type", async () => {
@@ -375,8 +399,9 @@ describe("Simple inference for module functions", () => {
       function a() {
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => void");
     expect(actualA.type.returnType).toEqual(new Type("void"));
@@ -388,8 +413,9 @@ describe("Simple inference for module functions", () => {
       	return 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -402,8 +428,9 @@ describe("Simple inference for module functions", () => {
       	return x;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => string");
     expect(actualA.type.returnType).toEqual(new Type("string"));
@@ -415,15 +442,16 @@ describe("Simple inference for module functions", () => {
       	return x;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => α");
     expect(actualA.type.subordinateType.returnType).toEqual(
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     );
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     ]);
   });
   test("Inference global module function type by arguments usage", async () => {
@@ -432,8 +460,9 @@ describe("Simple inference for module functions", () => {
       	return x - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -445,8 +474,9 @@ describe("Simple inference for module functions", () => {
   			return () => x - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => () => number");
     expect(actualA.type.returnType).toEqual(
@@ -460,7 +490,7 @@ describe("Simple inference for module functions", () => {
         return a * b;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("mul");
     const expectedT = new TypeVar(
       "T",
@@ -470,6 +500,7 @@ describe("Simple inference for module functions", () => {
       ]),
       true
     );
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<T: bigint | number>(T, T) => T");
     expect(actualA.type.subordinateType.returnType).toEqual(expectedT);
@@ -482,8 +513,9 @@ describe("Simple inference for module functions", () => {
     const sourceAST = prepareAST(`
       const rol = (x, i) => (x << i) | (x >>> (32 - i));
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("rol");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number, number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -499,8 +531,9 @@ describe("Simple inference for module functions", () => {
         return b - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -516,8 +549,9 @@ describe("Simple inference for module functions", () => {
         return f();
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -535,8 +569,9 @@ describe("Simple inference for module functions", () => {
         return f();
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => string");
     expect(actualA.type.returnType).toEqual(new Type("string"));
@@ -548,8 +583,9 @@ describe("Simple inference for module functions", () => {
         const b = 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-6]]");
+    expect(errors.length).toBe(0);
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
   });
   test("Inference function local variable type by argument link", async () => {
@@ -559,8 +595,9 @@ describe("Simple inference for module functions", () => {
         return x - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-6]]");
+    expect(errors.length).toBe(0);
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
   });
   test("Inference function local variable type by nested function usage", async () => {
@@ -573,8 +610,9 @@ describe("Simple inference for module functions", () => {
         }
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-6]]");
+    expect(errors.length).toBe(0);
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
     expect(actualAScope.body.get("x").type).toEqual(new Type("number"));
     expect(actualAScope.body.get("fn").type).toEqual(
@@ -586,13 +624,14 @@ describe("Simple inference for module functions", () => {
       const a = function(b): void {
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => void");
     expect(actualA.type.subordinateType.returnType).toEqual(new Type("void"));
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     ]);
   });
   test("Inference global module function without return type inside function expression", async () => {
@@ -600,8 +639,9 @@ describe("Simple inference for module functions", () => {
       const a = function () {
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => void");
     expect(actualA.type.returnType).toEqual(new Type("void"));
@@ -613,8 +653,9 @@ describe("Simple inference for module functions", () => {
       	return 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -627,8 +668,9 @@ describe("Simple inference for module functions", () => {
       	return x;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => string");
     expect(actualA.type.returnType).toEqual(new Type("string"));
@@ -640,15 +682,16 @@ describe("Simple inference for module functions", () => {
       	return x;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => α");
     expect(actualA.type.subordinateType.returnType).toEqual(
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     );
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     ]);
   });
   test("Inference global module function type by arguments usage inside function expression", async () => {
@@ -657,8 +700,9 @@ describe("Simple inference for module functions", () => {
       	return x - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -670,13 +714,15 @@ describe("Simple inference for module functions", () => {
   			return () => x - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => () => number");
     expect(actualA.type.returnType).toEqual(
       new FunctionType("() => number", [], new Type("number"))
     );
+    expect(errors.length).toBe(0);
     expect(actualA.type.argumentsTypes).toEqual([new Type("number")]);
   });
   test("Inference global module function type by inner function arguments link inside function expression", async () => {
@@ -686,8 +732,9 @@ describe("Simple inference for module functions", () => {
         return b - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -703,8 +750,9 @@ describe("Simple inference for module functions", () => {
         return f();
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -722,8 +770,9 @@ describe("Simple inference for module functions", () => {
         return f();
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => string");
     expect(actualA.type.returnType).toEqual(new Type("string"));
@@ -735,8 +784,9 @@ describe("Simple inference for module functions", () => {
         const b = 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-16]]");
+    expect(errors.length).toBe(0);
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
   });
   test("Inference function local variable type by argument link inside function expression", async () => {
@@ -746,7 +796,7 @@ describe("Simple inference for module functions", () => {
         return x - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-16]]");
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
   });
@@ -760,8 +810,9 @@ describe("Simple inference for module functions", () => {
         }
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-16]]");
+    expect(errors.length).toBe(0);
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
     expect(actualAScope.body.get("x").type).toEqual(new Type("number"));
     expect(actualAScope.body.get("fn").type).toEqual(
@@ -773,13 +824,14 @@ describe("Simple inference for module functions", () => {
       const a = (b): void => {
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => void");
     expect(actualA.type.subordinateType.returnType).toEqual(new Type("void"));
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     ]);
   });
   test("Inference global module function without return type inside arrow function", async () => {
@@ -787,8 +839,9 @@ describe("Simple inference for module functions", () => {
       const a = () => {
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => void");
     expect(actualA.type.returnType).toEqual(new Type("void"));
@@ -800,8 +853,9 @@ describe("Simple inference for module functions", () => {
       	return 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -811,8 +865,9 @@ describe("Simple inference for module functions", () => {
     const sourceAST = prepareAST(`
       const a = () => 2
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -825,8 +880,9 @@ describe("Simple inference for module functions", () => {
       	return x;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => string");
     expect(actualA.type.returnType).toEqual(new Type("string"));
@@ -837,8 +893,9 @@ describe("Simple inference for module functions", () => {
   		const x: string = "test";
       const a = () => x;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("() => string");
     expect(actualA.type.returnType).toEqual(new Type("string"));
@@ -850,30 +907,32 @@ describe("Simple inference for module functions", () => {
       	return x;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => α");
     expect(actualA.type.subordinateType.returnType).toEqual(
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     );
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     ]);
   });
   test("Inference global module function type 2 inside arrow function", async () => {
     const sourceAST = prepareAST(`
       const a = x => x;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
     expect(actualA.type.name).toEqual("<α>(α) => α");
     expect(actualA.type.subordinateType.returnType).toEqual(
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     );
     expect(actualA.type.subordinateType.argumentsTypes).toEqual([
-      new TypeVar("α", undefined, true)
+      new TypeVar("α", undefined)
     ]);
   });
   test("Inference global module function type by arguments usage 1 inside arrow function", async () => {
@@ -882,8 +941,9 @@ describe("Simple inference for module functions", () => {
         return x - 2
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -893,8 +953,9 @@ describe("Simple inference for module functions", () => {
     const sourceAST = prepareAST(`
       const a = x => x - 2
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -906,8 +967,9 @@ describe("Simple inference for module functions", () => {
   			return () => x - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => () => number");
     expect(actualA.type.returnType).toEqual(
@@ -919,8 +981,9 @@ describe("Simple inference for module functions", () => {
     const sourceAST = prepareAST(`
       const a = x => () => x - 2;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => () => number");
     expect(actualA.type.returnType).toEqual(
@@ -935,8 +998,9 @@ describe("Simple inference for module functions", () => {
         return b - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -952,8 +1016,9 @@ describe("Simple inference for module functions", () => {
         return f();
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => number");
     expect(actualA.type.returnType).toEqual(new Type("number"));
@@ -971,8 +1036,9 @@ describe("Simple inference for module functions", () => {
         return f();
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(FunctionType);
     expect(actualA.type.name).toEqual("(number) => string");
     expect(actualA.type.returnType).toEqual(new Type("string"));
@@ -984,8 +1050,9 @@ describe("Simple inference for module functions", () => {
         const b = 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-16]]");
+    expect(errors.length).toBe(0);
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
   });
   test("Inference function local variable type by argument link inside arrow function", async () => {
@@ -995,8 +1062,9 @@ describe("Simple inference for module functions", () => {
         return x - 2;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-16]]");
+    expect(errors.length).toBe(0);
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
   });
   test("Inference function local variable type by nested function usage inside arrow function", async () => {
@@ -1009,8 +1077,9 @@ describe("Simple inference for module functions", () => {
         }
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope2-16]]");
+    expect(errors.length).toBe(0);
     expect(actualAScope.body.get("b").type).toEqual(new Type("number"));
     expect(actualAScope.body.get("x").type).toEqual(new Type("number"));
     expect(actualAScope.body.get("fn").type).toEqual(
@@ -1021,7 +1090,8 @@ describe("Simple inference for module functions", () => {
     const sourceAST = prepareAST(`
       const fn = (a = 1) => a;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
     expect(actual.body.get("fn").type).toEqual(
       new FunctionType(
         "(number | undefined) => number",
@@ -1040,7 +1110,8 @@ describe("Simple inference for module functions", () => {
       const getNum = () => 2;
       const fn = (a = getNum()) => a;
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
     expect(actual.body.get("fn").type).toEqual(
       new FunctionType(
         "(number | undefined) => number",
@@ -1077,7 +1148,6 @@ describe("Simple inference for module functions", () => {
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualRes = actual.body.get("res").type;
-    expect(errors.length).toBe(0);
     const expectedT = new TypeVar(
       "T",
       new UnionType("bigint | number", [
@@ -1086,6 +1156,7 @@ describe("Simple inference for module functions", () => {
       ]),
       true
     );
+    expect(errors.length).toBe(0);
     expect(actualRes.constructor).toBe(GenericType);
     expect(actualRes.name).toEqual("<T: bigint | number>(T, T, T) => T");
     expect(actualRes.subordinateType.returnType).toEqual(expectedT);
@@ -1108,13 +1179,14 @@ describe("Object type inference", () => {
         6: /da/gi
       }
     `);
-    const [[actual]] = await createTypeGraph(
+    const [[actual], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,
       false,
       await mixTypeDefinitions(createTypeGraph)
     );
     const actualA = actual.body.get("a").type;
+    expect(errors.length).toBe(0);
     expect(actualA.properties.get("1").type).toEqual(new Type("number"));
     expect(actualA.properties.get("2").type).toEqual(new Type("string"));
     expect(actualA.properties.get("3").type).toEqual(new Type("boolean"));
@@ -1139,23 +1211,24 @@ describe("Object type inference", () => {
         c: x => x
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a").type;
+    expect(errors.length).toBe(0);
     expect(actualA.properties.get("a").type).toEqual(
       new FunctionType("() => number", [], new Type("number"))
     );
     expect(actualA.properties.get("b").type.subordinateType).toEqual(
       new FunctionType(
         "<α>(α) => void",
-        [new TypeVar("α", undefined, true)],
+        [new TypeVar("α", undefined)],
         new Type("void")
       )
     );
     expect(actualA.properties.get("c").type.subordinateType).toEqual(
       new FunctionType(
         "<α>(α) => α",
-        [new TypeVar("α", undefined, true)],
-        new TypeVar("α", undefined, true)
+        [new TypeVar("α", undefined)],
+        new TypeVar("α", undefined)
       )
     );
     expect(actualA.name).toEqual(
@@ -1168,10 +1241,11 @@ describe("Object type inference", () => {
         b: { c: () => 2 }
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a").type;
     const actualB = actualA.properties.get("b").type;
     const actualC = actualB.properties.get("c").type;
+    expect(errors.length).toBe(0);
     expect(actualA).toBeInstanceOf(ObjectType);
     expect(actualA.properties.size).toBe(1);
     expect(actualA.name).toBe("{ b: { c: () => number } }");
@@ -1192,7 +1266,7 @@ describe("Error inference", () => {
         throw new Error("");
       } catch(e) {}
     `);
-    const [[actual]] = await createTypeGraph(
+    const [[actual], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,
       false,
@@ -1200,6 +1274,7 @@ describe("Error inference", () => {
     );
     const actualCatchScope = actual.body.get("[[Scope4-17]]");
     const actualE = actualCatchScope.body.get("e");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toBeInstanceOf(ObjectType);
     expect(actualE.type.name).toBe("Error");
     expect(actualE.type.properties.get("message").type).toBeInstanceOf(Type);
@@ -1219,6 +1294,7 @@ describe("Error inference", () => {
     );
     const actualCatchScope = actual.body.get("[[Scope4-17]]");
     const actualE = actualCatchScope.body.get("e");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toBeInstanceOf(ObjectType);
     expect(actualE.type.name).toBe("SyntaxError");
     expect(actualE.type.properties.get("message").type).toBeInstanceOf(Type);
@@ -1230,9 +1306,10 @@ describe("Error inference", () => {
         throw 2;
       } catch(e) {}
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope4-17]]");
     const actualE = actualCatchScope.body.get("e");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toEqual(new Type("number"));
   });
   test("Inference simple throw with object type", async () => {
@@ -1241,9 +1318,10 @@ describe("Error inference", () => {
         throw { message: "test" };
       } catch(e) {}
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope4-17]]");
     const actualE = actualCatchScope.body.get("e");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toBeInstanceOf(ObjectType);
     expect(actualE.type.name).toBe("{ message: string }");
     expect(actualE.type.properties.get("message").type).toBeInstanceOf(Type);
@@ -1255,9 +1333,10 @@ describe("Error inference", () => {
         throw function() {};
       } catch(e) {}
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope4-17]]");
     const actualE = actualCatchScope.body.get("e");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toBeInstanceOf(FunctionType);
     expect(actualE.type.name).toBe("() => void");
     expect(actualE.type.argumentsTypes).toEqual([]);
@@ -1269,9 +1348,10 @@ describe("Error inference", () => {
         throw new function() {};
       } catch(e) {}
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope4-17]]");
     const actualE = actualCatchScope.body.get("e");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toEqual(new ObjectType("{ }", []));
   });
   test("Inference simple throw relation in catch", async () => {
@@ -1282,9 +1362,10 @@ describe("Error inference", () => {
         const a = e;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope4-17]]");
     const actualE = actualCatchScope.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toEqual(new Type("number"));
   });
   test("Inference function call with throw", async () => {
@@ -1296,9 +1377,10 @@ describe("Error inference", () => {
         a();
       } catch(e) {}
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope7-17]]");
     const actualE = actualCatchScope.body.get("e");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toEqual(new Type("number"));
   });
   test("Inference function call with conditional throw", async () => {
@@ -1311,9 +1393,10 @@ describe("Error inference", () => {
         a();
       } catch(e) {}
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope8-17]]");
     const actualE = actualCatchScope.body.get("e");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toEqual(new Type("number"));
   });
   test("Inference function call with implicit throw", async () => {
@@ -1327,9 +1410,10 @@ describe("Error inference", () => {
         b();
       } catch(e) {}
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualCatchScope = actual.body.get("[[Scope9-17]]");
     const actualE = actualCatchScope.body.get("e");
+    expect(errors.length).toBe(0);
     expect(actualE.type).toEqual(new Type("number"));
   });
 });
@@ -1346,6 +1430,7 @@ describe("Collection type inference", () => {
       await mixTypeDefinitions(createTypeGraph)
     );
     const actualA = actual.body.get("a");
+    expect(errors.length).toBe(0);
     expect(actualA.type).toEqual(
       new UnionType("number | undefined", [
         new Type("number"),
@@ -1378,8 +1463,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(new Type("number"));
   });
   test("Typeof refinement for union variable(number) in else", async () => {
@@ -1392,6 +1478,7 @@ describe("Type refinement", () => {
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope4-13]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(new Type("string"));
   });
   test("Typeof refinement for union variable(number) in if-else", async () => {
@@ -1402,8 +1489,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope4-40]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(new Type("boolean"));
   });
   // test("Typeof refinement for union variable(number) in and operator", async () => {
@@ -1411,8 +1499,9 @@ describe("Type refinement", () => {
   //     const a: number | string = 2;
   //     const c = typeof a === "number" && a;
   //   `);
-  //   const [[actual]] = await createTypeGraph([sourceAST]);
+  //   const [[actual], errors] = await createTypeGraph([sourceAST]);
   //   const actualScope = actual.body.get("[[Scope3-33]]");
+  // expect(errors.length).toBe(0);
   //   expect(actualScope.body.get("b").type).toEqual(
   //     new UnionType("boolean | number", [
   //       new Type("boolean"),
@@ -1427,8 +1516,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(new Type("string"));
   });
   test("Typeof refinement for union variable(boolean)", async () => {
@@ -1438,8 +1528,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-34]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(new Type("boolean"));
   });
   test("Typeof refinement for union variable(number literal)", async () => {
@@ -1449,8 +1540,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       new Type(2, { isSubtypeOf: new Type("number") })
     );
@@ -1462,8 +1554,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       new Type("'2'", { isSubtypeOf: new Type("string") })
     );
@@ -1475,8 +1568,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-34]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       new Type(true, { isSubtypeOf: new Type("boolean") })
     );
@@ -1488,8 +1582,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-33]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ a: number }").type
     );
@@ -1501,8 +1596,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual], _, global] = await createTypeGraph([sourceAST]);
+    const [[actual], errors, global] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toBeInstanceOf(FunctionType);
     expect(actualScope.body.get("b").type.name).toBe("() => number");
     expect(actualScope.body.get("b").type.argumentsTypes).toEqual([]);
@@ -1519,6 +1615,7 @@ describe("Type refinement", () => {
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ b: number, c: number }").type
     );
@@ -1530,8 +1627,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ b: string, c: number }").type
     );
@@ -1543,8 +1641,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-36]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ b: boolean, c: number }").type
     );
@@ -1556,21 +1655,24 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ b: 2, c: number }").type
     );
   });
   test("Typeof refinement for union property(string literal)", async () => {
     const sourceAST = prepareAST(`
-      const a: { b: number } | { b: "2", c: number } = { b: "2" };
+      const a: { b: number } | { b: "2", c: number } = { b: 2 };
       if (typeof a.b === "string") {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+      debugger;
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ b: '2', c: number }").type
     );
@@ -1582,8 +1684,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-36]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ b: true, c: number }").type
     );
@@ -1595,8 +1698,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-35]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ b: { d: number }, c: number }")
         .type
@@ -1609,8 +1713,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-37]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ b: () => number, c: number }")
         .type
@@ -1623,25 +1728,27 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-58]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       new UnionType("number | string", [new Type("number"), new Type("string")])
     );
   });
-  test("Multiple typeof refinement for property", async () => {
-    const sourceAST = prepareAST(`
-      const a: { a: string } | { a: number, b: string } | { a: number, b: number } = { a: 2, b: 2 };
-      if (typeof a.a === "number" && typeof a.b === "number") {
-        const b = a;
-      }
-    `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
-    const actualScope = actual.body.get("[[Scope3-62]]");
-    expect(actualScope.body.get("b").type).toEqual(
-      actual.body.get(TYPE_SCOPE).body.get("{ a: number, b: number }").type
-    );
-  });
+  // test("Multiple typeof refinement for property", async () => {
+  //   const sourceAST = prepareAST(`
+  //     const a: { a: string } | { a: number, b: string } | { a: number, b: number } = { a: 2, b: 2 };
+  //     if (typeof a.a === "number" && typeof a.b === "number") {
+  //       const b = a;
+  //     }
+  //   `);
+  //   const [[actual], errors] = await createTypeGraph([sourceAST]);
+  //   const actualScope = actual.body.get("[[Scope3-62]]");
+  //   expect(errors.length).toBe(0);
+  //   expect(actualScope.body.get("b").type).toEqual(
+  //     actual.body.get(TYPE_SCOPE).body.get("{ a: number, b: number }").type
+  //   );
+  // });
   test("Typeof refinement for property in nested member expression", async () => {
     const sourceAST = prepareAST(`
       const a: { a: { b: number } } | { a: { b: string }, b: string } = { a: { b: 2 } };
@@ -1649,8 +1756,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-37]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ a: { b: number } }").type
     );
@@ -1690,7 +1798,6 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    debugger;
     const [[actual], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,
@@ -1698,6 +1805,7 @@ describe("Type refinement", () => {
       await mixTypeDefinitions(createTypeGraph)
     );
     const actualScope = actual.body.get("[[Scope3-30]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toBeInstanceOf(CollectionType);
     expect(actualScope.body.get("b").type.name).toBe("Array<number>");
     expect(actualScope.body.get("b").type.keyType).toEqual(new Type("number"));
@@ -1719,10 +1827,9 @@ describe("Type refinement", () => {
       await mixTypeDefinitions(createTypeGraph)
     );
     const actualScope = actual.body.get("[[Scope3-32]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toBeInstanceOf(ObjectType);
-    expect(actualScope.body.get("b").type.name).toBe(
-      "{ b: Array<number> }"
-    );
+    expect(actualScope.body.get("b").type.name).toBe("{ b: Array<number> }");
     expect(actualScope.body.get("b").type.properties.get("b").type.name).toBe(
       "Array<number>"
     );
@@ -1740,8 +1847,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-20]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ a: number }").type
     );
@@ -1753,8 +1861,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-22]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ a: { b: string } }").type
     );
@@ -1766,8 +1875,9 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-22]]");
+    expect(errors.length).toBe(0);
     expect(actualScope.body.get("b").type).toEqual(
       actual.body.get(TYPE_SCOPE).body.get("{ a: { b: string } }").type
     );
@@ -1780,7 +1890,8 @@ describe("Other", () => {
       const a = id(2);
       const b = id("str");
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
     expect(actual.body.get("a").type).toEqual(new Type("number"));
     expect(actual.body.get("b").type).toEqual(new Type("string"));
   });

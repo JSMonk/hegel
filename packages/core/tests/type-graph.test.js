@@ -1338,14 +1338,12 @@ describe("Classes", () => {
       const a: [number, string] = [2, '2']; 
       const b = a.concat([2]); 
     `);
-      debugger;
     const [[module], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,
       false,
       await mixTypeDefinitions(createTypeGraph)
     );
-      debugger;
     const b = module.body.get("b");
     expect(errors.length).toEqual(0);
     expect(b).not.toBe(undefined);

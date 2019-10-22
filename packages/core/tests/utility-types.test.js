@@ -25,7 +25,6 @@ describe("Test $PropertyType", () => {
       type A = Array<number>;
       type B = $PropertyType<A, 0>;
     `);
-    debugger;
     const [[actual], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,

@@ -59,6 +59,7 @@ export class TupleType extends Type {
   isSuperTypeFor(anotherType: Type) {
     return (
       anotherType instanceof TupleType &&
+      anotherType.items.length === this.items.length &&
       //$FlowIssue - instanceof type refinement
       this.items.every((t, i) => anotherType.items[i].isPrincipalTypeFor(t))
     );
@@ -86,5 +87,29 @@ export class TupleType extends Type {
       return this.items[propertyIndex];
     }
     return super.getPropertyType(propertyIndex);
+  }
+
+  getDifference(type: Type) {
+    if (type instanceof TupleType) {
+      let differences = [];
+      const { items } = type;
+      this.items.forEach((type, index) => {
+        const other = items[index];
+        if (other === undefined) {
+          return;
+        }
+        differences = differences.concat(type.getDifference(other));
+      });
+      return differences;
+    }
+    if (type instanceof CollectionType) {
+      // $FlowIssue
+      return this.isSubtypeOf.getDifference(type);
+    }
+    return super.getDifference(type);
+  }
+
+  contains(type: Type) {
+    return super.contains(type) || this.items.some(i => i.contains(type));
   }
 }

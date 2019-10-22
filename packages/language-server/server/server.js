@@ -58,8 +58,10 @@ const dtsrc = {
     if (!varInfo) {
       return;
     }
+    const { type } = varInfo;
+    const value = type.constraint !== undefined ? `${type.name}: ${type.constraint.name}` : type.name;
     return {
-      contents: [{ language: "typescript", value: String(varInfo.type.name) }]
+      contents: [{ language: "typescript", value }]
     };
   });
 

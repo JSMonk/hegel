@@ -108,4 +108,8 @@ export class UnionType extends Type {
   getPropertyType(propertyName: mixed): ?Type {
     return null;
   }
+
+  contains(type: Type) {
+    return super.contains(type) || this.variants.some(v => v.contains(type));
+  }
 }

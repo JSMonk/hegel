@@ -569,3 +569,14 @@ function getPropertiesForType(type: ?Type, node: Node) {
       );
   }
 }
+
+export function getTypeRoot(type: TypeVar) {
+    if (type.root == undefined) {
+        return type;
+    }
+    let potentialRoot = type.root;
+    while (potentialRoot instanceof TypeVar && potentialRoot.root != undefined) {
+        potentialRoot = potentialRoot.root;
+    }
+    return potentialRoot;
+}

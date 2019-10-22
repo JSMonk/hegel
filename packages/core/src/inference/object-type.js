@@ -6,7 +6,7 @@ import { Scope } from "../type-graph/scope";
 import { ObjectType } from "../type-graph/types/object-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
-import { inferenceTypeForNode } from "./index";
+import { addCallToTypeGraph } from "../type-graph/call";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
 import type { ObjectExpression } from "@babel/parser";
 
@@ -20,16 +20,17 @@ export function inferenceObjectType(
     if (p.computed || p.kind === "set") {
       return res;
     }
-    const inferencedType = inferenceTypeForNode(
+    const { result: inferencedType } = addCallToTypeGraph(
       p.type === NODE.OBJECT_PROPERTY || p.type === NODE.TS_OBJECT_PROPERTY
         ? p.value
         : p,
-      typeScope,
-      parentScope,
-      typeGraph
+      typeGraph,
+      parentScope
     );
     let varInfo = new VariableInfo(
-      inferencedType,
+      inferencedType instanceof VariableInfo
+        ? inferencedType.type
+        : inferencedType,
       parentScope,
       new Meta(p.loc)
     );

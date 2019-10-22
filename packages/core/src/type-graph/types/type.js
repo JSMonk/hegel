@@ -68,4 +68,19 @@ export class Type {
       this.isSuperTypeFor(type)
     );
   }
+
+  getDifference(type: Type) {
+    if ("variants" in type) {
+      // $FlowIssue
+      return type.variants.flatMap(a => this.getDifference(a));
+    }
+    if ("root" in type) {
+      return [{ root: this, variable: type }];
+    }
+    return [];
+  }
+
+  contains(type: Type) {
+    return this === type;
+  }
 }

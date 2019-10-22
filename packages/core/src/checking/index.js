@@ -10,8 +10,11 @@ import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { getNameForType } from "../utils/type-utils";
-import { implicitApplyGeneric } from "../inference/function-type";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
+import {
+  implicitApplyGeneric,
+  isGenericFunctionType
+} from "../inference/function-type";
 import type { CallableType } from "../type-graph/meta/call-meta";
 import type { SourceLocation } from "@babel/parser";
 
@@ -44,6 +47,7 @@ function getActualType(
 }
 
 function isValidTypes(
+  targetName: mixed,
   declaratedType: Type | RestArgument,
   actual: ?Type | VariableInfo | Array<VariableInfo | Type>,
   typeScope: Scope
@@ -54,7 +58,12 @@ function isValidTypes(
       : declaratedType;
   const actualRootType = getActualType(actual, typeScope);
   if (declaratedType instanceof RestArgument && Array.isArray(actual)) {
-    return isValidTypes(declaratedType.type, actualRootType, typeScope);
+    return isValidTypes(
+      targetName,
+      declaratedType.type,
+      actualRootType,
+      typeScope
+    );
   } else if (!(declaratedType instanceof RestArgument)) {
     declaratedRootType =
       declaratedRootType instanceof TypeVar && declaratedRootType.root
@@ -62,11 +71,20 @@ function isValidTypes(
         : declaratedRootType;
     if (actualRootType instanceof UnionType) {
       return actualRootType.variants.every(t =>
-        isValidTypes(declaratedRootType, t, typeScope)
+        isValidTypes(targetName, declaratedRootType, t, typeScope)
       );
     }
     if ("onlyLiteral" in declaratedRootType && actual instanceof VariableInfo) {
       return declaratedRootType.equalsTo(actualRootType);
+    }
+    if (
+      targetName === "" &&
+      (declaratedRootType instanceof FunctionType ||
+        isGenericFunctionType(declaratedRootType)) &&
+      (actualRootType instanceof FunctionType ||
+        isGenericFunctionType(actualRootType))
+    ) {
+      return actualRootType.isPrincipalTypeFor(declaratedRootType);
     }
     return declaratedRootType.isPrincipalTypeFor(actualRootType);
   }
@@ -110,12 +128,15 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
       arg1 instanceof RestArgument
         ? call.arguments.slice(i)
         : call.arguments[i];
-    if (!isValidTypes(arg1, arg2, typeScope)) {
-      const actualType =
+    if (!isValidTypes(call.targetName, arg1, arg2, typeScope)) {
+      let actualType =
         arg1 instanceof RestArgument
           ? givenArgumentsTypes.slice(i)
           : givenArgumentsTypes[i];
+      actualType =
+        actualType instanceof VariableInfo ? actualType.type : actualType;
       const actualTypeName =
+        // $FlowIssue
         arg2 === undefined ? "undefined" : TupleType.getName(actualType);
       throw new HegelError(
         `Type "${actualTypeName}" is incompatible with type "${getNameForType(

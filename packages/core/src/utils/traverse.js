@@ -125,7 +125,6 @@ const getBody = (currentNode: any) =>
   currentNode.body ||
   currentNode.declarations ||
   currentNode.properties ||
-  currentNode.expression ||
   [
     currentNode.block,
     currentNode.handler,
@@ -133,10 +132,15 @@ const getBody = (currentNode: any) =>
     currentNode.consequent,
     currentNode.alternate,
     currentNode.value,
+    currentNode.init && currentNode.init.callee,
     currentNode.init,
-    currentNode.right,
+    currentNode.object,
+    currentNode.property,
     currentNode.left,
+    currentNode.right,
     currentNode.argument,
+    currentNode.expression && currentNode.expression.callee,
+    currentNode.expression,
     currentNode.callee,
     ...(currentNode.arguments || [])
   ].filter(Boolean);

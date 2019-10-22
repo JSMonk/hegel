@@ -5,7 +5,7 @@ import { Scope } from "../type-graph/scope";
 import { THIS_TYPE } from "../type-graph/constants";
 import { ObjectType } from "../type-graph/types/object-type";
 import { VariableInfo } from "../type-graph/variable-info";
-import { inferenceTypeForNode } from "./index";
+import { addCallToTypeGraph } from "../type-graph/call";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type { ClassDeclaration, ClassExpression } from "@babel/parser";
@@ -21,14 +21,15 @@ export function inferenceClass(
     if (p.computed || p.kind === "set") {
       return res;
     }
-    const inferencedType = inferenceTypeForNode(
+    const { result: inferencedType } = addCallToTypeGraph(
       p,
-      typeScope,
-      parentScope,
-      typeGraph
+      typeGraph,
+      parentScope
     );
     let varInfo = new VariableInfo(
-      inferencedType,
+      inferencedType instanceof VariableInfo
+        ? inferencedType.type
+        : inferencedType,
       parentScope,
       new Meta(p.loc)
     );
@@ -42,7 +43,8 @@ export function inferenceClass(
     return res.concat([[String(p.key.name || p.key.value), varInfo]]);
   }, []);
   const isSubtypeOf =
-    classNode.superClass && findVariableInfo(classNode.superClass, typeScope).type;
+    classNode.superClass &&
+    findVariableInfo(classNode.superClass, typeScope).type;
   const thisType = ObjectType.createTypeWithName(
     classNode.id ? classNode.id.name : ObjectType.getName(fieldsAndMethods),
     typeScope,

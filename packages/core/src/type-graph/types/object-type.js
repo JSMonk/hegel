@@ -144,4 +144,32 @@ export class ObjectType extends Type {
       : anotherType.isSubtypeOf != undefined &&
           this.isPrincipalTypeFor(anotherType.isSubtypeOf);
   }
+
+  getDifference(type: Type) {
+    if (type instanceof ObjectType) {
+      let differences = [];
+      const { properties } = type;
+      this.properties.forEach(({ type }, key) => {
+        const other = properties.get(key);
+        if (other === undefined) {
+          return;
+        }
+        differences = differences.concat(type.getDifference(other.type));
+      });
+      return differences;
+    }
+    return super.getDifference(type);
+  }
+
+  contains(type: Type) {
+    if (super.contains(type)) {
+      return true;
+    }
+    for (const [_, property] of this.properties) {
+      if (property.type.contains(type)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

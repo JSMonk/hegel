@@ -15,7 +15,7 @@ export function addPosition(
     throw new Error("Never!");
   }
   const line: any = positions.body.get(node.loc.start.line) || new Map();
-  line.set([node.loc.start.column, node.loc.end.column], variableInfo);
+  line.set(`${node.loc.start.column},${node.loc.end.column}`, variableInfo);
   positions.body.set(node.loc.start.line, line);
 }
 
@@ -24,14 +24,17 @@ export function getVarAtPosition(loc: SourceLocation, typeGraph: ModuleScope) {
   if (!(positions instanceof Scope)) {
     throw new Error("Never!");
   }
-  const line: ?Map<[number, number], VariableInfo> = (positions.body.get(
+  const line: ?Map<string, VariableInfo> = (positions.body.get(
     loc.line
   ): any);
   if (!line) {
     return;
   }
   let varInfo = null;
-  for (const [[start, end], vi] of line.entries()) {
+  for (const [startEnd, vi] of line.entries()) {
+    let [start, end] = startEnd.split(",");
+    start = Number(start);
+    end = Number(end);
     if (loc.column >= start && loc.column <= end) {
       varInfo = vi;
       break;

@@ -4,6 +4,8 @@ import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
 import { ModuleScope } from "../module-scope";
+import { $BottomType } from "./bottom-type";
+import { FunctionType } from "./function-type";
 import { VariableInfo } from "../variable-info";
 import { getNameForType } from "../../utils/type-utils";
 import { findVariableInfo } from "../../utils/common";
@@ -14,7 +16,7 @@ import type { SourceLocation } from "@babel/parser";
 export class GenericType<T: Type> extends Type {
   static createTypeWithName = createTypeWithName(GenericType);
 
-  static getName(name: mixed, parameters: Array<Type>) {
+  static getName<T: Type>(name: mixed, parameters: Array<T>) {
     if (parameters.length === 0) {
       return String(name);
     }
@@ -79,7 +81,31 @@ export class GenericType<T: Type> extends Type {
     targetTypes: Array<Type>,
     typeScope: Scope
   ): Type {
-    return this.subordinateType.changeAll(sourceTypes, targetTypes, typeScope);
+    const newSubordinateType = this.subordinateType.changeAll(
+      sourceTypes,
+      targetTypes,
+      typeScope
+    );
+    const newGenericArguments = this.genericArguments.filter(arg =>
+      newSubordinateType.contains(arg)
+    );
+    if (newGenericArguments.length === 0) {
+      return newSubordinateType;
+    }
+    const newName =
+      newSubordinateType instanceof FunctionType
+        ? FunctionType.getName(
+            newSubordinateType.argumentsTypes,
+            newSubordinateType.returnType,
+            newGenericArguments
+          )
+        : GenericType.getName(newSubordinateType.name, newGenericArguments);
+    return new GenericType(
+      newName,
+      newGenericArguments,
+      this.localTypeScope,
+      newSubordinateType
+    );
   }
 
   applyGeneric(
@@ -116,12 +142,17 @@ export class GenericType<T: Type> extends Type {
     });
     const appliedTypeName = GenericType.getName(this.name, parameters);
     const existedType = this.localTypeScope.parent.body.get(appliedTypeName);
+    // if (existedType instanceof VariableInfo) {
+    //   // $FlowIssue
+    //   return existedType.type;
+    // }
     if (this.localTypeScope.parent instanceof ModuleScope) {
       throw new Error("Never!");
     }
+    const oldAppliedSelf = new $BottomType(this, this.genericArguments);
     const appliedSelf = new TypeVar(appliedTypeName);
     const result = this.subordinateType.changeAll(
-      [...this.genericArguments, this],
+      [...this.genericArguments, oldAppliedSelf],
       [...parameters, appliedSelf],
       this.localTypeScope.parent
     );
@@ -131,5 +162,19 @@ export class GenericType<T: Type> extends Type {
 
   getPropertyType(propertyName: mixed): ?Type {
     return this.subordinateType.getPropertyType(propertyName);
+  }
+
+  getDifference(type: Type) {
+    if (type instanceof GenericType) {
+      return this.subordinateType.getDifference(type.subordinateType);
+    }
+    if (type instanceof TypeVar) {
+      return super.getDifference(type);
+    }
+    return this.subordinateType.getDifference(type);
+  }
+
+  contains(type: Type) {
+    return super.contains(type) || this.subordinateType.contains(type);
   }
 }

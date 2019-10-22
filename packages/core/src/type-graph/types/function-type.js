@@ -155,4 +155,32 @@ export class FunctionType extends Type {
       })
     );
   }
+
+  getDifference(type: Type) {
+    if (
+      "subordinateType" in type &&
+      // $FlowIssue
+      type.subordinateType instanceof FunctionType
+    ) {
+      type = type.subordinateType;
+    }
+    if (type instanceof FunctionType) {
+      const { argumentsTypes, returnType } = type;
+      // $FlowIssue
+      const argumentsDiff = this.argumentsTypes.flatMap((arg, i) =>
+        arg.getDifference(argumentsTypes[i])
+      );
+      const returnDiff = this.returnType.getDifference(returnType);
+      return argumentsDiff.concat(returnDiff);
+    }
+    return super.getDifference(type);
+  }
+
+  contains(type: Type) {
+    return (
+      super.contains(type) ||
+      this.argumentsTypes.some(a => a.contains(type)) ||
+      this.returnType.contains(type)
+    );
+  }
 }

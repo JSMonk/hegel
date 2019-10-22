@@ -8,6 +8,7 @@ import { CallMeta } from "./meta/call-meta";
 import { ObjectType } from "./types/object-type";
 import { ModuleScope } from "./module-scope";
 import { addPosition } from "../utils/position-utils";
+import { getTypeRoot } from "../utils/type-utils";
 import { GenericType } from "./types/generic-type";
 import { $BottomType } from "./types/bottom-type";
 import { FunctionType } from "./types/function-type";
@@ -15,10 +16,14 @@ import { VariableInfo } from "./variable-info";
 import { $PropertyType } from "./types/property-type";
 import { addToThrowable } from "../utils/throwable";
 import { getVariableType } from "../utils/variable-utils";
-import { getInvocationType } from "../inference/function-type";
 import { inferenceTypeForNode } from "../inference";
-import { copyTypeInScopeIfNeeded } from "../utils/type-utils";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
+import {
+  getRawFunctionType,
+  getInvocationType,
+  isGenericFunctionType,
+  inferenceFunctionByUsage
+} from "../inference/function-type";
 import {
   findNearestTypeScope,
   findNearestScopeByType
@@ -44,6 +49,9 @@ export function addCallToTypeGraph(
   const typeScope = findNearestTypeScope(currentScope, typeGraph);
   if (!(typeScope instanceof Scope)) {
     throw new Error("Never!");
+  }
+  if (node.type === NODE.EXPRESSION_STATEMENT) {
+    node = node.expression;
   }
   switch (node.type) {
     case NODE.IF_STATEMENT:
@@ -107,8 +115,6 @@ export function addCallToTypeGraph(
         currentScope
       );
       break;
-    case NODE.EXPRESSION_STATEMENT:
-      return addCallToTypeGraph(node.expression, typeGraph, currentScope);
     case NODE.THROW_STATEMENT:
       const error = addCallToTypeGraph(node.argument, typeGraph, currentScope);
       args = [
@@ -185,8 +191,7 @@ export function addCallToTypeGraph(
         currentScope
       );
       target =
-        declaration.returnType instanceof TypeVar &&
-        declaration.returnType.isUserDefined
+        declaration.returnType instanceof TypeVar
           ? target
           : // $FlowIssue
             target.type.applyGeneric([declaration.returnType], node.loc);
@@ -319,18 +324,41 @@ export function addCallToTypeGraph(
   ) {
     throw new HegelError("The target is not callable type.", node.loc);
   }
-  const invocationType = getInvocationType(
-    targetType,
-    args.map(a => (a instanceof Type ? a : a.type)),
-    // $FlowIssue
+  const appliedGenericArguments =
     genericArguments &&
-      genericArguments.map(a => (a instanceof Type ? a : a.type)),
+    genericArguments.map(a => (a instanceof Type ? a : a.type));
+  const rawFunction = getRawFunctionType(
+    targetType,
+    args,
+    appliedGenericArguments,
     node.loc
   );
-  const copiedType = copyTypeInScopeIfNeeded(invocationType, typeScope);
+  args.forEach((arg, index) => {
+    const expected = rawFunction.argumentsTypes[index];
+    if (
+      arg instanceof VariableInfo &&
+      isGenericFunctionType(arg.type) &&
+      expected instanceof FunctionType
+    ) {
+      // $FlowIssue
+      arg.type = inferenceFunctionByUsage(arg, expected, typeScope, typeGraph);
+    }
+  });
+  const invocationType = getInvocationType(
+    targetType,
+    args,
+    appliedGenericArguments,
+    node.loc
+  );
+  if (targetType instanceof GenericType) {
+    targetType.genericArguments.forEach(arg => {
+      arg.root = undefined;
+      arg.isUserDefined = true;
+    });
+  }
   if (!(targetType instanceof $BottomType)) {
     const callMeta = new CallMeta((target: any), args, node.loc, targetName);
     callsScope.calls.push(callMeta);
   }
-  return { result: copiedType, inferenced };
+  return { result: invocationType, inferenced };
 }

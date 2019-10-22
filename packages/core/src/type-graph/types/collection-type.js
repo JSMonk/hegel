@@ -95,4 +95,21 @@ export class CollectionType<K: Type, V: Type> extends Type {
       { isSubtypeOf }
     );
   }
+
+  getDifference(type: Type) {
+    if (type instanceof CollectionType) {
+      const keyDiff = this.keyType.getDifference(type.keyType);
+      const valueDiff = this.valueType.getDifference(type.valueType);
+      return keyDiff.concat(valueDiff);
+    }
+    return super.getDifference(type);
+  }
+
+  contains(type: Type) {
+    return (
+      super.contains(type) ||
+      this.keyType.contains(type) ||
+      this.valueType.contains(type)
+    );
+  }
 }

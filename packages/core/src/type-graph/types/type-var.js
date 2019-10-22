@@ -28,24 +28,26 @@ export class TypeVar extends Type {
       this.isUserDefined &&
       anotherType instanceof TypeVar &&
       !anotherType.isUserDefined;
-    if (
-      this.constraint === undefined ||
-      isDifferenceInDefinition ||
-      this.referenceEqualsTo(anotherType)
-    ) {
+    if (isDifferenceInDefinition || this.referenceEqualsTo(anotherType)) {
       return true;
     }
     if (this.root != undefined) {
       return this.root.equalsTo(anotherType);
     }
-    const isEqualsTypes =
+    if (
       anotherType instanceof TypeVar &&
       anotherType.constraint !== undefined &&
-      super.equalsTo(anotherType) &&
-      // $FlowIssue
-      this.constraint.equalsTo(anotherType.constraint);
-    // $FlowIssue
-    return isEqualsTypes || this.constraint.equalsTo(anotherType);
+      this.constraint !== undefined
+    ) {
+      return (
+        (super.equalsTo(anotherType) &&
+          // $FlowIssue
+          this.constraint.equalsTo(anotherType.constraint)) ||
+        // $FlowIssue
+        this.constraint.equalsTo(anotherType)
+      );
+    }
+    return super.equalsTo(anotherType);
   }
 
   isSuperTypeFor(type: Type): boolean {
@@ -64,8 +66,8 @@ export class TypeVar extends Type {
     typeScope: Scope
   ): Type {
     const indexOfNewType = sourceTypes.indexOf(this);
-    const indexOfNewRootType = sourceTypes.findIndex(
-      a => this.root === a && a != undefined
+    const indexOfNewRootType = sourceTypes.findIndex(a =>
+      a.contains(this.root != undefined ? this.root : this)
     );
     if (indexOfNewType !== -1) {
       return targetTypes[indexOfNewType];
@@ -78,5 +80,16 @@ export class TypeVar extends Type {
 
   applyGeneric() {
     return this;
+  }
+
+  getDifference(type: Type) {
+    if (type instanceof TypeVar && this !== type) {
+      return [{ root: this, variable: type }];
+    }
+    return [];
+  }
+
+  contains(type: Type) {
+    return type instanceof TypeVar && super.equalsTo(type);
   }
 }

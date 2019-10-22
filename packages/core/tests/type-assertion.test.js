@@ -969,7 +969,6 @@ describe("Rest parameter typing", () => {
       function a(...args: Array<string>) {}
       a("1", "2", "3");
     `);
-    debugger;
     const [, errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,

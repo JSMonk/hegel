@@ -1,11 +1,21 @@
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
-import { GenericType } from "./generic-type";
 import { FunctionType } from "./function-type";
+import { getNameForType, getTypeRoot } from "../../utils/type-utils";
 
 export class $BottomType extends Type {
+  static getName(name, parameters) {
+    if (parameters.length === 0) {
+      return String(name);
+    }
+    return `${String(name)}<${parameters.reduce(
+      (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
+      ""
+    )}>`;
+  }
+
   constructor(subordinateMagicType, genericArguments = [], loc) {
-    super(GenericType.getName(subordinateMagicType.name, genericArguments));
+    super($BottomType.getName(subordinateMagicType.name, genericArguments));
     this.subordinateMagicType = subordinateMagicType;
     this.genericArguments = genericArguments;
     this.loc = loc;
@@ -39,9 +49,13 @@ export class $BottomType extends Type {
     const includedSubordinate = sourceTypes.find(
       t =>
         this.subordinateMagicType === t ||
+        this.equalsTo(t) ||
         (this.subordinateMagicType instanceof TypeVar &&
           this.subordinateMagicType.root === t)
     );
+    if (appliedParameters.every(a => a === undefined)) {
+      return this;
+    }
     if (includedUndefined) {
       const type = this.subordinateMagicType.changeAll(
         sourceTypes,
@@ -57,7 +71,7 @@ export class $BottomType extends Type {
         this.loc
       );
     }
-    if (includedSubordinate !== null) {
+    if (includedSubordinate !== undefined) {
       const type = this.subordinateMagicType.changeAll(
         sourceTypes,
         targetTypes,
@@ -79,7 +93,7 @@ export class $BottomType extends Type {
       this.subordinateMagicType.root != undefined
         ? this.subordinateMagicType.root
         : this.subordinateMagicType;
-    if (target instanceof GenericType) {
+    if ("subordinateType" in target) {
       return target.applyGeneric(
         this.genericArguments.map(
           a => (a instanceof TypeVar && a.root != undefined ? a.root : a)
@@ -113,5 +127,46 @@ export class $BottomType extends Type {
       this.subordinateMagicType.genericArguments,
       returnType
     );
+  }
+
+  getDifference(type: Type) {
+    if (type instanceof $BottomType) {
+      type = type.subordinateMaigcType;
+    }
+    return this.subordinateMagicType.getDifference(type);
+  }
+
+  getRootedSubordinateType() {
+    const { subordinateMagicType } = this;
+    if ("subordinateType" in subordinateMagicType) {
+      subordinateMagicType.genericArguments.forEach((arg, index) => {
+        arg.root = this.genericArguments[index];
+      });
+    }
+    return subordinateMagicType;
+  }
+
+  unrootSubordinateType() {
+    const { subordinateMagicType } = this;
+    if ("subordinateType" in subordinateMagicType) {
+      subordinateMagicType.genericArguments.forEach((arg, index) => {
+        arg.root = undefined;
+      });
+    }
+  }
+
+  equalsTo(type: Type) {
+    return (
+      type instanceof $BottomType &&
+      this.genericArguments.every((arg, i) =>
+        arg.equalsTo(type.genericArguments[i])
+      ) &&
+      getTypeRoot(this.subordinateMagicType) ===
+        getTypeRoot(type.subordinateMagicType)
+    );
+  }
+
+  contains(type: Type) {
+    return this.subordinateMagicType.contains(type);
   }
 }
