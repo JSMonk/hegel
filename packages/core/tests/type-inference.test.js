@@ -498,7 +498,6 @@ describe("Simple inference for module functions", () => {
         new Type("bigint"),
         new Type("number")
       ]),
-      true
     );
     expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
@@ -1154,7 +1153,6 @@ describe("Simple inference for module functions", () => {
         new Type("bigint"),
         new Type("number")
       ]),
-      true
     );
     expect(errors.length).toBe(0);
     expect(actualRes.constructor).toBe(GenericType);
@@ -1211,6 +1209,7 @@ describe("Object type inference", () => {
         c: x => x
       }
     `);
+      debugger;
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a").type;
     expect(errors.length).toBe(0);

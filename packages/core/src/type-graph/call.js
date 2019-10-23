@@ -353,7 +353,6 @@ export function addCallToTypeGraph(
   if (targetType instanceof GenericType) {
     targetType.genericArguments.forEach(arg => {
       arg.root = undefined;
-      arg.isUserDefined = true;
     });
   }
   if (!(targetType instanceof $BottomType)) {

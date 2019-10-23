@@ -256,7 +256,11 @@ function resolveOuterTypeVarsFromCall(
     ) {
       continue;
     }
-    callArgumentType.root = callTargetType;
+    callArgumentType.root =
+      callTargetType instanceof RestArgument
+          // $FlowIssue
+        ? callTargetType.type.valueType
+        : callTargetType;
   }
 }
 
@@ -393,10 +397,14 @@ export function inferenceFunctionTypeByScope(
       !returnType.isUserDefined
     ) {
       const [returnArgument] = calls[i].arguments;
-      returnType.root =
+      const newReturnType =
         returnArgument instanceof VariableInfo
           ? returnArgument.type
           : returnArgument;
+      returnType.root =
+        newReturnType instanceof TypeVar
+          ? getTypeRoot(newReturnType)
+          : newReturnType;
       returnWasCalled = true;
     }
   }
@@ -406,6 +414,24 @@ export function inferenceFunctionTypeByScope(
     !returnType.isUserDefined
   ) {
     returnType.root = Type.createTypeWithName("void", localTypeScope);
+  }
+  const created: Map<TypeVar, TypeVar> = new Map();
+  for (let i = 0; i < genericArguments.length; i++) {
+    const genericArg = genericArguments[i];
+    const root = getTypeRoot(genericArg);
+    if (root instanceof TypeVar && !genericArguments.includes(root)) {
+      const alreadyCreated = created.get(root);
+      const newRoot =
+        alreadyCreated !== undefined
+          ? alreadyCreated
+          : Object.assign(new TypeVar(""), root, {
+              isUserDefined: false
+            });
+      genericArg.root = newRoot;
+      if (alreadyCreated === undefined) {
+        created.set(root, newRoot);
+      }
+    }
   }
   for (const [_, v] of functionScope.body) {
     if (v.type instanceof TypeVar && v.type.root != undefined) {
@@ -455,16 +481,14 @@ export function inferenceFunctionTypeByScope(
     newReturnType,
     newGenericArgumentsTypes
   );
-  let newFunctionType = FunctionType.createTypeWithName(
+  let newFunctionType = new FunctionType(
     newFunctionTypeName,
-    newGenericArgumentsTypes.length ? localTypeScope : localTypeScope.parent,
     newArgumentsTypes,
     newReturnType
   );
   if (newGenericArgumentsTypes.length > 0) {
-    newFunctionType = GenericType.createTypeWithName(
+    newFunctionType = new GenericType(
       newFunctionTypeName,
-      localTypeScope.parent,
       newGenericArgumentsTypes,
       localTypeScope,
       newFunctionType
@@ -492,7 +516,12 @@ export function inferenceFunctionByUsage(
   // $FlowIssue
   fn.subordinateType.argumentsTypes.forEach((a, i) => {
     const expected = expectedArgs[i];
-    if (a instanceof TypeVar && !a.isUserDefined && expected instanceof Type) {
+    if (
+      a instanceof TypeVar &&
+      !a.isUserDefined &&
+      expected instanceof Type &&
+      !(expected instanceof TypeVar)
+    ) {
       given.push(a);
       applied.push(expected);
     }
