@@ -173,11 +173,7 @@ export function addCallToTypeGraph(
     case NODE.RETURN_STATEMENT:
       targetName = "return";
       const arg = addCallToTypeGraph(node.argument, typeGraph, currentScope);
-      args = [
-        arg.result instanceof Type
-          ? getVariableType(null, arg.result, typeScope, arg.inferenced)
-          : arg.result
-      ];
+      args = [arg.result];
       const fn: any = findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
       if (fn instanceof ModuleScope) {
         throw new HegelError("Call return outside function", node.loc);

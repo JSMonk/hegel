@@ -48,15 +48,15 @@ export class TupleType extends Type {
     if (!isItemsChanged && isSubtypeOf === this.isSubtypeOf) {
       return this;
     }
-    return TupleType.createTypeWithName(
+    return new TupleType(
       this.getChangedName(sourceTypes, targetTypes),
-      typeScope,
       newItems,
       { isSubtypeOf }
     );
   }
 
   isSuperTypeFor(anotherType: Type) {
+    anotherType = this.getOponentType(anotherType);
     return (
       anotherType instanceof TupleType &&
       anotherType.items.length === this.items.length &&
@@ -66,6 +66,7 @@ export class TupleType extends Type {
   }
 
   equalsTo(anotherType: Type) {
+    anotherType = this.getOponentType(anotherType);
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }

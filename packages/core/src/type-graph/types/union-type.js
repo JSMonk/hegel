@@ -67,14 +67,14 @@ export class UnionType extends Type {
     if (!isVariantsChanged) {
       return this;
     }
-    return UnionType.createTypeWithName(
+    return new UnionType(
       UnionType.getName(newVariants),
-      typeScope,
       newVariants
     );
   }
 
   equalsTo(anotherType: Type) {
+    anotherType = this.getOponentType(anotherType);
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
@@ -91,6 +91,7 @@ export class UnionType extends Type {
   }
 
   isSuperTypeFor(anotherType: Type): boolean {
+    anotherType = this.getOponentType(anotherType);
     if (anotherType instanceof UnionType) {
       if (anotherType.variants.length > this.variants.length) {
         return false;

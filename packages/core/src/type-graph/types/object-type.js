@@ -108,15 +108,15 @@ export class ObjectType extends Type {
     if (!isAnyPropertyChanged && this.isSubtypeOf === isSubtypeOf) {
       return this;
     }
-    return ObjectType.createTypeWithName(
+    return new ObjectType(
       ObjectType.getName(newProperties),
-      typeScope,
       newProperties,
       { isSubtypeOf }
     );
   }
 
   equalsTo(anotherType: Type) {
+    anotherType = this.getOponentType(anotherType);
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
@@ -131,6 +131,7 @@ export class ObjectType extends Type {
   }
 
   isSuperTypeFor(anotherType: Type): boolean {
+    anotherType = this.getOponentType(anotherType);
     const requiredProperties = [...this.properties.values()].filter(
       ({ type }) =>
         !(type instanceof UnionType) ||

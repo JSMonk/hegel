@@ -412,10 +412,13 @@ const afterFillierActions = (
             functionScope.declaration.type instanceof GenericType &&
             functionScope.type === Scope.FUNCTION_TYPE &&
             functionScope.declaration.type.subordinateType instanceof
-              FunctionType
+              FunctionType &&
+            functionScope.declaration.type.genericArguments.some(
+              a => !a.isUserDefined
+            )
           ) {
             // $FlowIssue - Type refinements
-            inferenceFunctionTypeByScope(functionScope, typeGraph);
+            inferenceFunctionTypeByScope(functionScope, typeScope, typeGraph);
           }
           const { declaration } = functionScope;
           if (currentNode.exportAs) {

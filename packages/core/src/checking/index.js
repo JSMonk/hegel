@@ -180,20 +180,22 @@ function checkCalls(
     if (functionDeclaration.returnType === undefined) {
       return;
     }
-    if (
-      !functionDeclaration.returnType.isPrincipalTypeFor(
-        new Type("undefined", { isSubtypeOf: new Type("void") })
-      )
-    ) {
-      errors.push(
-        new HegelError(
+    try {
+      if (
+        !functionDeclaration.returnType.isPrincipalTypeFor(
+          new Type("undefined", { isSubtypeOf: new Type("void") })
+        )
+      ) {
+        throw new HegelError(
           `Function should return something with type "${getNameForType(
             functionDeclaration.returnType
           )}"`,
           declaration.meta.loc,
           path
-        )
-      );
+        );
+      }
+    } catch (e) {
+      errors.push(e);
     }
   }
 }

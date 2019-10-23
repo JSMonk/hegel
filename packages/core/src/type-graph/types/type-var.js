@@ -90,6 +90,6 @@ export class TypeVar extends Type {
   }
 
   contains(type: Type) {
-    return type instanceof TypeVar && super.equalsTo(type);
+    return this.equalsTo(type);
   }
 }

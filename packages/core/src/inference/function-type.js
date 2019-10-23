@@ -258,8 +258,8 @@ function resolveOuterTypeVarsFromCall(
     }
     callArgumentType.root =
       callTargetType instanceof RestArgument
-          // $FlowIssue
-        ? callTargetType.type.valueType
+        ? // $FlowIssue
+          callTargetType.type.valueType
         : callTargetType;
   }
 }
@@ -280,7 +280,7 @@ export function implicitApplyGeneric(
     let declaratedArgument = maybeBottom;
     declaratedArgument =
       declaratedArgument instanceof $BottomType
-        ? declaratedArgument.getRootedSubordinateType()
+        ? declaratedArgument.unpack()
         : declaratedArgument;
     declaratedArgument =
       declaratedArgument instanceof GenericType
@@ -360,6 +360,10 @@ export function getInvocationType(
     fn instanceof FunctionType
       ? fn
       : getRawFunctionType(fn, argumentsTypes, genericArguments, loc);
+  returnType =
+    returnType instanceof TypeVar ? getTypeRoot(returnType) : returnType;
+  returnType =
+    returnType instanceof $BottomType ? returnType.unpack() : returnType;
   return returnType instanceof TypeVar ? getTypeRoot(returnType) : returnType;
 }
 
@@ -373,6 +377,7 @@ export function clearRoot(type: Type) {
 
 export function inferenceFunctionTypeByScope(
   functionScope: GenericFunctionScope,
+  typeScope: Scope,
   typeGraph: ModuleScope
 ) {
   const { calls = [] } = functionScope;
@@ -401,10 +406,14 @@ export function inferenceFunctionTypeByScope(
         returnArgument instanceof VariableInfo
           ? returnArgument.type
           : returnArgument;
-      returnType.root =
+      returnType.root = getVariableType(
+        null,
         newReturnType instanceof TypeVar
           ? getTypeRoot(newReturnType)
-          : newReturnType;
+          : newReturnType,
+        typeScope,
+        true
+      );
       returnWasCalled = true;
     }
   }

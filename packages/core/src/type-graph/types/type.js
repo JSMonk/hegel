@@ -3,7 +3,7 @@ import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
 
 export type TypeMeta = {
-  isSubtypeOf?: Type
+  isSubtypeOf?: ?Type
 };
 
 export class Type {
@@ -82,5 +82,17 @@ export class Type {
 
   contains(type: Type) {
     return this === type;
+  }
+
+  getOponentType(type: Type) {
+    if ("unpack" in type) {
+      // $FlowIssue
+      type = type.unpack();
+    }
+    if ("subordinateType" in type) {
+      // $FlowIssue
+      type = type.subordinateType;
+    }
+    return type;
   }
 }

@@ -48,6 +48,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
   }
 
   equalsTo(anotherType: Type) {
+    anotherType = this.getOponentType(anotherType);
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
@@ -61,6 +62,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
   }
 
   isSuperTypeFor(anotherType: any) {
+    anotherType = this.getOponentType(anotherType);
     return (
       (anotherType instanceof CollectionType &&
         this.keyType.equalsTo(anotherType.keyType) &&
@@ -87,9 +89,8 @@ export class CollectionType<K: Type, V: Type> extends Type {
     if (newValueType === this.valueType && isSubtypeOf === this.isSubtypeOf) {
       return this;
     }
-    return CollectionType.createTypeWithName(
+    return new CollectionType<Type, Type>(
       this.getChangedName(sourceTypes, targetTypes),
-      typeScope,
       this.keyType,
       newValueType,
       { isSubtypeOf }
@@ -97,6 +98,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
   }
 
   getDifference(type: Type) {
+    type = this.getOponentType(type);
     if (type instanceof CollectionType) {
       const keyDiff = this.keyType.getDifference(type.keyType);
       const valueDiff = this.valueType.getDifference(type.valueType);

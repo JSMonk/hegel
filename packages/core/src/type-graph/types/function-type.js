@@ -105,9 +105,8 @@ export class FunctionType extends Type {
       return this;
     }
 
-    return FunctionType.createTypeWithName(
+    return new FunctionType(
       FunctionType.getName(newArguments, newReturn),
-      typeScope,
       newArguments,
       newReturn,
       { isSubtypeOf }
@@ -115,6 +114,7 @@ export class FunctionType extends Type {
   }
 
   equalsTo(anotherType: Type) {
+    anotherType = this.getOponentType(anotherType);
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
@@ -138,6 +138,7 @@ export class FunctionType extends Type {
   }
 
   isSuperTypeFor(anotherType: Type): boolean {
+    anotherType = this.getOponentType(anotherType);
     if (!(anotherType instanceof FunctionType)) {
       return false;
     }
