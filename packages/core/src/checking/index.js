@@ -86,6 +86,9 @@ function isValidTypes(
     ) {
       return actualRootType.isPrincipalTypeFor(declaratedRootType);
     }
+    if (targetName === "return" && declaratedRootType instanceof TypeVar) {
+      return declaratedRootType.equalsTo(actualRootType);
+    }
     return declaratedRootType.isPrincipalTypeFor(actualRootType);
   }
   throw new Error("Never!");

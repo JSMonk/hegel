@@ -187,7 +187,7 @@ export function addCallToTypeGraph(
         currentScope
       );
       target =
-        declaration.returnType instanceof TypeVar
+        declaration.returnType instanceof TypeVar && !declaration.returnType.isUserDefined
           ? target
           : // $FlowIssue
             target.type.applyGeneric([declaration.returnType], node.loc);

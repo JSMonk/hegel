@@ -51,11 +51,11 @@ export class TypeVar extends Type {
   }
 
   isSuperTypeFor(type: Type): boolean {
-    if (!this.constraint) {
-      return true;
-    }
     if (this.root != undefined) {
       return this.root.isSuperTypeFor(type);
+    }
+    if (!this.constraint) {
+      return true;
     }
     return this.constraint.isSuperTypeFor(type);
   }
