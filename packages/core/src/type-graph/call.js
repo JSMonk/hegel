@@ -19,6 +19,7 @@ import { getVariableType } from "../utils/variable-utils";
 import { inferenceTypeForNode } from "../inference";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
 import {
+  clearRoot,
   getRawFunctionType,
   getInvocationType,
   isGenericFunctionType,
@@ -187,7 +188,8 @@ export function addCallToTypeGraph(
         currentScope
       );
       target =
-        declaration.returnType instanceof TypeVar && !declaration.returnType.isUserDefined
+        declaration.returnType instanceof TypeVar &&
+        !declaration.returnType.isUserDefined
           ? target
           : // $FlowIssue
             target.type.applyGeneric([declaration.returnType], node.loc);
@@ -346,11 +348,6 @@ export function addCallToTypeGraph(
     appliedGenericArguments,
     node.loc
   );
-  if (targetType instanceof GenericType) {
-    targetType.genericArguments.forEach(arg => {
-      arg.root = undefined;
-    });
-  }
   if (!(targetType instanceof $BottomType)) {
     const callMeta = new CallMeta((target: any), args, node.loc, targetName);
     callsScope.calls.push(callMeta);

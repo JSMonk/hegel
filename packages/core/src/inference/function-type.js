@@ -316,24 +316,12 @@ export function implicitApplyGeneric(
     // $FlowIssue
     return mainRoot;
   };
-  argumentsTypes.forEach(variable => {
-    if (variable instanceof Type || !isGenericFunctionType(variable.type)) {
-      return;
-    }
-    const appliedArguments = variable.type.genericArguments.map(
-      a => (a.root = rootFinder(a))
-    );
-    if (appliedArguments.includes(undefined)) {
-      return;
-    }
-    // $FlowIssue
-    variable.type = variable.type.applyGeneric(appliedArguments);
-    variable.meta.changed = true;
-  });
-  return fn.applyGeneric(
+  const result = fn.applyGeneric(
     fn.genericArguments.map(t => rootFinder(t) || getTypeRoot(t)),
     loc
   );
+  fn.genericArguments.forEach(clearRoot);
+  return result;
 }
 
 export function getRawFunctionType(
@@ -464,12 +452,27 @@ export function inferenceFunctionTypeByScope(
   if (newReturnType instanceof TypeVar) {
     newGenericArguments.add(newReturnType);
   }
+  const shouldBeCleaned = [];
   for (let i = 0; i < calls.length; i++) {
     const call = calls[i];
     for (let j = 0; j < call.arguments.length; j++) {
       const argument = call.arguments[j];
-      if (argument instanceof TypeVar && argument.root !== undefined) {
+      if (!(argument instanceof TypeVar)) {
+        continue;
+      }
+      const copy = created.get(argument);
+      if (argument.root !== undefined) {
         call.arguments[j] = getTypeRoot(argument);
+        shouldBeCleaned.push(argument);
+      } else if (copy !== undefined) {
+        call.arguments[j] = copy;
+        if (
+          call.targetName === "return" &&
+          call.target instanceof FunctionType
+        ) {
+          // $FlowIssue
+          call.target = call.target.changeAll([argument], [copy], typeScope);
+        }
       }
     }
   }
@@ -484,6 +487,7 @@ export function inferenceFunctionTypeByScope(
       newGenericArguments.add(genericArgument);
     }
   }
+  shouldBeCleaned.forEach(clearRoot);
   const newGenericArgumentsTypes = [...newGenericArguments];
   const newFunctionTypeName = FunctionType.getName(
     newArgumentsTypes,
