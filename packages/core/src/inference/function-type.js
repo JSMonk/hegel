@@ -207,10 +207,20 @@ export function inferenceFunctionLiteralType(
     : type;
 }
 
-function getCallTarget(call: CallMeta): FunctionType {
+function getCallTarget(
+  call: CallMeta,
+  withClean?: boolean = true
+): FunctionType {
   let callTargetType = call.target.type || call.target;
   if (callTargetType instanceof GenericType) {
-    callTargetType = getRawFunctionType(callTargetType, call.arguments);
+    callTargetType = getRawFunctionType(
+      callTargetType,
+      call.arguments,
+      null,
+      call.loc,
+      // $FlowIssue
+      withClean
+    );
   }
   return (callTargetType: any);
 }
@@ -229,7 +239,7 @@ function resolveOuterTypeVarsFromCall(
   if (!call.arguments.some(isArgumentVariable)) {
     return;
   }
-  const callTarget: FunctionType = getCallTarget(call);
+  const callTarget: FunctionType = getCallTarget(call, false);
 
   for (let i = 0; i < call.arguments.length; i++) {
     const callArgument = call.arguments[i];
@@ -267,7 +277,8 @@ function resolveOuterTypeVarsFromCall(
 export function implicitApplyGeneric(
   fn: GenericType<FunctionType>,
   argumentsTypes: Array<Type | VariableInfo>,
-  loc: SourceLocation
+  loc: SourceLocation,
+  withClean?: boolean = true
 ): FunctionType {
   const appliedArgumentsTypes: Map<mixed, Type> = new Map();
   for (let i = 0; i < argumentsTypes.length; i++) {
@@ -320,7 +331,9 @@ export function implicitApplyGeneric(
     fn.genericArguments.map(t => rootFinder(t) || getTypeRoot(t)),
     loc
   );
-  fn.genericArguments.forEach(clearRoot);
+  if (withClean) {
+    fn.genericArguments.forEach(clearRoot);
+  }
   return result;
 }
 
@@ -328,14 +341,15 @@ export function getRawFunctionType(
   fn: FunctionType | GenericType<FunctionType>,
   args: Array<Type | VariableInfo>,
   genericArguments?: Array<Type> | null,
-  loc: SourceLocation
+  loc: SourceLocation,
+  withClean?: boolean = true
 ) {
   if (fn instanceof FunctionType) {
     return fn;
   }
   return genericArguments != null
     ? fn.applyGeneric(genericArguments, loc)
-    : implicitApplyGeneric(fn, args, loc);
+    : implicitApplyGeneric(fn, args, loc, withClean);
 }
 
 export function getInvocationType(
@@ -475,12 +489,14 @@ export function inferenceFunctionTypeByScope(
         }
       }
     }
+    if (call.target instanceof GenericType) {
+      call.target.genericArguments.forEach(clearRoot);
+    }
   }
-  const types = newArgumentsTypes.concat(newReturnType);
   for (let i = 0; i < genericArguments.length; i++) {
     const genericArgument = genericArguments[i];
     clearRoot(genericArgument);
-    const isTypeVarStillExisted = types.find(arg =>
+    const isTypeVarStillExisted = newArgumentsTypes.find(arg =>
       arg.contains(genericArgument)
     );
     if (isTypeVarStillExisted && genericArgument instanceof TypeVar) {

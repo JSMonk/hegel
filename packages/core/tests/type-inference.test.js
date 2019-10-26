@@ -1881,7 +1881,7 @@ describe("Type refinement", () => {
   });
 });
 describe("Other", () => {
-  test("Should refinement paramtetric polymorphism", async () => {
+  test("Should inference paramtetric polymorphism", async () => {
     const sourceAST = prepareAST(`
       const id = x => x;
       const a = id(2);
