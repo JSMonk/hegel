@@ -552,6 +552,8 @@ function getResultObjectType(object: ObjectType) {
     object.properties.delete(CONSTRUCTABLE);
     constructable.type.isSubtypeOf = object;
     constructable.type.name = object.name;
+    // $FlowIssue
+    constructable.type.returnType.makeNominal();
     return constructable.type;
   }
   const indexable = object.properties.get(INDEXABLE);
@@ -585,15 +587,4 @@ function getPropertiesForType(type: ?Type, node: Node) {
         node.loc
       );
   }
-}
-
-export function getTypeRoot(type: TypeVar) {
-  if (type.root == undefined) {
-    return type;
-  }
-  let potentialRoot = type.root;
-  while (potentialRoot instanceof TypeVar && potentialRoot.root != undefined) {
-    potentialRoot = potentialRoot.root;
-  }
-  return potentialRoot;
 }

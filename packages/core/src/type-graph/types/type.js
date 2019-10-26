@@ -9,6 +9,19 @@ export type TypeMeta = {
 export class Type {
   static createTypeWithName = createTypeWithName(Type);
 
+  static getTypeRoot(type: Type) {
+    // $FlowIssue
+    if (!("root" in type) || type.root == undefined) {
+      return type;
+    }
+    let potentialRoot = type.root;
+    while ("root" in potentialRoot && potentialRoot.root != undefined) {
+      // $FlowIssue
+      potentialRoot = potentialRoot.root;
+    }
+    return potentialRoot;
+  }
+
   name: mixed;
   isSubtypeOf: ?Type;
 
@@ -84,15 +97,26 @@ export class Type {
     return this === type;
   }
 
-  getOponentType(type: Type) {
+  getOponentType(type: Type, withUnpack?: boolean = true) {
+    if ("root" in type) {
+      type = Type.getTypeRoot(type);
+    }
     if ("unpack" in type) {
       // $FlowIssue
-      type = type.unpack();
+      type = withUnpack ? type.unpack() : type.subordinateMagicType;
+    }
+    if ("root" in type) {
+        type = Type.getTypeRoot(type);
     }
     if ("subordinateType" in type) {
       // $FlowIssue
       type = type.subordinateType;
     }
+    if ("root" in type) {
+      type = Type.getTypeRoot(type);
+    }
     return type;
   }
+
+  makeNominal() {}
 }

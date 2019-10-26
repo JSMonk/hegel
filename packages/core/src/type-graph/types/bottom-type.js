@@ -1,7 +1,7 @@
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { FunctionType } from "./function-type";
-import { getNameForType, getTypeRoot } from "../../utils/type-utils";
+import { getNameForType } from "../../utils/type-utils";
 
 export class $BottomType extends Type {
   static getName(name, parameters) {
@@ -91,7 +91,7 @@ export class $BottomType extends Type {
     const target =
       this.subordinateMagicType instanceof TypeVar &&
       this.subordinateMagicType.root != undefined
-        ? this.subordinateMagicType.root
+        ? Type.getTypeRoot(this.subordinateMagicType)
         : this.subordinateMagicType;
     if ("subordinateType" in target) {
       return target.applyGeneric(
@@ -103,7 +103,7 @@ export class $BottomType extends Type {
         true
       );
     }
-    throw new Error("Never!!!");
+    throw new Error(`Never!!! ${target.constructor.name}`);
   }
 
   isPrincipalTypeFor(other: Type): boolean {
@@ -161,12 +161,16 @@ export class $BottomType extends Type {
       this.genericArguments.every((arg, i) =>
         arg.equalsTo(type.genericArguments[i])
       ) &&
-      getTypeRoot(this.subordinateMagicType) ===
-        getTypeRoot(type.subordinateMagicType)
+      Type.getTypeRoot(this.subordinateMagicType) ===
+        Type.getTypeRoot(type.subordinateMagicType)
     );
   }
 
   contains(type: Type) {
     return this.subordinateMagicType.contains(type);
+  }
+
+  makeNominal() {
+    this.subordinateMagicType.makeNominal();
   }
 }

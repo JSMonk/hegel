@@ -16,6 +16,10 @@ import type { SourceLocation } from "@babel/parser";
 export class GenericType<T: Type> extends Type {
   static createTypeWithName = createTypeWithName(GenericType);
 
+  static getNameWithoutApplying(name: mixed) {
+    return String(name).replace(/<.+?>/g, "");
+  }
+
   static getName<T: Type>(name: mixed, parameters: Array<T>) {
     if (parameters.length === 0) {
       return String(name);
@@ -182,5 +186,9 @@ export class GenericType<T: Type> extends Type {
 
   contains(type: Type) {
     return super.contains(type) || this.subordinateType.contains(type);
+  }
+
+  makeNominal() {
+    this.subordinateType.makeNominal();
   }
 }

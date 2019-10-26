@@ -8,7 +8,6 @@ import { CallMeta } from "./meta/call-meta";
 import { ObjectType } from "./types/object-type";
 import { ModuleScope } from "./module-scope";
 import { addPosition } from "../utils/position-utils";
-import { getTypeRoot } from "../utils/type-utils";
 import { GenericType } from "./types/generic-type";
 import { $BottomType } from "./types/bottom-type";
 import { FunctionType } from "./types/function-type";

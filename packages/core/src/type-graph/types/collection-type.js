@@ -3,6 +3,7 @@ import { Type } from "./type";
 import { TupleType } from "./tuple-type";
 import { UnionType } from "./union-type";
 import { ObjectType } from "./object-type";
+import { GenericType } from "./generic-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
@@ -63,8 +64,15 @@ export class CollectionType<K: Type, V: Type> extends Type {
 
   isSuperTypeFor(anotherType: any) {
     anotherType = this.getOponentType(anotherType);
+    const selfNameWithoutApplying = GenericType.getNameWithoutApplying(
+      this.name
+    );
+    const otherfNameWithoutApplying = GenericType.getNameWithoutApplying(
+      anotherType.name
+    );
     return (
       (anotherType instanceof CollectionType &&
+        selfNameWithoutApplying === otherfNameWithoutApplying &&
         this.keyType.equalsTo(anotherType.keyType) &&
         this.valueType.isPrincipalTypeFor(anotherType.valueType)) ||
       (anotherType instanceof TupleType &&
@@ -113,5 +121,10 @@ export class CollectionType<K: Type, V: Type> extends Type {
       this.keyType.contains(type) ||
       this.valueType.contains(type)
     );
+  }
+
+  makeNominal() {
+    // $FlowIssue
+    this.isSubtypeOf.makeNominal();
   }
 }

@@ -17,8 +17,8 @@ import { CollectionType } from "../type-graph/types/collection-type";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
 import { getVariableType } from "../utils/variable-utils";
 import { addCallToTypeGraph } from "../type-graph/call";
+import { getTypeFromTypeAnnotation } from "../utils/type-utils";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
-import { getTypeFromTypeAnnotation, getTypeRoot } from "../utils/type-utils";
 import type { Function, SourceLocation } from "@babel/parser";
 import type {
   CallableTarget,
@@ -300,8 +300,8 @@ export function implicitApplyGeneric(
     const difference = givenArgumentType.getDifference(declaratedArgument);
     for (let j = 0; j < difference.length; j++) {
       let { root, variable } = difference[j];
-      root = getTypeRoot(root);
-      variable = getTypeRoot(variable);
+      root = Type.getTypeRoot(root);
+      variable = Type.getTypeRoot(variable);
       const existed = appliedArgumentsTypes.get(variable);
       if (
         !(variable instanceof TypeVar) ||
@@ -319,7 +319,7 @@ export function implicitApplyGeneric(
     }
   }
   const rootFinder = t => {
-    const root = getTypeRoot(t);
+    const root = Type.getTypeRoot(t);
     let mainRoot = appliedArgumentsTypes.get(root);
     while (appliedArgumentsTypes.has(mainRoot)) {
       mainRoot = appliedArgumentsTypes.get(mainRoot);
@@ -328,7 +328,7 @@ export function implicitApplyGeneric(
     return mainRoot;
   };
   const result = fn.applyGeneric(
-    fn.genericArguments.map(t => rootFinder(t) || getTypeRoot(t)),
+    fn.genericArguments.map(t => rootFinder(t) || Type.getTypeRoot(t)),
     loc
   );
   if (withClean) {
@@ -363,10 +363,10 @@ export function getInvocationType(
       ? fn
       : getRawFunctionType(fn, argumentsTypes, genericArguments, loc);
   returnType =
-    returnType instanceof TypeVar ? getTypeRoot(returnType) : returnType;
+    returnType instanceof TypeVar ? Type.getTypeRoot(returnType) : returnType;
   returnType =
     returnType instanceof $BottomType ? returnType.unpack() : returnType;
-  return returnType instanceof TypeVar ? getTypeRoot(returnType) : returnType;
+  return returnType instanceof TypeVar ? Type.getTypeRoot(returnType) : returnType;
 }
 
 export function clearRoot(type: Type) {
@@ -411,7 +411,7 @@ export function inferenceFunctionTypeByScope(
       returnType.root = getVariableType(
         null,
         newReturnType instanceof TypeVar
-          ? getTypeRoot(newReturnType)
+          ? Type.getTypeRoot(newReturnType)
           : newReturnType,
         typeScope,
         true
@@ -429,7 +429,7 @@ export function inferenceFunctionTypeByScope(
   const created: Map<TypeVar, TypeVar> = new Map();
   for (let i = 0; i < genericArguments.length; i++) {
     const genericArg = genericArguments[i];
-    const root = getTypeRoot(genericArg);
+    const root = Type.getTypeRoot(genericArg);
     if (root instanceof TypeVar && !genericArguments.includes(root)) {
       const alreadyCreated = created.get(root);
       const newRoot =
@@ -447,13 +447,13 @@ export function inferenceFunctionTypeByScope(
   for (const [_, v] of functionScope.body) {
     if (v.type instanceof TypeVar && v.type.root != undefined) {
       // $FlowIssue
-      v.type = getTypeRoot(v.type);
+      v.type = Type.getTypeRoot(v.type);
     }
   }
   let newGenericArguments: Set<TypeVar> = new Set();
   const newArgumentsTypes = argumentsTypes.map(t => {
     const result =
-      t instanceof TypeVar && t.root != undefined ? getTypeRoot(t) : t;
+      t instanceof TypeVar && t.root != undefined ? Type.getTypeRoot(t) : t;
     if (result instanceof TypeVar) {
       newGenericArguments.add(result);
     }
@@ -461,7 +461,7 @@ export function inferenceFunctionTypeByScope(
   });
   const newReturnType =
     returnType instanceof TypeVar && returnType.root != undefined
-      ? getTypeRoot(returnType)
+      ? Type.getTypeRoot(returnType)
       : returnType;
   if (newReturnType instanceof TypeVar) {
     newGenericArguments.add(newReturnType);
@@ -476,7 +476,7 @@ export function inferenceFunctionTypeByScope(
       }
       const copy = created.get(argument);
       if (argument.root !== undefined) {
-        call.arguments[j] = getTypeRoot(argument);
+        call.arguments[j] = Type.getTypeRoot(argument);
         shouldBeCleaned.push(argument);
       } else if (copy !== undefined) {
         call.arguments[j] = copy;

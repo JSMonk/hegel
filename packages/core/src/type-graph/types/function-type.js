@@ -4,10 +4,10 @@ import { TupleType } from "./tuple-type";
 import { ObjectType } from "./object-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
+import { CollectionType } from "./collection-type";
 import type { Scope } from "../scope";
 import type { TypeVar } from "./type-var";
 import type { TypeMeta } from "./type";
-import type { CollectionType } from "./collection-type";
 
 const UNDEFINED = new Type("undefined", { isSubtypeOf: new Type("void") });
 
@@ -29,6 +29,34 @@ export class RestArgument extends Type {
       return this;
     }
     return new RestArgument(newType);
+  }
+
+  isType(
+    action: "equalsTo" | "isSuperTypeFor",
+    anotherType: Type | RestArgument
+  ) {
+    if (!(anotherType instanceof RestArgument)) {
+      return false;
+    }
+    const selfType = this.getOponentType(this.type, false);
+    const otherType = this.getOponentType(anotherType.type, false);
+    if (
+      !(
+        selfType instanceof CollectionType &&
+        otherType instanceof CollectionType
+      )
+    ) {
+      return false;
+    }
+    return selfType.valueType[action](otherType.valueType);
+  }
+
+  equalsTo(anotherType: Type | RestArgument) {
+    return this.isType("equalsTo", anotherType);
+  }
+
+  isSuperTypeFor(anotherType: Type | RestArgument) {
+    return this.isType("isSuperTypeFor", anotherType);
   }
 }
 
@@ -124,16 +152,10 @@ export class FunctionType extends Type {
     return (
       super.equalsTo(anotherType) &&
       this.returnType.equalsTo(anotherType.returnType) &&
-      this.argumentsTypes.every((arg, i) => {
+      this.argumentsTypes.every((arg, i) =>
         // $FlowIssue
-        const otherArgument = anotherType.argumentsTypes[i];
-        const arg1 = arg instanceof RestArgument ? arg.type : arg;
-        const arg2 =
-          otherArgument instanceof RestArgument
-            ? otherArgument.type
-            : otherArgument;
-        return arg1.equalsTo(arg2);
-      })
+        arg.equalsTo(anotherType.argumentsTypes[i])
+      )
     );
   }
 
@@ -144,16 +166,10 @@ export class FunctionType extends Type {
     }
     return (
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
-      this.argumentsTypes.every((arg, i) => {
+      this.argumentsTypes.every((arg, i) =>
         // $FlowIssue
-        const otherArgument = anotherType.argumentsTypes[i] || UNDEFINED;
-        const arg1 = arg instanceof RestArgument ? arg.type : arg;
-        const arg2 =
-          otherArgument instanceof RestArgument
-            ? otherArgument.type
-            : otherArgument;
-        return arg1.isPrincipalTypeFor(arg2);
-      })
+        arg.isPrincipalTypeFor(anotherType.argumentsTypes[i] || UNDEFINED)
+      )
     );
   }
 
