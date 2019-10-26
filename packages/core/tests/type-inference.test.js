@@ -1209,7 +1209,6 @@ describe("Object type inference", () => {
         c: x => x
       }
     `);
-      debugger;
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a").type;
     expect(errors.length).toBe(0);
@@ -1668,7 +1667,6 @@ describe("Type refinement", () => {
         const b = a;
       }
     `);
-      debugger;
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const actualScope = actual.body.get("[[Scope3-35]]");
     expect(errors.length).toBe(0);

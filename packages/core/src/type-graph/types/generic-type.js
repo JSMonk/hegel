@@ -132,6 +132,12 @@ export class GenericType<T: Type> extends Type {
       ) {
         return appliedType;
       }
+      if (
+        t.constraint instanceof UnionType &&
+        appliedType instanceof UnionType
+      ) {
+        return appliedType;
+      }
       const variant = t.constraint.variants.find(v =>
         v.isPrincipalTypeFor(appliedType)
       );

@@ -13,8 +13,14 @@ import { GenericType } from "../type-graph/types/generic-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
-import { UNDEFINED_TYPE, CALLABLE, INDEXABLE, THIS_TYPE } from "../type-graph/constants";
 import { unique, findVariableInfo } from "./common";
+import {
+  UNDEFINED_TYPE,
+  CALLABLE,
+  CONSTRUCTABLE,
+  INDEXABLE,
+  THIS_TYPE
+} from "../type-graph/constants";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
 
@@ -82,6 +88,8 @@ export function getTypeFromTypeAnnotation(
       );
     case NODE.TS_SYMBOL_TYPE_ANNOTATION:
       return Type.createTypeWithName("Symbol", typeScope);
+    case NODE.TS_BIGINT_TYPE_ANNOTATION:
+      return Type.createTypeWithName("bigint", typeScope);
     case NODE.TS_UNDEFINED_TYPE_ANNOTATION:
       return Type.createTypeWithName("undefined", typeScope);
     case NODE.VOID_TYPE_ANNOTATION:
@@ -368,6 +376,7 @@ export function getTypeFromTypeAnnotation(
     case NODE.TS_OBJECT_METHOD:
     case NODE.FUNCTION_TYPE_ANNOTATION:
     case NODE.TS_CALL_SIGNATURE_DECLARATION:
+    case NODE.TS_CONSTRUCT_SIGNATURE_DECLARATION:
     case NODE.TS_FUNCTION_TYPE_ANNOTATION:
       const genericParams = typeNode.typeAnnotation.typeParameters
         ? typeNode.typeAnnotation.typeParameters.params.map(param =>
@@ -521,8 +530,9 @@ function getPropertyName(property: Node): string {
   }
   switch (property.type) {
     case NODE.TS_CALL_SIGNATURE_DECLARATION:
-    case NODE.TS_CONSTRUCT_SIGNATURE_DECLARATION:
       return CALLABLE;
+    case NODE.TS_CONSTRUCT_SIGNATURE_DECLARATION:
+      return CONSTRUCTABLE;
     case NODE.TS_INDEX_PROPERTY:
       return INDEXABLE;
   }
@@ -536,6 +546,13 @@ function getResultObjectType(object: ObjectType) {
     callable.type.isSubtypeOf = object;
     callable.type.name = object.name;
     return callable.type;
+  }
+  const constructable = object.properties.get(CONSTRUCTABLE);
+  if (constructable !== undefined) {
+    object.properties.delete(CONSTRUCTABLE);
+    constructable.type.isSubtypeOf = object;
+    constructable.type.name = object.name;
+    return constructable.type;
   }
   const indexable = object.properties.get(INDEXABLE);
   if (indexable !== undefined) {
@@ -571,12 +588,12 @@ function getPropertiesForType(type: ?Type, node: Node) {
 }
 
 export function getTypeRoot(type: TypeVar) {
-    if (type.root == undefined) {
-        return type;
-    }
-    let potentialRoot = type.root;
-    while (potentialRoot instanceof TypeVar && potentialRoot.root != undefined) {
-        potentialRoot = potentialRoot.root;
-    }
-    return potentialRoot;
+  if (type.root == undefined) {
+    return type;
+  }
+  let potentialRoot = type.root;
+  while (potentialRoot instanceof TypeVar && potentialRoot.root != undefined) {
+    potentialRoot = potentialRoot.root;
+  }
+  return potentialRoot;
 }

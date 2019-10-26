@@ -255,7 +255,10 @@ interface Array<T> {
   //      * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
   //      * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
   //      */
-  filter(callbackfn: (value: T, index: number, array: T[]) => boolean, thisArg?: any): T[];
+  filter(
+    callbackfn: (value: T, index: number, array: T[]) => boolean,
+    thisArg?: any
+  ): T[];
   //     /**
   //       * Returns the elements of an array that meet the condition specified in a callback function.
   //       * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
@@ -507,7 +510,9 @@ interface ReadonlyArray<T> {
   //      * @param callbackfn A function that accepts up to three arguments. The filter method calls the callbackfn function one time for each element in the array.
   //      * @param thisArg An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
   //      */
-  filter(callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => boolean, thisArg?: any
+  filter(
+    callbackfn: (value: T, index: number, array: ReadonlyArray<T>) => boolean,
+    thisArg?: any
   ): T[];
   //     /**
   //       * Returns the elements of an array that meet the condition specified in a callback function.
@@ -953,6 +958,53 @@ declare var NumberFormat: {
     options?: NumberFormatOptions
   ): string[];
 };
+
+interface BigInt {
+  //     /**
+  //       * Returns a string representation of an object.
+  //       * @param radix Specifies a radix for converting numeric values to strings. This value is only used for numbers.
+  //       */
+  toString(radix?: number): string;
+
+  //     /**
+  //       * Converts a number to a string by using the current or specified locale.
+  //       * @param locales A locale string or array of locale strings that contain one or more language or locale tags. If you include more than one locale string, list them in descending order of priority so that the first entry is the preferred locale. If you omit this parameter, the default locale of the JavaScript runtime is used.
+  //       * @param options An object that contains one or more properties that specify comparison options.
+  //       */
+  toLocaleString(
+    locales?: string | string[],
+    options?: NumberFormatOptions
+  ): string;
+
+  //     /**
+  //       * Returns a string representing a number in fixed-point notation.
+  //       * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+  //       */
+  toFixed(fractionDigits?: number): string;
+
+  //     /**
+  //       * Returns a string containing a number represented in exponential notation.
+  //       * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+  //       */
+  toExponential(fractionDigits?: number): string;
+
+  //     /**
+  //       * Returns a string containing a number represented either in exponential or fixed-point notation with a specified number of digits.
+  //       * @param precision Number of significant digits. Must be in the range 1 - 21, inclusive.
+  //       */
+  toPrecision(precision?: number): string;
+
+  //     /** Returns the primitive value of the specified object. */
+  valueOf(): bigint;
+}
+
+interface BigIntConstructor {
+  new (value?: any): BigInt;
+  (value?: any): bigint;
+  readonly prototype: BigInt;
+}
+
+declare var BigInt: BigIntConstructor;
 
 interface Number {
   //     /**
@@ -4014,13 +4066,13 @@ interface Uint32Array {
 
 interface Uint32ArrayConstructor {
   readonly prototype: Uint32Array;
-  new (length: number): Uint32Array;
-  new (arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike): Uint32Array;
-  new (
-    buffer: ArrayBufferLike,
-    byteOffset: number,
-    length?: number
-  ): Uint32Array;
+  // new (length: number): Uint32Array;
+  new(arrayOrArrayBuffer: Array<number>): Uint32Array;
+  // new (
+  //   buffer: ArrayBufferLike,
+  //   byteOffset: number,
+  //   length?: number
+  // ): Uint32Array;
 
   //     /**
   //       * The size in bytes of each element in the array.

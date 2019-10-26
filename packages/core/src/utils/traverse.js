@@ -142,7 +142,8 @@ const getBody = (currentNode: any) =>
     currentNode.expression && currentNode.expression.callee,
     currentNode.expression,
     currentNode.callee,
-    ...(currentNode.arguments || [])
+    ...(currentNode.arguments || []),
+    ...(currentNode.elements || [])
   ].filter(Boolean);
 
 const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
