@@ -277,17 +277,11 @@ export function addCallToTypeGraph(
         .result;
       const argumentType =
         argument instanceof VariableInfo ? argument.type : argument;
-      const potentialArgument =
-        argumentType instanceof FunctionType ||
-        (argumentType instanceof GenericType &&
-          argumentType.subordinateType instanceof FunctionType)
-          ? getInvocationType(
-              argumentType,
-              node.arguments.map(
-                a => addCallToTypeGraph(a, typeGraph, currentScope).result
-              )
-            )
-          : argumentType;
+      const potentialArgument = addCallToTypeGraph(
+        { ...node, type: NODE.CALL_EXPRESSION },
+        typeGraph,
+        currentScope
+      ).result;
       const defaultObject = ObjectType.createTypeWithName("{ }", typeScope, []);
       args = [
         defaultObject.isPrincipalTypeFor(potentialArgument)

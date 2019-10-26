@@ -366,7 +366,9 @@ export function getInvocationType(
     returnType instanceof TypeVar ? Type.getTypeRoot(returnType) : returnType;
   returnType =
     returnType instanceof $BottomType ? returnType.unpack() : returnType;
-  return returnType instanceof TypeVar ? Type.getTypeRoot(returnType) : returnType;
+  return returnType instanceof TypeVar
+    ? Type.getTypeRoot(returnType)
+    : returnType;
 }
 
 export function clearRoot(type: Type) {
@@ -408,7 +410,7 @@ export function inferenceFunctionTypeByScope(
         returnArgument instanceof VariableInfo
           ? returnArgument.type
           : returnArgument;
-      returnType.root = getVariableType(
+      const newOneRoot = getVariableType(
         null,
         newReturnType instanceof TypeVar
           ? Type.getTypeRoot(newReturnType)
@@ -416,6 +418,19 @@ export function inferenceFunctionTypeByScope(
         typeScope,
         true
       );
+      const variants = (returnType.root instanceof UnionType
+        ? returnType.root.items
+        : [returnType.root]
+      ).concat([newOneRoot]);
+      returnType.root =
+        returnType.root != undefined
+          ? UnionType.createTypeWithName(
+              // $FlowIssue
+              UnionType.getName(variants),
+              localTypeScope,
+              variants
+            )
+          : newOneRoot;
       returnWasCalled = true;
     }
   }

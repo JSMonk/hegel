@@ -76,6 +76,9 @@ export class CollectionType<K: Type, V: Type> extends Type {
         this.keyType.equalsTo(anotherType.keyType) &&
         this.valueType.isPrincipalTypeFor(anotherType.valueType)) ||
       (anotherType instanceof TupleType &&
+        (anotherType.isSubtypeOf === null ||
+          selfNameWithoutApplying ===
+            GenericType.getNameWithoutApplying(anotherType.isSubtypeOf.name)) &&
         this.keyType.equalsTo(new Type("number")) &&
         anotherType.items.every(t => this.valueType.isPrincipalTypeFor(t)))
     );

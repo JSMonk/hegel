@@ -4066,8 +4066,7 @@ interface Uint32Array {
 
 interface Uint32ArrayConstructor {
   readonly prototype: Uint32Array;
-  // new (length: number): Uint32Array;
-  new(arrayOrArrayBuffer: Array<number>): Uint32Array;
+  new(arrayOrLength: number | Array<number>): Uint32Array;
   // new (
   //   buffer: ArrayBufferLike,
   //   byteOffset: number,
