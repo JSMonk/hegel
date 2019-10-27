@@ -405,7 +405,10 @@ export function inferenceFunctionTypeByScope(
       returnType instanceof TypeVar &&
       !returnType.isUserDefined
     ) {
-      const [returnArgument] = calls[i].arguments;
+      const {
+        arguments: [returnArgument],
+        inferenced
+      } = calls[i];
       const newReturnType =
         returnArgument instanceof VariableInfo
           ? returnArgument.type
@@ -416,7 +419,7 @@ export function inferenceFunctionTypeByScope(
           ? Type.getTypeRoot(newReturnType)
           : newReturnType,
         typeScope,
-        true
+        inferenced
       );
       const variants = (returnType.root instanceof UnionType
         ? returnType.root.items

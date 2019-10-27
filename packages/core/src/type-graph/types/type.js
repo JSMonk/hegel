@@ -32,13 +32,18 @@ export class Type {
   }
 
   getChangedName(sourceTypes: Array<Type>, targetTypes: Array<Type>) {
-    return `${String(this.name)}<${targetTypes.reduce(
-      (res, target, i) =>
-        "root" in sourceTypes[i]
-          ? `${res}${i === 0 ? "" : ", "}${String(target.name)}`
-          : res,
-      ""
-    )}>`;
+    return String(this.name).replace(
+      /<(.+?)>/g,
+      (_, typesList) =>
+        `<${typesList
+          .split(", ")
+          .map(name => {
+            const index = sourceTypes.findIndex(a => a.name === name);
+            return index === -1 ? "" : targetTypes[index].name;
+          })
+          .filter(Boolean)
+          .join(", ")}>`
+    );
   }
 
   changeAll(
@@ -106,7 +111,7 @@ export class Type {
       type = withUnpack ? type.unpack() : type.subordinateMagicType;
     }
     if ("root" in type) {
-        type = Type.getTypeRoot(type);
+      type = Type.getTypeRoot(type);
     }
     if ("subordinateType" in type) {
       // $FlowIssue

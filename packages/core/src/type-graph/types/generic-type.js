@@ -152,10 +152,6 @@ export class GenericType<T: Type> extends Type {
     });
     const appliedTypeName = GenericType.getName(this.name, parameters);
     const existedType = this.localTypeScope.parent.body.get(appliedTypeName);
-    // if (existedType instanceof VariableInfo) {
-    //   // $FlowIssue
-    //   return existedType.type;
-    // }
     if (this.localTypeScope.parent instanceof ModuleScope) {
       throw new Error("Never!");
     }

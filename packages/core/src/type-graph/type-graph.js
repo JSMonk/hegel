@@ -218,6 +218,9 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
     false,
     self.type
   );
+  if (genericArguments) {
+    type.name = GenericType.getName(type.name, genericArguments);
+  }
   const typeFor = genericArguments
     ? GenericType.createTypeWithName(
         typeName,

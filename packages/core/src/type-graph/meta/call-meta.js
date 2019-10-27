@@ -20,16 +20,19 @@ export class CallMeta extends Meta {
   target: CallableTarget;
   targetName: string;
   arguments: Array<CallableArguments>;
+  inferenced: boolean;
 
   constructor(
     target: CallableTarget,
     args: Array<CallableArguments>,
     loc: SourceLocation,
-    targetName: string
+    targetName: string,
+    inferenced?: boolean = false
   ) {
     super(loc);
     this.target = target;
     this.targetName = targetName;
     this.arguments = args;
+    this.inferenced = inferenced;
   }
 }

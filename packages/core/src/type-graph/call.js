@@ -174,6 +174,7 @@ export function addCallToTypeGraph(
       targetName = "return";
       const arg = addCallToTypeGraph(node.argument, typeGraph, currentScope);
       args = [arg.result];
+      inferenced = arg.inferenced;
       const fn: any = findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
       if (fn instanceof ModuleScope) {
         throw new HegelError("Call return outside function", node.loc);
@@ -342,7 +343,13 @@ export function addCallToTypeGraph(
     node.loc
   );
   if (!(targetType instanceof $BottomType)) {
-    const callMeta = new CallMeta((target: any), args, node.loc, targetName);
+    const callMeta = new CallMeta(
+      (target: any),
+      args,
+      node.loc,
+      targetName,
+      inferenced
+    );
     callsScope.calls.push(callMeta);
   }
   return { result: invocationType, inferenced };

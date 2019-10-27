@@ -48,11 +48,9 @@ export class TupleType extends Type {
     if (!isItemsChanged && isSubtypeOf === this.isSubtypeOf) {
       return this;
     }
-    return new TupleType(
-      this.getChangedName(sourceTypes, targetTypes),
-      newItems,
-      { isSubtypeOf }
-    );
+    return new TupleType(TupleType.getName(newItems), newItems, {
+      isSubtypeOf
+    });
   }
 
   isSuperTypeFor(anotherType: Type) {
