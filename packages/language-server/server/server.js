@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const utils = require("util");
 const babylon = require("@babel/parser");
+const HegelError = require("@hegel/core/utils/errors").default;
 const createTypeGraph = require("@hegel/core/type-graph/type-graph").default;
 const { POSITIONS, TYPE_SCOPE } = require("@hegel/core/type-graph/constants");
 const { getVarAtPosition } = require("@hegel/core/utils/position-utils");
@@ -129,6 +130,9 @@ const dtsrc = {
     const diagnostics = [];
     for (let i = 0; i < errors.length; i++) {
       const error = errors[i];
+      if (!(error instanceof HegelError)) {
+        continue;
+      }
       const diagnostic = {
         severity: DiagnosticSeverity.Error,
         range: {

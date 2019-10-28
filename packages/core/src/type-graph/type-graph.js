@@ -403,6 +403,7 @@ const afterFillierActions = (
         }
         break;
       case NODE.OBJECT_METHOD:
+      case NODE.CLASS_METHOD:
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
       case NODE.FUNCTION_DECLARATION:

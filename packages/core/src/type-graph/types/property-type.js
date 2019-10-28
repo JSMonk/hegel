@@ -5,6 +5,7 @@ import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
 import { TupleType } from "./tuple-type";
 import { ObjectType } from "./object-type";
+import { $BottomType } from "./bottom-type";
 import { GenericType } from "./generic-type";
 import { FunctionType } from "./function-type";
 import { CollectionType } from "./collection-type";
@@ -43,6 +44,10 @@ export class $PropertyType extends GenericType {
       property.isSubtypeOf && property.isSubtypeOf.name === "string"
         ? property.name.slice(1, -1)
         : property.name;
+
+    if (property instanceof TypeVar && property.root === undefined) {
+      return new $BottomType(this, [currentTarget, property], loc);
+    }
 
     if (currentTarget instanceof UnionType) {
       const variants = currentTarget.variants.map(v =>
