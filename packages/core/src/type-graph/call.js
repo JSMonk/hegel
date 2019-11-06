@@ -14,6 +14,7 @@ import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { $PropertyType } from "./types/property-type";
 import { addToThrowable } from "../utils/throwable";
+import { getWrapperType } from "../utils/type-utils";
 import { getVariableType } from "../utils/variable-utils";
 import { inferenceTypeForNode } from "../inference";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
@@ -207,7 +208,10 @@ export function addCallToTypeGraph(
       break;
     case NODE.MEMBER_EXPRESSION:
       args = [
-        addCallToTypeGraph(node.object, typeGraph, currentScope).result,
+        getWrapperType(
+          addCallToTypeGraph(node.object, typeGraph, currentScope).result,
+          typeGraph
+        ),
         node.property.type === NODE.IDENTIFIER && !node.computed
           ? Type.createTypeWithName(`'${node.property.name}'`, typeScope, {
               isSubtypeOf: Type.createTypeWithName("string", typeScope)
@@ -251,9 +255,6 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.CALL_EXPRESSION:
-      args = node.arguments.map(
-        n => addCallToTypeGraph(n, typeGraph, currentScope).result
-      );
       if (node.callee.type === NODE.IDENTIFIER) {
         target = findVariableInfo(node.callee, currentScope);
         addPosition(node.callee, target, typeGraph);
@@ -261,6 +262,9 @@ export function addCallToTypeGraph(
         target = (addCallToTypeGraph(node.callee, typeGraph, currentScope)
           .result: any);
       }
+      args = node.arguments.map(
+        n => addCallToTypeGraph(n, typeGraph, currentScope).result
+      );
       const targetType = target instanceof VariableInfo ? target.type : target;
       const throwableType: any =
         targetType instanceof GenericType

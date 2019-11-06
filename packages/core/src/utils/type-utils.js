@@ -15,11 +15,12 @@ import { CollectionType } from "../type-graph/types/collection-type";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import { unique, findVariableInfo } from "./common";
 import {
-  UNDEFINED_TYPE,
   CALLABLE,
-  CONSTRUCTABLE,
   INDEXABLE,
-  THIS_TYPE
+  THIS_TYPE,
+  TYPE_SCOPE,
+  CONSTRUCTABLE,
+  UNDEFINED_TYPE
 } from "../type-graph/constants";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
@@ -587,4 +588,32 @@ function getPropertiesForType(type: ?Type, node: Node) {
         node.loc
       );
   }
+}
+
+export function getWrapperType(
+  argument: VariableInfo | Type,
+  typeGraph: ModuleScope
+) {
+  // $FlowIssue
+  const typeScope: Scope = typeGraph.body.get(TYPE_SCOPE);
+  const type = argument instanceof VariableInfo ? argument.type : argument;
+  if (
+    type.name === "string" ||
+    (type.isSubtypeOf !== null && type.isSubtypeOf.name === "string")
+  ) {
+    return findVariableInfo({ name: "String" }, typeScope).type;
+  }
+  if (
+    type.name === "number" ||
+    (type.isSubtypeOf !== null && type.isSubtypeOf.name === "number")
+  ) {
+    return findVariableInfo({ name: "Number" }, typeScope).type;
+  }
+  if (
+    type.name === "boolean" ||
+    (type.isSubtypeOf !== null && type.isSubtypeOf.name === "boolean")
+  ) {
+    return findVariableInfo({ name: "Boolean" }, typeScope).type;
+  }
+  return argument;
 }

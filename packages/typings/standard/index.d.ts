@@ -874,7 +874,7 @@ interface String {
   trim(): string;
 
   //     /** Returns the length of a String object. */
-  //     readonly length: number;
+  readonly length: number;
 
   //     // IE extensions
   //     /**
