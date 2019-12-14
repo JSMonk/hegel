@@ -25,7 +25,6 @@ export async function getConfig(): Promise<Config> {
   const [hegelConfig, babelConfig] = await Promise.all([
     hegelExplorer.search(),
     null
-    // babelExplorer.search()
   ]);
   if (hegelConfig === null) {
     throw new Error(`There is no .hegelrc config file in current project.`);

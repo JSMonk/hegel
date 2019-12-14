@@ -1,7 +1,7 @@
 {
   "sourceType": "module",
   "presets": [
-    ["@babel/preset-env", { "targets": { "node": "current" } }],
+    ["@babel/env", { "targets": { "node": "current" } }],
     "@babel/preset-flow"
   ],
   "plugins": [
