@@ -312,43 +312,26 @@ export function addCallToTypeGraph(
       ? currentScope
       : findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
   const targetType = target instanceof VariableInfo ? target.type : target;
-  if (
-    !(targetType instanceof $BottomType) &&
-    !(targetType instanceof UnionType) &&
-    !(targetType instanceof FunctionType) &&
-    !(
-      targetType instanceof GenericType &&
-      targetType.subordinateType instanceof FunctionType
-    )
-  ) {
-    throw new HegelError("The target is not callable type.", node.loc);
-  }
-  const appliedGenericArguments =
-    genericArguments &&
-    genericArguments.map(a => (a instanceof Type ? a : a.type));
-  const rawFunction = getRawFunctionType(
+  const options = {
+    targetName,
+    target,
     targetType,
     args,
-    appliedGenericArguments,
-    node.loc
-  );
-  args.forEach((arg, index) => {
-    const expected = rawFunction.argumentsTypes[index];
-    if (
-      arg instanceof VariableInfo &&
-      isGenericFunctionType(arg.type) &&
-      expected instanceof FunctionType
-    ) {
-      // $FlowIssue
-      arg.type = inferenceFunctionByUsage(arg, expected, typeScope, typeGraph);
-    }
-  });
-  const invocationType = getInvocationType(
-    targetType,
-    args,
-    appliedGenericArguments,
-    node.loc
-  );
+    node,
+    typeScope,
+    callsScope,
+    moduleScope: typeGraph,
+    genericArguments:
+      genericArguments &&
+      genericArguments.map(a => (a instanceof Type ? a : a.type))
+  };
+  const invocationType =
+    targetType instanceof UnionType
+      ? new UnionType(
+          null,
+          targetType.variants.map(targetType => invoke({ ...options, targetType }))
+        )
+      : invoke(options);
   if (!(targetType instanceof $BottomType)) {
     const callMeta = new CallMeta(
       (target: any),
@@ -360,4 +343,35 @@ export function addCallToTypeGraph(
     callsScope.calls.push(callMeta);
   }
   return { result: invocationType, inferenced };
+}
+
+function invoke({
+  targetName,
+  target,
+  targetType,
+  genericArguments,
+  args,
+  inferenced,
+  node,
+  typeScope,
+  moduleScope,
+  callsScope
+}) {
+  if (
+    !(targetType instanceof $BottomType) &&
+    !(targetType instanceof FunctionType) &&
+    !(
+      targetType instanceof GenericType &&
+      targetType.subordinateType instanceof FunctionType
+    )
+  ) {
+    throw new HegelError("The target is not callable type.", node.loc);
+  }
+  const invocationType = getInvocationType(
+    targetType,
+    args,
+    genericArguments,
+    node.loc
+  );
+  return invocationType;
 }
