@@ -513,7 +513,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const [[actual], , globals] = await createTypeGraph([sourceAST]);
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
-      target: globals.body.get("-"),
+      target: globals.body.get("b-"),
       arguments: [
         new Type(2, { isSubtypeOf: new Type("number") }),
         new Type(2, { isSubtypeOf: new Type("number") })
@@ -529,7 +529,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const [[actual], , globals] = await createTypeGraph([sourceAST]);
     const actualCall = actual.calls[1];
     const expectedCall = expect.objectContaining({
-      target: globals.body.get("-"),
+      target: globals.body.get("b-"),
       arguments: [
         actual.body.get("a"),
         new Type(2, { isSubtypeOf: new Type("number") })
@@ -545,14 +545,14 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const firstActualCall = actual.calls[0];
     const secondActualCall = actual.calls[1];
     const firstExpectedCall = expect.objectContaining({
-      target: globals.body.get("-"),
+      target: globals.body.get("b-"),
       arguments: [
         new Type(2, { isSubtypeOf: new Type("number") }),
         new Type(2, { isSubtypeOf: new Type("number") })
       ]
     });
     const secondExpectedCall = expect.objectContaining({
-      target: globals.body.get("-"),
+      target: globals.body.get("b-"),
       arguments: [
         new Type("number"),
         new Type(2, { isSubtypeOf: new Type("number") })

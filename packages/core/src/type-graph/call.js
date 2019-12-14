@@ -5,6 +5,7 @@ import { Type } from "./types/type";
 import { Scope } from "./scope";
 import { TypeVar } from "./types/type-var";
 import { CallMeta } from "./meta/call-meta";
+import { UnionType } from "./types/union-type";
 import { ObjectType } from "./types/object-type";
 import { ModuleScope } from "./module-scope";
 import { addPosition } from "../utils/position-utils";
@@ -152,7 +153,7 @@ export function addCallToTypeGraph(
         addCallToTypeGraph(node.right, typeGraph, currentScope).result
       ];
       targetName = node.operator === "+" ? "b+" : node.operator;
-      targetName = node.operator === "-" ? "b-" : node.operator;
+      targetName = node.operator === "-" ? "b-" : targetName;
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
         currentScope
@@ -313,6 +314,7 @@ export function addCallToTypeGraph(
   const targetType = target instanceof VariableInfo ? target.type : target;
   if (
     !(targetType instanceof $BottomType) &&
+    !(targetType instanceof UnionType) &&
     !(targetType instanceof FunctionType) &&
     !(
       targetType instanceof GenericType &&
