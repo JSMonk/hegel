@@ -316,7 +316,7 @@ const mixBaseOperators = moduleScope => {
       )
     ],
     [
-      "-",
+      "b-",
       genericFunction(
         typeScope,
         [

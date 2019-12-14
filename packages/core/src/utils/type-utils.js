@@ -304,8 +304,10 @@ export function getTypeFromTypeAnnotation(
       const genericName = (target.id || target.typeName || target.expression)
         .name;
       if (genericArguments != undefined) {
-        const typeInScope = findVariableInfo({ name: genericName }, typeScope)
-          .type;
+        const typeInScope = findVariableInfo(
+          { name: genericName, loc: target.loc },
+          typeScope
+        ).type;
         const existedGenericType =
           typeInScope instanceof TypeVar && typeInScope.root != undefined
             ? typeInScope.root
@@ -364,8 +366,10 @@ export function getTypeFromTypeAnnotation(
             );
       }
       if (!rewritable) {
-        const typeInScope = findVariableInfo({ name: genericName }, typeScope)
-          .type;
+        const typeInScope = findVariableInfo(
+          { name: genericName, loc: target.loc },
+          typeScope
+        ).type;
         return typeInScope instanceof TypeVar && typeInScope.root != undefined
           ? typeInScope.root
           : typeInScope;

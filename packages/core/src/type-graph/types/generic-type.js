@@ -167,7 +167,11 @@ export class GenericType<T: Type> extends Type {
   }
 
   getPropertyType(propertyName: mixed): ?Type {
-    return this.subordinateType.getPropertyType(propertyName);
+    const result = this.subordinateType.getPropertyType(propertyName);
+    if (result === null && this.isSubtypeOf != null) {
+      return this.isSubtypeOf.getPropertyType(propertyName);
+    }
+    return result;
   }
 
   getDifference(type: Type) {

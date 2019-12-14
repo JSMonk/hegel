@@ -152,6 +152,7 @@ export function addCallToTypeGraph(
         addCallToTypeGraph(node.right, typeGraph, currentScope).result
       ];
       targetName = node.operator === "+" ? "b+" : node.operator;
+      targetName = node.operator === "-" ? "b-" : node.operator;
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
         currentScope

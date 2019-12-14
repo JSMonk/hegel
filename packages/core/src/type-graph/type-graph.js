@@ -256,6 +256,10 @@ const fillModuleScope = (
       case NODE.TS_INTERFACE_DECLARATION:
         addTypeAlias(currentNode, typeGraph);
         break;
+      case NODE.CLASS_DECLARATION:
+      case NODE.CLASS_EXPRESSION:
+        addClassToTypeGraph(currentNode, typeScope, currentScope, typeGraph);
+        break;
       case NODE.IF_STATEMENT:
       case NODE.WHILE_STATEMENT:
       case NODE.DO_WHILE_STATEMENT:

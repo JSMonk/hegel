@@ -310,15 +310,6 @@ interface Array<T> {
   [n: number]: T;
 }
 
-interface ArrayConstructor {
-  new <T>(arrayLength: number): T[];
-  <T>(...items: T[]): T[];
-  isArray(arg: any): arg is Array<any>;
-  readonly prototype: Array<any>;
-}
-
-declare var Array: ArrayConstructor;
-
 interface RegExpExecArray extends Array<string> {
   index: number;
   input: string;
@@ -799,6 +790,9 @@ interface String {
   //       * @param regexp A variable name or string literal containing the regular expression pattern and flags.
   //       */
   match(regexp: string | RegExp): RegExpMatchArray | null;
+
+  padStart(lengh: number, str: string): string;
+  padEnd(lengh: number, str: string): string;
 
   //     /**
   //       * Replaces text in a string, using a regular expression or search string.
@@ -2134,7 +2128,9 @@ interface Int8Array {
 interface Int8ArrayConstructor {
   readonly prototype: Int8Array;
   // new (length: number): Int8Array;
-  new (arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number): Int8Array;
+  new (
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+  ): Int8Array;
   // new (buffer: ArrayBufferLike, byteOffset: number, length?: number): Int8Array;
 
   //     /**
@@ -2450,7 +2446,9 @@ interface Uint8Array {
 interface Uint8ArrayConstructor {
   readonly prototype: Uint8Array;
   // new (length: number): Uint8Array;
-  new (arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number): Uint8Array;
+  new (
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+  ): Uint8Array;
   // new (
   //   buffer: ArrayBufferLike,
   //   byteOffset: number,
@@ -3114,7 +3112,9 @@ interface Int16Array {
 interface Int16ArrayConstructor {
   readonly prototype: Int16Array;
   // new (length: number): Int16Array;
-  new (arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number): Int16Array;
+  new (
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+  ): Int16Array;
   // new (
   //   buffer: ArrayBufferLike,
   //   byteOffset: number,
@@ -3433,7 +3433,9 @@ interface Uint16Array {
 interface Uint16ArrayConstructor {
   readonly prototype: Uint16Array;
   // new (length: number): Uint16Array;
-  new (arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number): Uint16Array;
+  new (
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+  ): Uint16Array;
   // new (
   //   buffer: ArrayBufferLike,
   //   byteOffset: number,
@@ -3748,7 +3750,9 @@ interface Int32Array {
 interface Int32ArrayConstructor {
   readonly prototype: Int32Array;
   // new (length: number): Int32Array;
-  new (arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number): Int32Array;
+  new (
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+  ): Int32Array;
   // new (
   //   buffer: ArrayBufferLike,
   //   byteOffset: number,
@@ -4066,7 +4070,7 @@ interface Uint32Array {
 
 interface Uint32ArrayConstructor {
   readonly prototype: Uint32Array;
-  new(arrayOrLength: number | Array<number>): Uint32Array;
+  new (arrayOrLength: number | Array<number>): Uint32Array;
   // new (
   //   buffer: ArrayBufferLike,
   //   byteOffset: number,
@@ -4385,7 +4389,9 @@ interface Float32Array {
 interface Float32ArrayConstructor {
   readonly prototype: Float32Array;
   // new (length: number): Float32Array;
-  new (arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number): Float32Array;
+  new (
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+  ): Float32Array;
   // new (
   //   buffer: ArrayBufferLike,
   //   byteOffset: number,
@@ -4704,7 +4710,9 @@ interface Float64Array {
 interface Float64ArrayConstructor {
   readonly prototype: Float64Array;
   // new (length: number): Float64Array;
-  new (arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number): Float64Array;
+  new (
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+  ): Float64Array;
   // new (
   //   buffer: ArrayBufferLike,
   //   byteOffset: number,
@@ -4741,3 +4749,23 @@ interface Float64ArrayConstructor {
   ): Float64Array;
 }
 declare var Float64Array: Float64ArrayConstructor;
+
+interface ArrayConstructor {
+  new <T>(arrayLength: number): T[];
+  <T>(...items: T[]): T[];
+  isArray(arg: any): arg is Array<any>;
+  readonly prototype: Array<any>;
+  from(
+    value:
+      | Int8Array
+      | Int16Array
+      | Int32Array
+      | Uint8Array
+      | Uint16Array
+      | Uint32Array
+      | Float32Array
+      | Float64Array
+  ): number[];
+}
+
+declare var Array: ArrayConstructor;
