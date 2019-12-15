@@ -90,6 +90,9 @@ export class GenericType<T: Type> extends Type {
       targetTypes,
       typeScope
     );
+    if (newSubordinateType === this.subordinateType) {
+      return this;
+    }
     const newGenericArguments = this.genericArguments.filter(arg =>
       newSubordinateType.contains(arg)
     );
