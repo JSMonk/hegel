@@ -35,7 +35,7 @@ export class $PropertyType extends GenericType {
     parameters,
     loc,
     shouldBeMemoize = true,
-    isCalledAsBottom = false
+    isCalledAsBottom = false,
   ) {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;

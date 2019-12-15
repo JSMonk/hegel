@@ -84,7 +84,7 @@ describe("Test $Keys", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].message).toEqual(
-      "First parameter should be an object type"
+      "First parameter should be an object or collection type"
     );
   });
 });
@@ -109,7 +109,7 @@ describe("Test $Values", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].message).toEqual(
-      "First parameter should be an object type"
+      "First parameter should be an object or collection type"
     );
   });
 });

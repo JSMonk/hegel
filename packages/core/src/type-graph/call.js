@@ -2,7 +2,9 @@
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
 import { Type } from "./types/type";
+import { $Keys } from "./types/keys-type";
 import { Scope } from "./scope";
+import { $Values } from "./types/values-type";
 import { TypeVar } from "./types/type-var";
 import { CallMeta } from "./meta/call-meta";
 import { UnionType } from "./types/union-type";
@@ -209,6 +211,28 @@ export function addCallToTypeGraph(
         currentScope
       );
       break;
+    case NODE.PURE_KEY:
+      args = [addCallToTypeGraph(node.of, typeGraph, currentScope).result];
+      targetName = "Object.keys";
+      target = new FunctionType(
+        targetName,
+        [],
+        new $Keys().applyGeneric(
+          args.map(a => (a instanceof VariableInfo ? a.type : a)),
+          node.loc
+        )
+      );
+      break;
+    case NODE.PURE_VALUE:
+      target = addCallToTypeGraph(node.of, typeGraph, currentScope).result;
+      args = [target];
+      targetName = "Object.values";
+      target = new $Values().applyGeneric(
+        args.map(a => (a instanceof VariableInfo ? a.type : a)),
+        node.loc
+      );
+      target = new FunctionType(targetName, [], target);
+      break;
     case NODE.MEMBER_EXPRESSION:
       args = [
         getWrapperType(
@@ -381,8 +405,9 @@ function invoke({
   );
   return {
     result: invocationType,
-    inferenced: (isInferencedTypeVar(targetType) &&
-        isInferencedTypeVar(invocationType, true))
+    inferenced:
+      isInferencedTypeVar(targetType) &&
+      isInferencedTypeVar(invocationType, true)
   };
 }
 

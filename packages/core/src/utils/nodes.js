@@ -23,11 +23,15 @@ export const DECLARATION_TYPES = {
 };
 
 export const STATEMENTS_TYPES = {
+  PURE_KEY: "PureKeyStatement",
+  PURE_VALUE: "PureValueStatement",
   BLOCK_STATEMENT: "BlockStatement",
   IF_STATEMENT: "IfStatement",
   WHILE_STATEMENT: "WhileStatement",
   DO_WHILE_STATEMENT: "DoWhileStatement",
   FOR_STATEMENT: "ForStatement",
+  FOR_IN_STATEMENT: "ForInStatement",
+  FOR_OF_STATEMENT: "ForOfStatement",
   EXPRESSION_STATEMENT: "ExpressionStatement",
   RETURN_STATEMENT: "ReturnStatement",
   EMPTY_STATEMENT: "EmptyStatement",

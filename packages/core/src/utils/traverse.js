@@ -41,7 +41,9 @@ function mixBlockForStatements(currentNode: Node) {
   if (
     currentNode.type !== NODE.IF_STATEMENT &&
     currentNode.type !== NODE.WHILE_STATEMENT &&
-    currentNode.type !== NODE.FOR_STATEMENT
+    currentNode.type !== NODE.FOR_STATEMENT &&
+    currentNode.type !== NODE.FOR_IN_STATEMENT &&
+    currentNode.type !== NODE.FOR_OF_STATEMENT
   ) {
     return currentNode;
   }
@@ -69,8 +71,23 @@ function mixBlockForStatements(currentNode: Node) {
   return currentNode;
 }
 
+function getInitFor(node) {
+  switch (node.type) {
+    case NODE.FOR_IN_STATEMENT:
+      return { type: NODE.PURE_KEY, of: node.right };
+    case NODE.FOR_OF_STATEMENT:
+      return { type: NODE.PURE_VALUE, of: node.right };
+    default:
+      return;
+  }
+}
+
 function mixDeclarationsInideForBlock(currentNode: Node) {
-  if (currentNode.type !== NODE.FOR_STATEMENT || currentNode.init === null) {
+  if (
+    currentNode.type !== NODE.FOR_IN_STATEMENT &&
+    currentNode.type !== NODE.FOR_OF_STATEMENT &&
+    (currentNode.type !== NODE.FOR_STATEMENT || currentNode.init === null)
+  ) {
     return currentNode;
   }
   if (currentNode.body.type === NODE.EMPTY_STATEMENT) {
@@ -80,7 +97,12 @@ function mixDeclarationsInideForBlock(currentNode: Node) {
       loc: currentNode.init.loc
     };
   }
-  currentNode.body.body.unshift(currentNode.init);
+  currentNode.body.body.unshift(
+    currentNode.init || {
+      ...currentNode.left,
+      init: getInitFor(currentNode)
+    }
+  );
   return currentNode;
 }
 

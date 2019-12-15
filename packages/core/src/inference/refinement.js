@@ -31,6 +31,8 @@ function getPrimaryAndAlternativeScopes(
     case NODE.WHILE_STATEMENT:
     case NODE.DO_WHILE_STATEMENT:
     case NODE.FOR_STATEMENT:
+    case NODE.FOR_IN_STATEMENT:
+    case NODE.FOR_OF_STATEMENT:
       primaryScope = moduleScope.body.get(
         Scope.getName(currentRefinementNode.body)
       );

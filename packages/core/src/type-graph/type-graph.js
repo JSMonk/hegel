@@ -251,6 +251,13 @@ const fillModuleScope = (
   }
   return (currentNode: Node, parentNode: Node, meta?: TraverseMeta = {}) => {
     switch (currentNode.type) {
+      case NODE.VARIABLE_DECLARATION:
+        if (currentNode.init != undefined) {
+          currentNode.declarations.forEach(a =>
+            Object.assign(a, { init: currentNode.init })
+          );
+        }
+        break;
       case NODE.TYPE_ALIAS:
       case NODE.TS_TYPE_ALIAS:
       case NODE.TS_INTERFACE_DECLARATION:
@@ -260,6 +267,8 @@ const fillModuleScope = (
       case NODE.WHILE_STATEMENT:
       case NODE.DO_WHILE_STATEMENT:
       case NODE.FOR_STATEMENT:
+      case NODE.FOR_IN_STATEMENT:
+      case NODE.FOR_OF_STATEMENT:
         const block = currentNode.body || currentNode.consequent;
         addScopeToTypeGraph(block, parentNode, typeGraph);
         if (currentNode.alternate) {
