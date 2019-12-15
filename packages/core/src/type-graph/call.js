@@ -191,8 +191,9 @@ export function addCallToTypeGraph(
         currentScope
       );
       target =
-        declaration.returnType instanceof TypeVar &&
-        !declaration.returnType.isUserDefined
+        declaration.returnType instanceof $BottomType ||
+        (declaration.returnType instanceof TypeVar &&
+          !declaration.returnType.isUserDefined)
           ? target
           : // $FlowIssue
             target.type.applyGeneric([declaration.returnType], node.loc);
@@ -329,7 +330,9 @@ export function addCallToTypeGraph(
     targetType instanceof UnionType
       ? new UnionType(
           null,
-          targetType.variants.map(targetType => invoke({ ...options, targetType }))
+          targetType.variants.map(targetType =>
+            invoke({ ...options, targetType })
+          )
         )
       : invoke(options);
   if (!(targetType instanceof $BottomType)) {

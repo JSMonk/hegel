@@ -1,0 +1,9 @@
+{
+  "name": "@hegel/typings",
+  "version": "0.0.3",
+  "description": "Typings for Hegel Project",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Artem Kobzar",
+  "license": "MIT"
+}

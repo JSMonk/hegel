@@ -15,13 +15,22 @@ const DEFAULT_IMPORT_FILE = "index";
 
 export function createASTGenerator(config: Config) {
   const cache = new Map();
-  return async (path: string): Promise<AST> => {
+  return async (path: string, isDefinition: boolean = false): Promise<AST> => {
     const cached = cache.get(path);
     if (cached !== undefined) {
       return cached;
     }
     const content = await fs.readFile(path, "utf8");
-    const ast = parse(content, config.babel);
+    const ast = parse(content, {
+      strictMode: !isDefinition,
+      ...config.babel,
+      plugins: isDefinition
+        ? [
+            "typescript",
+            ...config.babel.plugins.filter(plugin => plugin !== "flow")
+          ]
+        : config.babel.plugins
+    });
     const result = Object.assign(ast.program, { path, content });
     cache.set(path, result);
     return result;

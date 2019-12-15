@@ -6,6 +6,7 @@ import { TypeVar } from "../type-graph/types/type-var";
 import { CallMeta } from "../type-graph/meta/call-meta";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
+import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
@@ -42,6 +43,9 @@ function getActualType(
   }
   if (actual instanceof TypeVar && actual.root != undefined) {
     return actual.root;
+  }
+  if (actual instanceof $BottomType) {
+    return actual.subordinateMagicType;
   }
   return actual;
 }

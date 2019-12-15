@@ -6,7 +6,7 @@
   ],
   "plugins": [
     "@babel/plugin-proposal-class-properties",
-    "transform-es2015-modules-commonjs",
+    ["transform-es2015-modules-commonjs", { "strictMode": false }],
     "syntax-flow"
   ]
 }

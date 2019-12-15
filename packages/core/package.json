@@ -1,6 +1,6 @@
 {
   "name": "@hegel/core",
-  "author": "",
+  "author": "Artem Kobzar",
   "version": "0.0.6",
   "description": "",
   "main": "index.js",
@@ -12,7 +12,7 @@
     "build:clean": "rm -rf build && mkdir build",
     "test": "jest"
   },
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@babel/parser": "^7.4.2"
   },
