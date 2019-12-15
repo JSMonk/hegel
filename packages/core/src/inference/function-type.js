@@ -212,6 +212,9 @@ function getCallTarget(
   withClean?: boolean = true
 ): FunctionType {
   let callTargetType = call.target.type || call.target;
+  if (callTargetType instanceof TypeVar) {
+    callTargetType = Type.getTypeRoot(callTargetType);
+  }
   if (callTargetType instanceof GenericType) {
     callTargetType = getRawFunctionType(
       callTargetType,
@@ -318,6 +321,9 @@ export function implicitApplyGeneric(
       maybeBottom.unrootSubordinateType();
     }
   }
+  if (appliedArgumentsTypes.size === 0) {
+    return fn.subordinateType;
+  }
   const rootFinder = t => {
     const root = Type.getTypeRoot(t);
     let mainRoot = appliedArgumentsTypes.get(root);
@@ -337,15 +343,71 @@ export function implicitApplyGeneric(
   return result;
 }
 
+const invocationTypeNames = [
+  "a'",
+  "b'",
+  "c'",
+  "d'",
+  "e'",
+  "f'",
+  "g'",
+  "h'",
+  "i'",
+  "j'",
+  "k'",
+  "l'",
+  "m'",
+  "n'",
+  "o'",
+  "p'"
+];
+
+let iterator = 0;
+
 export function getRawFunctionType(
-  fn: FunctionType | GenericType<FunctionType>,
+  fn: FunctionType | GenericType<FunctionType> | TypeVar,
   args: Array<Type | VariableInfo>,
   genericArguments?: Array<Type> | null,
   loc: SourceLocation,
   withClean?: boolean = true
 ) {
+  fn =
+    fn instanceof TypeVar && fn.root !== undefined ? Type.getTypeRoot(fn) : fn;
   if (fn instanceof FunctionType) {
     return fn;
+  }
+  if (fn instanceof TypeVar) {
+    if (fn.isUserDefined) {
+      throw new Error("Never!");
+    }
+    const argTypes = args.map(a => (a instanceof VariableInfo ? a.type : a));
+    const returnTypeName =
+      invocationTypeNames[
+        (iterator = (iterator + 1) % invocationTypeNames.length)
+      ];
+    const returnType = new TypeVar(returnTypeName);
+    const genericTypes = [returnType];
+    // $FlowIssue
+    const localTypeScope = new Scope(Scope.BLOCK_TYPE, null);
+    localTypeScope.body.set(returnTypeName, returnType);
+    const newFunctionTypeName = FunctionType.getName(
+      argTypes,
+      returnType,
+      genericTypes
+    );
+    const newFunctionType = new FunctionType(
+      newFunctionTypeName,
+      argTypes,
+      returnType
+    );
+    const result = new GenericType(
+      newFunctionTypeName,
+      genericTypes,
+      localTypeScope,
+      newFunctionType
+    );
+    fn.root = result;
+    return newFunctionType;
   }
   return genericArguments != null
     ? fn.applyGeneric(genericArguments, loc)
@@ -353,7 +415,7 @@ export function getRawFunctionType(
 }
 
 export function getInvocationType(
-  fn: FunctionType | GenericType<FunctionType>,
+  fn: FunctionType | GenericType<FunctionType> | TypeVar,
   argumentsTypes: Array<Type | VariableInfo>,
   genericArguments?: Array<Type> | null,
   loc: SourceLocation

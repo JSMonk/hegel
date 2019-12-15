@@ -326,15 +326,18 @@ export function addCallToTypeGraph(
       genericArguments &&
       genericArguments.map(a => (a instanceof Type ? a : a.type))
   };
+  const getResult = targetType => {
+    const { result, inferenced: localInferenced } = invoke({
+      ...options,
+      targetType
+    });
+    inferenced = inferenced || localInferenced;
+    return result;
+  };
   const invocationType =
     targetType instanceof UnionType
-      ? new UnionType(
-          null,
-          targetType.variants.map(targetType =>
-            invoke({ ...options, targetType })
-          )
-        )
-      : invoke(options);
+      ? new UnionType(null, targetType.variants.map(getResult))
+      : getResult(targetType);
   if (!(targetType instanceof $BottomType)) {
     const callMeta = new CallMeta(
       (target: any),
@@ -354,7 +357,6 @@ function invoke({
   targetType,
   genericArguments,
   args,
-  inferenced,
   node,
   typeScope,
   moduleScope,
@@ -362,6 +364,7 @@ function invoke({
 }) {
   if (
     !(targetType instanceof $BottomType) &&
+    !(targetType instanceof TypeVar && !targetType.isUserDefined) &&
     !(targetType instanceof FunctionType) &&
     !(
       targetType instanceof GenericType &&
@@ -376,5 +379,17 @@ function invoke({
     genericArguments,
     node.loc
   );
-  return invocationType;
+  return {
+    result: invocationType,
+    inferenced: (isInferencedTypeVar(targetType) &&
+        isInferencedTypeVar(invocationType, true))
+  };
+}
+
+function isInferencedTypeVar(t: Type, withoutRoot: boolean = false) {
+  return (
+    t instanceof TypeVar &&
+    !t.isUserDefined &&
+    (!withoutRoot || t.root === undefined)
+  );
 }

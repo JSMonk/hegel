@@ -151,7 +151,6 @@ export class GenericType<T: Type> extends Type {
       return variant;
     });
     const appliedTypeName = GenericType.getName(this.name, parameters);
-    const existedType = this.localTypeScope.parent.body.get(appliedTypeName);
     if (this.localTypeScope.parent instanceof ModuleScope) {
       throw new Error("Never!");
     }
