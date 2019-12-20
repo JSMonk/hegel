@@ -4,17 +4,25 @@ import { codeFrameColumns } from "@babel/code-frame";
 import type { AST } from "./parser";
 import type { HegelError } from "@hegel/core/utils/errors";
 
-export function printSingleError(error: HegelError, fileContent: string) {
-  const line = chalk.dim.underline(`${error.source}:${error.loc.start.line}`); 
-  const codeFrame = codeFrameColumns(fileContent, error.loc, {
+type ExtendedSyntaxError = SyntaxError & { loc: any, source: string };
+
+export function printSingleError(
+  error: HegelError | ExtendedSyntaxError,
+  fileContent: string
+) {
+  const loc = error.loc.start
+    ? error.loc
+    : { start: error.loc, end: { ...error.loc, column: error.loc.column + 1 } };
+  const line = chalk.dim.underline(`${error.source}:${loc.start.line}`);
+  const codeFrame = codeFrameColumns(fileContent, loc, {
     highlightCode: true,
-    message: error.message
+    message: error.message.replace(/\([\d:]+\)/gi, "")
   });
   return `${line}\n${codeFrame}`;
 }
 
 export async function getErrorsPrint(
-  errors: Array<HegelError>,
+  errors: Array<HegelError | ExtendedSyntaxError>,
   getFileAST: string => Promise<AST>
 ) {
   let result = "";
@@ -25,7 +33,9 @@ export async function getErrorsPrint(
   return result;
 }
 
-export function getVerdictPrint(errors: Array<HegelError>) {
+export function getVerdictPrint(
+  errors: Array<HegelError | ExtendedSyntaxError>
+) {
   let verdict = "";
   if (errors.length > 0) {
     verdict = `Found ${errors.length} error${errors.length > 1 ? "s" : ""}`;

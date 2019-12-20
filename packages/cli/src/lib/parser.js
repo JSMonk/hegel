@@ -20,20 +20,26 @@ export function createASTGenerator(config: Config) {
     if (cached !== undefined) {
       return cached;
     }
-    const content = await fs.readFile(path, "utf8");
-    const ast = parse(content, {
-      strictMode: !isDefinition,
-      ...config.babel,
-      plugins: isDefinition
-        ? [
-            "typescript",
-            ...config.babel.plugins.filter(plugin => plugin !== "flow")
-          ]
-        : config.babel.plugins
-    });
-    const result = Object.assign(ast.program, { path, content });
-    cache.set(path, result);
-    return result;
+    try {
+      const content = await fs.readFile(path, "utf8");
+      let result = { path, content };
+      cache.set(path, result);
+      const ast = parse(content, {
+        strictMode: !isDefinition,
+        ...config.babel,
+        plugins: isDefinition
+          ? [
+              "typescript",
+              ...config.babel.plugins.filter(plugin => plugin !== "flow")
+            ]
+          : config.babel.plugins
+      });
+      Object.assign(result, ast.program);
+      return result;
+    } catch (e) {
+      e.source = e.source || path;
+      throw e;
+    }
   };
 }
 

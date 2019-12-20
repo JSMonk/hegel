@@ -12,21 +12,26 @@ import { getErrorsPrint, getVerdictPrint } from "./lib/printer";
 import { createASTGenerator, importModule } from "./lib/parser";
 
 (async () => {
-    const standard = require.resolve("@hegel/typings/standard/index.d.ts");
+  const standard = require.resolve("@hegel/typings/standard/index.d.ts");
   const logger = getLogger();
   try {
     const config = await getConfig();
     const getFileAST = createASTGenerator(config);
     const sources = await getSources(config);
-    const asts = await Promise.all(
-      sources.map(file => getFileAST(file.fullPath))
-    );
-    const [modules, errors] = await createTypeGraph(
-      asts,
-      importModule(config, getFileAST),
-      false,
-      await mixTypeDefinitions(standard, getFileAST)
-    );
+    let errors;
+    try {
+      const asts = await Promise.all(
+        sources.map(file => getFileAST(file.fullPath))
+      );
+      [, errors] = await createTypeGraph(
+        asts,
+        importModule(config, getFileAST),
+        false,
+        await mixTypeDefinitions(standard, getFileAST)
+      );
+    } catch (e) {
+      errors = [e];
+    }
     const result = await getErrorsPrint(errors, getFileAST);
     const verdict = getVerdictPrint(errors);
     logger.log(result);

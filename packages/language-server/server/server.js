@@ -4,7 +4,7 @@ const utils = require("util");
 const babylon = require("@babel/parser");
 const HegelError = require("@hegel/core/utils/errors").default;
 const createTypeGraph = require("@hegel/core/type-graph/type-graph").default;
-const { POSITIONS, TYPE_SCOPE } = require("@hegel/core/type-graph/constants");
+const { TYPE_SCOPE } = require("@hegel/core/type-graph/constants");
 const { getVarAtPosition } = require("@hegel/core/utils/position-utils");
 const {
   createConnection,
@@ -34,9 +34,9 @@ const dtsrc = {
   );
 
   let ast = {},
-      types = {},
-      text = "",
-      errors = [];
+    types = {},
+    text = "",
+    errors = [];
 
   const documents = new TextDocuments();
 
@@ -60,7 +60,10 @@ const dtsrc = {
       return;
     }
     const { type } = varInfo;
-    const value = type.constraint !== undefined ? `${type.name}: ${type.constraint.name}` : type.name;
+    const value =
+      type.constraint !== undefined
+        ? `${type.name}: ${type.constraint.name}`
+        : type.name;
     return {
       contents: [{ language: "typescript", value }]
     };
@@ -75,7 +78,11 @@ const dtsrc = {
     { encoding: "utf8" }
   );
   const stdLibAST = babylon.parse(stdLibContent, dtsrc).program;
-  const [[stdLibTypeGraph]] = await createTypeGraph([stdLibAST], () => {}, true);
+  const [[stdLibTypeGraph]] = await createTypeGraph(
+    [stdLibAST],
+    () => {},
+    true
+  );
 
   function mixTypeDefinitions(scope) {
     const body = new Map([...stdLibTypeGraph.body, ...scope.body]);
@@ -120,24 +127,34 @@ const dtsrc = {
 
   async function validateTextDocument(textDocument) {
     text = textDocument.getText();
-    ast = babylon.parse(text, babelrc);
-    [[types], errors] = await createTypeGraph(
-      [Object.assign(ast.program, { path: textDocument.uri })],
-      getModuleAST(textDocument.uri.replace("file://", "")),
-      false,
-      mixTypeDefinitions
-    );
+    try {
+      ast = babylon.parse(text, babelrc);
+      [[types], errors] = await createTypeGraph(
+        [Object.assign(ast.program, { path: textDocument.uri })],
+        getModuleAST(textDocument.uri.replace("file://", "")),
+        false,
+        mixTypeDefinitions
+      );
+    } catch (e) {
+      errors = [e];
+    }
     const diagnostics = [];
     for (let i = 0; i < errors.length; i++) {
       const error = errors[i];
-      if (!(error instanceof HegelError)) {
+      if (!(error instanceof HegelError) && !(error instanceof SyntaxError)) {
         continue;
       }
       const diagnostic = {
         severity: DiagnosticSeverity.Error,
         range: {
-          start: convertLocToRange(error.loc.start),
-          end: convertLocToRange(error.loc.end)
+          start:
+            error instanceof HegelError
+              ? convertLocToRange(error.loc.start)
+              : { ...error.loc, line: error.loc.line - 1 },
+          end:
+            error instanceof HegelError
+              ? convertLocToRange(error.loc.end)
+              : { ...error.loc, column: 1000 }
         },
         message: error.message,
         source: "ex"

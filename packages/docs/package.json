@@ -8,7 +8,12 @@
     "serve": "docz serve"
   },
   "dependencies": {
+    "@babel/parser": "^7.7.5",
+    "@hegel/core": "^0.0.9",
+    "@hegel/typings": "^0.0.3",
     "docz": "latest",
+    "monaco-editor": "^0.18.1",
+    "monaco-editor-webpack-plugin": "^1.7.0",
     "prop-types": "^15.7.2",
     "react": "^16.11.0",
     "react-dom": "^16.11.0"
