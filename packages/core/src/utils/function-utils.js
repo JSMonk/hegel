@@ -104,7 +104,7 @@ export function addFunctionToTypeGraph(
     variableInfo.type instanceof GenericType
       ? variableInfo.type.subordinateType
       : variableInfo.type;
-  if (expectedType !== undefined) {
+  if (expectedType instanceof FunctionType) {
     // $FlowIssue
     const inferencedArgumentsTypes = functionType.argumentsTypes;
     // $FlowIssue
