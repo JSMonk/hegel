@@ -164,10 +164,14 @@ export function addCallToTypeGraph(
     case NODE.ASSIGNMENT_EXPRESSION:
     case NODE.ASSIGNMENT_PATTERN:
       const right = addCallToTypeGraph(node.right, typeGraph, currentScope);
-      args = [
-        addCallToTypeGraph(node.left, typeGraph, currentScope).result,
-        right.result
-      ];
+      const left = addCallToTypeGraph(node.left, typeGraph, currentScope);
+      args = [left.result, right.result];
+      if (left.result instanceof VariableInfo && left.result.isConstant) {
+        throw new HegelError(
+          "Cannot assign to variable because it is a constant.",
+          node.loc
+        );
+      }
       targetName = node.operator || "=";
       target = findVariableInfo(
         { name: targetName, loc: node.loc },

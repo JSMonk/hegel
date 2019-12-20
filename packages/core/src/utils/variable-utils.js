@@ -29,7 +29,8 @@ export function getVariableInfoFromDelcaration(
   return new VariableInfo(
     annotatedType,
     parentScope,
-    new Meta(currentNode.loc)
+    new Meta(currentNode.loc),
+    currentNode.kind === "const"
   );
 }
 
