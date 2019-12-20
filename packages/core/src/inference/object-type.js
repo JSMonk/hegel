@@ -8,13 +8,17 @@ import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { addCallToTypeGraph } from "../type-graph/call";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
+import type { Handler } from "../utils/traverse";
 import type { ObjectExpression } from "@babel/parser";
 
 export function inferenceObjectType(
   currentNode: ObjectExpression,
   typeScope: Scope,
   parentScope: ModuleScope | Scope,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  parentNode: Node,
+  pre: Handler,
+  post: Handler
 ): ObjectType {
   const properties = currentNode.properties.reduce((res, p) => {
     if (p.computed || p.kind === "set") {
@@ -25,7 +29,10 @@ export function inferenceObjectType(
         ? p.value
         : p,
       typeGraph,
-      parentScope
+      parentScope,
+      parentNode,
+      pre,
+      post
     );
     let varInfo = new VariableInfo(
       inferencedType instanceof VariableInfo

@@ -19,6 +19,7 @@ import { getVariableType } from "../utils/variable-utils";
 import { addCallToTypeGraph } from "../type-graph/call";
 import { getTypeFromTypeAnnotation } from "../utils/type-utils";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
+import type { Handler } from "../utils/traverse";
 import type { Function, SourceLocation } from "@babel/parser";
 import type {
   CallableTarget,
@@ -56,17 +57,16 @@ const typeVarNames = [
 export function inferenceFunctionLiteralType(
   currentNode: Function,
   typeScope: Scope,
-  parentNode: ModuleScope | Scope,
+  parentScope: ModuleScope | Scope,
   typeGraph: ModuleScope,
-  isTypeDefinitions: boolean
+    isTypeDefinitions: boolean,
+    parentNode: Node,
+    pre: Handler,
+    post: Handler
 ): CallableType {
-  const { expected } = currentNode;
-  const expectedType = isGenericFunctionType(expected)
-    ? expected.subordinateType
-    : expected;
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
   const functionScope = isTypeDefinitions
-    ? new Scope(Scope.FUNCTION_TYPE, parentNode)
+    ? new Scope(Scope.FUNCTION_TYPE, parentScope)
     : typeGraph.body.get(Scope.getName(currentNode));
   if (!(functionScope instanceof Scope)) {
     throw new Error("Function scope should be created before inference");
@@ -78,7 +78,7 @@ export function inferenceFunctionLiteralType(
         (getTypeFromTypeAnnotation(
           { typeAnnotation },
           localTypeScope,
-          parentNode
+          parentScope
         ): any)
       )
     );
@@ -103,7 +103,7 @@ export function inferenceFunctionLiteralType(
     let paramType = getTypeFromTypeAnnotation(
       typeAnnotation,
       localTypeScope,
-      parentNode,
+      parentScope,
       false
     );
     const isWithoutAnnotation = paramType.name === UNDEFINED_TYPE;
@@ -115,7 +115,10 @@ export function inferenceFunctionLiteralType(
       const callResultType = addCallToTypeGraph(
         param,
         typeGraph,
-        functionScope
+        functionScope,
+        parentNode,
+        pre,
+        post
       );
       const newType =
         callResultType.result instanceof VariableInfo
@@ -152,9 +155,6 @@ export function inferenceFunctionLiteralType(
     }
     if (paramType.name === UNDEFINED_TYPE) {
       let typeVar;
-      if (expectedType instanceof FunctionType) {
-        typeVar = expectedType.argumentsTypes[index];
-      }
       typeVar = typeVar || addTypeVar(typeVarNames[index], localTypeScope);
       if (typeVar instanceof TypeVar) {
         genericArguments.add(typeVar);
@@ -168,18 +168,11 @@ export function inferenceFunctionLiteralType(
       ? (getTypeFromTypeAnnotation(
           currentNode.returnType,
           localTypeScope,
-          parentNode,
+          parentScope,
           false
         ): any)
       : addTypeVar(typeVarNames[argumentsTypes.length], localTypeScope);
   if (!currentNode.returnType) {
-    if (expectedType instanceof FunctionType) {
-      returnType = expectedType.returnType;
-      returnType =
-        returnType instanceof TypeVar
-          ? Object.assign(returnType, { isUserDefined: false })
-          : returnType;
-    }
     if (returnType instanceof TypeVar) {
       genericArguments.add(returnType);
     }
@@ -604,52 +597,4 @@ export function isGenericFunctionType(type: Type): boolean %checks {
   return (
     type instanceof GenericType && type.subordinateType instanceof FunctionType
   );
-}
-
-export function inferenceFunctionByUsage(
-  fnVar: VariableInfo & { type: GenericType<FunctionType> },
-  expected: FunctionType,
-  typeScope: Scope,
-  typeGraph: ModuleScope
-) {
-  const fn = fnVar.type;
-  const expectedArgs = expected.argumentsTypes;
-  const applied = [];
-  const given = [];
-  // $FlowIssue
-  fn.subordinateType.argumentsTypes.forEach((a, i) => {
-    const expected = expectedArgs[i];
-    if (
-      a instanceof TypeVar &&
-      !a.isUserDefined &&
-      expected instanceof Type &&
-      !(expected instanceof TypeVar)
-    ) {
-      given.push(a);
-      applied.push(expected);
-    }
-  });
-  const resultFunction = fn.changeAll(given, applied, typeScope);
-  const scope = typeGraph.body.get(Scope.getName(fnVar.meta));
-  if (!(scope instanceof Scope)) {
-    throw new Error("Never!");
-  }
-  const { body, calls } = scope;
-  for (const [_, v] of body) {
-    if (v instanceof VariableInfo && v.type instanceof TypeVar) {
-      // $FlowIssue
-      v.type = v.type.changeAll(given, applied, typeScope);
-      addPosition(v.meta, v, typeGraph);
-    }
-  }
-  for (let i = 0; i < calls.length; i++) {
-    const call = calls[i];
-    for (let j = 0; j < call.arguments.length; j++) {
-      const argument = call.arguments[j];
-      if (argument instanceof TypeVar) {
-        call.arguments[j] = argument.changeAll(given, applied, typeScope);
-      }
-    }
-  }
-  return resultFunction;
 }

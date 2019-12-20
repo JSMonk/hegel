@@ -11,12 +11,16 @@ import { inferenceTupleType } from "./tuple-type";
 import { inferenceObjectType } from "./object-type";
 import { inferenceFunctionLiteralType } from "./function-type";
 import type { Node } from "@babel/parser";
+import type { Handler } from "../utils/traverse";
 
 export function inferenceTypeForNode(
   currentNode: Node,
   typeScope: Scope,
-  parentNode: Scope | ModuleScope,
+  parentScope: Scope | ModuleScope,
   typeGraph: ModuleScope,
+  parentNode: Node,
+  pre: Handler,
+  post: Handler,
   isTypeDefinitions: boolean = false
 ): Type {
   switch (currentNode.type) {
@@ -44,9 +48,25 @@ export function inferenceTypeForNode(
     case NODE.REG_EXP_LITERAL:
       return ObjectType.createTypeWithName("RegExp", typeScope);
     case NODE.ARRAY_EXPRESSION:
-      return inferenceTupleType(currentNode, typeScope, parentNode, typeGraph);
+      return inferenceTupleType(
+        currentNode,
+        typeScope,
+        parentScope,
+        typeGraph,
+        parentNode,
+        pre,
+        post
+      );
     case NODE.OBJECT_EXPRESSION:
-      return inferenceObjectType(currentNode, typeScope, parentNode, typeGraph);
+      return inferenceObjectType(
+        currentNode,
+        typeScope,
+        parentScope,
+        typeGraph,
+        parentNode,
+        pre,
+        post
+      );
     case NODE.OBJECT_METHOD:
     case NODE.CLASS_METHOD:
     case NODE.FUNCTION_DECLARATION:
@@ -56,17 +76,23 @@ export function inferenceTypeForNode(
       return inferenceFunctionLiteralType(
         currentNode,
         typeScope,
-        parentNode,
+        parentScope,
         typeGraph,
-        isTypeDefinitions
+        isTypeDefinitions,
+        parentNode,
+        pre,
+        post
       );
     case NODE.NEW_EXPRESSION:
-      const constructor: any = findVariableInfo(currentNode.callee, parentNode);
+      const constructor: any = findVariableInfo(
+        currentNode.callee,
+        parentScope
+      );
       return constructor.type.returnType;
     case NODE.IDENTIFIER:
     case NODE.THIS_EXPRESSION:
       const query = { ...currentNode, name: currentNode.name || THIS_TYPE };
-      const variableInfo = findVariableInfo(query, parentNode);
+      const variableInfo = findVariableInfo(query, parentScope);
       return variableInfo.type;
   }
   throw new Error(currentNode.type);

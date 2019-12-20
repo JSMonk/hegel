@@ -164,7 +164,6 @@ const getBody = (currentNode: any) =>
     currentNode.expression && currentNode.expression.callee,
     currentNode.expression,
     currentNode.callee,
-    ...(currentNode.arguments || []),
     ...(currentNode.elements || [])
   ].filter(Boolean);
 
@@ -183,15 +182,17 @@ const getCurrentNode = compose(
   mixExportInfo
 );
 
+export type Handler = (Tree, Tree, Handler, Handler, TraverseMeta) => void;
+
 function traverseTree(
   node: Tree,
-  pre: (Tree, Tree, TraverseMeta) => void,
-  post: (Tree, Tree, TraverseMeta) => void,
+  pre: Handler,
+  post: Handler,
   parentNode: ?Tree = null,
   meta?: TraverseMeta = {}
 ) {
   const currentNode = getCurrentNode(node, parentNode, meta);
-  pre(currentNode, parentNode, meta);
+  pre(currentNode, parentNode, pre, post, meta);
   const body = getBody(currentNode);
   if (!body) {
     return;
@@ -217,7 +218,7 @@ function traverseTree(
   } else {
     traverseTree(body, pre, post, nextParent, meta);
   }
-  post(currentNode, parentNode, meta);
+  post(currentNode, parentNode, pre, post, meta);
 }
 
 export default traverseTree;

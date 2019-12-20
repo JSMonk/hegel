@@ -9,7 +9,15 @@ export class TypeVar extends Type {
 
   constraint: ?Type;
   root: ?Type;
-  isUserDefined: ?boolean;
+  _isUserDefined: ?boolean;
+
+  get isUserDefined() {
+    return this._isUserDefined;
+  }
+
+  set isUserDefined(isUserDefined: boolean) {
+    this._isUserDefined = this._isUserDefined || isUserDefined;
+  }
 
   constructor(
     name: string,
@@ -20,14 +28,15 @@ export class TypeVar extends Type {
     super(name, meta);
     this.name = name;
     this.constraint = constraint;
-    this.isUserDefined = isUserDefined;
+    this._isUserDefined = isUserDefined;
   }
 
-  equalsTo(anotherType: Type) {
+  equalsTo(anotherType: Type, strict?: boolean = false) {
     const isDifferenceInDefinition =
       this.isUserDefined &&
       anotherType instanceof TypeVar &&
-      !anotherType.isUserDefined;
+      !anotherType.isUserDefined &&
+      !strict;
     if (isDifferenceInDefinition || this.referenceEqualsTo(anotherType)) {
       return true;
     }
@@ -90,6 +99,6 @@ export class TypeVar extends Type {
   }
 
   contains(type: Type) {
-    return this.equalsTo(type);
+    return this.equalsTo(type, true);
   }
 }

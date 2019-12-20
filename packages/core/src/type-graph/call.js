@@ -20,19 +20,20 @@ import { addToThrowable } from "../utils/throwable";
 import { getWrapperType } from "../utils/type-utils";
 import { getVariableType } from "../utils/variable-utils";
 import { inferenceTypeForNode } from "../inference";
+import { addAndTraverseFunctionWithType } from "../utils/function-utils";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
 import {
   clearRoot,
   getRawFunctionType,
   getInvocationType,
   isGenericFunctionType,
-  inferenceFunctionByUsage
 } from "../inference/function-type";
 import {
   findNearestTypeScope,
   findNearestScopeByType
 } from "../utils/scope-utils";
 import type { Node } from "@babel/parser";
+import type { Handler } from "../utils/traverse";
 import type { CallableArguments } from "./meta/call-meta";
 
 type CallResult = {
@@ -43,7 +44,10 @@ type CallResult = {
 export function addCallToTypeGraph(
   node: Node,
   typeGraph: ModuleScope,
-  currentScope: Scope | ModuleScope
+  currentScope: Scope | ModuleScope,
+  parentNode: Node,
+  pre: Handler,
+  post: Handler
 ): CallResult {
   let target: ?VariableInfo | Type = null;
   let inferenced = undefined;
@@ -60,18 +64,45 @@ export function addCallToTypeGraph(
   switch (node.type) {
     case NODE.IF_STATEMENT:
       target = findVariableInfo({ name: "if", loc: node.loc }, currentScope);
-      args = [addCallToTypeGraph(node.test, typeGraph, currentScope).result];
+      args = [
+        addCallToTypeGraph(
+          node.test,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result
+      ];
       break;
     case NODE.WHILE_STATEMENT:
       target = findVariableInfo({ name: "while", loc: node.loc }, currentScope);
-      args = [addCallToTypeGraph(node.test, typeGraph, currentScope).result];
+      args = [
+        addCallToTypeGraph(
+          node.test,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result
+      ];
       break;
     case NODE.DO_WHILE_STATEMENT:
       target = findVariableInfo(
         { name: "do-while", loc: node.loc },
         currentScope
       );
-      args = [addCallToTypeGraph(node.test, typeGraph, currentScope).result];
+      args = [
+        addCallToTypeGraph(
+          node.test,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result
+      ];
       break;
     case NODE.FOR_STATEMENT:
       target = findVariableInfo({ name: "for", loc: node.loc }, currentScope);
@@ -82,7 +113,10 @@ export function addCallToTypeGraph(
               node.test,
               typeGraph,
               // $FlowIssue
-              typeGraph.body.get(Scope.getName(node.body))
+              typeGraph.body.get(Scope.getName(node.body)),
+              parentNode,
+              pre,
+              post
             ).result
           : Type.createTypeWithName("undefined", typeScope),
         Type.createTypeWithName("mixed", typeScope)
@@ -110,7 +144,14 @@ export function addCallToTypeGraph(
               result: Type.createTypeWithName("undefined", typeScope),
               inferenced: false
             }
-          : addCallToTypeGraph(node.init, typeGraph, currentScope);
+          : addCallToTypeGraph(
+              node.init,
+              typeGraph,
+              currentScope,
+              parentNode,
+              pre,
+              post
+            );
       inferenced = value.inferenced;
       args = [variableType, value.result];
       targetName = "=";
@@ -120,7 +161,14 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.THROW_STATEMENT:
-      const error = addCallToTypeGraph(node.argument, typeGraph, currentScope);
+      const error = addCallToTypeGraph(
+        node.argument,
+        typeGraph,
+        currentScope,
+        parentNode,
+        pre,
+        post
+      );
       args = [
         getVariableType(
           null,
@@ -140,7 +188,14 @@ export function addCallToTypeGraph(
       break;
     case NODE.AWAIT_EXPRESSION:
       args = [
-        addCallToTypeGraph(node.argument, typeGraph, currentScope).result
+        addCallToTypeGraph(
+          node.argument,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result
       ];
       targetName = "await";
       target = findVariableInfo(
@@ -151,8 +206,22 @@ export function addCallToTypeGraph(
     case NODE.BINARY_EXPRESSION:
     case NODE.LOGICAL_EXPRESSION:
       args = [
-        addCallToTypeGraph(node.left, typeGraph, currentScope).result,
-        addCallToTypeGraph(node.right, typeGraph, currentScope).result
+        addCallToTypeGraph(
+          node.left,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result,
+        addCallToTypeGraph(
+          node.right,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result
       ];
       targetName = node.operator === "+" ? "b+" : node.operator;
       targetName = node.operator === "-" ? "b-" : targetName;
@@ -163,8 +232,22 @@ export function addCallToTypeGraph(
       break;
     case NODE.ASSIGNMENT_EXPRESSION:
     case NODE.ASSIGNMENT_PATTERN:
-      const right = addCallToTypeGraph(node.right, typeGraph, currentScope);
-      const left = addCallToTypeGraph(node.left, typeGraph, currentScope);
+      const right = addCallToTypeGraph(
+        node.right,
+        typeGraph,
+        currentScope,
+        parentNode,
+        pre,
+        post
+      );
+      const left = addCallToTypeGraph(
+        node.left,
+        typeGraph,
+        currentScope,
+        parentNode,
+        pre,
+        post
+      );
       args = [left.result, right.result];
       if (left.result instanceof VariableInfo && left.result.isConstant) {
         throw new HegelError(
@@ -181,7 +264,14 @@ export function addCallToTypeGraph(
       break;
     case NODE.RETURN_STATEMENT:
       targetName = "return";
-      const arg = addCallToTypeGraph(node.argument, typeGraph, currentScope);
+      const arg = addCallToTypeGraph(
+        node.argument,
+        typeGraph,
+        currentScope,
+        parentNode,
+        pre,
+        post
+      );
       args = [arg.result];
       inferenced = arg.inferenced;
       const fn: any = findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
@@ -208,7 +298,14 @@ export function addCallToTypeGraph(
     case NODE.UPDATE_EXPRESSION:
       targetName = node.operator;
       args = [
-        addCallToTypeGraph(node.argument, typeGraph, currentScope).result
+        addCallToTypeGraph(
+          node.argument,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result
       ];
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
@@ -216,7 +313,16 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.PURE_KEY:
-      args = [addCallToTypeGraph(node.of, typeGraph, currentScope).result];
+      args = [
+        addCallToTypeGraph(
+          node.of,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result
+      ];
       targetName = "Object.keys";
       target = new FunctionType(
         targetName,
@@ -228,7 +334,14 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.PURE_VALUE:
-      target = addCallToTypeGraph(node.of, typeGraph, currentScope).result;
+      target = addCallToTypeGraph(
+        node.of,
+        typeGraph,
+        currentScope,
+        parentNode,
+        pre,
+        post
+      ).result;
       args = [target];
       targetName = "Object.values";
       target = new $Values().applyGeneric(
@@ -240,14 +353,28 @@ export function addCallToTypeGraph(
     case NODE.MEMBER_EXPRESSION:
       args = [
         getWrapperType(
-          addCallToTypeGraph(node.object, typeGraph, currentScope).result,
+          addCallToTypeGraph(
+            node.object,
+            typeGraph,
+            currentScope,
+            parentNode,
+            pre,
+            post
+          ).result,
           typeGraph
         ),
         node.property.type === NODE.IDENTIFIER && !node.computed
           ? Type.createTypeWithName(`'${node.property.name}'`, typeScope, {
               isSubtypeOf: Type.createTypeWithName("string", typeScope)
             })
-          : addCallToTypeGraph(node.property, typeGraph, currentScope).result
+          : addCallToTypeGraph(
+              node.property,
+              typeGraph,
+              currentScope,
+              parentNode,
+              pre,
+              post
+            ).result
       ];
       if (node.property.type === NODE.IDENTIFIER) {
         const property = new $PropertyType();
@@ -275,9 +402,30 @@ export function addCallToTypeGraph(
       break;
     case NODE.CONDITIONAL_EXPRESSION:
       args = [
-        addCallToTypeGraph(node.test, typeGraph, currentScope).result,
-        addCallToTypeGraph(node.consequent, typeGraph, currentScope).result,
-        addCallToTypeGraph(node.alternate, typeGraph, currentScope).result
+        addCallToTypeGraph(
+          node.test,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result,
+        addCallToTypeGraph(
+          node.consequent,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result,
+        addCallToTypeGraph(
+          node.alternate,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result
       ];
       targetName = "?:";
       target = findVariableInfo(
@@ -285,38 +433,24 @@ export function addCallToTypeGraph(
         currentScope
       );
       break;
-    case NODE.CALL_EXPRESSION:
-      if (node.callee.type === NODE.IDENTIFIER) {
-        target = findVariableInfo(node.callee, currentScope);
-        addPosition(node.callee, target, typeGraph);
-      } else {
-        target = (addCallToTypeGraph(node.callee, typeGraph, currentScope)
-          .result: any);
-      }
-      args = node.arguments.map(
-        n => addCallToTypeGraph(n, typeGraph, currentScope).result
-      );
-      const targetType = target instanceof VariableInfo ? target.type : target;
-      const throwableType: any =
-        targetType instanceof GenericType
-          ? targetType.subordinateType
-          : targetType;
-      if (throwableType.throwable) {
-        addToThrowable(throwableType.throwable, currentScope);
-      }
-      inferenced =
-        targetType instanceof GenericType &&
-        targetType.subordinateType.returnType instanceof TypeVar;
-      break;
     case NODE.NEW_EXPRESSION:
-      const argument = addCallToTypeGraph(node.callee, typeGraph, currentScope)
-        .result;
+      const argument = addCallToTypeGraph(
+        node.callee,
+        typeGraph,
+        currentScope,
+        parentNode,
+        pre,
+        post
+      ).result;
       const argumentType =
         argument instanceof VariableInfo ? argument.type : argument;
       const potentialArgument = addCallToTypeGraph(
         { ...node, type: NODE.CALL_EXPRESSION },
         typeGraph,
-        currentScope
+        currentScope,
+        parentNode,
+        pre,
+        post
       ).result;
       const defaultObject = ObjectType.createTypeWithName("{ }", typeScope, []);
       args = [
@@ -330,9 +464,81 @@ export function addCallToTypeGraph(
         currentScope
       );
       break;
+    case NODE.CALL_EXPRESSION:
+      if (node.callee.type === NODE.IDENTIFIER) {
+        target = findVariableInfo(node.callee, currentScope);
+        addPosition(node.callee, target, typeGraph);
+      } else {
+        target = (addCallToTypeGraph(
+          node.callee,
+          typeGraph,
+          currentScope,
+          parentNode,
+          pre,
+          post
+        ).result: any);
+      }
+      const targetType = target instanceof VariableInfo ? target.type : target;
+      let fnType =
+        targetType instanceof GenericType
+          ? targetType.subordinateType
+          : targetType;
+      args = node.arguments.map(
+        (n, i) =>
+          n.type === NODE.FUNCTION_EXPRESSION ||
+          n.type === NODE.ARROW_FUNCTION_EXPRESSION
+            ? // $FlowIssue
+              fnType.argumentsTypes[i]
+            : addCallToTypeGraph(
+                n,
+                typeGraph,
+                currentScope,
+                parentNode,
+                pre,
+                post
+              ).result
+      );
+      // $FlowIssue
+      fnType = getRawFunctionType(targetType, args, null, node.loc);
+      args = node.arguments.map(
+        (n, i) =>
+          n.type === NODE.FUNCTION_EXPRESSION ||
+          n.type === NODE.ARROW_FUNCTION_EXPRESSION
+            ? // $FlowIssue
+              addAndTraverseFunctionWithType(
+                // $FlowIssue
+                fnType.argumentsTypes[i],
+                n,
+                parentNode,
+                typeGraph,
+                pre,
+                post
+              )
+            : // $FlowIssue
+              args[i]
+      );
+      const throwableType: any =
+        targetType instanceof GenericType
+          ? targetType.subordinateType
+          : targetType;
+      if (throwableType.throwable) {
+        addToThrowable(throwableType.throwable, currentScope);
+      }
+      inferenced =
+        targetType instanceof GenericType &&
+        targetType.subordinateType.returnType instanceof TypeVar;
+      break;
     default:
       return {
-        result: inferenceTypeForNode(node, typeScope, currentScope, typeGraph),
+        result: inferenceTypeForNode(
+          node,
+          typeScope,
+          currentScope,
+          typeGraph,
+          parentNode,
+          pre,
+          post
+        ),
         inferenced: true
       };
   }

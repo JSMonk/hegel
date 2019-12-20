@@ -7,6 +7,7 @@ import { ObjectType } from "../type-graph/types/object-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { addCallToTypeGraph } from "../type-graph/call";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
+import type { Handler } from "../utils/traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type { ClassDeclaration, ClassExpression } from "@babel/parser";
 
@@ -14,7 +15,10 @@ export function inferenceClass(
   classNode: ClassDeclaration | ClassExpression,
   typeScope: Scope,
   parentScope: ModuleScope | Scope,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  parentNode: Node,
+  pre: Handler,
+  post: Handler
 ): ObjectType {
   const methods = [];
   const fieldsAndMethods = classNode.body.body.reduce((res, p) => {
@@ -24,7 +28,10 @@ export function inferenceClass(
     const { result: inferencedType } = addCallToTypeGraph(
       p,
       typeGraph,
-      parentScope
+      parentScope,
+      parentNode,
+      pre,
+      post
     );
     let varInfo = new VariableInfo(
       inferencedType instanceof VariableInfo

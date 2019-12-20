@@ -494,7 +494,11 @@ describe("Simple inference for module functions", () => {
     const actualA = actual.body.get("mul");
     const expectedT = new TypeVar(
       "T",
-      new UnionType("bigint | number", [new Type("bigint"), new Type("number")])
+      new UnionType("bigint | number", [
+        new Type("bigint"),
+        new Type("number")
+      ]),
+      true
     );
     expect(errors.length).toBe(0);
     expect(actualA.type.constructor).toBe(GenericType);
@@ -1198,7 +1202,11 @@ describe("Simple inference for module functions", () => {
     const actualRes = actual.body.get("res").type;
     const expectedT = new TypeVar(
       "T",
-      new UnionType("bigint | number", [new Type("bigint"), new Type("number")])
+      new UnionType("bigint | number", [
+        new Type("bigint"),
+        new Type("number")
+      ]),
+      true
     );
     expect(errors.length).toBe(0);
     expect(actualRes.constructor).toBe(GenericType);
@@ -1937,5 +1945,22 @@ describe("Other", () => {
     expect(errors.length).toBe(0);
     expect(actual.body.get("a").type).toEqual(new Type("number"));
     expect(actual.body.get("b").type).toEqual(new Type("string"));
+  });
+  test("Should inference function type inside call", async () => {
+    const sourceAST = prepareAST(`
+       const a = [1, 2, 3].map(a => a.toString());
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    const actualA = actual.body.get("a").type;
+    expect(errors.length).toBe(0);
+    expect(actualA.name).toBe("Array<string>");
+    expect(actualA).toBeInstanceOf(CollectionType);
+    expect(actualA.keyType).toEqual(new Type("number"));
+    expect(actualA.valueType).toEqual(new Type("string"));
   });
 });

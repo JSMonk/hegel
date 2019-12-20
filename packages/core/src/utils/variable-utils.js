@@ -7,6 +7,7 @@ import { ObjectType } from "../type-graph/types/object-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
+import { getDeclarationName } from "./common";
 import { getTypeFromTypeAnnotation } from "./type-utils";
 import { getParentForNode, findNearestTypeScope } from "./scope-utils";
 import type { Node } from "@babel/parser";
@@ -88,3 +89,18 @@ export function getVariableType(
   }
   return getSuperTypeOf(newType, typeScope);
 }
+
+export function addVariableToGraph(
+    currentNode: Node,
+    parentNode: ?Node,
+    typeGraph: ModuleScope,
+    customName?: string = getDeclarationName(currentNode)
+) {
+    const variableInfo = getVariableInfoFromDelcaration(
+        currentNode,
+        parentNode,
+        typeGraph
+    );
+    variableInfo.parent.body.set(customName, variableInfo);
+    return variableInfo;
+};

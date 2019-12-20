@@ -18,13 +18,13 @@ import { ModuleScope } from "./module-scope";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { inferenceClass } from "../inference/class-inference";
-import { getScopeFromNode } from "../utils/scope-utils";
-import { findVariableInfo } from "../utils/common";
 import { addCallToTypeGraph } from "./call";
+import { addVariableToGraph } from "../utils/variable-utils";
 import { inferenceErrorType } from "../inference/error-type";
 import { inferenceTypeForNode } from "../inference";
-import { getDeclarationName, getAnonymousKey } from "../utils/common";
+import { addFunctionToTypeGraph } from "../utils/function-utils";
 import { getTypeFromTypeAnnotation, createSelf } from "../utils/type-utils";
+import { findVariableInfo, getDeclarationName } from "../utils/common";
 import { POSITIONS, SELF, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
 import {
   getVariableType,
@@ -36,109 +36,13 @@ import {
 } from "../inference/function-type";
 import {
   getParentForNode,
+  getScopeFromNode,
   addScopeToTypeGraph,
   findNearestTypeScope
 } from "../utils/scope-utils";
-import type { TraverseMeta } from "../utils/traverse";
 import type { Node, Program } from "@babel/parser";
 import type { CallableArguments } from "./meta/call-meta";
-
-const addVariableToGraph = (
-  currentNode: Node,
-  parentNode: ?Node,
-  typeGraph: ModuleScope,
-  customName?: string = getDeclarationName(currentNode)
-) => {
-  const variableInfo = getVariableInfoFromDelcaration(
-    currentNode,
-    parentNode,
-    typeGraph
-  );
-  variableInfo.parent.body.set(customName, variableInfo);
-  return variableInfo;
-};
-
-export const addFunctionScopeToTypeGraph = (
-  currentNode: Node,
-  parentNode: Node | Scope | ModuleScope,
-  typeGraph: ModuleScope,
-  variableInfo: VariableInfo
-) => {
-  const scope = getScopeFromNode(
-    currentNode,
-    parentNode,
-    typeGraph,
-    variableInfo
-  );
-  scope.throwable = [];
-  typeGraph.body.set(Scope.getName(currentNode), scope);
-  if (currentNode.type === NODE.FUNCTION_EXPRESSION && currentNode.id) {
-    scope.body.set(getDeclarationName(currentNode), variableInfo);
-  }
-  return scope;
-};
-
-const addFunctionToTypeGraph = (
-  currentNode: Node,
-  parentNode: Node,
-  typeGraph: ModuleScope,
-  isTypeDefinitions: boolean
-) => {
-  const name =
-    currentNode.type === NODE.FUNCTION_DECLARATION ||
-    currentNode.type === NODE.TS_FUNCTION_DECLARATION
-      ? getDeclarationName(currentNode)
-      : getAnonymousKey(currentNode);
-  const variableInfo = addVariableToGraph(
-    currentNode,
-    parentNode,
-    typeGraph,
-    name
-  );
-  const currentTypeScope = findNearestTypeScope(variableInfo.parent, typeGraph);
-  const scope = isTypeDefinitions
-    ? new Scope(Scope.FUNCTION_TYPE, currentTypeScope)
-    : addFunctionScopeToTypeGraph(
-        currentNode,
-        parentNode,
-        typeGraph,
-        variableInfo
-      );
-  variableInfo.type = inferenceTypeForNode(
-    currentNode,
-    currentTypeScope,
-    variableInfo.parent,
-    typeGraph,
-    isTypeDefinitions
-  );
-  const functionType =
-    variableInfo.type instanceof GenericType
-      ? variableInfo.type.subordinateType
-      : variableInfo.type;
-  currentNode.params.forEach((param, index) => {
-    let type = (functionType: any).argumentsTypes[index];
-    if (param.left !== undefined && param.left.typeAnnotation === undefined) {
-      const types = (type.variants: any).filter(a => a.name !== "undefined");
-      type = UnionType.createTypeWithName(
-        UnionType.getName(types),
-        currentTypeScope,
-        types
-      );
-    }
-    const id = param.left || param;
-    let varInfo = scope.body.get(id.name);
-    if (varInfo !== undefined) {
-      varInfo.type = type;
-    } else {
-      varInfo = new VariableInfo(type, scope, new Meta(id.loc));
-      scope.body.set(id.name, varInfo);
-    }
-    addPosition(id, varInfo, typeGraph);
-  });
-  if (currentNode.id) {
-    addPosition(currentNode.id, variableInfo, typeGraph);
-  }
-};
+import type { TraverseMeta, Handler } from "../utils/traverse";
 
 const hasTypeParams = (node: Node): boolean =>
   node.typeParameters &&
@@ -161,13 +65,19 @@ const addClassToTypeGraph = (
   classNode: Node,
   typeScope: Scope,
   parentScope: Scope | ModuleScope,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  parentNode: Node,
+  pre: Handler,
+  post: Handler
 ) => {
   const classType = inferenceClass(
     classNode,
     typeScope,
     parentScope,
-    typeGraph
+    typeGraph,
+    parentNode,
+    pre,
+    post
   );
   const constructor: any = classType.properties.get("constructor") || {
     type: new FunctionType("", [], classType)
@@ -249,7 +159,13 @@ const fillModuleScope = (
   if (!typeScope || !(typeScope instanceof Scope)) {
     throw new Error("Type scope is not a scope.");
   }
-  return (currentNode: Node, parentNode: Node, meta?: TraverseMeta = {}) => {
+  return (
+    currentNode: Node,
+    parentNode: Node,
+    precompute: Handler,
+    postcompute: Handler,
+    meta?: TraverseMeta = {}
+  ) => {
     switch (currentNode.type) {
       case NODE.VARIABLE_DECLARATION:
         if (currentNode.init != undefined) {
@@ -291,6 +207,8 @@ const fillModuleScope = (
           currentNode,
           parentNode,
           typeGraph,
+          precompute,
+          postcompute,
           isTypeDefinitions
         );
         break;
@@ -343,13 +261,23 @@ const afterFillierActions = (
   return (
     currentNode: Node,
     parentNode: Node | Scope | ModuleScope,
+    precompute: Handler,
+    postcompute: Handler,
     meta?: Object = {}
   ) => {
     const currentScope = getParentForNode(currentNode, parentNode, typeGraph);
     switch (currentNode.type) {
       case NODE.CLASS_DECLARATION:
       case NODE.CLASS_EXPRESSION:
-        addClassToTypeGraph(currentNode, typeScope, currentScope, typeGraph);
+        addClassToTypeGraph(
+          currentNode,
+          typeScope,
+          currentScope,
+          typeGraph,
+          parentNode,
+          precompute,
+          postcompute
+        );
         break;
       case NODE.VARIABLE_DECLARATOR:
         const variableInfo = addVariableToGraph(
@@ -360,7 +288,14 @@ const afterFillierActions = (
         const newTypeOrVar =
           isTypeDefinitions && !currentNode.init
             ? new Type("mixed")
-            : addCallToTypeGraph(currentNode, typeGraph, currentScope);
+            : addCallToTypeGraph(
+                currentNode,
+                typeGraph,
+                currentScope,
+                parentNode,
+                precompute,
+                postcompute
+              );
         if (variableInfo.type.name === UNDEFINED_TYPE) {
           const newType =
             newTypeOrVar.result instanceof VariableInfo
@@ -405,7 +340,10 @@ const afterFillierActions = (
         const resultOfCall = addCallToTypeGraph(
           currentNode,
           typeGraph,
-          currentScope
+          currentScope,
+          parentNode,
+          precompute,
+          postcompute
         ).result;
         if (currentNode.exportAs) {
           typeGraph.exports.set(currentNode.exportAs, resultOfCall);
@@ -455,6 +393,9 @@ const afterFillierActions = (
               typeScope,
               parentNode,
               typeGraph,
+              parentNode,
+              precompute,
+              postcompute,
               isTypeDefinitions
             )
           );

@@ -8,20 +8,31 @@ import { ModuleScope } from "../type-graph/module-scope";
 import { addCallToTypeGraph } from "../type-graph/call";
 import { TYPE_SCOPE } from "../type-graph/constants";
 import { findVariableInfo } from "../utils/common";
+import type { Handler } from "../utils/traverse";
 import type { ArrayExpression } from "@babel/parser";
 
 export function inferenceTupleType(
   currentNode: ArrayExpression,
   typeScope: Scope,
   parentScope: ModuleScope | Scope,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  parentNode: Node,
+  pre: Handler,
+  post: Handler
 ): TupleType {
   const globalTypeScope = typeGraph.body.get(TYPE_SCOPE);
   if (!(globalTypeScope instanceof Scope)) {
     throw new Error("Never!");
   }
   const items = currentNode.elements.map(a => {
-    const inferenced = addCallToTypeGraph(a, typeGraph, parentScope);
+    const inferenced = addCallToTypeGraph(
+      a,
+      typeGraph,
+      parentScope,
+      parentNode,
+      pre,
+      post
+    );
     const inferencedType = inferenced.result.type || inferenced.result;
     return inferencedType.constructor === Type && inferencedType.isSubtypeOf
       ? inferencedType.isSubtypeOf
