@@ -601,21 +601,26 @@ export function getWrapperType(
   // $FlowIssue
   const typeScope: Scope = typeGraph.body.get(TYPE_SCOPE);
   const type = argument instanceof VariableInfo ? argument.type : argument;
+  if (type instanceof UnionType) {
+    const variants = type.variants.map(t => getWrapperType(t, typeGraph));
+     // $FlowIssue
+    return new UnionType(null, variants);
+  }
   if (
     type.name === "string" ||
-    (type.isSubtypeOf !== null && type.isSubtypeOf.name === "string")
+    (type.isSubtypeOf != null && type.isSubtypeOf.name === "string")
   ) {
     return findVariableInfo({ name: "String" }, typeScope).type;
   }
   if (
     type.name === "number" ||
-    (type.isSubtypeOf !== null && type.isSubtypeOf.name === "number")
+    (type.isSubtypeOf != null && type.isSubtypeOf.name === "number")
   ) {
     return findVariableInfo({ name: "Number" }, typeScope).type;
   }
   if (
     type.name === "boolean" ||
-    (type.isSubtypeOf !== null && type.isSubtypeOf.name === "boolean")
+    (type.isSubtypeOf != null && type.isSubtypeOf.name === "boolean")
   ) {
     return findVariableInfo({ name: "Boolean" }, typeScope).type;
   }

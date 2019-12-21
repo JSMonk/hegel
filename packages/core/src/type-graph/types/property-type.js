@@ -35,7 +35,7 @@ export class $PropertyType extends GenericType {
     parameters,
     loc,
     shouldBeMemoize = true,
-    isCalledAsBottom = false,
+    isCalledAsBottom = false
   ) {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;
@@ -50,10 +50,24 @@ export class $PropertyType extends GenericType {
     }
 
     if (currentTarget instanceof UnionType) {
-      const variants = currentTarget.variants.map(v =>
-        this.applyGeneric([v, property], loc, shouldBeMemoize, isCalledAsBottom)
-      );
-      return new UnionType(UnionType.getName(variants), variants);
+      try {
+        const variants = currentTarget.variants.map(v =>
+          this.applyGeneric(
+            [v, property],
+            loc,
+            shouldBeMemoize,
+            isCalledAsBottom
+          )
+        );
+        return new UnionType(UnionType.getName(variants), variants);
+      } catch {
+        throw new HegelError(
+          `Property "${propertyName}" does not exist in "${
+            currentTarget.name
+          }"`,
+          loc
+        );
+      }
     }
     const fieldType = currentTarget.getPropertyType(propertyName);
     if (!property.isSubtypeOf && !isCalledAsBottom) {
