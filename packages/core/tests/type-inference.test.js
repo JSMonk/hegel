@@ -156,6 +156,19 @@ describe("Simple inference for module variables by literal", () => {
   });
 });
 describe("Simple inference for module variables by function return", () => {
+  test("Inference global module variable with empty return", async () => {
+    const sourceAST = prepareAST(`
+      function a() {
+        return;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const a = actual.body.get("a");
+    expect(errors.length).toBe(0);
+    expect(a.type).toBeInstanceOf(FunctionType);
+    expect(a.type.name).toBe("() => void");
+    expect(a.type.returnType).toEqual(new Type("void"));
+  });
   test("Inference global module variable with number type", async () => {
     const sourceAST = prepareAST(`
       function getA(): number {

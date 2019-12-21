@@ -26,7 +26,7 @@ import {
   clearRoot,
   getRawFunctionType,
   getInvocationType,
-  isGenericFunctionType,
+  isGenericFunctionType
 } from "../inference/function-type";
 import {
   findNearestTypeScope,
@@ -42,7 +42,7 @@ type CallResult = {
 };
 
 export function addCallToTypeGraph(
-  node: Node,
+  node: ?Node,
   typeGraph: ModuleScope,
   currentScope: Scope | ModuleScope,
   parentNode: Node,
@@ -57,6 +57,12 @@ export function addCallToTypeGraph(
   const typeScope = findNearestTypeScope(currentScope, typeGraph);
   if (!(typeScope instanceof Scope)) {
     throw new Error("Never!");
+  }
+  if (node == null) {
+    return {
+      result: Type.createTypeWithName("void", typeScope),
+      inferenced: false
+    };
   }
   if (node.type === NODE.EXPRESSION_STATEMENT) {
     node = node.expression;

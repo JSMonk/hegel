@@ -801,7 +801,7 @@ describe("Object and collection properties", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
     expect(errors[0].message).toEqual(
-      'Property "a" are not exists in "{ b: string }"'
+      'Property "a" does not exist in "{ a: number } | { b: string }"'
     );
   });
   test("Get property from Union type when first type has not property", async () => {
@@ -814,7 +814,7 @@ describe("Object and collection properties", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
     expect(errors[0].message).toEqual(
-      'Property "a" are not exists in "{ b: string }"'
+      'Property "a" does not exist in "{ a: number } | { b: string }"'
     );
   });
 });
