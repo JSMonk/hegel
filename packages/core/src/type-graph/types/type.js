@@ -39,7 +39,7 @@ export class Type {
           .split(", ")
           .map(name => {
             const index = sourceTypes.findIndex(a => a.name === name);
-            return index === -1 ? "" : targetTypes[index].name;
+            return index === -1 ? name : targetTypes[index].name;
           })
           .filter(Boolean)
           .join(", ")}>`
