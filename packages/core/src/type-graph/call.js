@@ -20,8 +20,11 @@ import { addToThrowable } from "../utils/throwable";
 import { getWrapperType } from "../utils/type-utils";
 import { getVariableType } from "../utils/variable-utils";
 import { inferenceTypeForNode } from "../inference";
-import { addAndTraverseFunctionWithType } from "../utils/function-utils";
 import { getAnonymousKey, findVariableInfo } from "../utils/common";
+import {
+  isCallableType,
+  addAndTraverseFunctionWithType
+} from "../utils/function-utils";
 import {
   clearRoot,
   getRawFunctionType,
@@ -489,6 +492,16 @@ export function addCallToTypeGraph(
         targetType instanceof GenericType
           ? targetType.subordinateType
           : targetType;
+      if (!(fnType instanceof FunctionType)) {
+        throw new HegelError(
+          fnType instanceof UnionType && fnType.variants.every(isCallableType)
+            ? `Signatures of each variant of type "${String(
+                fnType.name
+              )}" are compatible with each other`
+            : `The type "${String(fnType.name)}" is not callable.`,
+          node.loc
+        );
+      }
       args = node.arguments.map(
         (n, i) =>
           n.type === NODE.FUNCTION_EXPRESSION ||

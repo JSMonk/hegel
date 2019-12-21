@@ -145,3 +145,10 @@ export function addFunctionToTypeGraph(
     addPosition(currentNode.id, variableInfo, typeGraph);
   }
 }
+
+export function isCallableType(a: Type) {
+  if (a instanceof GenericType) {
+    a = a.subordinateType;
+  }
+  return a instanceof FunctionType;
+}
