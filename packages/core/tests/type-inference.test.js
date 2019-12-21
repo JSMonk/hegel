@@ -1160,6 +1160,7 @@ describe("Simple inference for module functions", () => {
       const g = (f, a, b) => f(a, b);
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
     const actualRes = actual.body.get("g").type;
     const expectedA = new TypeVar("b'");
     const expectedB = new TypeVar("c'");
@@ -1186,6 +1187,7 @@ describe("Simple inference for module functions", () => {
       const g = (f, a, b) => f(a, b) * 2;
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
     const actualRes = actual.body.get("g").type;
     const expectedA = new TypeVar("b'");
     const expectedB = new TypeVar("c'");
@@ -1521,6 +1523,110 @@ describe("Collection type inference", () => {
   });
 });
 describe("Type refinement", () => {
+  test("Strict equals refinement for union variable(undefined and number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | undefined = 2;
+      if (a === undefined) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-27]]");
+    expect(errors.length).toBe(0);
+    expect(actualScope.body.get("b").type).toEqual(
+      new Type("undefined", { isSubtypeOf: new Type("void") })
+    );
+  });
+  test("Negative strict equals refinement for union variable(undefined and number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | undefined = 2;
+      if (a !== undefined) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-27]]");
+    expect(errors.length).toBe(0);
+    expect(actualScope.body.get("b").type).toEqual(new Type("number"));
+  });
+  test("Strict equals refinement for union variable(null and number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | null = 2;
+      if (a === null) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-22]]");
+    expect(errors.length).toBe(0);
+    expect(actualScope.body.get("b").type).toEqual(
+      new Type(null, { isSubtypeOf: new Type("void") })
+    );
+  });
+  test("Negative strict equals refinement for union variable(null and number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | null = 2;
+      if (a !== null) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-22]]");
+    expect(errors.length).toBe(0);
+    expect(actualScope.body.get("b").type).toEqual(new Type("number"));
+  });
+  test("Not strict equals refinement for union variable(undefined and number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | undefined = 2;
+      if (a == null) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-21]]");
+    expect(errors.length).toBe(0);
+    expect(actualScope.body.get("b").type).toEqual(
+      new Type("undefined", { isSubtypeOf: new Type("void") })
+    );
+  });
+  test("Negative not strict equals refinement for union variable(undefined and number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | undefined | null = 2;
+      if (a != undefined) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-26]]");
+    expect(errors.length).toBe(0);
+    expect(actualScope.body.get("b").type).toEqual(new Type("number"));
+  });
+  test("Not strict equals refinement for union variable(null and number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | undefined = 2;
+      if (a == null) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-21]]");
+    expect(errors.length).toBe(0);
+    expect(actualScope.body.get("b").type).toEqual(
+      new Type("undefined", { isSubtypeOf: new Type("void") })
+    );
+  });
+  test("Negative not strict equals refinement for union variable(null and number)", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | null | undefined = 2;
+      if (a != null) {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-21]]");
+    expect(errors.length).toBe(0);
+    expect(actualScope.body.get("b").type).toEqual(new Type("number"));
+  });
   test("Typeof refinement for union variable(number)", async () => {
     const sourceAST = prepareAST(`
       const a: number | string = 2;

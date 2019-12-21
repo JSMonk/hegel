@@ -492,7 +492,10 @@ export function addCallToTypeGraph(
         targetType instanceof GenericType
           ? targetType.subordinateType
           : targetType;
-      if (!(fnType instanceof FunctionType)) {
+      if (
+        !(fnType instanceof FunctionType) &&
+        !(fnType instanceof TypeVar && !fnType.isUserDefined)
+      ) {
         throw new HegelError(
           fnType instanceof UnionType && fnType.variants.every(isCallableType)
             ? `Signatures of each variant of type "${String(
@@ -507,7 +510,7 @@ export function addCallToTypeGraph(
           n.type === NODE.FUNCTION_EXPRESSION ||
           n.type === NODE.ARROW_FUNCTION_EXPRESSION
             ? // $FlowIssue
-              fnType.argumentsTypes[i]
+              (fnType.argumentsTypes || [])[i]
             : addCallToTypeGraph(
                 n,
                 typeGraph,
@@ -526,7 +529,7 @@ export function addCallToTypeGraph(
             ? // $FlowIssue
               addAndTraverseFunctionWithType(
                 // $FlowIssue
-                fnType.argumentsTypes[i],
+                (fnType.argumentsTypes || [])[i],
                 n,
                 parentNode,
                 typeGraph,

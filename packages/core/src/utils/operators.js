@@ -49,25 +49,25 @@ const mixBaseOperators = moduleScope => {
     [
       "+",
       FunctionType.createTypeWithName(
-        "(mixed) => number",
+        "(number) => number",
         typeScope,
-        [Type.createTypeWithName("mixed", typeScope)],
+        [Type.createTypeWithName("number", typeScope)],
         Type.createTypeWithName("number", typeScope)
       )
     ],
     [
       "-",
       FunctionType.createTypeWithName(
-        "(mixed) => number",
+        "(number) => number",
         typeScope,
-        [Type.createTypeWithName("mixed", typeScope)],
+        [Type.createTypeWithName("number", typeScope)],
         Type.createTypeWithName("number", typeScope)
       )
     ],
     [
       "!",
       FunctionType.createTypeWithName(
-        "(mixed) => boolean",
+        "(boolean) => boolean",
         typeScope,
         [Type.createTypeWithName("mixed", typeScope)],
         Type.createTypeWithName("boolean", typeScope)

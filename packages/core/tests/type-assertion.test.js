@@ -827,7 +827,7 @@ describe("Callable types", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
-    expect(errors[0].message).toEqual("The target is not callable type.");
+    expect(errors[0].message).toEqual('The type "number" is not callable.');
     expect(errors[0].loc).toEqual({
       end: { column: 9, line: 3 },
       start: { column: 6, line: 3 }
@@ -841,7 +841,7 @@ describe("Callable types", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
-    expect(errors[0].message).toEqual("The target is not callable type.");
+    expect(errors[0].message).toEqual('The type "number" is not callable.');
     expect(errors[0].loc).toEqual({
       end: { column: 11, line: 3 },
       start: { column: 6, line: 3 }
