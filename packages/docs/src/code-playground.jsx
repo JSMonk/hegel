@@ -57,7 +57,10 @@ async function buildAndMountEditor(setEditor, currentTheme) {
   const editor = monaco.editor.create(
     document.getElementById("editor-container"),
     {
-      value: "const hey = 'Hello, Hegel!';",
+        value: `function promisify<Input, Output>(fn: (Input) => Output) {
+  return a => Promise.resolve(fn(a));
+}
+`,
       theme: currentTheme,
       language: "javascript",
       minimap: { enabled: false }

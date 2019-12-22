@@ -2,6 +2,7 @@
 import { Type } from "./type";
 import { unique } from "../../utils/common";
 import { TypeVar } from "./type-var";
+import { FunctionType } from "./function-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
@@ -31,10 +32,15 @@ export class UnionType extends Type {
   static getName(params: Array<Type>) {
     return `${unique(params, a => getNameForType(a))
       .sort((t1, t2) => getNameForType(t1).localeCompare(getNameForType(t2)))
-      .reduce(
-        (res, t) => `${res}${res ? " | " : ""}${getNameForType(t)}`,
-        ""
-      )}`;
+      .reduce((res, t) => {
+        const isFunction =
+          t instanceof FunctionType ||
+          // $FlowIssue
+          ("subordinateType" in t && t.subordinateType instanceof FunctionType);
+        return `${res}${res ? " | " : ""}${
+          isFunction ? "(" : ""
+        }${getNameForType(t)}${isFunction ? ")" : ""}`;
+      }, "")}`;
   }
 
   variants: Array<Type>;
@@ -110,5 +116,11 @@ export class UnionType extends Type {
 
   contains(type: Type) {
     return super.contains(type) || this.variants.some(v => v.contains(type));
+  }
+
+  weakContains(type: Type) {
+    return (
+      super.contains(type) || this.variants.some(v => v.weakContains(type))
+    );
   }
 }

@@ -1173,7 +1173,7 @@ describe("Simple inference for module functions", () => {
     expect(errors.length).toBe(0);
     expect(actualRes.constructor).toBe(GenericType);
     expect(actualRes.name).toEqual(
-      "<b', c', q'>((b', c') => q', b', c') => q'"
+      "<q', b', c'>((b', c') => q', b', c') => q'"
     );
     expect(actualRes.subordinateType.returnType).toEqual(expectedR);
     expect(actualRes.subordinateType.argumentsTypes).toEqual([
@@ -2081,5 +2081,25 @@ describe("Other", () => {
     expect(actualA).toBeInstanceOf(CollectionType);
     expect(actualA.keyType).toEqual(new Type("number"));
     expect(actualA.valueType).toEqual(new Type("string"));
+  });
+  test("Should inference function promised type", async () => {
+    const sourceAST = prepareAST(`
+       function promisify<Input, Output>(fn: (Input) => Output) {
+         return a => Promise.resolve(fn(a));
+       }
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    const actualA = actual.body.get("promisify").type;
+    expect(errors.length).toBe(0);
+    expect(actualA.name).toBe(
+      "<Input, Output>((Input) => Output) => (Input) => Promise<Output>"
+    );
+    expect(actualA).toBeInstanceOf(GenericType);
+    expect(actualA.subordinateType).toBeInstanceOf(FunctionType);
   });
 });

@@ -102,6 +102,10 @@ export class Type {
     return this === type;
   }
 
+  weakContains(type: Type) {
+    return this.contains(type);
+  }
+
   getOponentType(type: Type, withUnpack?: boolean = true) {
     if ("root" in type) {
       type = Type.getTypeRoot(type);

@@ -1,7 +1,6 @@
 // @flow
 import NODE from "../utils/nodes";
 import { Scope } from "../type-graph/scope";
-import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { TYPE_SCOPE } from "../type-graph/constants";
 import type { Node } from "@babel/parser";
@@ -63,7 +62,9 @@ export const findNearestTypeScope = (
     throw new Error("Never!");
   }
   while (scope.parent) {
-    if (scope.declaration && scope.declaration.type instanceof GenericType) {
+    // $FlowIssue
+    if (scope.declaration && "localTypeScope" in scope.declaration.type) {
+      // $FlowIssue
       return scope.declaration.type.localTypeScope;
     }
     scope = findNearestScopeByType(Scope.FUNCTION_TYPE, scope.parent);

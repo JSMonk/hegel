@@ -27,7 +27,10 @@ export function addAndTraverseFunctionWithType(
   precompute: Handler,
   postcompute: Handler
 ) {
-  currentNode.expected = definedType;
+  currentNode.expected =
+    definedType instanceof UnionType
+      ? definedType.variants.find(a => a instanceof FunctionType)
+      : definedType;
   const scopeName = Scope.getName(currentNode);
   traverseTree(currentNode, precompute, postcompute, parentNode);
   const scope = typeGraph.body.get(scopeName);

@@ -32,6 +32,7 @@ import {
 } from "../utils/variable-utils";
 import {
   getInvocationType,
+  prepareGenericFunctionType,
   inferenceFunctionTypeByScope
 } from "../inference/function-type";
 import {
@@ -359,17 +360,18 @@ const afterFillierActions = (
           throw new Error("Never!");
         }
         if (functionScope.declaration instanceof VariableInfo) {
+          const fnType = functionScope.declaration.type;
           if (
-            functionScope.declaration.type instanceof GenericType &&
+            fnType instanceof GenericType &&
             functionScope.type === Scope.FUNCTION_TYPE &&
-            functionScope.declaration.type.subordinateType instanceof
-              FunctionType &&
-            functionScope.declaration.type.genericArguments.some(
-              a => !a.isUserDefined
-            )
+            fnType.subordinateType instanceof FunctionType
           ) {
             // $FlowIssue - Type refinements
-            inferenceFunctionTypeByScope(functionScope, typeScope, typeGraph);
+            prepareGenericFunctionType(functionScope);
+            if (fnType.genericArguments.some(a => !a.isUserDefined)) {
+              // $FlowIssue - Type refinements
+              inferenceFunctionTypeByScope(functionScope, typeScope, typeGraph);
+            }
           }
           const { declaration } = functionScope;
           if (currentNode.exportAs) {

@@ -500,7 +500,7 @@ export function addCallToTypeGraph(
           fnType instanceof UnionType && fnType.variants.every(isCallableType)
             ? `Signatures of each variant of type "${String(
                 fnType.name
-              )}" are compatible with each other`
+              )}" are not compatible with each other`
             : `The type "${String(fnType.name)}" is not callable.`,
           node.loc
         );

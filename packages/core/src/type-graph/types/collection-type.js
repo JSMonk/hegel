@@ -126,6 +126,14 @@ export class CollectionType<K: Type, V: Type> extends Type {
     );
   }
 
+  weakContains(type: Type) {
+    return (
+      super.contains(type) ||
+      this.keyType.weakContains(type) ||
+      this.valueType.weakContains(type)
+    );
+  }
+
   makeNominal() {
     // $FlowIssue
     this.isSubtypeOf.makeNominal();

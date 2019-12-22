@@ -76,7 +76,7 @@ export class TypeVar extends Type {
   ): Type {
     const indexOfNewType = sourceTypes.indexOf(this);
     const indexOfNewRootType = sourceTypes.findIndex(a =>
-      a.contains(this.root != undefined ? this.root : this)
+      a.weakContains(this.root != undefined ? this.root : this)
     );
     if (indexOfNewType !== -1) {
       return targetTypes[indexOfNewType];
@@ -94,6 +94,10 @@ export class TypeVar extends Type {
   getDifference(type: Type) {
     if (type instanceof TypeVar && this !== type) {
       return [{ root: this, variable: type }];
+    }
+    if ("variants" in type) {
+      // $FlowIssue
+      return type.variants.flatMap(a => this.getDifference(a));
     }
     return [];
   }

@@ -13,7 +13,10 @@ type ExtendedTypeMeta = { ...TypeMeta, isNominal?: boolean };
 export class ObjectType extends Type {
   static createTypeWithName = createTypeWithName(ObjectType);
 
-  static getName(params: Array<[string | number, any]>) {
+  static getName(params: Array<[string | number, any]>, type?: ObjectType) {
+    if (type !== undefined && String(type.name)[0] !== "{") {
+      return undefined;
+    }
     const filteredProperties = params ? unique(params, ([key]) => key) : [];
     return `{ ${filteredProperties
       .sort(([name1], [name2]) => String(name1).localeCompare(String(name2)))
@@ -31,7 +34,7 @@ export class ObjectType extends Type {
   onlyLiteral = true;
 
   constructor(
-    name: string,
+    name: ?string,
     properties: Array<[string | number, VariableInfo]>,
     options: ExtendedTypeMeta = {}
   ) {
@@ -109,9 +112,11 @@ export class ObjectType extends Type {
       return this;
     }
     return new ObjectType(
-      ObjectType.getName(newProperties),
+      ObjectType.getName(newProperties, this),
       newProperties,
-      { isSubtypeOf }
+      {
+        isSubtypeOf
+      }
     );
   }
 
@@ -172,5 +177,9 @@ export class ObjectType extends Type {
       }
     }
     return false;
+  }
+
+  weakContains(type: Type) {
+    return super.contains(type) || this.equalsTo(type);
   }
 }

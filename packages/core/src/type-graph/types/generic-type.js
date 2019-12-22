@@ -8,7 +8,6 @@ import { $BottomType } from "./bottom-type";
 import { FunctionType } from "./function-type";
 import { VariableInfo } from "../variable-info";
 import { getNameForType } from "../../utils/type-utils";
-import { findVariableInfo } from "../../utils/common";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
 import type { SourceLocation } from "@babel/parser";
@@ -159,11 +158,12 @@ export class GenericType<T: Type> extends Type {
     }
     const oldAppliedSelf = new $BottomType(this, this.genericArguments);
     const appliedSelf = new TypeVar(appliedTypeName);
-    const result = this.subordinateType.changeAll(
+    let result = this.subordinateType.changeAll(
       [...this.genericArguments, oldAppliedSelf],
       [...parameters, appliedSelf],
       this.localTypeScope.parent
     );
+    result.name = result.name === undefined ? appliedTypeName : result.name;
     appliedSelf.root = result;
     return result;
   }
@@ -188,6 +188,10 @@ export class GenericType<T: Type> extends Type {
 
   contains(type: Type) {
     return super.contains(type) || this.subordinateType.contains(type);
+  }
+
+  weakContains(type: Type) {
+    return super.contains(type) || this.subordinateType.weakContains(type);
   }
 
   makeNominal() {

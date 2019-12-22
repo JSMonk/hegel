@@ -200,4 +200,12 @@ export class FunctionType extends Type {
       this.returnType.contains(type)
     );
   }
+
+  weakContains(type: Type) {
+    return (
+      super.weakContains(type) ||
+      this.argumentsTypes.some(a => a.weakContains(type)) ||
+      this.returnType.weakContains(type)
+    );
+  }
 }

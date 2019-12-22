@@ -16,6 +16,7 @@ import { VariableInfo } from "../type-graph/variable-info";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
 import { getVariableType } from "../utils/variable-utils";
+import { findTypeVarInfo } from "../utils/common";
 import { addCallToTypeGraph } from "../type-graph/call";
 import { getTypeFromTypeAnnotation } from "../utils/type-utils";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
@@ -59,10 +60,10 @@ export function inferenceFunctionLiteralType(
   typeScope: Scope,
   parentScope: ModuleScope | Scope,
   typeGraph: ModuleScope,
-    isTypeDefinitions: boolean,
-    parentNode: Node,
-    pre: Handler,
-    post: Handler
+  isTypeDefinitions: boolean,
+  parentNode: Node,
+  pre: Handler,
+  post: Handler
 ): CallableType {
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
   const functionScope = isTypeDefinitions
@@ -263,10 +264,7 @@ function resolveOuterTypeVarsFromCall(
     ) {
       continue;
     }
-    if (
-      callTargetType instanceof TypeVar &&
-      callTargetType.constraint === undefined
-    ) {
+    if (callTargetType instanceof TypeVar && !callTargetType.isUserDefined) {
       continue;
     }
     callArgumentType.root =
@@ -414,6 +412,18 @@ export function clearRoot(type: Type) {
   }
 }
 
+export function prepareGenericFunctionType(
+  functionScope: GenericFunctionScope
+) {
+  const { genericArguments } = functionScope.declaration.type;
+  for (let i = 0; i < genericArguments.length; i++) {
+    const genericArgument = genericArguments[i];
+    if (genericArgument instanceof TypeVar && genericArgument.isUserDefined) {
+      clearRoot(genericArgument);
+    }
+  }
+}
+
 export function inferenceFunctionTypeByScope(
   functionScope: GenericFunctionScope,
   typeScope: Scope,
@@ -515,7 +525,18 @@ export function inferenceFunctionTypeByScope(
     // $FlowIssue
     result = result.changeAll(genericArguments, allRoots);
     if (result instanceof TypeVar) {
-      newGenericArguments.add(result);
+      let resultClone;
+      try {
+        resultClone = findTypeVarInfo(
+          { name: String(result.name) },
+          // $FlowIssue
+          functionScope,
+          typeGraph
+        ).type;
+      } catch {}
+      if (resultClone === undefined || !result.equalsTo(resultClone)) {
+        newGenericArguments.add(result);
+      }
     }
     return result;
   });

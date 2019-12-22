@@ -1,5 +1,6 @@
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
+import { UnionType } from "./union-type";
 import { FunctionType } from "./function-type";
 import { getNameForType } from "../../utils/type-utils";
 
@@ -24,12 +25,13 @@ export class $BottomType extends Type {
   changeAll(sourceTypes, targetTypes, typeScope) {
     let includedUndefined = false;
     let includedBottom = false;
-    const appliedParameters = this.genericArguments.map(argument => {
+    const mapper = argument => {
       if (argument instanceof $BottomType) {
         const newType = argument.changeAll(sourceTypes, targetTypes, typeScope);
         includedBottom = true;
         return newType !== argument ? newType : undefined;
       }
+
       if (argument instanceof TypeVar) {
         const argumentIndex = sourceTypes.findIndex(
           a =>
@@ -45,6 +47,13 @@ export class $BottomType extends Type {
         return result;
       }
       return argument;
+    };
+    const appliedParameters = this.genericArguments.map(argument => {
+      if (argument instanceof UnionType) {
+        const result = argument.variants.map(mapper);
+        return result.find(a => a !== undefined);
+      }
+      return mapper(argument);
     });
     const includedSubordinate = sourceTypes.find(
       t =>
@@ -168,6 +177,10 @@ export class $BottomType extends Type {
 
   contains(type: Type) {
     return this.subordinateMagicType.contains(type);
+  }
+
+  weakContains(type: Type) {
+    return this.subordinateMagicType.weakContains(type);
   }
 
   makeNominal() {
