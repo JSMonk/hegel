@@ -208,4 +208,8 @@ export class FunctionType extends Type {
       this.returnType.weakContains(type)
     );
   }
+
+    generalize(types: Array<TypeVar>) {
+         
+    }
 }

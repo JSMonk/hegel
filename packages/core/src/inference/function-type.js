@@ -331,10 +331,10 @@ export function implicitApplyGeneric(
     // $FlowIssue
     return mainRoot;
   };
-  const result = fn.applyGeneric(
-    fn.genericArguments.map(t => rootFinder(t) || Type.getTypeRoot(t)),
-    loc
+  const appliedParameters = fn.genericArguments.map(
+    t => rootFinder(t) || Type.getTypeRoot(t)
   );
+  const result = fn.applyGeneric(appliedParameters, loc);
   if (withClean) {
     fn.genericArguments.forEach(clearRoot);
   }

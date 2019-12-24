@@ -1,10 +1,9 @@
 #!/usr/local/bin/node
 // @flow
+import createTypeGraph from "@hegel/core/type-graph/type-graph";
 import { join } from "path";
 // $FlowIssue
 import { repository } from "./package.json";
-import { readFileSync } from "fs";
-import createTypeGraph from "@hegel/core/type-graph/type-graph";
 import { getConfig } from "./lib/config";
 import { getLogger } from "./lib/logger";
 import { getSources } from "./lib/file-system";
@@ -34,8 +33,7 @@ import { createASTGenerator, importModule } from "./lib/parser";
     }
     const result = await getErrorsPrint(errors, getFileAST);
     const verdict = getVerdictPrint(errors);
-    logger.log(result);
-    logger.log(`\n${verdict}\n`);
+    logger.log(`${result}${result !== "" ? "\n\n" : ""}${verdict}`);
     process.exit(errors.length);
   } catch (e) {
     logger.error(e.message);

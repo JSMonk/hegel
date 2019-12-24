@@ -1,0 +1,61 @@
+---
+name: Installation
+route: /docs/install
+---
+
+## Installation
+
+You can install Hegel CLI using npm or yarn:
+
+```sh
+npm install -g @hegel/cli
+# or
+yarn global add @hegel/cli
+```
+
+And run Hegel inside your project:
+
+```bash
+$ hegel
+No errors!
+```
+
+## Setup Project
+
+Also you will need to setup a compiler which will strip away Hegel types. The same as Flow, you can choose between Babel and flow-remove-types.
+
+```sh
+npm i -D @babel/core @babel/cli @babel/preset-flow
+```
+
+After that you need to create a .babelrc file at the root of your project with next content:
+
+```json
+{
+  "presets": ["@babel/preset-flow"]
+}
+```
+
+Now you can run it manualy:
+
+```sh
+npx babel directory_with_your_project_files/ -- -d compilation_destination_directory
+```
+
+Or you can add script inside your package.json:
+
+```json
+{
+  "name": "your-project",
+  "scripts": {
+    "build": "babel directory_with_your_project_files/ -d compilation_destination_directory/",
+  }
+}
+```
+
+And run it by:
+```bash
+npm run build
+```
+
+**Note**: ["More about Babel setup"](https://babeljs.io/setup)

@@ -1,5 +1,7 @@
 // @flow
 import cosmic from "cosmiconfig";
+import { join } from "path";
+import { writeFileSync } from "fs";
 
 const BABELRC = {
   sourceType: "module",
@@ -12,6 +14,24 @@ const workingDirectory = process.cwd();
 const babelExplorer = cosmic("babel");
 const hegelExplorer = cosmic("hegel");
 
+const CONFIG_NAME = ".hegelrc";
+
+const DEFAULT_CONFIG = {
+  config: {
+    include: ["./**/*.js"],
+    exclude: null,
+    typings: null,
+    extension: "",
+    workingDirectory,
+    babel: BABELRC
+  }
+};
+
+const DEFAULT_CONFIG_CONTENT = `
+include:
+  - ./**/*.js
+`;
+
 export type Config = {
   include: ?Array<string>,
   exclude: ?Array<string>,
@@ -21,13 +41,18 @@ export type Config = {
   babel: Object
 };
 
+function init() {
+  return writeFileSync(
+    join(workingDirectory, CONFIG_NAME),
+    DEFAULT_CONFIG_CONTENT
+  );
+}
+
 export async function getConfig(): Promise<Config> {
-  const [hegelConfig, babelConfig] = await Promise.all([
-    hegelExplorer.search(),
-    null
-  ]);
+  let [hegelConfig, babelConfig] = await getMainConfigs();
   if (hegelConfig === null) {
-    throw new Error(`There is no .hegelrc config file in current project.`);
+    await init();
+    [hegelConfig, babelConfig] = [DEFAULT_CONFIG, null];
   }
   const babel = babelConfig === null ? BABELRC : babelConfig.config;
   return Object.assign(hegelConfig.config, {
@@ -35,4 +60,8 @@ export async function getConfig(): Promise<Config> {
     babel,
     extension: hegelConfig.config.extension || DEFAULT_EXTENSION
   });
+}
+
+function getMainConfigs() {
+  return Promise.all([hegelExplorer.search(), null]);
 }
