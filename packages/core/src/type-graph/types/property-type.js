@@ -39,7 +39,11 @@ export class $PropertyType extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;
-    const realTarget = Type.getTypeRoot(currentTarget.constraint != undefined ? currentTarget.constraint : currentTarget);
+    const realTarget = Type.getTypeRoot(
+      currentTarget.constraint != undefined
+        ? currentTarget.constraint
+        : currentTarget
+    );
     const propertyName =
       property.isSubtypeOf && property.isSubtypeOf.name === "string"
         ? property.name.slice(1, -1)

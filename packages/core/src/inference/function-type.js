@@ -15,6 +15,7 @@ import { VariableInfo } from "../type-graph/variable-info";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
 import { getVariableType } from "../utils/variable-utils";
+import { findVariableInfo } from "../utils/common";
 import { addCallToTypeGraph } from "../type-graph/call";
 import { findNearestTypeScope } from "../utils/scope-utils";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
@@ -54,7 +55,23 @@ const typeVarNames = [
   "m'",
   "n'",
   "o'",
-  "p'"
+  "p'",
+  "a''",
+  "b''",
+  "c''",
+  "d''",
+  "e''",
+  "f''",
+  "g''",
+  "h''",
+  "i''",
+  "j''",
+  "k''",
+  "l''",
+  "m''",
+  "n''",
+  "o''",
+  "p''"
 ];
 
 export function inferenceFunctionLiteralType(
@@ -89,6 +106,13 @@ export function inferenceFunctionLiteralType(
       )
     );
   }
+  let nameIndex = 0;
+  try {
+    do {
+      findVariableInfo({ name: typeVarNames[nameIndex] }, typeScope);
+      nameIndex++;
+    } while (true);
+  } catch {}
   const argumentsTypes = currentNode.params.map((param, index) => {
     if (param.optional && !isTypeDefinitions) {
       throw new HegelError(
@@ -160,8 +184,10 @@ export function inferenceFunctionLiteralType(
       paramType = new RestArgument(paramType);
     }
     if (paramType.name === UNDEFINED_TYPE) {
-      let typeVar;
-      typeVar = typeVar || addTypeVar(typeVarNames[index], localTypeScope);
+      const typeVar = addTypeVar(
+        typeVarNames[nameIndex + index],
+        localTypeScope
+      );
       if (typeVar instanceof TypeVar) {
         genericArguments.add(typeVar);
       }
@@ -177,7 +203,10 @@ export function inferenceFunctionLiteralType(
           parentScope,
           false
         ): any)
-      : addTypeVar(typeVarNames[argumentsTypes.length], localTypeScope);
+      : addTypeVar(
+          typeVarNames[nameIndex + argumentsTypes.length],
+          localTypeScope
+        );
   if (!currentNode.returnType) {
     if (returnType instanceof TypeVar) {
       genericArguments.add(returnType);
@@ -236,6 +265,7 @@ const isArgumentVariable = x => {
 function resolveOuterTypeVarsFromCall(
   call: CallMeta,
   genericArguments: Array<TypeVar>,
+  oldGenericArguments: Array<TypeVar>,
   typeScope: Scope,
   typeGraph: ModuleScope
 ) {
@@ -472,6 +502,7 @@ export function inferenceFunctionTypeByScope(
     resolveOuterTypeVarsFromCall(
       calls[i],
       genericArguments,
+      oldGenericArguments,
       localTypeScope,
       typeGraph
     );
@@ -555,7 +586,11 @@ export function inferenceFunctionTypeByScope(
       t instanceof TypeVar && t.root != undefined ? Type.getTypeRoot(t) : t;
     // $FlowIssue
     result = result.changeAll(genericArguments, allRoots);
-    if (result instanceof TypeVar && !isReachableType(result, localTypeScope)) {
+    // $FlowIssue
+    if (
+      result instanceof TypeVar &&
+      !isReachableType(result, localTypeScope.parent)
+    ) {
       newGenericArguments.add(result);
     }
     return result;

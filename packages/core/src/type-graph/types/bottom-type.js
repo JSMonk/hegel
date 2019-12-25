@@ -25,9 +25,7 @@ export class $BottomType extends Type {
   changeAll(sourceTypes, targetTypes, typeScope) {
     let includedUndefined = false;
     let includedBottom = false;
-    const includedSelfIndex = sourceTypes.findIndex(
-      t => this.equalsTo(t)
-    );
+    const includedSelfIndex = sourceTypes.findIndex(t => this.equalsTo(t));
     if (includedSelfIndex !== -1) {
       return targetTypes[includedSelfIndex];
     }

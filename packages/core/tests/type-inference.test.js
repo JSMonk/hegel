@@ -1173,7 +1173,7 @@ describe("Simple inference for module functions", () => {
     expect(errors.length).toBe(0);
     expect(actualRes.constructor).toBe(GenericType);
     expect(actualRes.name).toEqual(
-      "<q', b', c'>((b', c') => q', b', c') => q'"
+      "<b', c', q'>((b', c') => q', b', c') => q'"
     );
     expect(actualRes.subordinateType.returnType).toEqual(expectedR);
     expect(actualRes.subordinateType.argumentsTypes).toEqual([

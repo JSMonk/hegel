@@ -216,8 +216,9 @@ export class FunctionType extends Type {
       arg.generalize(types, localTypeScope)
     );
     const newReturnType = this.returnType.generalize(types, localTypeScope);
+    const maybeGenericTypes = newArguments.concat(newReturnType);
     const newGenericArguments = types.filter(type =>
-      newArguments.some(
+      maybeGenericTypes.some(
         arg => arg.weakContains(type) && !arg.containsAsGeneric(type)
       )
     );

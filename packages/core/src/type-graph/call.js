@@ -617,17 +617,7 @@ export function addCallToTypeGraph(
   return { result: invocationType, inferenced };
 }
 
-function invoke({
-  targetName,
-  target,
-  targetType,
-  genericArguments,
-  args,
-  node,
-  typeScope,
-  moduleScope,
-  callsScope
-}) {
+function invoke({ target, targetType, genericArguments, args, node }) {
   if (
     !(targetType instanceof $BottomType) &&
     !(targetType instanceof TypeVar && !targetType.isUserDefined) &&
@@ -645,6 +635,32 @@ function invoke({
     genericArguments,
     node.loc
   );
+  if (
+    targetType instanceof TypeVar &&
+    !targetType.isUserDefined &&
+    target instanceof VariableInfo
+  ) {
+    // $FlowIssue
+    let func = findNearestScopeByType(Scope.FUNCTION_TYPE, target.parent);
+    if (
+      func.declaration &&
+      func.declaration.type instanceof GenericType &&
+      invocationType instanceof TypeVar
+    ) {
+      const genericArguments = func.declaration.type.genericArguments;
+      genericArguments.push(invocationType);
+      const fn = Type.getTypeRoot(targetType);
+      fn.argumentsTypes.forEach(arg => {
+        if (
+          arg instanceof TypeVar &&
+          !arg.isUserDefined &&
+          !genericArguments.includes(arg)
+        ) {
+          genericArguments.push(arg);
+        }
+      });
+    }
+  }
   return {
     result: invocationType,
     inferenced:
