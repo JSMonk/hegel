@@ -74,15 +74,6 @@ function isValidTypes(
     if ("onlyLiteral" in declaratedRootType && actual instanceof VariableInfo) {
       return declaratedRootType.equalsTo(actualRootType);
     }
-    if (
-      targetName === "" &&
-      (declaratedRootType instanceof FunctionType ||
-        isGenericFunctionType(declaratedRootType)) &&
-      (actualRootType instanceof FunctionType ||
-        isGenericFunctionType(actualRootType))
-    ) {
-      return actualRootType.isPrincipalTypeFor(declaratedRootType);
-    }
     if (targetName === "return" && declaratedRootType instanceof TypeVar) {
       return declaratedRootType.equalsTo(actualRootType);
     }

@@ -336,16 +336,16 @@ describe("Variable declrataion and assignment", () => {
   });
   test("Simple typed const declaration with function type without argument", async () => {
     const sourceAST = prepareAST(`
-      const a: number => void = () => {}; 
+      const a: () => void = (a: number) => {}; 
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "() => void" is incompatible with type "(number) => void"'
+      'Type "(number) => void" is incompatible with type "() => void"'
     );
     expect(errors[0].loc).toEqual({
-      end: { column: 40, line: 2 },
+      end: { column: 45, line: 2 },
       start: { column: 12, line: 2 }
     });
   });

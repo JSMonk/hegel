@@ -152,6 +152,7 @@ export class FunctionType extends Type {
     return (
       super.equalsTo(anotherType) &&
       this.returnType.equalsTo(anotherType.returnType) &&
+      this.argumentsTypes.length === anotherType.argumentsTypes.length &&
       this.argumentsTypes.every((arg, i) =>
         // $FlowIssue
         arg.equalsTo(anotherType.argumentsTypes[i])
@@ -159,16 +160,16 @@ export class FunctionType extends Type {
     );
   }
 
-  isSuperTypeFor(anotherType: Type): boolean {
+  isSuperTypeFor(anotherType: Type) {
     anotherType = this.getOponentType(anotherType);
     if (!(anotherType instanceof FunctionType)) {
       return false;
     }
     return (
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
-      this.argumentsTypes.every((arg, i) =>
-        // $FlowIssue
-        arg.isPrincipalTypeFor(anotherType.argumentsTypes[i] || UNDEFINED)
+      this.argumentsTypes.length >= anotherType.argumentsTypes.length &&
+      anotherType.argumentsTypes.every((arg, i) =>
+        arg.isPrincipalTypeFor(this.argumentsTypes[i] || UNDEFINED)
       )
     );
   }
