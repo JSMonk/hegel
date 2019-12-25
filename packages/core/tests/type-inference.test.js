@@ -2088,7 +2088,6 @@ describe("Other", () => {
          return a => Promise.resolve(fn(a));
        }
     `);
-    debugger;
     const [[actual], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,
@@ -2102,5 +2101,70 @@ describe("Other", () => {
     );
     expect(actualA).toBeInstanceOf(GenericType);
     expect(actualA.subordinateType).toBeInstanceOf(FunctionType);
+  });
+  test("Should inference generic function if generic function was provided as argument", async () => {
+    const sourceAST = prepareAST(`
+       function promisify<Input, Output>(fn: (Input) => Output) {
+         return a => Promise.resolve(fn(a));
+       }
+
+       const mid = promisify(x => x); 
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    const actualMid = actual.body.get("mid").type;
+    expect(errors.length).toBe(0);
+    expect(actualMid).toBeInstanceOf(GenericType);
+    expect(actualMid.subordinateType).toBeInstanceOf(FunctionType);
+    expect(actualMid.subordinateType.argumentsTypes.length).toBe(1);
+    expect(actualMid.subordinateType.argumentsTypes[0]).toBeInstanceOf(TypeVar);
+  });
+  test("Should inference right type inside Promise.then", async () => {
+    const sourceAST = prepareAST(`
+       function promisify<Input, Output>(fn: (Input) => Output) {
+         return a => Promise.resolve(fn(a));
+       }
+
+       const res = promisify(x => x)(2).then(String); 
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    const actualRes = actual.body.get("res").type;
+    expect(errors.length).toBe(0);
+    expect(actualRes).toBeInstanceOf(ObjectType);
+    expect(actualRes.name).toBe("Promise<string>");
+  });
+  test("Should inference right arguments types inside lambda-argument", async () => {
+    const sourceAST = prepareAST(`
+       const res = [1, 2, 3].map((element, index, self) => index);
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    const actualRes = actual.body.get("res").type;
+    const lambda = actual.body.get("[[Anonymuos2-33]]").type;
+    expect(errors.length).toBe(0);
+    expect(actualRes).toBeInstanceOf(CollectionType);
+    expect(actualRes.name).toBe("Array<number>");
+    expect(actualRes.valueType).toEqual(new Type("number"));
+    expect(lambda).toBeInstanceOf(FunctionType);
+    expect(lambda.name).toBe("(number, number, Array<number>) => number");
+    expect(lambda.argumentsTypes[0]).toEqual(new Type("number"));
+    expect(lambda.argumentsTypes[1]).toEqual(new Type("number"));
+    expect(lambda.argumentsTypes[2]).toBeInstanceOf(CollectionType);
+    expect(lambda.argumentsTypes[2].name).toBe("Array<number>");
+    expect(lambda.argumentsTypes[2].valueType).toEqual(new Type("number"));
+    expect(lambda.returnType).toEqual(new Type("number"));
   });
 });

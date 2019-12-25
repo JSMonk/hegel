@@ -39,19 +39,19 @@ export class $PropertyType extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;
-    const realTarget = currentTarget.constraint || currentTarget;
+    const realTarget = Type.getTypeRoot(currentTarget.constraint != undefined ? currentTarget.constraint : currentTarget);
     const propertyName =
       property.isSubtypeOf && property.isSubtypeOf.name === "string"
         ? property.name.slice(1, -1)
         : property.name;
 
     if (property instanceof TypeVar && property.root === undefined) {
-      return new $BottomType(this, [currentTarget, property], loc);
+      return new $BottomType(this, [realTarget, property], loc);
     }
 
-    if (currentTarget instanceof UnionType) {
+    if (realTarget instanceof UnionType) {
       try {
-        const variants = currentTarget.variants.map(v =>
+        const variants = realTarget.variants.map(v =>
           this.applyGeneric(
             [v, property],
             loc,
@@ -69,7 +69,7 @@ export class $PropertyType extends GenericType {
         );
       }
     }
-    const fieldType = currentTarget.getPropertyType(propertyName);
+    const fieldType = realTarget.getPropertyType(propertyName);
     if (!property.isSubtypeOf && !isCalledAsBottom) {
       throw new HegelError("Second parameter should be an literal", loc);
     }

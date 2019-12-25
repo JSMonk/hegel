@@ -25,6 +25,12 @@ export class $BottomType extends Type {
   changeAll(sourceTypes, targetTypes, typeScope) {
     let includedUndefined = false;
     let includedBottom = false;
+    const includedSelfIndex = sourceTypes.findIndex(
+      t => this.equalsTo(t)
+    );
+    if (includedSelfIndex !== -1) {
+      return targetTypes[includedSelfIndex];
+    }
     const mapper = argument => {
       if (argument instanceof $BottomType) {
         const newType = argument.changeAll(sourceTypes, targetTypes, typeScope);
@@ -55,13 +61,6 @@ export class $BottomType extends Type {
       }
       return mapper(argument);
     });
-    const includedSubordinate = sourceTypes.find(
-      t =>
-        this.subordinateMagicType === t ||
-        this.equalsTo(t) ||
-        (this.subordinateMagicType instanceof TypeVar &&
-          this.subordinateMagicType.root === t)
-    );
     if (appliedParameters.every(a => a === undefined)) {
       return this;
     }
@@ -79,14 +78,6 @@ export class $BottomType extends Type {
         appliedParameters,
         this.loc
       );
-    }
-    if (includedSubordinate !== undefined) {
-      const type = this.subordinateMagicType.changeAll(
-        sourceTypes,
-        targetTypes,
-        typeScope
-      );
-      return type;
     }
     const target =
       this.subordinateMagicType instanceof TypeVar &&

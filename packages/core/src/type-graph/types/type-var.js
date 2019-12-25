@@ -74,13 +74,9 @@ export class TypeVar extends Type {
     targetTypes: Array<Type>,
     typeScope: Scope
   ): Type {
-    const indexOfNewType = sourceTypes.indexOf(this);
     const indexOfNewRootType = sourceTypes.findIndex(a =>
-      a.weakContains(this.root != undefined ? this.root : this)
+      a.equalsTo(this.root != undefined ? this.root : this)
     );
-    if (indexOfNewType !== -1) {
-      return targetTypes[indexOfNewType];
-    }
     if (indexOfNewRootType !== -1) {
       return targetTypes[indexOfNewRootType];
     }

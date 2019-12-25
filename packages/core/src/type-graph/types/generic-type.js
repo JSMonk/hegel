@@ -155,8 +155,8 @@ export class GenericType<T: Type> extends Type {
       throw new Error("Never!");
     }
     const oldAppliedSelf = new $BottomType(this, this.genericArguments);
-    const appliedSelf = new TypeVar(appliedTypeName);
-    let result = this.subordinateType.changeAll(
+    const appliedSelf = new TypeVar(appliedTypeName, null, true);
+    const result = this.subordinateType.changeAll(
       [...this.genericArguments, oldAppliedSelf],
       [...parameters, appliedSelf],
       this.localTypeScope.parent
