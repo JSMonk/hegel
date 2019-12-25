@@ -1,9 +1,5 @@
-import { css, createGlobalStyle } from "styled-components";
-
 import * as colors from "./colors";
-// import faktSoftNormal from "@fonts/FaktSoftPro-Normal.woff2";
-// import faktSoftMedium from "@fonts/FaktSoftPro-Medium.woff2";
-// import faktSoftBlond from "@fonts/FaktSoftPro-Blond.woff2";
+import { css, createGlobalStyle } from "styled-components";
 
 const selection = color => css`
   background: ${color};

@@ -29,7 +29,12 @@ const mixBaseGlobals = moduleScope => {
     ["string", new VariableInfo(Type.createTypeWithName("string", typeScope))],
     ["boolean", new VariableInfo(Type.createTypeWithName("boolean", typeScope))]
   ];
-  const globals = [["undefined", new VariableInfo(Type.createTypeWithName("undefined", typeScope))]];
+  const globals = [
+    [
+      "undefined",
+      new VariableInfo(Type.createTypeWithName("undefined", typeScope))
+    ]
+  ];
   typeScope.body = new Map(globalTypes.concat([...typeScope.body]));
   moduleScope.body = new Map(globals.concat([...moduleScope.body]));
 };

@@ -91,16 +91,16 @@ export function getVariableType(
 }
 
 export function addVariableToGraph(
-    currentNode: Node,
-    parentNode: ?Node,
-    typeGraph: ModuleScope,
-    customName?: string = getDeclarationName(currentNode)
+  currentNode: Node,
+  parentNode: ?Node,
+  typeGraph: ModuleScope,
+  customName?: string = getDeclarationName(currentNode)
 ) {
-    const variableInfo = getVariableInfoFromDelcaration(
-        currentNode,
-        parentNode,
-        typeGraph
-    );
-    variableInfo.parent.body.set(customName, variableInfo);
-    return variableInfo;
-};
+  const variableInfo = getVariableInfoFromDelcaration(
+    currentNode,
+    parentNode,
+    typeGraph
+  );
+  variableInfo.parent.body.set(customName, variableInfo);
+  return variableInfo;
+}

@@ -113,8 +113,6 @@ export class TupleType extends Type {
   }
 
   weakContains(type: Type) {
-    return (
-      super.contains(type) || this.items.some(i => i.weakContains(type))
-    );
+    return super.contains(type) || this.items.some(i => i.weakContains(type));
   }
 }

@@ -10,7 +10,6 @@ import HegelError, { UnreachableError } from "../utils/errors";
 import { Meta } from "./meta/meta";
 import { Type } from "./types/type";
 import { Scope } from "./scope";
-import { UnionType } from "./types/union-type";
 import { refinement } from "../inference/refinement";
 import { addPosition } from "../utils/position-utils";
 import { GenericType } from "./types/generic-type";
@@ -18,28 +17,23 @@ import { ModuleScope } from "./module-scope";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { inferenceClass } from "../inference/class-inference";
+import { getVariableType } from "../utils/variable-utils";
+import { findVariableInfo } from "../utils/common";
 import { addCallToTypeGraph } from "./call";
 import { addVariableToGraph } from "../utils/variable-utils";
 import { inferenceErrorType } from "../inference/error-type";
 import { inferenceTypeForNode } from "../inference";
 import { addFunctionToTypeGraph } from "../utils/function-utils";
 import { getTypeFromTypeAnnotation, createSelf } from "../utils/type-utils";
-import { findVariableInfo, getDeclarationName } from "../utils/common";
-import { POSITIONS, SELF, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
+import { POSITIONS, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
 import {
-  getVariableType,
-  getVariableInfoFromDelcaration
-} from "../utils/variable-utils";
-import {
-  getInvocationType,
   prepareGenericFunctionType,
   inferenceFunctionTypeByScope
 } from "../inference/function-type";
 import {
   getParentForNode,
   getScopeFromNode,
-  addScopeToTypeGraph,
-  findNearestTypeScope
+  addScopeToTypeGraph
 } from "../utils/scope-utils";
 import type { Node, Program } from "@babel/parser";
 import type { CallableArguments } from "./meta/call-meta";

@@ -112,7 +112,8 @@ export class ObjectType extends Type {
       return this;
     }
     return new ObjectType(
-      ObjectType.getName(newProperties, this),
+      ObjectType.getName(newProperties, this) ||
+        this.getChangedName(sourceTypes, targetTypes),
       newProperties,
       {
         isSubtypeOf

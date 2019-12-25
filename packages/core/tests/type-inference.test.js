@@ -2088,6 +2088,7 @@ describe("Other", () => {
          return a => Promise.resolve(fn(a));
        }
     `);
+    debugger;
     const [[actual], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,

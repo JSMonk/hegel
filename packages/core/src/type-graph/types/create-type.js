@@ -3,11 +3,7 @@ import { UNDEFINED_TYPE } from "../constants";
 import { findVariableInfo } from "../../utils/common";
 
 export function createTypeWithName(BaseType) {
-  return (
-    name,
-    typeScope,
-    ...args
-  ) => {
+  return (name, typeScope, ...args) => {
     if (name === UNDEFINED_TYPE) {
       return new BaseType(name, ...args);
     }

@@ -43,7 +43,10 @@ function inIdentifier(
   }
   const [refinementedVariants, alternateVariants] = type.variants.reduce(
     ([refinementedVariants, alternateVariants], variant) => {
-      if (variant instanceof ObjectType && variant.getPropertyType(propertyName)) {
+      if (
+        variant instanceof ObjectType &&
+        variant.getPropertyType(propertyName)
+      ) {
         return [refinementedVariants.concat([variant]), alternateVariants];
       }
       return [refinementedVariants, alternateVariants.concat([variant])];

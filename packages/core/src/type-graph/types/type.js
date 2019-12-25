@@ -1,6 +1,7 @@
 // @flow
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
+import type { TypeVar } from "./type-var";
 
 export type TypeMeta = {
   isSubtypeOf?: ?Type
@@ -128,4 +129,12 @@ export class Type {
   }
 
   makeNominal() {}
+
+  generalize(types: Array<TypeVar>, typeScope: Scope) {
+    return this;
+  }
+
+  containsAsGeneric(type: Type) {
+    return false;
+  }
 }

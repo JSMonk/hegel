@@ -24,9 +24,7 @@ export function getVarAtPosition(loc: SourceLocation, typeGraph: ModuleScope) {
   if (!(positions instanceof Scope)) {
     throw new Error("Never!");
   }
-  const line: ?Map<string, VariableInfo> = (positions.body.get(
-    loc.line
-  ): any);
+  const line: ?Map<string, VariableInfo> = (positions.body.get(loc.line): any);
   if (!line) {
     return;
   }

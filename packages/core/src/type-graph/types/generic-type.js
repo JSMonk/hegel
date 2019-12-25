@@ -5,8 +5,6 @@ import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
 import { ModuleScope } from "../module-scope";
 import { $BottomType } from "./bottom-type";
-import { FunctionType } from "./function-type";
-import { VariableInfo } from "../variable-info";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
@@ -99,8 +97,8 @@ export class GenericType<T: Type> extends Type {
       return newSubordinateType;
     }
     const newName =
-      newSubordinateType instanceof FunctionType
-        ? FunctionType.getName(
+      "argumentsTypes" in newSubordinateType
+        ? newSubordinateType.constructor.getName(
             newSubordinateType.argumentsTypes,
             newSubordinateType.returnType,
             newGenericArguments
@@ -196,5 +194,9 @@ export class GenericType<T: Type> extends Type {
 
   makeNominal() {
     this.subordinateType.makeNominal();
+  }
+
+  containsAsGeneric(type: Type) {
+    return this.genericArguments.includes(type);
   }
 }

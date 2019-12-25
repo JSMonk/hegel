@@ -14,7 +14,7 @@ export default class HegelError extends Error {
 
 export class UnreachableError extends Error {
   loc: SourceLocation;
-  
+
   constructor(loc: SourceLocation) {
     super("");
     this.loc = loc;

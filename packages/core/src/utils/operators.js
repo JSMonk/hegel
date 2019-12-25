@@ -84,7 +84,7 @@ const mixBaseOperators = moduleScope => {
               "T",
               new UnionType("bigint | number", [
                 new Type("bigint"),
-                new Type("number"),
+                new Type("number")
               ])
             )
           ]

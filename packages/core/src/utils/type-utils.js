@@ -25,6 +25,15 @@ import {
 import type { ModuleScope } from "../type-graph/module-scope";
 import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
 
+export function isReachableType(type: Type, typeScope: Scope) {
+  let reachableType = null;
+  try {
+    reachableType = findVariableInfo({ name: String(type.name) }, typeScope)
+      .type;
+  } catch {}
+  return reachableType !== null && type.equalsTo(reachableType);
+}
+
 export function addTypeVar(
   name: string,
   localTypeScope: Scope,
@@ -603,7 +612,7 @@ export function getWrapperType(
   const type = argument instanceof VariableInfo ? argument.type : argument;
   if (type instanceof UnionType) {
     const variants = type.variants.map(t => getWrapperType(t, typeGraph));
-     // $FlowIssue
+    // $FlowIssue
     return new UnionType(null, variants);
   }
   if (

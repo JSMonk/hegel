@@ -9,17 +9,19 @@ import { CallMeta } from "../type-graph/meta/call-meta";
 import { UnionType } from "../type-graph/types/union-type";
 import { addTypeVar } from "../utils/type-utils";
 import { $BottomType } from "../type-graph/types/bottom-type";
-import { addPosition } from "../utils/position-utils";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
 import { getVariableType } from "../utils/variable-utils";
-import { findTypeVarInfo } from "../utils/common";
 import { addCallToTypeGraph } from "../type-graph/call";
-import { getTypeFromTypeAnnotation } from "../utils/type-utils";
+import { findNearestTypeScope } from "../utils/scope-utils";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
+import {
+  isReachableType,
+  getTypeFromTypeAnnotation
+} from "../utils/type-utils";
 import type { Handler } from "../utils/traverse";
 import type { Function, SourceLocation } from "@babel/parser";
 import type {
@@ -65,7 +67,10 @@ export function inferenceFunctionLiteralType(
   pre: Handler,
   post: Handler
 ): CallableType {
-  const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
+  const localTypeScope = new Scope(
+    Scope.BLOCK_TYPE,
+    findNearestTypeScope(parentScope, typeGraph)
+  );
   const functionScope = isTypeDefinitions
     ? new Scope(Scope.FUNCTION_TYPE, parentScope)
     : typeGraph.body.get(Scope.getName(currentNode));
@@ -201,7 +206,7 @@ export function inferenceFunctionLiteralType(
     : type;
 }
 
-function getCallTarget(
+export function getCallTarget(
   call: CallMeta,
   withClean?: boolean = true
 ): FunctionType {
@@ -214,6 +219,7 @@ function getCallTarget(
       callTargetType,
       call.arguments,
       null,
+      callTargetType.localTypeScope,
       call.loc,
       // $FlowIssue
       withClean
@@ -278,10 +284,12 @@ function resolveOuterTypeVarsFromCall(
 export function implicitApplyGeneric(
   fn: GenericType<FunctionType>,
   argumentsTypes: Array<Type | VariableInfo>,
+  localTypeScope: Scope,
   loc: SourceLocation,
   withClean?: boolean = true
 ): FunctionType {
   const appliedArgumentsTypes: Map<mixed, Type> = new Map();
+  const unreachableTypes: Set<TypeVar> = new Set();
   for (let i = 0; i < argumentsTypes.length; i++) {
     const maybeBottom = fn.subordinateType.argumentsTypes[i];
     const givenArgument = argumentsTypes[i];
@@ -331,10 +339,20 @@ export function implicitApplyGeneric(
     // $FlowIssue
     return mainRoot;
   };
-  const appliedParameters = fn.genericArguments.map(
-    t => rootFinder(t) || Type.getTypeRoot(t)
-  );
-  const result = fn.applyGeneric(appliedParameters, loc);
+  const appliedParameters = fn.genericArguments.map(t => {
+    const resultType = rootFinder(t) || Type.getTypeRoot(t);
+    if (
+      resultType instanceof TypeVar &&
+      !isReachableType(resultType, localTypeScope)
+    ) {
+      unreachableTypes.add(resultType);
+    }
+    return resultType;
+  });
+  const result = fn
+    .applyGeneric(appliedParameters, loc)
+    .generalize([...unreachableTypes], localTypeScope);
+
   if (withClean) {
     fn.genericArguments.forEach(clearRoot);
   }
@@ -360,6 +378,7 @@ export function getRawFunctionType(
   fn: FunctionType | GenericType<FunctionType> | TypeVar,
   args: Array<Type | VariableInfo>,
   genericArguments?: Array<Type> | null,
+  localTypeScope: Scope,
   loc: SourceLocation,
   withClean?: boolean = true
 ) {
@@ -380,21 +399,33 @@ export function getRawFunctionType(
     fn.root = result;
     return result;
   }
-  return genericArguments != null
-    ? fn.applyGeneric(genericArguments, loc)
-    : implicitApplyGeneric(fn, args, loc, withClean);
+  const result =
+    genericArguments != null
+      ? fn.applyGeneric(genericArguments, loc)
+      : implicitApplyGeneric(fn, args, localTypeScope, loc, withClean);
+  if (result instanceof GenericType) {
+    return result.subordinateType;
+  }
+  return result;
 }
 
 export function getInvocationType(
   fn: FunctionType | GenericType<FunctionType> | TypeVar,
   argumentsTypes: Array<Type | VariableInfo>,
   genericArguments?: Array<Type> | null,
+  localTypeScope: Scope,
   loc: SourceLocation
 ): Type {
   let { returnType } =
     fn instanceof FunctionType
       ? fn
-      : getRawFunctionType(fn, argumentsTypes, genericArguments, loc);
+      : getRawFunctionType(
+          fn,
+          argumentsTypes,
+          genericArguments,
+          localTypeScope,
+          loc
+        );
   returnType =
     returnType instanceof TypeVar ? Type.getTypeRoot(returnType) : returnType;
   returnType =
@@ -524,19 +555,8 @@ export function inferenceFunctionTypeByScope(
       t instanceof TypeVar && t.root != undefined ? Type.getTypeRoot(t) : t;
     // $FlowIssue
     result = result.changeAll(genericArguments, allRoots);
-    if (result instanceof TypeVar) {
-      let resultClone;
-      try {
-        resultClone = findTypeVarInfo(
-          { name: String(result.name) },
-          // $FlowIssue
-          functionScope,
-          typeGraph
-        ).type;
-      } catch {}
-      if (resultClone === undefined || !result.equalsTo(resultClone)) {
-        newGenericArguments.add(result);
-      }
+    if (result instanceof TypeVar && !isReachableType(result, localTypeScope)) {
+      newGenericArguments.add(result);
     }
     return result;
   });

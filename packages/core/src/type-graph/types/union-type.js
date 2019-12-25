@@ -2,7 +2,6 @@
 import { Type } from "./type";
 import { unique } from "../../utils/common";
 import { TypeVar } from "./type-var";
-import { FunctionType } from "./function-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
 import type { Scope } from "../scope";
@@ -34,9 +33,9 @@ export class UnionType extends Type {
       .sort((t1, t2) => getNameForType(t1).localeCompare(getNameForType(t2)))
       .reduce((res, t) => {
         const isFunction =
-          t instanceof FunctionType ||
+          "argumentsTypes" in t ||
           // $FlowIssue
-          ("subordinateType" in t && t.subordinateType instanceof FunctionType);
+          ("subordinateType" in t && "argumentsTypes" in t.subordinateType);
         return `${res}${res ? " | " : ""}${
           isFunction ? "(" : ""
         }${getNameForType(t)}${isFunction ? ")" : ""}`;
@@ -122,5 +121,17 @@ export class UnionType extends Type {
     return (
       super.contains(type) || this.variants.some(v => v.weakContains(type))
     );
+  }
+
+  generalize(types: Array<TypeVar>, typeScope: Scope) {
+    const variants = this.variants.map(v => v.generalize(types, typeScope));
+    if (this.variants.every((v, i) => v === variants[i])) {
+      return this;
+    }
+    return new UnionType(null, variants);
+  }
+
+  containsAsGeneric(type: Type) {
+    return this.variants.some(v => v.containsAsGeneric(type));
   }
 }

@@ -13,19 +13,12 @@ import { VariableInfo } from "../type-graph/variable-info";
 import { getNameForType } from "../utils/type-utils";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import {
+  getCallTarget,
   implicitApplyGeneric,
   isGenericFunctionType
 } from "../inference/function-type";
 import type { CallableType } from "../type-graph/meta/call-meta";
 import type { SourceLocation } from "@babel/parser";
-
-function getCallTargetType(target: CallableType, args): FunctionType {
-  // $FlowIssue
-  const targetType = target instanceof VariableInfo ? target.type : target;
-  return targetType instanceof GenericType
-    ? implicitApplyGeneric(targetType, args)
-    : (targetType: any);
-}
 
 function getActualType(
   actual: ?Type | VariableInfo | Array<Type | VariableInfo>,
@@ -102,11 +95,7 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
   const givenArgumentsTypes = call.arguments.map(
     t => (t instanceof VariableInfo ? t.type : t)
   );
-  const targetFunctionType = getCallTargetType(
-    // $FlowIssue
-    call.target.type || call.target,
-    givenArgumentsTypes
-  );
+  const targetFunctionType = getCallTarget(call);
   const targetArguments = targetFunctionType.argumentsTypes;
   const requiredTargetArguments = targetArguments.filter(
     a =>

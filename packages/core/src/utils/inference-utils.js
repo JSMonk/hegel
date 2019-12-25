@@ -75,7 +75,7 @@ export function mergeRefinementsVariants(
   return [
     nestedRefinementedType &&
       mergeObjectsTypes(
-      // $FlowIssue
+        // $FlowIssue
         originalProperty.type,
         nestedRefinementedType,
         typeScope

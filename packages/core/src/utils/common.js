@@ -2,9 +2,7 @@
 import NODE from "./nodes";
 import HegelError from "./errors";
 import { Scope } from "../type-graph/scope";
-import { TYPE_SCOPE } from "../type-graph/constants";
 import { VariableInfo } from "../type-graph/variable-info";
-import { findNearestTypeScope } from "./scope-utils";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
   Node,
@@ -39,27 +37,6 @@ export function findVariableInfo(
     }
     parent = parent.parent;
   } while (parent);
-  throw new HegelError(`Variable "${name}" is not defined!`, loc);
-}
-
-export function findTypeVarInfo(
-  { name, loc }: Identifier,
-  parentContext: Scope,
-  typeGraph: ModuleScope
-): VariableInfo {
-  let parent = parentContext;
-  const moduleTypeScope = typeGraph.body.get(TYPE_SCOPE);
-  for (
-    let context = findNearestTypeScope(parentContext, typeGraph);
-    context !== moduleTypeScope;
-    parent = parentContext.parent,
-      context = findNearestTypeScope(parent, typeGraph)
-  ) {
-    const variable = analyze(context, name);
-    if (variable !== undefined) {
-      return variable;
-    }
-  }
   throw new HegelError(`Variable "${name}" is not defined!`, loc);
 }
 

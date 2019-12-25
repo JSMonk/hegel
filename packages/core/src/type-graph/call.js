@@ -492,6 +492,10 @@ export function addCallToTypeGraph(
         targetType instanceof GenericType
           ? targetType.subordinateType
           : targetType;
+      const localTypeScope =
+        targetType instanceof GenericType
+          ? targetType.localTypeScope
+          : typeScope;
       if (
         !(fnType instanceof FunctionType) &&
         !(fnType instanceof TypeVar && !fnType.isUserDefined)
@@ -520,8 +524,14 @@ export function addCallToTypeGraph(
                 post
               ).result
       );
-      // $FlowIssue
-      fnType = getRawFunctionType(targetType, args, null, node.loc);
+      fnType = getRawFunctionType(
+        // $FlowIssue
+        targetType,
+        args,
+        null,
+        localTypeScope,
+        node.loc
+      );
       args = node.arguments.map(
         (n, i) =>
           n.type === NODE.FUNCTION_EXPRESSION ||

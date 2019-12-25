@@ -1,11 +1,11 @@
 // @flow
 import { Type } from "./type";
-import { TupleType } from "./tuple-type";
+import { Scope } from "../scope";
 import { ObjectType } from "./object-type";
+import { GenericType } from "./generic-type";
 import { getNameForType } from "../../utils/type-utils";
-import { createTypeWithName } from "./create-type";
 import { CollectionType } from "./collection-type";
-import type { Scope } from "../scope";
+import { createTypeWithName } from "./create-type";
 import type { TypeVar } from "./type-var";
 import type { TypeMeta } from "./type";
 
@@ -209,7 +209,38 @@ export class FunctionType extends Type {
     );
   }
 
-    generalize(types: Array<TypeVar>) {
-         
+  generalize(types: Array<TypeVar>, typeScope: Scope) {
+    const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
+    const newArguments = this.argumentsTypes.map(arg =>
+      arg.generalize(types, localTypeScope)
+    );
+    const newReturnType = this.returnType.generalize(types, localTypeScope);
+    const newGenericArguments = types.filter(type =>
+      newArguments.some(
+        arg => arg.weakContains(type) && !arg.containsAsGeneric(type)
+      )
+    );
+    if (
+      this.argumentsTypes.every((arg, i) => arg === newArguments[i]) &&
+      this.returnType === newReturnType &&
+      newGenericArguments.length === 0
+    ) {
+      return this;
     }
+    const fnName = FunctionType.getName(
+      newArguments,
+      newReturnType,
+      newGenericArguments
+    );
+    const newFnType = new FunctionType(fnName, newArguments, newReturnType);
+    if (newGenericArguments.length === 0) {
+      return newFnType;
+    }
+    return new GenericType(
+      fnName,
+      newGenericArguments,
+      localTypeScope,
+      newFnType
+    );
+  }
 }

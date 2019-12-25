@@ -24,4 +24,3 @@ export class $Readonly extends GenericType {
     return new UnionType(UnionType.getName(variants), variants);
   }
 }
-
