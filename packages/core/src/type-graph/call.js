@@ -116,7 +116,7 @@ export function addCallToTypeGraph(
     case NODE.FOR_STATEMENT:
       target = findVariableInfo({ name: "for", loc: node.loc }, currentScope);
       args = [
-        Type.createTypeWithName("mixed", typeScope),
+        Type.createTypeWithName("unknown", typeScope),
         node.test
           ? addCallToTypeGraph(
               node.test,
@@ -128,7 +128,7 @@ export function addCallToTypeGraph(
               post
             ).result
           : Type.createTypeWithName("undefined", typeScope),
-        Type.createTypeWithName("mixed", typeScope)
+        Type.createTypeWithName("unknown", typeScope)
       ];
       break;
     case NODE.FUNCTION_EXPRESSION:

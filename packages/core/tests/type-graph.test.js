@@ -75,13 +75,13 @@ describe("Simple global variable nodes", () => {
       });
     }
   });
-  test("Creating global module variable with mixed type", async () => {
+  test("Creating global module variable with unknown type", async () => {
     const sourceAST = prepareAST(`
-      const a: mixed = 2;
+      const a: unknown = 2;
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type("mixed"),
+      type: new Type("unknown"),
       parent: actual
     });
     expect(actual.body.get("a")).toEqual(expected);
@@ -729,16 +729,16 @@ describe("Unnamed object types", () => {
     });
     expect(actualA).toEqual(expectedA);
   });
-  test("Primitive mixed inside object type", async () => {
+  test("Primitive unknown inside object type", async () => {
     const sourceAST = prepareAST(`
-      const a: { n: mixed } = { n: null };
+      const a: { n: unknown } = { n: null };
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualA = actual.body.get("a");
     const expectedA = expect.objectContaining({
       parent: actual,
-      type: new ObjectType("{ n: mixed }", [
-        ["n", new VariableInfo(new Type("mixed"), undefined, actualA.meta)]
+      type: new ObjectType("{ n: unknown }", [
+        ["n", new VariableInfo(new Type("unknown"), undefined, actualA.meta)]
       ])
     });
     expect(actualA).toEqual(expectedA);

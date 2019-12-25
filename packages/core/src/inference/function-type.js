@@ -366,7 +366,6 @@ export function implicitApplyGeneric(
     while (appliedArgumentsTypes.has(mainRoot)) {
       mainRoot = appliedArgumentsTypes.get(mainRoot);
     }
-    // $FlowIssue
     return mainRoot;
   };
   const appliedParameters = fn.genericArguments.map(t => {
@@ -573,7 +572,6 @@ export function inferenceFunctionTypeByScope(
   const allRoots = genericArguments.map(Type.getTypeRoot);
   for (const [_, v] of functionScope.body) {
     if (v.type instanceof TypeVar && v.type.root != undefined) {
-      // $FlowIssue
       v.type = Type.getTypeRoot(v.type);
     } else {
       // $FlowIssue
@@ -586,9 +584,9 @@ export function inferenceFunctionTypeByScope(
       t instanceof TypeVar && t.root != undefined ? Type.getTypeRoot(t) : t;
     // $FlowIssue
     result = result.changeAll(genericArguments, allRoots);
-    // $FlowIssue
     if (
       result instanceof TypeVar &&
+      // $FlowIssue
       !isReachableType(result, localTypeScope.parent)
     ) {
       newGenericArguments.add(result);

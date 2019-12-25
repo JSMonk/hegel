@@ -282,7 +282,7 @@ const afterFillierActions = (
         );
         const newTypeOrVar =
           isTypeDefinitions && !currentNode.init
-            ? new Type("mixed")
+            ? new Type("unknown")
             : addCallToTypeGraph(
                 currentNode,
                 typeGraph,

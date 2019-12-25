@@ -45,7 +45,7 @@ export function inferenceTupleType(
   const isSubtypeOf = parentType.applyGeneric([
     items.length !== 0
       ? UnionType.createTypeWithName(UnionType.getName(items), typeScope, items)
-      : new Type("mixed")
+      : new Type("unknown")
   ]);
   return TupleType.createTypeWithName(
     TupleType.getName(items),

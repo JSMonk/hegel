@@ -256,15 +256,15 @@ describe("Simple inference for module variables by function return", () => {
     expect(errors.length).toBe(0);
     expect(actual.body.get("a")).toEqual(expected);
   });
-  test("Inference global module variable with mixed type", async () => {
+  test("Inference global module variable with unknown type", async () => {
     const sourceAST = prepareAST(`
-      function getA(): mixed {
+      function getA(): unknown {
       }
       const a = getA();
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const expected = expect.objectContaining({
-      type: new Type("mixed"),
+      type: new Type("unknown"),
       parent: actual
     });
     expect(errors.length).toBe(0);

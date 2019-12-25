@@ -90,7 +90,7 @@ export function getTypeFromTypeAnnotation(
         self
       );
     case NODE.TS_ANY_TYPE_ANNOTATION:
-      return Type.createTypeWithName("mixed", typeScope);
+      return Type.createTypeWithName("unknown", typeScope);
     case NODE.ANY_TYPE_ANNOTATION:
       throw new HegelError(
         'There is no "any" type in Hegel.',
@@ -111,7 +111,7 @@ export function getTypeFromTypeAnnotation(
     case NODE.MIXED_TYPE_ANNOTATION:
     case NODE.TS_UNKNOWN_TYPE_ANNOTATION:
     case NODE.TS_ANY_TYPE_ANNOTATION:
-      return Type.createTypeWithName("mixed", typeScope);
+      return Type.createTypeWithName("unknown", typeScope);
     case NODE.EMPTY_TYPE_ANNOTATION:
     case NODE.TS_NEVER_TYPE_ANNOTATION:
       return Type.createTypeWithName("never", typeScope);

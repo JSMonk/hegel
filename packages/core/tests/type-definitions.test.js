@@ -58,7 +58,7 @@ describe("TypeScript type defitions", () => {
       const actualType = actual.body.get("eval").type;
       expect(errors.length).toBe(0);
       expect(actualType).toBeInstanceOf(FunctionType);
-      expect(actualType.name).toBe("(string) => mixed");
+      expect(actualType.name).toBe("(string) => unknown");
     });
     test("Define simple interface without error", async () => {
       const sourceAST = prepareAST(

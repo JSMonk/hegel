@@ -69,7 +69,7 @@ const mixBaseOperators = moduleScope => {
       FunctionType.createTypeWithName(
         "(boolean) => boolean",
         typeScope,
-        [Type.createTypeWithName("mixed", typeScope)],
+        [Type.createTypeWithName("unknown", typeScope)],
         Type.createTypeWithName("boolean", typeScope)
       )
     ],
@@ -96,9 +96,9 @@ const mixBaseOperators = moduleScope => {
     [
       "typeof",
       FunctionType.createTypeWithName(
-        '(mixed) => "string" | "boolean" | "number" | "function" | "object" | "undefined" | "symbol" | "bigint"',
+        '(unknown) => "string" | "boolean" | "number" | "function" | "object" | "undefined" | "symbol" | "bigint"',
         typeScope,
-        [Type.createTypeWithName("mixed", typeScope)],
+        [Type.createTypeWithName("unknown", typeScope)],
         UnionType.createTypeWithName(
           "'string' | 'boolean' | 'number' | 'function' | 'object' | 'undefined' | 'symbol' | 'bigint'",
           typeScope,
@@ -134,18 +134,18 @@ const mixBaseOperators = moduleScope => {
     [
       "void",
       FunctionType.createTypeWithName(
-        "(mixed) => undefined",
+        "(unknown) => undefined",
         typeScope,
-        [Type.createTypeWithName("mixed", typeScope)],
+        [Type.createTypeWithName("unknown", typeScope)],
         Type.createTypeWithName("string", typeScope)
       )
     ],
     [
       "delete",
       FunctionType.createTypeWithName(
-        "(mixed) => undefined",
+        "(unknown) => undefined",
         typeScope,
-        [Type.createTypeWithName("mixed", typeScope)],
+        [Type.createTypeWithName("unknown", typeScope)],
         Type.createTypeWithName("undefined", typeScope)
       )
     ],
@@ -165,11 +165,11 @@ const mixBaseOperators = moduleScope => {
     [
       "==",
       FunctionType.createTypeWithName(
-        "(mixed, mixed) => boolean",
+        "(unknown, unknown) => boolean",
         typeScope,
         [
-          Type.createTypeWithName("mixed", typeScope),
-          Type.createTypeWithName("mixed", typeScope)
+          Type.createTypeWithName("unknown", typeScope),
+          Type.createTypeWithName("unknown", typeScope)
         ],
         Type.createTypeWithName("boolean", typeScope)
       )
@@ -177,11 +177,11 @@ const mixBaseOperators = moduleScope => {
     [
       "===",
       FunctionType.createTypeWithName(
-        "(mixed, mixed) => boolean",
+        "(unknown, unknown) => boolean",
         typeScope,
         [
-          Type.createTypeWithName("mixed", typeScope),
-          Type.createTypeWithName("mixed", typeScope)
+          Type.createTypeWithName("unknown", typeScope),
+          Type.createTypeWithName("unknown", typeScope)
         ],
         Type.createTypeWithName("boolean", typeScope)
       )
@@ -189,11 +189,11 @@ const mixBaseOperators = moduleScope => {
     [
       "!==",
       FunctionType.createTypeWithName(
-        "(mixed, mixed) => boolean",
+        "(unknown, unknown) => boolean",
         typeScope,
         [
-          Type.createTypeWithName("mixed", typeScope),
-          Type.createTypeWithName("mixed", typeScope)
+          Type.createTypeWithName("unknown", typeScope),
+          Type.createTypeWithName("unknown", typeScope)
         ],
         Type.createTypeWithName("boolean", typeScope)
       )
@@ -201,11 +201,11 @@ const mixBaseOperators = moduleScope => {
     [
       "!=",
       FunctionType.createTypeWithName(
-        "(mixed, mixed) => boolean",
+        "(unknown, unknown) => boolean",
         typeScope,
         [
-          Type.createTypeWithName("mixed", typeScope),
-          Type.createTypeWithName("mixed", typeScope)
+          Type.createTypeWithName("unknown", typeScope),
+          Type.createTypeWithName("unknown", typeScope)
         ],
         Type.createTypeWithName("boolean", typeScope)
       )
@@ -542,11 +542,11 @@ const mixBaseOperators = moduleScope => {
     [
       "instanceof",
       FunctionType.createTypeWithName(
-        "(mixed, mixed) => boolean",
+        "(unknown, unknown) => boolean",
         typeScope,
         [
-          Type.createTypeWithName("mixed", typeScope),
-          Type.createTypeWithName("mixed", typeScope)
+          Type.createTypeWithName("unknown", typeScope),
+          Type.createTypeWithName("unknown", typeScope)
         ],
         Type.createTypeWithName("boolean", typeScope)
       )
@@ -793,12 +793,12 @@ const mixBaseOperators = moduleScope => {
     [
       "for",
       FunctionType.createTypeWithName(
-        "(?mixed, ?boolean, ?mixed) => void",
+        "(?unknown, ?boolean, ?unknown) => void",
         typeScope,
         [
-          Type.createTypeWithName("mixed", typeScope),
+          Type.createTypeWithName("unknown", typeScope),
           Type.createTypeWithName("boolean", typeScope),
-          Type.createTypeWithName("mixed", typeScope)
+          Type.createTypeWithName("unknown", typeScope)
         ],
         Type.createTypeWithName("void", typeScope)
       )

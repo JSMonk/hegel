@@ -14,7 +14,7 @@
     "@hegel/typings": "^0.0.3",
     "@reach/router": "^1.2.1",
     "classnames": "^2.2.6",
-    "docz": "^1.0.0",
+    "docz": "^2.2.0",
     "docz-theme-default": "^1.2.0",
     "facepaint": "^1.2.1",
     "keyboardjs": "^2.5.1",

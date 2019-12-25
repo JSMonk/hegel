@@ -82,7 +82,7 @@ export class Type {
 
   isPrincipalTypeFor(type: Type): boolean {
     return (
-      this.equalsTo(new Type("mixed")) ||
+      this.equalsTo(new Type("unknown")) ||
       this.equalsTo(type) ||
       this.isSuperTypeFor(type)
     );
