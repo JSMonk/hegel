@@ -3,14 +3,11 @@ import { Type } from "../type-graph/types/type";
 import { Scope } from "../type-graph/scope";
 import { TypeVar } from "../type-graph/types/type-var";
 import { UnionType } from "../type-graph/types/union-type";
-import { ObjectType } from "../type-graph/types/object-type";
 import { TYPE_SCOPE } from "../type-graph/constants";
 import { GenericType } from "../type-graph/types/generic-type";
-import { ModuleScope } from "../type-graph/module-scope";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
-import { findVariableInfo } from "./variable-utils";
 
 const zeroMetaLocation = new Meta();
 

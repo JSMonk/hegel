@@ -18,14 +18,14 @@ import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { inferenceClass } from "../inference/class-inference";
 import { getVariableType } from "../utils/variable-utils";
-import { findVariableInfo } from "../utils/common";
 import { addCallToTypeGraph } from "./call";
 import { addVariableToGraph } from "../utils/variable-utils";
 import { inferenceErrorType } from "../inference/error-type";
 import { inferenceTypeForNode } from "../inference";
-import { addFunctionToTypeGraph } from "../utils/function-utils";
+import { findVariableInfo, findRecordInfo } from "../utils/common";
 import { getTypeFromTypeAnnotation, createSelf } from "../utils/type-utils";
 import { POSITIONS, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
+import { addFunctionToTypeGraph, addFunctionNodeToTypeGraph } from "../utils/function-utils";
 import {
   prepareGenericFunctionType,
   inferenceFunctionTypeByScope
@@ -63,6 +63,7 @@ const addClassToTypeGraph = (
   typeGraph: ModuleScope,
   parentNode: Node,
   pre: Handler,
+  middle: Handler,
   post: Handler
 ) => {
   const classType = inferenceClass(
@@ -72,6 +73,7 @@ const addClassToTypeGraph = (
     typeGraph,
     parentNode,
     pre,
+    middle,
     post
   );
   const constructor: any = classType.properties.get("constructor") || {
@@ -158,6 +160,7 @@ const fillModuleScope = (
     currentNode: Node,
     parentNode: Node,
     precompute: Handler,
+    middlecompute: Handler,
     postcompute: Handler,
     meta?: TraverseMeta = {}
   ) => {
@@ -192,17 +195,22 @@ const fillModuleScope = (
           typeGraph
         );
         break;
+      case NODE.FUNCTION_DECLARATION:
+      case NODE.TS_FUNCTION_DECLARATION:
+        const existedRecord = findRecordInfo(currentNode.id, getParentForNode(currentNode, parentNode, typeGraph));
+        if (existedRecord instanceof VariableInfo) {
+          return false;
+        }
       case NODE.OBJECT_METHOD:
       case NODE.CLASS_METHOD:
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
-      case NODE.FUNCTION_DECLARATION:
-      case NODE.TS_FUNCTION_DECLARATION:
         addFunctionToTypeGraph(
           currentNode,
           parentNode,
           typeGraph,
           precompute,
+          middlecompute,
           postcompute,
           isTypeDefinitions
         );
@@ -222,7 +230,7 @@ const fillModuleScope = (
         tryBlock.throwable = [];
         typeGraph.body.set(Scope.getName(currentNode.block), tryBlock);
         if (!currentNode.handler) {
-          return;
+          return true;
         }
         const handlerScopeKey = Scope.getName(currentNode.handler.body);
         typeGraph.body.set(
@@ -230,7 +238,7 @@ const fillModuleScope = (
           getScopeFromNode(currentNode.handler.body, parentNode, typeGraph)
         );
         if (!currentNode.handler.param) {
-          return;
+          return true;
         }
         addVariableToGraph(
           currentNode.handler.param,
@@ -239,6 +247,41 @@ const fillModuleScope = (
           currentNode.handler.param.name
         );
         break;
+    }
+    return true;
+  };
+};
+
+const middlefillModuleScope = (
+  typeGraph: ModuleScope,
+  errors: Array<HegelError>,
+  isTypeDefinitions: boolean
+) => {
+  const typeScope = typeGraph.body.get(TYPE_SCOPE);
+  if (!typeScope || !(typeScope instanceof Scope)) {
+    throw new Error("Type scope is not a scope.");
+  }
+  return (
+    currentNode: Node,
+    parentNode: Node,
+    precompute: Handler,
+    middlecompute: Handler,
+    postcompute: Handler,
+    meta?: TraverseMeta = {}
+  ) => {
+    switch (currentNode.type) {
+      case NODE.FUNCTION_DECLARATION:
+      case NODE.TS_FUNCTION_DECLARATION:
+      case NODE.CLASS_DECLARATION:
+        addFunctionNodeToTypeGraph(
+          currentNode,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute,
+          isTypeDefinitions
+        );
     }
   };
 };
@@ -257,6 +300,7 @@ const afterFillierActions = (
     currentNode: Node,
     parentNode: Node | Scope | ModuleScope,
     precompute: Handler,
+    middlecompute: Handler,
     postcompute: Handler,
     meta?: Object = {}
   ) => {
@@ -271,6 +315,7 @@ const afterFillierActions = (
           typeGraph,
           parentNode,
           precompute,
+          middlecompute,
           postcompute
         );
         break;
@@ -289,6 +334,7 @@ const afterFillierActions = (
                 currentScope,
                 parentNode,
                 precompute,
+    middlecompute,
                 postcompute
               );
         if (variableInfo.type.name === UNDEFINED_TYPE) {
@@ -320,7 +366,12 @@ const afterFillierActions = (
             currentNode.catchBlock.param,
             currentNode.catchBlock.body,
             typeGraph
-          )
+          ),
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         );
         errorVariable.type = inferenceErrorType(currentNode, typeGraph);
         addPosition(currentNode.catchBlock.param, errorVariable, typeGraph);
@@ -338,6 +389,7 @@ const afterFillierActions = (
           currentScope,
           parentNode,
           precompute,
+    middlecompute,
           postcompute
         ).result;
         if (currentNode.exportAs) {
@@ -391,6 +443,7 @@ const afterFillierActions = (
               typeGraph,
               parentNode,
               precompute,
+              middlecompute,
               postcompute,
               isTypeDefinitions
             )
@@ -432,6 +485,7 @@ async function createModuleScope(
     traverseTree(
       ast,
       fillModuleScope(module, errors, isTypeDefinitions),
+      middlefillModuleScope(module, errors, isTypeDefinitions),
       afterFillierActions(path, module, errors, isTypeDefinitions)
     );
   } catch (e) {

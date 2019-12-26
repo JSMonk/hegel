@@ -1,7 +1,6 @@
 // @flow
 import NODE from "../utils/nodes";
 import { Meta } from "../type-graph/meta/meta";
-import { Type } from "../type-graph/types/type";
 import { Scope } from "../type-graph/scope";
 import { ObjectType } from "../type-graph/types/object-type";
 import { ModuleScope } from "../type-graph/module-scope";
@@ -18,6 +17,7 @@ export function inferenceObjectType(
   typeGraph: ModuleScope,
   parentNode: Node,
   pre: Handler,
+  middle: Handler,
   post: Handler
 ): ObjectType {
   const properties = currentNode.properties.reduce((res, p) => {
@@ -32,6 +32,7 @@ export function inferenceObjectType(
       parentScope,
       parentNode,
       pre,
+      middle,
       post
     );
     let varInfo = new VariableInfo(

@@ -1,6 +1,5 @@
 // @flow
 import NODE from "./nodes";
-import { compose } from "./common";
 import HegelError, { UnreachableError } from "./errors";
 import type { Node, Declaration, Block, SourceLocation } from "@babel/parser";
 
@@ -15,6 +14,11 @@ type Tree =
 export type TraverseMeta = {
   kind?: ?string
 };
+
+export const compose = (fn: Function, ...fns: Array<Function>) => (
+  ...args: Array<mixed>
+) => fns.reduce((res, fn) => fn(res), fn(...args));
+
 
 function mixBodyToArrowFunctionExpression(currentNode: Node) {
   if (
@@ -182,17 +186,21 @@ const getCurrentNode = compose(
   mixExportInfo
 );
 
-export type Handler = (Tree, Tree, Handler, Handler, TraverseMeta) => void;
+export type Handler = (Tree, Tree, Handler, Handler, Handler, TraverseMeta) => void | boolean;
 
 function traverseTree(
   node: Tree,
   pre: Handler,
+  middle: Handler,
   post: Handler,
   parentNode: ?Tree = null,
   meta?: TraverseMeta = {}
 ) {
   const currentNode = getCurrentNode(node, parentNode, meta);
-  pre(currentNode, parentNode, pre, post, meta);
+  const shouldContinueTraversing = pre(currentNode, parentNode, pre, middle, post, meta);
+  if (!shouldContinueTraversing) {
+    return;
+  }
   const body = getBody(currentNode);
   if (!body) {
     return;
@@ -202,7 +210,10 @@ function traverseTree(
     let i = 0;
     try {
       for (i = 0; i < body.length; i++) {
-        traverseTree(body[i], pre, post, nextParent, {
+        middle(body[i], nextParent, pre, middle, post, meta);
+      }
+      for (i = 0; i < body.length; i++) {
+        traverseTree(body[i], pre, middle, post, nextParent, {
           ...meta,
           kind: currentNode.kind
         });
@@ -216,9 +227,9 @@ function traverseTree(
       }
     }
   } else {
-    traverseTree(body, pre, post, nextParent, meta);
+    traverseTree(body, pre, middle, post, nextParent, meta);
   }
-  post(currentNode, parentNode, pre, post, meta);
+  post(currentNode, parentNode, pre, middle, post, meta);
 }
 
 export default traverseTree;

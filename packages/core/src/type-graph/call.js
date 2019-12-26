@@ -17,24 +17,16 @@ import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { $PropertyType } from "./types/property-type";
 import { addToThrowable } from "../utils/throwable";
+import { isCallableType } from "../utils/function-utils";
 import { getWrapperType } from "../utils/type-utils";
 import { getVariableType } from "../utils/variable-utils";
 import { inferenceTypeForNode } from "../inference";
-import { getAnonymousKey, findVariableInfo } from "../utils/common";
-import {
-  isCallableType,
-  addAndTraverseFunctionWithType
-} from "../utils/function-utils";
-import {
-  clearRoot,
-  getRawFunctionType,
-  getInvocationType,
-  isGenericFunctionType
-} from "../inference/function-type";
+import { getRawFunctionType, getInvocationType } from "../inference/function-type";
 import {
   findNearestTypeScope,
   findNearestScopeByType
 } from "../utils/scope-utils";
+import { getAnonymousKey, findVariableInfo, addAndTraverseFunctionWithType } from "../utils/common";
 import type { Node } from "@babel/parser";
 import type { Handler } from "../utils/traverse";
 import type { CallableArguments } from "./meta/call-meta";
@@ -50,6 +42,7 @@ export function addCallToTypeGraph(
   currentScope: Scope | ModuleScope,
   parentNode: Node,
   pre: Handler,
+  middle: Handler,
   post: Handler
 ): CallResult {
   let target: ?VariableInfo | Type = null;
@@ -80,6 +73,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result
       ];
@@ -93,6 +87,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result
       ];
@@ -109,6 +104,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result
       ];
@@ -125,6 +121,7 @@ export function addCallToTypeGraph(
               typeGraph.body.get(Scope.getName(node.body)),
               parentNode,
               pre,
+              middle,
               post
             ).result
           : Type.createTypeWithName("undefined", typeScope),
@@ -139,7 +136,15 @@ export function addCallToTypeGraph(
         node.type === NODE.IDENTIFIER
           ? node
           : { name: getAnonymousKey(node), loc: node.loc };
-      const varInfo = findVariableInfo(nodeName, currentScope);
+      const varInfo = findVariableInfo(
+          nodeName,
+          currentScope, 
+          parentNode,
+          typeGraph,
+          pre,
+          middle,
+          post
+      );
       if (node.type === NODE.IDENTIFIER) {
         addPosition(node, varInfo, typeGraph);
       }
@@ -159,6 +164,7 @@ export function addCallToTypeGraph(
               currentScope,
               parentNode,
               pre,
+              middle,
               post
             );
       inferenced = value.inferenced;
@@ -176,6 +182,7 @@ export function addCallToTypeGraph(
         currentScope,
         parentNode,
         pre,
+        middle,
         post
       );
       args = [
@@ -191,7 +198,12 @@ export function addCallToTypeGraph(
       targetName = "throw";
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
-        currentScope
+        currentScope,
+        parentNode,
+        typeGraph,
+        pre,
+        middle,
+        post
       );
       addToThrowable(args[0], currentScope);
       break;
@@ -203,13 +215,19 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result
       ];
       targetName = "await";
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
-        currentScope
+        currentScope,
+        parentNode,
+        typeGraph,
+        pre,
+        middle,
+        post
       );
       break;
     case NODE.BINARY_EXPRESSION:
@@ -221,6 +239,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result,
         addCallToTypeGraph(
@@ -229,6 +248,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result
       ];
@@ -247,6 +267,7 @@ export function addCallToTypeGraph(
         currentScope,
         parentNode,
         pre,
+        middle,
         post
       );
       const left = addCallToTypeGraph(
@@ -255,6 +276,7 @@ export function addCallToTypeGraph(
         currentScope,
         parentNode,
         pre,
+        middle,
         post
       );
       args = [left.result, right.result];
@@ -279,6 +301,7 @@ export function addCallToTypeGraph(
         currentScope,
         parentNode,
         pre,
+        middle,
         post
       );
       args = [arg.result];
@@ -293,7 +316,12 @@ export function addCallToTypeGraph(
           : fn.declaration.type;
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
-        currentScope
+        currentScope,
+        parentNode,
+        typeGraph,
+        pre,
+        middle,
+        post
       );
       target =
         declaration.returnType instanceof $BottomType ||
@@ -313,6 +341,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result
       ];
@@ -329,6 +358,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result
       ];
@@ -349,6 +379,7 @@ export function addCallToTypeGraph(
         currentScope,
         parentNode,
         pre,
+        middle,
         post
       ).result;
       args = [target];
@@ -368,6 +399,7 @@ export function addCallToTypeGraph(
             currentScope,
             parentNode,
             pre,
+            middle,
             post
           ).result,
           typeGraph
@@ -382,6 +414,7 @@ export function addCallToTypeGraph(
               currentScope,
               parentNode,
               pre,
+              middle,
               post
             ).result
       ];
@@ -417,6 +450,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result,
         addCallToTypeGraph(
@@ -425,6 +459,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result,
         addCallToTypeGraph(
@@ -433,6 +468,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result
       ];
@@ -449,6 +485,7 @@ export function addCallToTypeGraph(
         currentScope,
         parentNode,
         pre,
+        middle,
         post
       ).result;
       const argumentType =
@@ -459,6 +496,7 @@ export function addCallToTypeGraph(
         currentScope,
         parentNode,
         pre,
+        middle,
         post
       ).result;
       const defaultObject = ObjectType.createTypeWithName("{ }", typeScope, []);
@@ -475,7 +513,15 @@ export function addCallToTypeGraph(
       break;
     case NODE.CALL_EXPRESSION:
       if (node.callee.type === NODE.IDENTIFIER) {
-        target = findVariableInfo(node.callee, currentScope);
+        target = findVariableInfo(
+          node.callee,
+          currentScope,
+          parentNode,
+          typeGraph,
+          pre,
+          middle,
+          post
+        );
         addPosition(node.callee, target, typeGraph);
       } else {
         target = (addCallToTypeGraph(
@@ -484,6 +530,7 @@ export function addCallToTypeGraph(
           currentScope,
           parentNode,
           pre,
+          middle,
           post
         ).result: any);
       }
@@ -521,6 +568,7 @@ export function addCallToTypeGraph(
                 currentScope,
                 parentNode,
                 pre,
+                middle,
                 post
               ).result
       );
@@ -544,6 +592,7 @@ export function addCallToTypeGraph(
                 parentNode,
                 typeGraph,
                 pre,
+                middle,
                 post
               )
             : // $FlowIssue
@@ -569,25 +618,18 @@ export function addCallToTypeGraph(
           typeGraph,
           parentNode,
           pre,
+          middle,
           post
         ),
         inferenced: true
       };
   }
-  const callsScope =
-    currentScope.type === Scope.FUNCTION_TYPE
-      ? currentScope
-      : findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
   const targetType = target instanceof VariableInfo ? target.type : target;
   const options = {
-    targetName,
-    target,
-    targetType,
     args,
     node,
-    typeScope,
-    callsScope,
-    moduleScope: typeGraph,
+    target,
+    targetType,
     genericArguments:
       genericArguments &&
       genericArguments.map(a => (a instanceof Type ? a : a.type))
@@ -612,7 +654,7 @@ export function addCallToTypeGraph(
       targetName,
       inferenced
     );
-    callsScope.calls.push(callMeta);
+    currentScope.calls.push(callMeta);
   }
   return { result: invocationType, inferenced };
 }

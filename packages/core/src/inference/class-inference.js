@@ -18,6 +18,7 @@ export function inferenceClass(
   typeGraph: ModuleScope,
   parentNode: Node,
   pre: Handler,
+  middle: Handler,
   post: Handler
 ): ObjectType {
   const methods = [];
@@ -31,6 +32,7 @@ export function inferenceClass(
       parentScope,
       parentNode,
       pre,
+      middle,
       post
     );
     let varInfo = new VariableInfo(

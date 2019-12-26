@@ -20,6 +20,7 @@ export function inferenceTypeForNode(
   typeGraph: ModuleScope,
   parentNode: Node,
   pre: Handler,
+  middle: Handler,
   post: Handler,
   isTypeDefinitions: boolean = false
 ): Type {
@@ -55,6 +56,7 @@ export function inferenceTypeForNode(
         typeGraph,
         parentNode,
         pre,
+        middle,
         post
       );
     case NODE.OBJECT_EXPRESSION:
@@ -65,6 +67,7 @@ export function inferenceTypeForNode(
         typeGraph,
         parentNode,
         pre,
+        middle,
         post
       );
     case NODE.OBJECT_METHOD:
@@ -81,6 +84,7 @@ export function inferenceTypeForNode(
         isTypeDefinitions,
         parentNode,
         pre,
+        middle,
         post
       );
     case NODE.NEW_EXPRESSION:

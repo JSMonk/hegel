@@ -18,6 +18,7 @@ export function inferenceTupleType(
   typeGraph: ModuleScope,
   parentNode: Node,
   pre: Handler,
+  middle: Handler,
   post: Handler
 ): TupleType {
   const globalTypeScope = typeGraph.body.get(TYPE_SCOPE);
@@ -31,6 +32,7 @@ export function inferenceTupleType(
       parentScope,
       parentNode,
       pre,
+      middle,
       post
     );
     const inferencedType = inferenced.result.type || inferenced.result;

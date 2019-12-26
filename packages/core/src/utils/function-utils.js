@@ -1,6 +1,5 @@
 // @flow
 import NODE from "./nodes";
-import traverseTree from "../utils/traverse";
 import { Meta } from "../type-graph/meta/meta";
 import { Scope } from "../type-graph/scope";
 import { TypeVar } from "../type-graph/types/type-var";
@@ -9,40 +8,14 @@ import { GenericType } from "../type-graph/types/generic-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { addPosition } from "./position-utils";
 import { VariableInfo } from "../type-graph/variable-info";
-import { getScopeFromNode } from "./scope-utils";
 import { inferenceTypeForNode } from "../inference";
-import { findNearestTypeScope } from "./scope-utils";
 import { addVariableToGraph } from "./variable-utils";
 import { getDeclarationName, getAnonymousKey } from "./common";
-import type { Node } from "@babel/parser";
+import { getParentForNode, getScopeFromNode, findNearestTypeScope } from "../utils/scope-utils";
 import type { Type } from "../type-graph/types/type";
 import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
-
-export function addAndTraverseFunctionWithType(
-  definedType: Type,
-  currentNode: Node,
-  parentNode: Node,
-  typeGraph: ModuleScope,
-  precompute: Handler,
-  postcompute: Handler
-) {
-  currentNode.expected =
-    definedType instanceof UnionType
-      ? definedType.variants.find(a => a instanceof FunctionType)
-      : definedType;
-  const scopeName = Scope.getName(currentNode);
-  traverseTree(currentNode, precompute, postcompute, parentNode);
-  const scope = typeGraph.body.get(scopeName);
-  if (!(scope instanceof Scope)) {
-    throw new Error("Never!!!");
-  }
-  const type = scope.declaration && scope.declaration.type;
-  if (type === undefined) {
-    throw new Error("Never!!!");
-  }
-  return type;
-}
+import type { Node, Identifier, FunctionDeclaration, ClassDeclaration } from "@babel/core"
 
 export function addFunctionScopeToTypeGraph(
   currentNode: Node,
@@ -64,11 +37,26 @@ export function addFunctionScopeToTypeGraph(
   return scope;
 }
 
+export function addFunctionNodeToTypeGraph(
+  currentNode: FunctionDeclaration | ClassDeclaration,
+  parentNode: Node,
+  typeGraph: ModuleScope,
+  pre: Handler,
+  middle: Handler,
+  post: Handler,
+  isTypeDefinitions: boolean
+) {
+  const name = getDeclarationName(currentNode);
+  const currentScope = getParentForNode(currentNode, parentNode, typeGraph);
+  currentScope.body.set(name, currentNode);
+}
+
 export function addFunctionToTypeGraph(
   currentNode: Node,
   parentNode: Node,
   typeGraph: ModuleScope,
   pre: Handler,
+  middle: Handler,
   post: Handler,
   isTypeDefinitions: boolean
 ) {
@@ -99,6 +87,7 @@ export function addFunctionToTypeGraph(
     typeGraph,
     parentNode,
     pre,
+    middle,
     post,
     isTypeDefinitions
   );

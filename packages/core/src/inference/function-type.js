@@ -82,6 +82,7 @@ export function inferenceFunctionLiteralType(
   isTypeDefinitions: boolean,
   parentNode: Node,
   pre: Handler,
+  middle: Handler,
   post: Handler
 ): CallableType {
   const localTypeScope = new Scope(
@@ -148,6 +149,7 @@ export function inferenceFunctionLiteralType(
         functionScope,
         parentNode,
         pre,
+        middle,
         post
       );
       const newType =
@@ -528,12 +530,15 @@ export function inferenceFunctionTypeByScope(
         typeScope,
         inferenced
       );
+      if (newOneRoot === returnType) {
+        continue;
+      }
       const variants = (returnType.root instanceof UnionType
         ? returnType.root.items
         : [returnType.root]
       ).concat([newOneRoot]);
       returnType.root =
-        returnType.root != undefined
+        returnType.root != undefined && !returnType.root.isPrincipalTypeFor(newOneRoot)
           ? UnionType.createTypeWithName(
               // $FlowIssue
               UnionType.getName(variants),
@@ -616,7 +621,7 @@ export function inferenceFunctionTypeByScope(
       const copy = created.get(argumentType);
       if (argumentType.root !== undefined) {
         args[j] = Type.getTypeRoot(argumentType);
-        if (oldGenericArguments.includes(argumentType)) {
+        if (oldGenericArguments.includes(argumentType) && argumentType.isUserDefined) {
           shouldBeCleaned.push(argumentType);
         }
       } else if (copy !== undefined) {
@@ -631,17 +636,21 @@ export function inferenceFunctionTypeByScope(
       }
     }
     if (targetType instanceof GenericType) {
-      targetType.genericArguments.forEach(a => shouldBeCleaned.push(a));
+      targetType.genericArguments.forEach(a => a.isUserDefined && shouldBeCleaned.push(a));
     }
   }
   for (let i = 0; i < oldGenericArguments.length; i++) {
     const genericArgument = oldGenericArguments[i];
+    const oldRoot = Type.getTypeRoot(genericArgument);
     clearRoot(genericArgument);
     const isTypeVarStillExisted = newArgumentsTypes.find(arg =>
       arg.contains(genericArgument)
     );
     if (isTypeVarStillExisted && genericArgument instanceof TypeVar) {
       newGenericArguments.add(genericArgument);
+    }
+    if (genericArgument instanceof TypeVar && !genericArgument.isUserDefined && genericArgument !== oldRoot) {
+      genericArgument.root = oldRoot;
     }
   }
   shouldBeCleaned.forEach(clearRoot);
@@ -664,6 +673,7 @@ export function inferenceFunctionTypeByScope(
       newFunctionType
     );
   }
+  // $FlowIssue
   functionScope.declaration.type = newFunctionType;
 }
 
