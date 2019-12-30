@@ -57,6 +57,7 @@ export function inferenceObjectType(
   return ObjectType.createTypeWithName(
     ObjectType.getName(properties),
     typeScope,
-    properties
+    properties,
+    { isSubtypeOf: findVariableInfo({ name: "Object" }, typeScope).type }
   );
 }

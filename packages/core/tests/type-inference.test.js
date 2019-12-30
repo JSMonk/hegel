@@ -82,8 +82,9 @@ describe("Simple inference for module variables by literal", () => {
       const a = {};
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualTypeScope = actual.parent.body.get(TYPE_SCOPE);
     const expected = expect.objectContaining({
-      type: new ObjectType("{  }", []),
+      type: new ObjectType("{  }", [], { isSubtypeOf: actualTypeScope.body.get("Object").type }),
       parent: actual
     });
     expect(errors.length).toBe(0);

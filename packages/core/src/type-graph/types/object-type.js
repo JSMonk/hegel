@@ -2,11 +2,14 @@
 import { Type } from "./type";
 import { unique } from "../../utils/common";
 import { UnionType } from "./union-type";
+import { FunctionType } from "./function-type";
 import { VariableInfo } from "../variable-info";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";
+import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../constants";
 import type { Scope } from "../scope";
 import type { TypeMeta } from "./type";
+import type { ClassProperty, ObjectProperty, ClassMethod, ObjectMethod } from "@babel/core";
 
 type ExtendedTypeMeta = { ...TypeMeta, isNominal?: boolean };
 
@@ -49,7 +52,7 @@ export class ObjectType extends Type {
     this.properties = new Map(filteredProperties);
   }
 
-  getPropertyType(propertyName: any): ?Type {
+  getPropertyType(propertyName: mixed): ?Type | ClassProperty | ObjectProperty | ClassMethod | ObjectMethod {
     let fieldOwner = this;
     let field = null;
     while (fieldOwner) {
@@ -68,7 +71,7 @@ export class ObjectType extends Type {
     if (!field) {
       return null;
     }
-    return field.type;
+    return field.type instanceof Type ? field.type : field;
   }
 
   isAllProperties(
@@ -76,6 +79,9 @@ export class ObjectType extends Type {
     anotherType: ObjectType
   ): boolean {
     for (const [key, { type }] of this.properties) {
+      if ([CALLABLE, INDEXABLE, CONSTRUCTABLE].includes(key)) {
+        continue;
+      }
       const anotherProperty = anotherType.properties.get(key) || {
         type: new Type("undefined")
       };
@@ -164,6 +170,12 @@ export class ObjectType extends Type {
         differences = differences.concat(type.getDifference(other.type));
       });
       return differences;
+    }
+    if (type instanceof FunctionType) {
+      const callable = this.properties.get(CALLABLE); 
+      if (callable !== undefined) {
+        return callable.type.getDifference(type);
+      }
     }
     return super.getDifference(type);
   }

@@ -47,6 +47,7 @@ export class Type {
     );
   }
 
+
   changeAll(
     sourceTypes: Array<Type>,
     targetTypes: Array<Type>,
@@ -129,6 +130,8 @@ export class Type {
   }
 
   makeNominal() {}
+
+  setInitialized(propertyName: mixed) { }
 
   generalize(types: Array<TypeVar>, typeScope: Scope) {
     return this;

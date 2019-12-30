@@ -8,7 +8,7 @@ const { GenericType } = require("../build/type-graph/types/generic-type");
 const { FunctionType } = require("../build/type-graph/types/function-type");
 const { VariableInfo } = require("../build/type-graph/variable-info");
 const { CollectionType } = require("../build/type-graph/types/collection-type");
-const { UNDEFINED_TYPE, TYPE_SCOPE } = require("../build/type-graph/constants");
+const { CONSTRUCTABLE, TYPE_SCOPE } = require("../build/type-graph/constants");
 const {
   prepareAST,
   getModuleAST,
@@ -1310,29 +1310,30 @@ describe("Classes", () => {
     const [[actual]] = await createTypeGraph([sourceAST]);
     const typeScope = actual.body.get(TYPE_SCOPE);
     const actualAType = typeScope.body.get("A").type;
-    const actualAClass = actual.body.get("A");
-    expect(actualAClass.type.returnType).toEqual(actualAType);
+    const actualAClass = actual.body.get("A").type;
+    expect(actualAClass.properties.get(CONSTRUCTABLE).type.returnType).toEqual(actualAType);
   });
-  // test("Simple class declaration with constructor", async () => {
-  //   const sourceAST = prepareAST(`
-  //     class A {
-  //       a: number;
+  test("Simple class declaration with constructor", async () => {
+     const sourceAST = prepareAST(`
+       class A {
+         a: number;
 
-  //       constructor(a: number) {
-  //         this.a = a;
-  //       }
-  //     }
-  //   `);
-  //   const [[actual]] = await createTypeGraph([sourceAST]);
-  //   const typeScope = actual.body.get(TYPE_SCOPE);
-  //   const actualAType = typeScope.body.get("A").type;
-  //   const actualAClass = actual.body.get("A");
-  //   expect(actualAClass.type.returnType).toEqual(actualAType);
-  //   expect(actualAClass.type.argumentsTypes.length).toEqual(1);
-  //   expect(actualAClass.type.argumentsTypes[0]).toEqual(
-  //     new Type("number")
-  //   );
-  // });
+         constructor(a: number) {
+           this.a = a;
+         }
+       }
+     `);
+     const [[actual], errors] = await createTypeGraph([sourceAST]);
+     debugger;
+     const typeScope = actual.body.get(TYPE_SCOPE);
+     const actualAType = typeScope.body.get("A").type;
+     const actualAClass = actual.body.get("A").type;
+     expect(actualAClass.properties.get(CONSTRUCTABLE).type.returnType).toEqual(actualAType);
+     expect(actualAClass.properties.get(CONSTRUCTABLE).type.argumentsTypes.length).toBe(1);
+     expect(actualAClass.properties.get(CONSTRUCTABLE).type.argumentsTypes[0]).toEqual(
+       new Type("number")
+     );
+   });
   test("Get concat method of tuple", async () => {
     const sourceAST = prepareAST(`
       const a: [number, string] = [2, '2']; 

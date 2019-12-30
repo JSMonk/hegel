@@ -10,22 +10,23 @@ import HegelError, { UnreachableError } from "../utils/errors";
 import { Meta } from "./meta/meta";
 import { Type } from "./types/type";
 import { Scope } from "./scope";
+import { THIS_TYPE } from "../type-graph/constants";
 import { refinement } from "../inference/refinement";
 import { addPosition } from "../utils/position-utils";
 import { GenericType } from "./types/generic-type";
 import { ModuleScope } from "./module-scope";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
-import { inferenceClass } from "../inference/class-inference";
 import { getVariableType } from "../utils/variable-utils";
-import { addCallToTypeGraph } from "./call";
 import { addVariableToGraph } from "../utils/variable-utils";
 import { inferenceErrorType } from "../inference/error-type";
 import { inferenceTypeForNode } from "../inference";
 import { findVariableInfo, findRecordInfo } from "../utils/common";
+import { addCallToTypeGraph, addPropertyToThis } from "./call";
 import { getTypeFromTypeAnnotation, createSelf } from "../utils/type-utils";
 import { POSITIONS, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
 import { addFunctionToTypeGraph, addFunctionNodeToTypeGraph } from "../utils/function-utils";
+import { addClassToTypeGraph, addClassNodeToTypeGraph, addPropertyNodeToThis } from "../utils/class-utils";
 import {
   prepareGenericFunctionType,
   inferenceFunctionTypeByScope
@@ -54,39 +55,6 @@ const getGenericNode = (node: Node): ?Node => {
     return node.right;
   }
   return null;
-};
-
-const addClassToTypeGraph = (
-  classNode: Node,
-  typeScope: Scope,
-  parentScope: Scope | ModuleScope,
-  typeGraph: ModuleScope,
-  parentNode: Node,
-  pre: Handler,
-  middle: Handler,
-  post: Handler
-) => {
-  const classType = inferenceClass(
-    classNode,
-    typeScope,
-    parentScope,
-    typeGraph,
-    parentNode,
-    pre,
-    middle,
-    post
-  );
-  const constructor: any = classType.properties.get("constructor") || {
-    type: new FunctionType("", [], classType)
-  };
-  constructor.type.returnType = classType;
-  constructor.type.name = classType.name;
-  const variableInfo = new VariableInfo(
-    constructor.type,
-    parentScope,
-    new Meta(classNode.loc)
-  );
-  parentScope.body.set(String(classType.name), variableInfo);
 };
 
 const getAliasBody = (node: Node) => {
@@ -202,7 +170,6 @@ const fillModuleScope = (
           return false;
         }
       case NODE.OBJECT_METHOD:
-      case NODE.CLASS_METHOD:
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
         addFunctionToTypeGraph(
@@ -220,6 +187,31 @@ const fillModuleScope = (
           break;
         }
         addScopeToTypeGraph(currentNode, parentNode, typeGraph);
+        break;
+      case NODE.CLASS_METHOD:
+        const classScope = typeGraph.body.get(Scope.getName(parentNode));
+        if (!(classScope instanceof Scope)) {
+          throw new Error("Never!!!");
+        }
+        const classVar = findVariableInfo({ name: THIS_TYPE }, classScope);
+        const classType = classVar.type instanceof GenericType ? classVar.type.subordinateType : classVar.type;
+        const propertyName = currentNode.key.name;
+        // $FlowIssue
+        if (classType.properties.get(propertyName) instanceof VariableInfo) {
+          return false;
+        }
+        const fn = addFunctionToTypeGraph(
+          currentNode,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute,
+          isTypeDefinitions
+        );
+        fn.hasInitializer = true;
+        // $FlowIssue
+        classType.properties.set(propertyName, fn);
         break;
       case NODE.TRY_STATEMENT:
         const tryBlock = getScopeFromNode(
@@ -258,7 +250,7 @@ const middlefillModuleScope = (
   isTypeDefinitions: boolean
 ) => {
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
-  if (!typeScope || !(typeScope instanceof Scope)) {
+  if (!(typeScope instanceof Scope)) {
     throw new Error("Type scope is not a scope.");
   }
   return (
@@ -269,25 +261,38 @@ const middlefillModuleScope = (
     postcompute: Handler,
     meta?: TraverseMeta = {}
   ) => {
+    const typeScope = typeGraph.body.get(TYPE_SCOPE);
     switch (currentNode.type) {
+      case NODE.CLASS_DECLARATION:
+        addClassNodeToTypeGraph(
+          currentNode,
+          parentNode,
+          // $FlowIssue
+          typeScope,
+          typeGraph,
+        );
+        break;
+      case NODE.CLASS_PROPERTY:
+      case NODE.CLASS_METHOD:
+        addPropertyNodeToThis(
+          currentNode,
+          parentNode,
+          typeGraph,
+        );
+        break;
       case NODE.FUNCTION_DECLARATION:
       case NODE.TS_FUNCTION_DECLARATION:
-      case NODE.CLASS_DECLARATION:
         addFunctionNodeToTypeGraph(
           currentNode,
           parentNode,
           typeGraph,
-          precompute,
-          middlecompute,
-          postcompute,
-          isTypeDefinitions
         );
+        break;
     }
   };
 };
 
 const afterFillierActions = (
-  path: string,
   typeGraph: ModuleScope,
   errors: Array<HegelError>,
   isTypeDefinitions: boolean
@@ -306,12 +311,22 @@ const afterFillierActions = (
   ) => {
     const currentScope = getParentForNode(currentNode, parentNode, typeGraph);
     switch (currentNode.type) {
+      case NODE.CLASS_PROPERTY:
+        addPropertyToThis(
+          currentNode,
+          parentNode,
+          typeScope,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
+        );
+        break;
       case NODE.CLASS_DECLARATION:
       case NODE.CLASS_EXPRESSION:
         addClassToTypeGraph(
           currentNode,
           typeScope,
-          currentScope,
           typeGraph,
           parentNode,
           precompute,
@@ -389,7 +404,7 @@ const afterFillierActions = (
           currentScope,
           parentNode,
           precompute,
-    middlecompute,
+          middlecompute,
           postcompute
         ).result;
         if (currentNode.exportAs) {
@@ -486,14 +501,18 @@ async function createModuleScope(
       ast,
       fillModuleScope(module, errors, isTypeDefinitions),
       middlefillModuleScope(module, errors, isTypeDefinitions),
-      afterFillierActions(path, module, errors, isTypeDefinitions)
+      afterFillierActions(module, errors, isTypeDefinitions),
     );
   } catch (e) {
-    if (!(e instanceof HegelError)) {
+    if (!(e instanceof HegelError) && !Array.isArray(e)) {
       throw e;
     }
-    e.source = path;
-    errors.push(e);
+    if (Array.isArray(e)) {
+      errors.push(...e.map(e => Object.assign(e, { path })));
+    } else {
+      e.source = path;
+      errors.push(e);
+    }
   }
   module.body.forEach(scope => {
     if (scope instanceof Scope) {

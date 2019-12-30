@@ -554,22 +554,6 @@ function getPropertyName(property: Node): string {
 }
 
 function getResultObjectType(object: ObjectType) {
-  const callable = object.properties.get(CALLABLE);
-  if (callable !== undefined) {
-    object.properties.delete(CALLABLE);
-    callable.type.isSubtypeOf = object;
-    callable.type.name = object.name;
-    return callable.type;
-  }
-  const constructable = object.properties.get(CONSTRUCTABLE);
-  if (constructable !== undefined) {
-    object.properties.delete(CONSTRUCTABLE);
-    constructable.type.isSubtypeOf = object;
-    constructable.type.name = object.name;
-    // $FlowIssue
-    constructable.type.returnType.makeNominal();
-    return constructable.type;
-  }
   const indexable = object.properties.get(INDEXABLE);
   if (indexable !== undefined) {
     object.properties.delete(INDEXABLE);

@@ -18,7 +18,19 @@ const readFile = utils.promisify(fs.readFile);
 
 const babelrc = {
   sourceType: "module",
-  plugins: ["flow", "bigInt", "classProperties"]
+  plugins: [
+    "flow",
+    "bigInt",
+    "classProperties",
+    "@babel/plugin-syntax-bigint", 
+    "@babel/plugin-proposal-class-properties", 
+    "@babel/plugin-proposal-private-methods",
+    "@babel/plugin-proposal-numeric-separator",
+    "@babel/plugin-syntax-dynamic-import",
+    "@babel/plugin-proposal-nullish-coalescing-operator",
+    "@babel/plugin-proposal-optional-catch-binding",
+    "@babel/plugin-proposal-optional-chaining",
+  ]
 };
 
 const dtsrc = {
@@ -78,12 +90,13 @@ const dtsrc = {
     { encoding: "utf8" }
   );
   const stdLibAST = babylon.parse(stdLibContent, dtsrc).program;
-  const [[stdLibTypeGraph]] = await createTypeGraph(
+  const [[stdLibTypeGraph], sas] = await createTypeGraph(
     [stdLibAST],
     () => {},
     true
   );
 
+  throw sas;
   function mixTypeDefinitions(scope) {
     const body = new Map([...stdLibTypeGraph.body, ...scope.body]);
     const typeScope = scope.body.get(TYPE_SCOPE);

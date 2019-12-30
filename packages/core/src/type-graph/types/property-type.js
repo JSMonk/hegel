@@ -1,14 +1,11 @@
 import HegelError from "../../utils/errors";
 import { Type } from "./type";
-import { Scope } from "../scope";
 import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
-import { TupleType } from "./tuple-type";
 import { ObjectType } from "./object-type";
 import { $BottomType } from "./bottom-type";
 import { GenericType } from "./generic-type";
-import { FunctionType } from "./function-type";
-import { CollectionType } from "./collection-type";
+import { addPropertyToThis } from "../../utils/class-utils";
 
 export class $PropertyType extends GenericType {
   constructor() {

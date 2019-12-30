@@ -15,7 +15,7 @@ import { getParentForNode, getScopeFromNode, findNearestTypeScope } from "../uti
 import type { Type } from "../type-graph/types/type";
 import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
-import type { Node, Identifier, FunctionDeclaration, ClassDeclaration } from "@babel/core"
+import type { Node, Identifier, FunctionDeclaration, ClassMethod, ClassProperty } from "@babel/core"
 
 export function addFunctionScopeToTypeGraph(
   currentNode: Node,
@@ -38,13 +38,9 @@ export function addFunctionScopeToTypeGraph(
 }
 
 export function addFunctionNodeToTypeGraph(
-  currentNode: FunctionDeclaration | ClassDeclaration,
+  currentNode: FunctionDeclaration | ClassMethod | ClassProperty,
   parentNode: Node,
   typeGraph: ModuleScope,
-  pre: Handler,
-  middle: Handler,
-  post: Handler,
-  isTypeDefinitions: boolean
 ) {
   const name = getDeclarationName(currentNode);
   const currentScope = getParentForNode(currentNode, parentNode, typeGraph);
@@ -137,6 +133,7 @@ export function addFunctionToTypeGraph(
   if (currentNode.id) {
     addPosition(currentNode.id, variableInfo, typeGraph);
   }
+  return variableInfo;
 }
 
 export function isCallableType(a: Type) {

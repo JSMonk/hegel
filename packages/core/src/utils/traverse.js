@@ -19,7 +19,6 @@ export const compose = (fn: Function, ...fns: Array<Function>) => (
   ...args: Array<mixed>
 ) => fns.reduce((res, fn) => fn(res), fn(...args));
 
-
 function mixBodyToArrowFunctionExpression(currentNode: Node) {
   if (
     currentNode.type !== NODE.ARROW_FUNCTION_EXPRESSION ||

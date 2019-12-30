@@ -411,7 +411,8 @@ export function getRawFunctionType(
   genericArguments?: Array<Type> | null,
   localTypeScope: Scope,
   loc: SourceLocation,
-  withClean?: boolean = true
+  withClean?: boolean = true,
+  initializing?: boolean = false
 ) {
   fn =
     fn instanceof TypeVar && fn.root !== undefined ? Type.getTypeRoot(fn) : fn;
@@ -432,7 +433,8 @@ export function getRawFunctionType(
   }
   const result =
     genericArguments != null
-      ? fn.applyGeneric(genericArguments, loc)
+      // $FlowIssue
+      ? fn.applyGeneric(genericArguments, loc, true, false, initializing)
       : implicitApplyGeneric(fn, args, localTypeScope, loc, withClean);
   if (result instanceof GenericType) {
     return result.subordinateType;
@@ -445,7 +447,8 @@ export function getInvocationType(
   argumentsTypes: Array<Type | VariableInfo>,
   genericArguments?: Array<Type> | null,
   localTypeScope: Scope,
-  loc: SourceLocation
+  loc: SourceLocation,
+  initializing?: boolean = false
 ): Type {
   let { returnType } =
     fn instanceof FunctionType
@@ -455,7 +458,9 @@ export function getInvocationType(
           argumentsTypes,
           genericArguments,
           localTypeScope,
-          loc
+          loc,
+          true,
+          initializing
         );
   returnType =
     returnType instanceof TypeVar ? Type.getTypeRoot(returnType) : returnType;

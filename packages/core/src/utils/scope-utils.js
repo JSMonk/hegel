@@ -39,12 +39,13 @@ export function getTypeScope(scope: Scope | ModuleScope): Scope {
 }
 
 export function findNearestScopeByType(
-  type: $PropertyType<Scope, "type">,
+  type: $PropertyType<Scope, "type"> | Array<$PropertyType<Scope, "type">>,
   parentContext: ModuleScope | Scope
 ): Scope | ModuleScope {
+  type = Array.isArray(type) ? type : [type];
   let parent = parentContext;
   while (parent instanceof Scope) {
-    if (parent.type === type) {
+    if (type.includes(parent.type)) {
       return parent;
     }
     parent = parent.parent;
@@ -56,7 +57,7 @@ export const findNearestTypeScope = (
   currentScope: Scope | ModuleScope,
   typeGraph: ModuleScope
 ): Scope => {
-  let scope = findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
+  let scope = findNearestScopeByType([Scope.FUNCTION_TYPE, Scope.CLASS_TYPE], currentScope);
   const moduleTypeScope = typeGraph.body.get(TYPE_SCOPE);
   if (!(moduleTypeScope instanceof Scope)) {
     throw new Error("Never!");
@@ -67,7 +68,7 @@ export const findNearestTypeScope = (
       // $FlowIssue
       return scope.declaration.type.localTypeScope;
     }
-    scope = findNearestScopeByType(Scope.FUNCTION_TYPE, scope.parent);
+    scope = findNearestScopeByType([Scope.FUNCTION_TYPE, Scope.CLASS_TYPE], scope.parent);
   }
   return moduleTypeScope;
 };

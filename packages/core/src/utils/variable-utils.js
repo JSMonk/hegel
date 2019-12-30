@@ -4,6 +4,7 @@ import { Type } from "../type-graph/types/type";
 import { UnionType } from "../type-graph/types/union-type";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { ObjectType } from "../type-graph/types/object-type";
+import { addPosition } from "./position-utils";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { UNDEFINED_TYPE } from "../type-graph/constants";
@@ -102,5 +103,8 @@ export function addVariableToGraph(
     typeGraph
   );
   variableInfo.parent.body.set(customName, variableInfo);
+  if (currentNode.id != null) {
+    addPosition(currentNode.id, variableInfo, typeGraph);
+  }
   return variableInfo;
 }

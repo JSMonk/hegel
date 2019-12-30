@@ -1,6 +1,7 @@
 // @flow
 import { Type } from "./type";
 import { Scope } from "../scope";
+import { CALLABLE } from "../constants";
 import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 import { getNameForType } from "../../utils/type-utils";
@@ -163,7 +164,10 @@ export class FunctionType extends Type {
   isSuperTypeFor(anotherType: Type) {
     anotherType = this.getOponentType(anotherType);
     if (!(anotherType instanceof FunctionType)) {
-      return false;
+      anotherType = anotherType.getPropertyType(CALLABLE);
+      if (anotherType === null) {
+        return false;
+      }
     }
     return (
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&

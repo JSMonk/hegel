@@ -2,7 +2,6 @@
 import { Type } from "./type";
 import { TupleType } from "./tuple-type";
 import { UnionType } from "./union-type";
-import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 import { getNameForType } from "../../utils/type-utils";
 import { createTypeWithName } from "./create-type";

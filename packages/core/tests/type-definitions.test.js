@@ -100,9 +100,9 @@ describe("TypeScript type defitions", () => {
       const typeScope = actual.body.get(TYPE_SCOPE);
       const actualType = typeScope.body.get("DateConstructor").type;
       expect(errors.length).toBe(0);
-      expect(actualType).toBeInstanceOf(FunctionType);
+      expect(actualType).toBeInstanceOf(ObjectType);
       expect(actualType.name).toBe("DateConstructor");
-      expect(actualType.isSubtypeOf.properties.get("test").type.name).toBe(
+      expect(actualType.properties.get("test").type.name).toBe(
         "string"
       );
     });
