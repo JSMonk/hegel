@@ -22,6 +22,10 @@ import type {
   Node,
   Identifier,
   NullLiteral,
+  BigIntLiteral,
+  StringLiteral,
+  NumericLiteral,
+  BooleanLiteral,
   MemberExpression
 } from "@babel/parser";
 
@@ -50,9 +54,9 @@ function getEqualsArguments(
     target = right;
   }
   let value: ?Node = null;
-  if (isNullOrUndefined(left)) {
+  if (isSimpleLiteral(left)) {
     value = left;
-  } else if (isNullOrUndefined(right)) {
+  } else if (isSimpleLiteral(right)) {
     value = right;
   }
   if (!target || !value) {
@@ -73,15 +77,19 @@ function isStrict(refinementNode: Node) {
   throw new Error("Never!");
 }
 
-function isNullOrUndefined(node: Node) {
+function isSimpleLiteral(node: Node) {
   return (
     node.type === NODE.NULL_LITERAL ||
+    node.type === NODE.NUMERIC_LITERAL ||
+    node.type === NODE.BIGINT_LITERAL ||
+    node.type === NODE.STRING_LITERAL ||
+    node.type === NODE.BOOLEAN_LITERAL ||
     (node.type === NODE.IDENTIFIER && node.name === "undefined")
   );
 }
 
 function getRefinmentType(
-  value: Identifier | NullLiteral,
+  value: Identifier|NullLiteral|NumericLiteral|BigIntLiteral|StringLiteral|BooleanLiteral,
   refinementNode: Node
 ): Type {
   const VOID = new Type("void");
@@ -89,11 +97,28 @@ function getRefinmentType(
   const NULL = new Type(null, { isSubtypeOf: VOID });
   const UNION = new UnionType(null, [UNDEFINED, NULL]);
   const strict = isStrict(refinementNode);
+   switch(value.type) {
+     case NODE.NUMERIC_LITERAL:
+      return new Type(value.value, {
+        isSubtypeOf: new Type("number")
+      });
+    case NODE.BIGINT_LITERAL:
+      return new Type(`${value.value}n`, {
+        isSubtypeOf: new Type("bigint")
+      });
+    case NODE.STRING_LITERAL:
+      return new Type(`'${value.value}'`, {
+        isSubtypeOf: new Type("string")
+      });
+    case NODE.BOOLEAN_LITERAL:
+      return new Type(value.value, {
+        isSubtypeOf: new Type("boolean")
+      });
+    case NODE.NULL_LITERAL:
+      return strict ? NULL : UNION;
+    }
   if (value.type === NODE.IDENTIFIER && value.name === "undefined") {
     return strict ? UNDEFINED : UNION;
-  }
-  if (value.type === NODE.NULL_LITERAL) {
-    return strict ? NULL : UNION;
   }
   throw new Error("Never!");
 }
