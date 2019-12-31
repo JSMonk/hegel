@@ -544,11 +544,6 @@ describe("Simple objects with property typing", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope3-8]]");
-    const expectedAScope = expect.objectContaining({
-      parent: actual,
-      type: "function"
-    });
-    expect(actualAScope).toEqual(expectedAScope);
     expect(actualAScope.declaration.type.name).toEqual("() => number");
     expect(actualAScope.declaration.type.argumentsTypes).toEqual([]);
     expect(actualAScope.declaration.type.returnType).toEqual(
@@ -563,11 +558,6 @@ describe("Simple objects with property typing", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope3-8]]");
-    const expectedAScope = expect.objectContaining({
-      parent: actual,
-      type: "function"
-    });
-    expect(actualAScope).toEqual(expectedAScope);
     expect(actualAScope.declaration.type.argumentsTypes).toEqual([
       new Type("string")
     ]);
@@ -580,11 +570,6 @@ describe("Simple objects with property typing", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope3-11]]");
-    const expectedAScope = expect.objectContaining({
-      parent: actual,
-      type: "function"
-    });
-    expect(actualAScope).toEqual(expectedAScope);
     expect(actualAScope.declaration.type.name).toEqual("() => number");
     expect(actualAScope.declaration.type.argumentsTypes).toEqual([]);
     expect(actualAScope.declaration.type.returnType).toEqual(
@@ -599,11 +584,6 @@ describe("Simple objects with property typing", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope3-11]]");
-    const expectedAScope = expect.objectContaining({
-      parent: actual,
-      type: "function"
-    });
-    expect(actualAScope).toEqual(expectedAScope);
     expect(actualAScope.declaration.type.argumentsTypes).toEqual([
       new Type("number"),
       new Type("string")
@@ -619,11 +599,6 @@ describe("Simple objects with property typing", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope3-11]]");
-    const expectedAScope = expect.objectContaining({
-      parent: actual,
-      type: "function"
-    });
-    expect(actualAScope).toEqual(expectedAScope);
     expect(actualAScope.declaration.type.name).toEqual("() => number");
     expect(actualAScope.declaration.type.argumentsTypes).toEqual([]);
     expect(actualAScope.declaration.type.returnType).toEqual(
@@ -638,11 +613,6 @@ describe("Simple objects with property typing", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualAScope = actual.body.get("[[Scope3-11]]");
-    const expectedAScope = expect.objectContaining({
-      parent: actual,
-      type: "function"
-    });
-    expect(actualAScope).toEqual(expectedAScope);
     expect(actualAScope.declaration.type.argumentsTypes).toEqual([
       new Type("number"),
       new Type("string")
@@ -660,11 +630,6 @@ describe("Simple objects with property typing", () => {
     `);
     const [[actual]] = await createTypeGraph([sourceAST]);
     const actualBScope = actual.body.get("[[Scope4-10]]");
-    const expectedAScope = expect.objectContaining({
-      parent: actual,
-      type: "function"
-    });
-    expect(actualBScope).toEqual(expectedAScope);
     expect(actualBScope.declaration.type.name).toEqual("() => number");
     expect(actualBScope.declaration.type.argumentsTypes).toEqual([]);
     expect(actualBScope.declaration.type.returnType).toEqual(

@@ -1,4 +1,5 @@
 // @flow
+import NODE from "./nodes";
 import HegelError from "./errors";
 import { Scope } from "../type-graph/scope";
 import { CallMeta } from "../type-graph/meta/call-meta";
@@ -13,10 +14,10 @@ import { getTypeFromTypeAnnotation } from "./type-utils";
 import { getParentForNode, getScopeFromNode, findNearestTypeScope } from "../utils/scope-utils";
 import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
-import type { Node, ClassDeclaration, ClassExpression, ClassProperty, ObjectProperty, ClassMethod, ObjectMethod } from "@babel/core";
+import type { Node, ClassDeclaration, ClassExpression, ClassProperty, ObjectProperty, ClassMethod, ObjectMethod, ObjectExpression } from "@babel/core";
 
 export function addClassScopeToTypeGraph(
-  currentNode: ClassDeclaration | ClassExpression,
+  currentNode: ClassDeclaration | ClassExpression | ObjectExpression,
   parentNode: Node | Scope | ModuleScope,
   typeScope: Scope,
   typeGraph: ModuleScope
@@ -27,9 +28,16 @@ export function addClassScopeToTypeGraph(
     typeGraph,
   );
   const parentTypeScope = findNearestTypeScope(scope, typeGraph);
-  const name = getDeclarationName(currentNode);
+  const name = currentNode.id != undefined ? getDeclarationName(currentNode) : "{ }";
   const Object = findVariableInfo({ name: "Object" }, typeScope);
-  const selfObject = new ObjectType(name, [], { isSubtypeOf: Object.type, isNominal: true });
+  const selfObject = new ObjectType(
+    name,
+    [],
+    {
+      isSubtypeOf: Object.type,
+      isNominal: currentNode.type === NODE.CLASS_EXPRESSION || currentNode.type === NODE.CLASS_DECLARATION
+    }
+  );
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, parentTypeScope);
   const self = currentNode.typeParameters === undefined ? selfObject : new GenericType(
     name,
@@ -49,14 +57,17 @@ export function addClassScopeToTypeGraph(
 }
 
 export function addClassNodeToTypeGraph(
-  currentNode: ClassDeclaration,
+  currentNode: ClassDeclaration | ClassExpression,
   parentNode: Node,
   typeScope: Scope,
   typeGraph: ModuleScope,
 ) {
-  const name = getDeclarationName(currentNode);
   const currentScope = getParentForNode(currentNode, parentNode, typeGraph);
   addClassScopeToTypeGraph(currentNode, currentScope, typeScope, typeGraph);
+  if (currentNode.type !== NODE.CLASS_DECLARATION) {
+    return;
+  }
+  const name = getDeclarationName(currentNode);
   currentScope.body.set(name, currentNode);
 }
 
@@ -65,7 +76,7 @@ export function addPropertyNodeToThis(
   parentNode: Node,
   typeGraph: ModuleScope,
 ) {
-  const propertyName = currentNode.key.name;
+  const propertyName = currentNode.key.name || `${currentNode.key.value}`;
   const currentClassScope = getParentForNode(currentNode, parentNode, typeGraph);
   const self = findVariableInfo({ name: THIS_TYPE }, currentClassScope);
   const selfType = self.type instanceof GenericType ? self.type.subordinateType : self.type;
@@ -76,6 +87,20 @@ export function addPropertyNodeToThis(
     throw new HegelError("Duplicated property definition!", currentNode.loc);
   }
   selfType.properties.set(propertyName, currentNode);
+}
+
+export function addObjectName(currentNode: ObjectExpression, typeGraph: ModuleScope) {
+  const objectScope = typeGraph.body.get(Scope.getName(currentNode));
+  if (!(objectScope instanceof Scope)) {
+    throw new Error("Never!!!");
+  }
+  const self = objectScope.body.get(THIS_TYPE);
+  if (!(self instanceof VariableInfo)) {
+    throw new Error("Never!!!");
+  }
+  // $FlowIssue
+  const selfType: ObjectType = self.type instanceof GenericType ? self.type.subordinateType : self.type;
+  selfType.name = ObjectType.getName([...selfType.properties], selfType) || selfType.name;
 }
 
 export function addClassToTypeGraph(
@@ -130,10 +155,9 @@ export function addClassToTypeGraph(
     constructorScope.calls.push(callMeta);
     }
   }
-  const classType = self;
-  // $FlowIssue
-  const classVariable = new VariableInfo(new ObjectType(self.type.name, [[CONSTRUCTABLE, constructor]]), parentScope);
   properties.delete(CONSTRUCTABLE, constructor);
+  const classVariable = new VariableInfo(new ObjectType(String(self.type.name), [[CONSTRUCTABLE, constructor]]), parentScope);
   parentScope.body.set(name, classVariable);
-  typeScope.body.set(name, classType);
+  // $FlowIssue
+  typeScope.body.set(name, self);
 };

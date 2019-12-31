@@ -81,14 +81,16 @@ describe("Simple inference for module variables by literal", () => {
     const sourceAST = prepareAST(`
       const a = {};
     `);
-    const [[actual], errors] = await createTypeGraph([sourceAST]);
-    const actualTypeScope = actual.parent.body.get(TYPE_SCOPE);
-    const expected = expect.objectContaining({
-      type: new ObjectType("{  }", [], { isSubtypeOf: actualTypeScope.body.get("Object").type }),
-      parent: actual
-    });
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    const a = actual.body.get("a");
     expect(errors.length).toBe(0);
-    expect(actual.body.get("a")).toEqual(expected);
+    expect(a.type).toBeInstanceOf(ObjectType);
+    expect(a.type.name).toBe("{  }");
   });
   test("Inference global module variable with empty array type", async () => {
     const sourceAST = prepareAST(`
@@ -332,15 +334,17 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual], errors] = await createTypeGraph([sourceAST]);
-    const expected = expect.objectContaining({
-      type: new ObjectType("{ a: number }", [
-        ["a", new VariableInfo(new Type("number"), actual)]
-      ]),
-      parent: actual
-    });
+    const [[actual], errors, globalModule] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    const a = actual.body.get("a");
     expect(errors.length).toBe(0);
-    expect(actual.body.get("a")).toEqual(expected);
+    expect(a.type).toBeInstanceOf(ObjectType);
+    expect(a.type.name).toBe("{ a: number }");
+    expect(a.type.properties.get("a").type).toEqual(new Type("number"));
   });
   test("Inference global module variable with alias type", async () => {
     const sourceAST = prepareAST(`
@@ -350,15 +354,17 @@ describe("Simple inference for module variables by function return", () => {
       }
       const a = getA();
     `);
-    const [[actual], errors] = await createTypeGraph([sourceAST]);
-    const expected = expect.objectContaining({
-      type: new ObjectType("{ a: number }", [
-        ["a", new VariableInfo(new Type("number"), actual)]
-      ]),
-      parent: actual
-    });
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      await mixTypeDefinitions(createTypeGraph)
+    );
+    const a = actual.body.get("a");
     expect(errors.length).toBe(0);
-    expect(actual.body.get("a")).toEqual(expected);
+    expect(a.type).toBeInstanceOf(ObjectType);
+    expect(a.type.name).toBe("{ a: number }");
+    expect(a.type.properties.get("a").type).toEqual(new Type("number"));
   });
   test("Inference global module variable with generic alias type", async () => {
     const sourceAST = prepareAST(`
@@ -369,14 +375,11 @@ describe("Simple inference for module variables by function return", () => {
       const a = getA();
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
-    const expected = expect.objectContaining({
-      type: new ObjectType("{ a: number }", [
-        ["a", new VariableInfo(new Type("number"), actual)]
-      ]),
-      parent: actual
-    });
+    const a = actual.body.get("a");
     expect(errors.length).toBe(0);
-    expect(actual.body.get("a")).toEqual(expected);
+    expect(a.type).toBeInstanceOf(ObjectType);
+    expect(a.type.name).toBe("{ a: number }");
+    expect(a.type.properties.get("a").type).toEqual(new Type("number"));
   });
   test("Inference function with default paramter and type", async () => {
     const sourceAST = prepareAST(`
@@ -485,7 +488,7 @@ describe("Simple inference for module functions", () => {
   test("Inference global module function type by inner function arguments usage", async () => {
     const sourceAST = prepareAST(`
       function a(x) {
-  			return () => x - 2;
+        return () => x - 2;
       }
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);

@@ -26,7 +26,7 @@ import { addCallToTypeGraph, addPropertyToThis } from "./call";
 import { getTypeFromTypeAnnotation, createSelf } from "../utils/type-utils";
 import { POSITIONS, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
 import { addFunctionToTypeGraph, addFunctionNodeToTypeGraph } from "../utils/function-utils";
-import { addClassToTypeGraph, addClassNodeToTypeGraph, addPropertyNodeToThis } from "../utils/class-utils";
+import { addClassToTypeGraph, addClassNodeToTypeGraph, addPropertyNodeToThis, addObjectName } from "../utils/class-utils";
 import {
   prepareGenericFunctionType,
   inferenceFunctionTypeByScope
@@ -169,7 +169,6 @@ const fillModuleScope = (
         if (existedRecord instanceof VariableInfo) {
           return false;
         }
-      case NODE.OBJECT_METHOD:
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
         addFunctionToTypeGraph(
@@ -188,6 +187,7 @@ const fillModuleScope = (
         }
         addScopeToTypeGraph(currentNode, parentNode, typeGraph);
         break;
+      case NODE.OBJECT_METHOD:
       case NODE.CLASS_METHOD:
         const classScope = typeGraph.body.get(Scope.getName(parentNode));
         if (!(classScope instanceof Scope)) {
@@ -264,6 +264,8 @@ const middlefillModuleScope = (
     const typeScope = typeGraph.body.get(TYPE_SCOPE);
     switch (currentNode.type) {
       case NODE.CLASS_DECLARATION:
+      case NODE.CLASS_EXPRESSION:
+      case NODE.OBJECT_EXPRESSION:
         addClassNodeToTypeGraph(
           currentNode,
           parentNode,
@@ -272,6 +274,8 @@ const middlefillModuleScope = (
           typeGraph,
         );
         break;
+      case NODE.OBJECT_PROPERTY:
+      case NODE.OBJECT_METHOD:
       case NODE.CLASS_PROPERTY:
       case NODE.CLASS_METHOD:
         addPropertyNodeToThis(
@@ -311,7 +315,11 @@ const afterFillierActions = (
   ) => {
     const currentScope = getParentForNode(currentNode, parentNode, typeGraph);
     switch (currentNode.type) {
+      case NODE.OBJECT_EXPRESSION:
+        addObjectName(currentNode, typeGraph);
+        break;
       case NODE.CLASS_PROPERTY:
+      case NODE.OBJECT_PROPERTY:
         addPropertyToThis(
           currentNode,
           parentNode,

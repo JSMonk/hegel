@@ -1,14 +1,13 @@
 // @flow
 import NODE from "../utils/nodes";
-import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
 import { Scope } from "../type-graph/scope";
 import { THIS_TYPE } from "../type-graph/constants";
 import { ModuleScope } from "../type-graph/module-scope";
 import { ObjectType } from "../type-graph/types/object-type";
+import { VariableInfo } from "../type-graph/variable-info";
 import { findVariableInfo } from "../utils/common";
 import { inferenceTupleType } from "./tuple-type";
-import { inferenceObjectType } from "./object-type";
 import { inferenceFunctionLiteralType } from "./function-type";
 import type { Node } from "@babel/parser";
 import type { Handler } from "../utils/traverse";
@@ -61,16 +60,15 @@ export function inferenceTypeForNode(
         post
       );
     case NODE.OBJECT_EXPRESSION:
-      return inferenceObjectType(
-        currentNode,
-        typeScope,
-        parentScope,
-        typeGraph,
-        parentNode,
-        pre,
-        middle,
-        post
-      );
+      const objectScope = typeGraph.body.get(Scope.getName(currentNode));
+      if (!(objectScope instanceof Scope)) {
+        throw new Error("Never!!!");
+      }
+      const self = objectScope.body.get(THIS_TYPE);
+      if (!(self instanceof VariableInfo)) {
+        throw new Error("Never!!!");
+      }
+      return self.type;
     case NODE.OBJECT_METHOD:
     case NODE.CLASS_METHOD:
     case NODE.FUNCTION_DECLARATION:
