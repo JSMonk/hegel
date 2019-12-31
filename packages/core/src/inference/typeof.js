@@ -81,15 +81,16 @@ function getRefinmentType(typeName: string): Type {
     case "number":
     case "string":
     case "boolean":
-    case "undefined":
     case "bigint":
       return new Type(typeName);
     case "function":
       return new ObjectType("Function", []);
+    case "undefined":
+      return new Type("undefined", { isSubtypeOf: new Type("void") });
     case "object":
       return new UnionType("Object | null", [
         new ObjectType("Object", []),
-        new Type("null")
+        new Type(null, { isSubtypeOf: new Type("void") })
       ]);
   }
   throw new Error("Never!");

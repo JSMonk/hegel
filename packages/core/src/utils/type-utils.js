@@ -455,10 +455,16 @@ export function getTypeFromTypeAnnotation(
 }
 
 export function mergeObjectsTypes(
-  obj1?: ObjectType = new ObjectType("{  }", []),
-  obj2?: ObjectType = new ObjectType("{  }", []),
+  obj1?: TypeVar | ObjectType = new ObjectType("{  }", []),
+  obj2?: TypeVar | ObjectType = new ObjectType("{  }", []),
   typeScope: Scope
-): ObjectType {
+): ObjectType | TypeVar {
+  if (obj1 instanceof TypeVar) {
+    return obj1;
+  }
+  if (obj2 instanceof TypeVar) {
+    return obj2;
+  }
   const resultProperties = unique(
     [...obj1.properties.entries(), ...obj2.properties.entries()],
     ([key]) => key

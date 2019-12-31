@@ -9,10 +9,14 @@ import type { VariableInfo } from "../type-graph/variable-info";
 import type { MemberExpression } from "@babel/parser";
 
 export function getTypesFromVariants(
-  refinementedVariants: Array<Type>,
-  alternateVariants: Array<Type>,
+  _refinementedVariants: Array<?Type>,
+  _alternateVariants: Array<?Type>,
   typeScope: Scope
 ): [?Type, ?Type] {
+  // $FlowIssue
+  const refinementedVariants: Array<Type> = _refinementedVariants.filter(a => a != undefined);
+  // $FlowIssue
+  const alternateVariants: Array<Type> = _alternateVariants.filter(a => a != undefined);
   return [
     refinementedVariants.length
       ? UnionType.createTypeWithName(

@@ -166,6 +166,18 @@ export function refinePropertyWithConstraint(
   return [refinementedType, variableType];
 }
 
+function propertyWith(propertyName: string, propertyType: ?Type, propertyOwner: ObjectType, typeScope: Scope) {
+  if (propertyType == undefined) {
+    return propertyType;
+  }
+  const newPropertyOwner = createObjectWith(
+    propertyName,
+    propertyType,
+    typeScope,
+  );
+  return mergeObjectsTypes(propertyOwner, newPropertyOwner, typeScope);
+}
+
 export function refinementProperty(
   variableName: string,
   variableType: Type,
@@ -189,36 +201,50 @@ export function refinementProperty(
     variableType = variableType.constraint;
   }
   if (variableType instanceof ObjectType) {
-    const property = variableType.properties.get(currentPropertyName);
-    if (property === undefined) {
+    const property = variableType.getPropertyType(currentPropertyName);
+    if (property == null) {
       return;
     }
     if (isLast) {
-      if (property.type instanceof UnionType) {
+      if (property instanceof UnionType) {
         const [
           refinementedVariants,
           alternateVariants
-        ] = property.type.variants.reduce(
+        ] = property.variants.reduce(
           ([refinementedVariants, alternateVariants], variant) =>
-            refinementType.isSuperTypeFor(variant)
+            refinementType.isPrincipalTypeFor(variant)
               ? [refinementedVariants.concat([variant]), alternateVariants]
               : [refinementedVariants, alternateVariants.concat([variant])],
           [[], []]
         );
-        return getTypesFromVariants(
+        const [refinemented, alternate] = getTypesFromVariants(
           refinementedVariants,
           alternateVariants,
           typeScope
         );
+        return [
+          propertyWith(
+            currentPropertyName,
+            refinemented,
+            variableType,
+            typeScope
+          ),
+          propertyWith(
+            currentPropertyName,
+            alternate,
+            variableType,
+            typeScope
+          ),
+        ];
       }
-      return refinementType.isPrincipalTypeFor(property.type)
-        ? [property.type, undefined]
-        : [undefined, property.type];
+      return refinementType.isPrincipalTypeFor(property)
+        ? [variableType, undefined]
+        : [undefined, variableType];
     }
     const nextIndex = currentPropertyNameIndex + 1;
     const nestedRefinement = refinementProperty(
       variableName,
-      property.type,
+      property,
       refinementType,
       refinementNode,
       nextIndex,
@@ -228,31 +254,19 @@ export function refinementProperty(
     if (!nestedRefinement) {
       return;
     }
-    const nestedRefinementedType =
-      nestedRefinement[0] &&
-      createObjectWith(
-        chainingProperties[nextIndex],
-        nestedRefinement[0],
-        typeScope,
-        // $FlowIssue
-        property.type.properties.get(chainingProperties[nextIndex]).meta
-      );
-    const nestedAlternateType =
-      nestedRefinement[1] &&
-      createObjectWith(
-        chainingProperties[nextIndex],
-        nestedRefinement[1],
-        typeScope,
-        // $FlowIssue
-        property.type.properties.get(chainingProperties[nextIndex]).meta
-      );
     return [
-      nestedRefinementedType &&
-        // $FlowIssue
-        mergeObjectsTypes(property.type, nestedRefinementedType, typeScope),
-      nestedAlternateType &&
-        // $FlowIssue
-        mergeObjectsTypes(property.type, nestedAlternateType, typeScope)
+      propertyWith(
+        currentPropertyName,
+        nestedRefinement[0],
+        variableType,
+        typeScope
+      ),
+      propertyWith(
+        currentPropertyName,
+        nestedRefinement[1],
+        variableType,
+        typeScope
+      ),
     ];
   }
   if (variableType instanceof UnionType) {
@@ -285,28 +299,12 @@ export function refinementProperty(
         return [
           refinementedType
             ? refinementedVariants.concat([
-                mergeObjectsTypes(
-                  (variant: any),
-                  createObjectWith(
-                    currentPropertyName,
-                    refinementedType,
-                    typeScope
-                  ),
-                  typeScope
-                )
+                refinementedType
               ])
             : refinementedVariants,
           alternateType
             ? alternateVariants.concat([
-                mergeObjectsTypes(
-                  (variant: any),
-                  createObjectWith(
-                    currentPropertyName,
-                    alternateType,
-                    typeScope
-                  ),
-                  typeScope
-                )
+                alternateType
               ])
             : alternateVariants
         ];
