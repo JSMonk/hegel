@@ -185,7 +185,14 @@ const getCurrentNode = compose(
   mixExportInfo
 );
 
-export type Handler = (Tree, Tree, Handler, Handler, Handler, TraverseMeta) => void | boolean;
+export type Handler = (
+  Tree,
+  Tree,
+  Handler,
+  Handler,
+  Handler,
+  TraverseMeta
+) => void | boolean;
 
 function traverseTree(
   node: Tree,
@@ -196,7 +203,14 @@ function traverseTree(
   meta?: TraverseMeta = {}
 ) {
   const currentNode = getCurrentNode(node, parentNode, meta);
-  const shouldContinueTraversing = pre(currentNode, parentNode, pre, middle, post, meta);
+  const shouldContinueTraversing = pre(
+    currentNode,
+    parentNode,
+    pre,
+    middle,
+    post,
+    meta
+  );
   if (!shouldContinueTraversing) {
     return;
   }

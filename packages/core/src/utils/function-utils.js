@@ -11,11 +11,21 @@ import { VariableInfo } from "../type-graph/variable-info";
 import { inferenceTypeForNode } from "../inference";
 import { addVariableToGraph } from "./variable-utils";
 import { getDeclarationName, getAnonymousKey } from "./common";
-import { getParentForNode, getScopeFromNode, findNearestTypeScope } from "../utils/scope-utils";
+import {
+  getParentForNode,
+  getScopeFromNode,
+  findNearestTypeScope
+} from "../utils/scope-utils";
 import type { Type } from "../type-graph/types/type";
 import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
-import type { Node, Identifier, FunctionDeclaration, ClassMethod, ClassProperty } from "@babel/core"
+import type {
+  Node,
+  Identifier,
+  FunctionDeclaration,
+  ClassMethod,
+  ClassProperty
+} from "@babel/core";
 
 export function addFunctionScopeToTypeGraph(
   currentNode: Node,
@@ -40,7 +50,7 @@ export function addFunctionScopeToTypeGraph(
 export function addFunctionNodeToTypeGraph(
   currentNode: FunctionDeclaration | ClassMethod | ClassProperty,
   parentNode: Node,
-  typeGraph: ModuleScope,
+  typeGraph: ModuleScope
 ) {
   const name = getDeclarationName(currentNode);
   const currentScope = getParentForNode(currentNode, parentNode, typeGraph);

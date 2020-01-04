@@ -14,9 +14,13 @@ export function getTypesFromVariants(
   typeScope: Scope
 ): [?Type, ?Type] {
   // $FlowIssue
-  const refinementedVariants: Array<Type> = _refinementedVariants.filter(a => a != undefined);
+  const refinementedVariants: Array<Type> = _refinementedVariants.filter(
+    a => a != undefined
+  );
   // $FlowIssue
-  const alternateVariants: Array<Type> = _alternateVariants.filter(a => a != undefined);
+  const alternateVariants: Array<Type> = _alternateVariants.filter(
+    a => a != undefined
+  );
   return [
     refinementedVariants.length
       ? UnionType.createTypeWithName(

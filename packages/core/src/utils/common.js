@@ -13,7 +13,7 @@ import type {
   SourceLocation,
   MemberExpression,
   ClassDeclaration,
-  FunctionDeclaration,
+  FunctionDeclaration
 } from "@babel/parser";
 
 export const getAnonymousKey = (node: Node) =>
@@ -26,7 +26,9 @@ type Identifier = {
   loc?: SourceLocation
 };
 
-function canTraverseFunction(rest: [] | [Node, ModuleScope, Handler, Handler, Handler]) {
+function canTraverseFunction(
+  rest: [] | [Node, ModuleScope, Handler, Handler, Handler]
+) {
   return rest.length === 5;
 }
 
@@ -34,12 +36,12 @@ export function findVariableInfo(
   { name, loc }: Identifier,
   parentContext: ModuleScope | Scope,
   ...rest: [] | [Node, ModuleScope, Handler, Handler, Handler]
-): VariableInfo  {
+): VariableInfo {
   let parent = parentContext;
   do {
     const variableInfo = parent.body.get(name);
     if (variableInfo) {
-      if(variableInfo instanceof VariableInfo) {
+      if (variableInfo instanceof VariableInfo) {
         if ("subordinateMagicType" in variableInfo.type && name !== ".") {
           const newType = (variableInfo.type: any).unpack();
           variableInfo.type = newType;
@@ -48,11 +50,7 @@ export function findVariableInfo(
       }
       if (!(variableInfo instanceof Scope) && canTraverseFunction(rest)) {
         // $FlowIssue
-        return addAndTraverseFunctionWithType(
-          undefined,
-          variableInfo,
-          ...rest
-        );
+        return addAndTraverseFunctionWithType(undefined, variableInfo, ...rest);
       }
     }
     parent = parent.parent;
@@ -70,9 +68,9 @@ export function addAndTraverseFunctionWithType(
   postcompute: Handler
 ) {
   currentNode.expected =
-    definedType != undefined && 'variants' in definedType
-      // $FlowIssue
-      ? definedType.variants.find(a => 'argumentsTypes' in a)
+    definedType != undefined && "variants" in definedType
+      ? // $FlowIssue
+        definedType.variants.find(a => "argumentsTypes" in a)
       : definedType;
   const scopeName = Scope.getName(currentNode);
   traverseTree(currentNode, precompute, middlecompute, postcompute, parentNode);
@@ -114,7 +112,7 @@ export function findFunctionOrClass(
 export function findRecordInfo(
   { name, loc }: Identifier,
   parentContext: ModuleScope | Scope
-): VariableInfo | ClassDeclaration | FunctionDeclaration  {
+): VariableInfo | ClassDeclaration | FunctionDeclaration {
   let parent = parentContext;
   do {
     const recordInfo = parent.body.get(name);

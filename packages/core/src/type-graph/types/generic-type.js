@@ -42,7 +42,7 @@ export class GenericType<T: Type> extends Type {
     this.localTypeScope = typeScope;
     this.genericArguments = genericArguments;
   }
-  
+
   isSuperTypeFor(anotherType: Type) {
     const otherType =
       anotherType instanceof GenericType
@@ -51,7 +51,11 @@ export class GenericType<T: Type> extends Type {
     return this.subordinateType.isSuperTypeFor(otherType);
   }
 
-  assertParameters(parameters: Array<Type>, loc?: SourceLocation, ignoreLength?: boolean = false) {
+  assertParameters(
+    parameters: Array<Type>,
+    loc?: SourceLocation,
+    ignoreLength?: boolean = false
+  ) {
     if (parameters.length !== this.genericArguments.length) {
       throw new HegelError(
         `Generic "${String(

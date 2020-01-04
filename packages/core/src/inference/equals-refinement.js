@@ -89,7 +89,13 @@ function isSimpleLiteral(node: Node) {
 }
 
 function getRefinmentType(
-  value: Identifier|NullLiteral|NumericLiteral|BigIntLiteral|StringLiteral|BooleanLiteral,
+  value:
+    | Identifier
+    | NullLiteral
+    | NumericLiteral
+    | BigIntLiteral
+    | StringLiteral
+    | BooleanLiteral,
   refinementNode: Node
 ): Type {
   const VOID = new Type("void");
@@ -97,8 +103,8 @@ function getRefinmentType(
   const NULL = new Type(null, { isSubtypeOf: VOID });
   const UNION = new UnionType(null, [UNDEFINED, NULL]);
   const strict = isStrict(refinementNode);
-   switch(value.type) {
-     case NODE.NUMERIC_LITERAL:
+  switch (value.type) {
+    case NODE.NUMERIC_LITERAL:
       return new Type(value.value, {
         isSubtypeOf: new Type("number")
       });
@@ -116,7 +122,7 @@ function getRefinmentType(
       });
     case NODE.NULL_LITERAL:
       return strict ? NULL : UNION;
-    }
+  }
   if (value.type === NODE.IDENTIFIER && value.name === "undefined") {
     return strict ? UNDEFINED : UNION;
   }
@@ -191,14 +197,19 @@ export function refinePropertyWithConstraint(
   return [refinementedType, variableType];
 }
 
-function propertyWith(propertyName: string, propertyType: ?Type, propertyOwner: ObjectType, typeScope: Scope) {
+function propertyWith(
+  propertyName: string,
+  propertyType: ?Type,
+  propertyOwner: ObjectType,
+  typeScope: Scope
+) {
   if (propertyType == undefined) {
     return propertyType;
   }
   const newPropertyOwner = createObjectWith(
     propertyName,
     propertyType,
-    typeScope,
+    typeScope
   );
   return mergeObjectsTypes(propertyOwner, newPropertyOwner, typeScope);
 }
@@ -254,12 +265,7 @@ export function refinementProperty(
             variableType,
             typeScope
           ),
-          propertyWith(
-            currentPropertyName,
-            alternate,
-            variableType,
-            typeScope
-          ),
+          propertyWith(currentPropertyName, alternate, variableType, typeScope)
         ];
       }
       return refinementType.isPrincipalTypeFor(property)
@@ -291,7 +297,7 @@ export function refinementProperty(
         nestedRefinement[1],
         variableType,
         typeScope
-      ),
+      )
     ];
   }
   if (variableType instanceof UnionType) {
@@ -323,14 +329,10 @@ export function refinementProperty(
         ] = refinementedTypeAndAlternateType;
         return [
           refinementedType
-            ? refinementedVariants.concat([
-                refinementedType
-              ])
+            ? refinementedVariants.concat([refinementedType])
             : refinementedVariants,
           alternateType
-            ? alternateVariants.concat([
-                alternateType
-              ])
+            ? alternateVariants.concat([alternateType])
             : alternateVariants
         ];
       },

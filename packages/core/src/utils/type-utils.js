@@ -71,6 +71,9 @@ export function getTypeFromTypeAnnotation(
   if (!typeNode || !typeNode.typeAnnotation) {
     return TypeVar.createTypeWithName(UNDEFINED_TYPE, typeScope);
   }
+  if (typeNode.typeAnnotation.type === NODE.TS_PARENTHESIZED_TYPE) {
+    typeNode.typeAnnotation = typeNode.typeAnnotation.typeAnnotation;
+  }
   switch (typeNode.typeAnnotation.type) {
     case NODE.THIS_TYPE_ANNOTATION:
     case NODE.TS_THIS_TYPE_ANNOTATION:
@@ -304,6 +307,13 @@ export function getTypeFromTypeAnnotation(
         rewritable,
         self
       );
+    case NODE.TS_TYPE_QUERY:
+      typeNode.typeAnnotation = {
+        loc: typeNode.typeAnnotation.loc,
+        type: NODE.GENERIC_TYPE_ANNOTATION,
+        id: { name: "$TypeOf" },
+        typeParameters: { params: [{ id: typeNode.typeAnnotation.exprName }] }
+      };
     case NODE.GENERIC_TYPE_ANNOTATION:
     case NODE.TS_TYPE_REFERENCE_ANNOTATION:
     case NODE.TS_EXPRESSION_WITH_TYPE_ARGUMENTS:

@@ -5,7 +5,10 @@ import { VariableInfo } from "../type-graph/variable-info";
 const mixBaseGlobals = moduleScope => {
   const typeScope = moduleScope.body.get(TYPE_SCOPE);
   const globalTypes = [
-    ["unknown", new VariableInfo(Type.createTypeWithName("unknown", typeScope))],
+    [
+      "unknown",
+      new VariableInfo(Type.createTypeWithName("unknown", typeScope))
+    ],
     ["never", new VariableInfo(Type.createTypeWithName("never", typeScope))],
     ["void", new VariableInfo(Type.createTypeWithName("void", typeScope))],
     [

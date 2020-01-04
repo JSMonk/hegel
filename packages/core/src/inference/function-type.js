@@ -433,8 +433,8 @@ export function getRawFunctionType(
   }
   const result =
     genericArguments != null
-      // $FlowIssue
-      ? fn.applyGeneric(genericArguments, loc, true, false, initializing)
+      ? // $FlowIssue
+        fn.applyGeneric(genericArguments, loc, true, false, initializing)
       : implicitApplyGeneric(fn, args, localTypeScope, loc, withClean);
   if (result instanceof GenericType) {
     return result.subordinateType;
@@ -543,7 +543,8 @@ export function inferenceFunctionTypeByScope(
         : [returnType.root]
       ).concat([newOneRoot]);
       returnType.root =
-        returnType.root != undefined && !returnType.root.isPrincipalTypeFor(newOneRoot)
+        returnType.root != undefined &&
+        !returnType.root.isPrincipalTypeFor(newOneRoot)
           ? UnionType.createTypeWithName(
               // $FlowIssue
               UnionType.getName(variants),
@@ -626,7 +627,10 @@ export function inferenceFunctionTypeByScope(
       const copy = created.get(argumentType);
       if (argumentType.root !== undefined) {
         args[j] = Type.getTypeRoot(argumentType);
-        if (oldGenericArguments.includes(argumentType) && argumentType.isUserDefined) {
+        if (
+          oldGenericArguments.includes(argumentType) &&
+          argumentType.isUserDefined
+        ) {
           shouldBeCleaned.push(argumentType);
         }
       } else if (copy !== undefined) {
@@ -641,7 +645,9 @@ export function inferenceFunctionTypeByScope(
       }
     }
     if (targetType instanceof GenericType) {
-      targetType.genericArguments.forEach(a => a.isUserDefined && shouldBeCleaned.push(a));
+      targetType.genericArguments.forEach(
+        a => a.isUserDefined && shouldBeCleaned.push(a)
+      );
     }
   }
   for (let i = 0; i < oldGenericArguments.length; i++) {
@@ -654,7 +660,11 @@ export function inferenceFunctionTypeByScope(
     if (isTypeVarStillExisted && genericArgument instanceof TypeVar) {
       newGenericArguments.add(genericArgument);
     }
-    if (genericArgument instanceof TypeVar && !genericArgument.isUserDefined && genericArgument !== oldRoot) {
+    if (
+      genericArgument instanceof TypeVar &&
+      !genericArgument.isUserDefined &&
+      genericArgument !== oldRoot
+    ) {
       genericArgument.root = oldRoot;
     }
   }

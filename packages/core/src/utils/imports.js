@@ -8,9 +8,10 @@ import { VariableInfo } from "../type-graph/variable-info";
 import type { Scope } from "../type-graph/scope";
 import type { ModuleScope, TypeGraph } from "../type-graph/module-scope";
 import type {
-  ImportDeclaration,
   Program,
-  ImportSpecifier
+  SourceLocation,
+  ImportSpecifier,
+  ImportDeclaration
 } from "@babel/parser";
 
 function getImportName(specifier: ImportSpecifier): ?string {
@@ -72,14 +73,17 @@ export default async function mixImportedDependencies(
   errors: Array<HegelError>,
   currentModuleScope: ModuleScope,
   currentTypeScope: Scope,
-  getModuleTypeGraph: (string, string) => Promise<ModuleScope>
+  getModuleTypeGraph: (string, string, SourceLocation) => Promise<ModuleScope>
 ): Promise<void> {
   const importRequests = [];
   for (let i = 0; i < ast.body.length; i++) {
     const node = ast.body[i];
     if (node.type === NODE.IMPORT_DECLARATION) {
       importRequests.push(
-        Promise.all([node, getModuleTypeGraph(node.source.value, ast.path)])
+        Promise.all([
+          node,
+          getModuleTypeGraph(node.source.value, ast.path, node.loc)
+        ])
       );
     }
   }

@@ -57,7 +57,10 @@ export const findNearestTypeScope = (
   currentScope: Scope | ModuleScope,
   typeGraph: ModuleScope
 ): Scope => {
-  let scope = findNearestScopeByType([Scope.FUNCTION_TYPE, Scope.CLASS_TYPE], currentScope);
+  let scope = findNearestScopeByType(
+    [Scope.FUNCTION_TYPE, Scope.CLASS_TYPE],
+    currentScope
+  );
   const moduleTypeScope = typeGraph.body.get(TYPE_SCOPE);
   if (!(moduleTypeScope instanceof Scope)) {
     throw new Error("Never!");
@@ -68,7 +71,10 @@ export const findNearestTypeScope = (
       // $FlowIssue
       return scope.declaration.type.localTypeScope;
     }
-    scope = findNearestScopeByType([Scope.FUNCTION_TYPE, Scope.CLASS_TYPE], scope.parent);
+    scope = findNearestScopeByType(
+      [Scope.FUNCTION_TYPE, Scope.CLASS_TYPE],
+      scope.parent
+    );
   }
   return moduleTypeScope;
 };

@@ -1,191 +1,178 @@
-const fs = require("fs");
 const path = require("path");
 const utils = require("util");
 const babylon = require("@babel/parser");
 const HegelError = require("@hegel/core/utils/errors").default;
 const createTypeGraph = require("@hegel/core/type-graph/type-graph").default;
+const { getConfig } = require("@hegel/cli/lib/config");
 const { TYPE_SCOPE } = require("@hegel/core/type-graph/constants");
+const { importModule } = require("@hegel/cli/lib/module");
 const { getVarAtPosition } = require("@hegel/core/utils/position-utils");
 const {
-  createConnection,
+  promises: { readFile }
+} = require("fs");
+const {
   TextDocuments,
-  DiagnosticSeverity,
   IPCMessageReader,
-  IPCMessageWriter
+  IPCMessageWriter,
+  createConnection,
+  DiagnosticSeverity
 } = require("vscode-languageserver");
 
-const readFile = utils.promisify(fs.readFile);
-
+let types = {},
+  errors = [],
+  stdLibTypeGraph,
+  config;
+const documents = new TextDocuments();
+const connection = createConnection(
+  new IPCMessageReader(process),
+  new IPCMessageWriter(process)
+);
+const dtsrc = {
+  sourceType: "module",
+  strictMode: false,
+  plugins: ["typescript"]
+};
 const babelrc = {
   sourceType: "module",
   plugins: [
     "flow",
     "bigInt",
     "classProperties",
-    "@babel/plugin-syntax-bigint", 
-    "@babel/plugin-proposal-class-properties", 
+    "@babel/plugin-syntax-bigint",
+    "@babel/plugin-proposal-class-properties",
     "@babel/plugin-proposal-private-methods",
     "@babel/plugin-proposal-numeric-separator",
     "@babel/plugin-syntax-dynamic-import",
     "@babel/plugin-proposal-nullish-coalescing-operator",
     "@babel/plugin-proposal-optional-catch-binding",
-    "@babel/plugin-proposal-optional-chaining",
+    "@babel/plugin-proposal-optional-chaining"
   ]
 };
 
-const dtsrc = {
-  sourceType: "module",
-  strictMode: false,
-  plugins: ["typescript"]
-};
+connection.listen();
+documents.listen(connection);
 
-(async () => {
-  const connection = createConnection(
-    new IPCMessageReader(process),
-    new IPCMessageWriter(process)
-  );
+connection.onInitialize(() => ({
+  capabilities: {
+    textDocumentSync: documents.syncKind,
+    hoverProvider: true
+  }
+}));
+connection.onHover(meta => {
+  const location = convertRangeToLoc(meta.position);
+  const varInfo = getVarAtPosition(location, types);
+  return varInfo === undefined || varInfo.type === undefined
+    ? undefined
+    : {
+        contents: [{ language: "typescript", value: getTypeName(varInfo.type) }]
+      };
+});
+documents.onDidChangeContent(change => validateTextDocument(change.document));
 
-  let ast = {},
-    types = {},
-    text = "",
-    errors = [];
-
-  const documents = new TextDocuments();
-
-  documents.listen(connection);
-
-  connection.listen();
-
-  connection.onInitialize(() => {
-    return {
-      capabilities: {
-        textDocumentSync: documents.syncKind,
-        hoverProvider: true
-      }
-    };
-  });
-
-  connection.onHover(meta => {
-    const location = convertRangeToLoc(meta.position);
-    const varInfo = getVarAtPosition(location, types);
-    if (!varInfo) {
-      return;
+async function validateTextDocument(textDocument) {
+  const text = textDocument.getText();
+  [types, errors] = await getHegelTypings(text, textDocument.uri);
+  const diagnostics = [];
+  for (let i = 0; i < errors.length; i++) {
+    const error = errors[i];
+    if (!error || !("loc" in error)) {
+      continue;
     }
-    const { type } = varInfo;
-    const value =
-      type.constraint !== undefined
-        ? `${type.name}: ${type.constraint.name}`
-        : type.name;
-    return {
-      contents: [{ language: "typescript", value }]
-    };
-  });
+    diagnostics.push({
+      severity: DiagnosticSeverity.Error,
+      range: formatErrorRange(error),
+      message: error.message,
+      source: "ex"
+    });
+  }
+  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+}
 
-  documents.onDidChangeContent(change => {
-    validateTextDocument(change.document);
-  });
+async function getHegelTypings(source, path) {
+  path = path.replace("file://", "");
+  if (!stdLibTypeGraph) {
+    stdLibTypeGraph = await getStandardTypeDefinitions();
+  }
+  try {
+    const ast = babylon.parse(source, babelrc);
+    const [[types], errors] = await createTypeGraph(
+      [Object.assign(ast.program, { path })],
+      await getModuleAST(path),
+      false,
+      mixTypeDefinitions
+    );
+    return [types, errors];
+  } catch (e) {
+    return [, [e]];
+  }
+}
 
+async function getStandardTypeDefinitions() {
   const stdLibContent = await readFile(
     path.join(__dirname, "../node_modules/@hegel/typings/standard/index.d.ts"),
-    { encoding: "utf8" }
+    "utf8"
   );
-  const stdLibAST = babylon.parse(stdLibContent, dtsrc).program;
-  const [[stdLibTypeGraph], sas] = await createTypeGraph(
-    [stdLibAST],
+  const [[stdLibTypeGraph], errors] = await createTypeGraph(
+    [babylon.parse(stdLibContent, dtsrc).program],
     () => {},
     true
   );
-
-  throw sas;
-  function mixTypeDefinitions(scope) {
-    const body = new Map([...stdLibTypeGraph.body, ...scope.body]);
-    const typeScope = scope.body.get(TYPE_SCOPE);
-    const typesBody = new Map([
-      ...stdLibTypeGraph.body.get(TYPE_SCOPE).body,
-      ...typeScope.body
-    ]);
-    scope.body = body;
-    typeScope.body = typesBody;
+  if (errors.length > 0) {
+    throw errors;
   }
+  return stdLibTypeGraph;
+}
 
-  function convertLocToRange(loc) {
-    return {
-      line: loc.line - 1,
-      character: loc.column
-    };
+async function getModuleAST(currentModulePath) {
+  if (!config) {
+    config = await getConfig(currentModulePath);
   }
+  return importModule(config, async (path, isTypings) => {
+    const stdLibContent = await readFile(path, "utf8");
+    const config = isTypings ? dtsrc : babelrc;
+    return babylon.parse(stdLibContent, config).program;
+  });
+}
 
-  function convertRangeToLoc(loc) {
-    return {
-      line: loc.line + 1,
-      column: loc.character
-    };
-  }
+function mixTypeDefinitions(scope) {
+  const body = new Map([...stdLibTypeGraph.body, ...scope.body]);
+  const typeScope = scope.body.get(TYPE_SCOPE);
+  const typesBody = new Map([
+    ...stdLibTypeGraph.body.get(TYPE_SCOPE).body,
+    ...typeScope.body
+  ]);
+  scope.body = body;
+  typeScope.body = typesBody;
+}
 
-  function getModuleAST(currentModulePath) {
-    return async importModulePath => {
-      const importPath =
-        importModulePath[0] === "."
-          ? path.join(
-              currentModulePath.slice(0, currentModulePath.lastIndexOf("/")),
-              `${importModulePath}.js`
-            )
-          : "";
-      const moduleContent = await readFile(importPath, { encoding: "utf8" });
-      return Object.assign(babylon.parse(moduleContent, babelrc).program, {
-        path: currentModulePath
-      });
-    };
-  }
+function formatErrorRange(error) {
+  const isSyntaxError = error instanceof SyntaxError;
+  return {
+    start: isSyntaxError
+      ? { ...error.loc, line: error.loc.line - 1 }
+      : convertLocToRange(error.loc.start),
+    end: isSyntaxError
+      ? { ...error.loc, column: 1000 }
+      : convertLocToRange(error.loc.end)
+  };
+}
 
-  async function validateTextDocument(textDocument) {
-    text = textDocument.getText();
-    try {
-      ast = babylon.parse(text, babelrc);
-      [[types], errors] = await createTypeGraph(
-        [Object.assign(ast.program, { path: textDocument.uri })],
-        getModuleAST(textDocument.uri.replace("file://", "")),
-        false,
-        mixTypeDefinitions
-      );
-    } catch (e) {
-      errors = [e];
-    }
-    const diagnostics = [];
-    for (let i = 0; i < errors.length; i++) {
-      const error = errors[i];
-      if (!(error instanceof HegelError) && !(error instanceof SyntaxError)) {
-        continue;
-      }
-      const diagnostic = {
-        severity: DiagnosticSeverity.Error,
-        range: {
-          start:
-            error instanceof HegelError
-              ? convertLocToRange(error.loc.start)
-              : { ...error.loc, line: error.loc.line - 1 },
-          end:
-            error instanceof HegelError
-              ? convertLocToRange(error.loc.end)
-              : { ...error.loc, column: 1000 }
-        },
-        message: error.message,
-        source: "ex"
-      };
-      diagnostics.push(diagnostic);
-    }
-    connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-  }
+function convertRangeToLoc(loc) {
+  return {
+    line: loc.line + 1,
+    column: loc.character
+  };
+}
 
-  function getQuickInfo(file, position) {
-    try {
-      return this.tspClient.request("quickinfo", {
-        file,
-        line: position.line + 1,
-        offset: position.character + 1
-      });
-    } catch (err) {
-      return undefined;
-    }
-  }
-})();
+function convertLocToRange(loc) {
+  return {
+    line: loc.line - 1,
+    character: loc.column
+  };
+}
+
+function getTypeName(type) {
+  return type.constraint !== undefined
+    ? `${type.name}: ${type.constraint.name}`
+    : type.name;
+}

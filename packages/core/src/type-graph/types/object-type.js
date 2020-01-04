@@ -9,14 +9,19 @@ import { createTypeWithName } from "./create-type";
 import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../constants";
 import type { Scope } from "../scope";
 import type { TypeMeta } from "./type";
-import type { ClassProperty, ObjectProperty, ClassMethod, ObjectMethod } from "@babel/core";
+import type {
+  ClassProperty,
+  ObjectProperty,
+  ClassMethod,
+  ObjectMethod
+} from "@babel/core";
 
 type ExtendedTypeMeta = { ...TypeMeta, isNominal?: boolean };
 
 export class ObjectType extends Type {
   static createTypeWithName = createTypeWithName(ObjectType);
 
-  static getName(params: Array<[string | number, any]>, type?: ObjectType) {
+  static getName(params: Array<[string, any]>, type?: ObjectType) {
     if (type !== undefined && String(type.name)[0] !== "{") {
       return undefined;
     }
@@ -33,12 +38,12 @@ export class ObjectType extends Type {
   }
 
   isNominal: boolean;
-  properties: Map<string | number, VariableInfo>;
+  properties: Map<string, VariableInfo>;
   onlyLiteral = true;
 
   constructor(
     name: ?string,
-    properties: Array<[string | number, VariableInfo]>,
+    properties: Array<[string, VariableInfo]>,
     options: ExtendedTypeMeta = {}
   ) {
     super(name, {
@@ -52,7 +57,9 @@ export class ObjectType extends Type {
     this.properties = new Map(filteredProperties);
   }
 
-  getPropertyType(propertyName: mixed): ?Type | ClassProperty | ObjectProperty | ClassMethod | ObjectMethod {
+  getPropertyType(
+    propertyName: mixed
+  ): ?Type | ClassProperty | ObjectProperty | ClassMethod | ObjectMethod {
     let fieldOwner = this;
     let field = null;
     while (fieldOwner) {
@@ -99,7 +106,7 @@ export class ObjectType extends Type {
     typeScope: Scope
   ): Type {
     let isAnyPropertyChanged = false;
-    const newProperties: Array<[string | number, VariableInfo]> = [];
+    const newProperties: Array<[string, VariableInfo]> = [];
     this.properties.forEach((vInfo, key) => {
       const newType = vInfo.type.changeAll(sourceTypes, targetTypes, typeScope);
       if (vInfo.type === newType) {
@@ -172,7 +179,7 @@ export class ObjectType extends Type {
       return differences;
     }
     if (type instanceof FunctionType) {
-      const callable = this.properties.get(CALLABLE); 
+      const callable = this.properties.get(CALLABLE);
       if (callable !== undefined) {
         return callable.type.getDifference(type);
       }

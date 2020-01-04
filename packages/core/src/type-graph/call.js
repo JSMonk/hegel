@@ -21,17 +21,30 @@ import { isCallableType } from "../utils/function-utils";
 import { getVariableType } from "../utils/variable-utils";
 import { inferenceTypeForNode } from "../inference";
 import { THIS_TYPE, CALLABLE, CONSTRUCTABLE } from "./constants";
-import { getRawFunctionType, getInvocationType } from "../inference/function-type";
+import {
+  getRawFunctionType,
+  getInvocationType
+} from "../inference/function-type";
 import { getWrapperType, getTypeFromTypeAnnotation } from "../utils/type-utils";
 import {
   getParentForNode,
   findNearestTypeScope,
   findNearestScopeByType
 } from "../utils/scope-utils";
-import { getAnonymousKey, findVariableInfo, addAndTraverseFunctionWithType } from "../utils/common";
+import {
+  getAnonymousKey,
+  findVariableInfo,
+  addAndTraverseFunctionWithType
+} from "../utils/common";
 import type { Handler } from "../utils/traverse";
 import type { CallableArguments } from "./meta/call-meta";
-import type { Node, ClassProperty, ObjectProperty, ClassMethod, ObjectMethod } from "@babel/core";
+import type {
+  Node,
+  ClassProperty,
+  ObjectProperty,
+  ClassMethod,
+  ObjectMethod
+} from "@babel/core";
 
 type CallResult = {
   inferenced?: boolean,
@@ -139,13 +152,13 @@ export function addCallToTypeGraph(
           ? node
           : { name: getAnonymousKey(node), loc: node.loc };
       const varInfo = findVariableInfo(
-          nodeName,
-          currentScope, 
-          parentNode,
-          typeGraph,
-          pre,
-          middle,
-          post
+        nodeName,
+        currentScope,
+        parentNode,
+        typeGraph,
+        pre,
+        middle,
+        post
       );
       if (node.type === NODE.IDENTIFIER) {
         addPosition(node, varInfo, typeGraph);
@@ -154,9 +167,12 @@ export function addCallToTypeGraph(
     case NODE.CLASS_PROPERTY:
     case NODE.OBJECT_PROPERTY:
       const self = findVariableInfo({ name: THIS_TYPE }, currentScope).type;
-      // $FlowIssue
-      const selfObject = self instanceof ObjectType ? self : self.subordinateType;
-      const propertyType = selfObject.properties.get(node.key.name || `${node.key.value}`);
+      const selfObject =
+        // $FlowIssue
+        self instanceof ObjectType ? self : self.subordinateType;
+      const propertyType = selfObject.properties.get(
+        node.key.name || `${node.key.value}`
+      );
       if (propertyType === undefined) {
         throw new Error("Never!!!");
       }
@@ -176,7 +192,10 @@ export function addCallToTypeGraph(
               post
             );
       inferenced = value.inferenced;
-      args = [node.typeAnnotation != null ? propertyType : value.result, value.result];
+      args = [
+        node.typeAnnotation != null ? propertyType : value.result,
+        value.result
+      ];
       targetName = "=";
       target = findVariableInfo(
         { name: targetName, loc: node.loc },
@@ -539,9 +558,21 @@ export function addCallToTypeGraph(
           middle,
           post
         );
-        if (!(target.type instanceof FunctionType) || !(target.type instanceof GenericType && target.type.subordinateType instanceof FunctionType)) {
-          target = target.type.getPropertyType(node.isConstructor ? CONSTRUCTABLE : CALLABLE) || target;
-          target = target instanceof VariableInfo ? target : new VariableInfo(target, currentScope);
+        if (
+          !(target.type instanceof FunctionType) ||
+          !(
+            target.type instanceof GenericType &&
+            target.type.subordinateType instanceof FunctionType
+          )
+        ) {
+          target =
+            target.type.getPropertyType(
+              node.isConstructor ? CONSTRUCTABLE : CALLABLE
+            ) || target;
+          target =
+            target instanceof VariableInfo
+              ? target
+              : new VariableInfo(target, currentScope);
         }
         addPosition(node.callee, target, typeGraph);
       } else {
@@ -686,7 +717,19 @@ export function addCallToTypeGraph(
   return { result: invocationType, inferenced };
 }
 
-function invoke({ parentNode, typeScope, typeGraph, pre, middle, post, target, targetType, genericArguments, args, node }) {
+function invoke({
+  parentNode,
+  typeScope,
+  typeGraph,
+  pre,
+  middle,
+  post,
+  target,
+  targetType,
+  genericArguments,
+  args,
+  node
+}) {
   if (
     !(targetType instanceof $BottomType) &&
     !(targetType instanceof TypeVar && !targetType.isUserDefined) &&
@@ -706,7 +749,7 @@ function invoke({ parentNode, typeScope, typeGraph, pre, middle, post, target, t
     node.loc
   );
   if (!(invocationType instanceof Type)) {
-    return { 
+    return {
       result: addPropertyToThis(
         invocationType,
         parentNode,
@@ -771,10 +814,16 @@ export function addPropertyToThis(
   postcompute: Handler
 ) {
   const propertyName = currentNode.key.name || `${currentNode.key.value}`;
-  const currentClassScope = getParentForNode(currentNode, parentNode, typeGraph);
+  const currentClassScope = getParentForNode(
+    currentNode,
+    parentNode,
+    typeGraph
+  );
   const self = findVariableInfo({ name: THIS_TYPE }, currentClassScope);
-  const selfType = self.type instanceof GenericType ? self.type.subordinateType : self.type;
-  const currentTypeScope = self.type instanceof GenericType ? self.type.localTypeScope : typeScope;
+  const selfType =
+    self.type instanceof GenericType ? self.type.subordinateType : self.type;
+  const currentTypeScope =
+    self.type instanceof GenericType ? self.type.localTypeScope : typeScope;
   let type = new Type("undefined", { isSubtypeFor: new Type("void") });
   if (currentNode.typeAnnotation != null) {
     type = getTypeFromTypeAnnotation(
@@ -784,13 +833,20 @@ export function addPropertyToThis(
       false
     );
   }
-  const property = new VariableInfo(type, currentClassScope, new Meta(currentNode.loc));
+  const property = new VariableInfo(
+    type,
+    currentClassScope,
+    new Meta(currentNode.loc)
+  );
   if (!(selfType instanceof ObjectType)) {
     throw new Error("Never!!!");
   }
   selfType.properties.set(propertyName, property);
   addPosition(currentNode.key, property, typeGraph);
-  if ((currentNode.type === NODE.OBJECT_METHOD || currentNode.type === NODE.CLASS_METHOD)) {
+  if (
+    currentNode.type === NODE.OBJECT_METHOD ||
+    currentNode.type === NODE.CLASS_METHOD
+  ) {
     const fn = addAndTraverseFunctionWithType(
       null,
       currentNode,
@@ -814,9 +870,8 @@ export function addPropertyToThis(
     ).result;
     property.hasInitializer = true;
     if (currentNode.typeAnnotation === undefined) {
-       property.type = inferencedType;
+      property.type = inferencedType;
     }
   }
   return property.type;
 }
-
