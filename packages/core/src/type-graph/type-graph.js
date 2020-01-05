@@ -56,16 +56,6 @@ const hasTypeParams = (node: Node): boolean =>
   Array.isArray(node.typeParameters.params) &&
   node.typeParameters.params.length !== 0;
 
-const getGenericNode = (node: Node): ?Node => {
-  if (hasTypeParams(node)) {
-    return node;
-  }
-  if (node.right && hasTypeParams(node.right)) {
-    return node.right;
-  }
-  return null;
-};
-
 const getAliasBody = (node: Node) => {
   switch (node.type) {
     case NODE.TYPE_ALIAS:
@@ -85,14 +75,13 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
       "Type scope should be presented before type alias has been met"
     );
   }
-  const genericNode = getGenericNode(node);
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
   const typeName = node.id.name;
   const self = createSelf(node, localTypeScope);
   localTypeScope.body.set(typeName, self);
   const genericArguments =
-    genericNode &&
-    genericNode.typeParameters.params.map(typeAnnotation =>
+    node.typeParameters &&
+    node.typeParameters.params.map(typeAnnotation =>
       getTypeFromTypeAnnotation({ typeAnnotation }, localTypeScope, typeGraph)
     );
   const type = getTypeFromTypeAnnotation(
@@ -118,6 +107,9 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   self.type.name = typeFor.name;
   localTypeScope.body.delete(typeName);
   const typeAlias = new VariableInfo(typeFor, typeScope, new Meta(node.loc));
+  if (genericArguments) {
+    typeAlias.isGeneric = true;
+  }
   typeScope.body.set(typeName, typeAlias);
   if (node.exportAs) {
     typeGraph.exportsTypes.set(node.exportAs, typeAlias);

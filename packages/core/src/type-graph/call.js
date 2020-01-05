@@ -51,6 +51,10 @@ type CallResult = {
   result: CallableArguments
 };
 
+type CallableMeta = {
+  isForAssign?: boolean
+};
+
 export function addCallToTypeGraph(
   node: ?Node,
   typeGraph: ModuleScope,
@@ -58,7 +62,8 @@ export function addCallToTypeGraph(
   parentNode: Node,
   pre: Handler,
   middle: Handler,
-  post: Handler
+  post: Handler,
+  meta?: CallableMeta = {}
 ): CallResult {
   let target: ?VariableInfo | Type = null;
   let inferenced = undefined;
@@ -89,7 +94,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result
       ];
       break;
@@ -103,7 +109,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result
       ];
       break;
@@ -120,7 +127,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result
       ];
       break;
@@ -137,7 +145,8 @@ export function addCallToTypeGraph(
               parentNode,
               pre,
               middle,
-              post
+              post,
+              meta
             ).result
           : Type.createTypeWithName("undefined", typeScope),
         Type.createTypeWithName("unknown", typeScope)
@@ -189,7 +198,8 @@ export function addCallToTypeGraph(
               parentNode,
               pre,
               middle,
-              post
+            post,
+            meta
             );
       inferenced = value.inferenced;
       args = [
@@ -218,7 +228,8 @@ export function addCallToTypeGraph(
               parentNode,
               pre,
               middle,
-              post
+              post,
+            meta
             );
       inferenced = init.inferenced;
       args = [variableType, init.result];
@@ -236,7 +247,8 @@ export function addCallToTypeGraph(
         parentNode,
         pre,
         middle,
-        post
+        post,
+        meta
       );
       args = [
         getVariableType(
@@ -269,7 +281,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result
       ];
       targetName = "await";
@@ -293,7 +306,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result,
         addCallToTypeGraph(
           node.right,
@@ -302,7 +316,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result
       ];
       targetName = node.operator === "+" ? "b+" : node.operator;
@@ -321,7 +336,8 @@ export function addCallToTypeGraph(
         parentNode,
         pre,
         middle,
-        post
+        post,
+        meta
       );
       const left = addCallToTypeGraph(
         node.left,
@@ -330,7 +346,8 @@ export function addCallToTypeGraph(
         parentNode,
         pre,
         middle,
-        post
+        post,
+        { isForAssign: true }
       );
       args = [left.result, right.result];
       if (left.result instanceof VariableInfo && left.result.isConstant) {
@@ -355,7 +372,8 @@ export function addCallToTypeGraph(
         parentNode,
         pre,
         middle,
-        post
+        post,
+        meta
       );
       args = [arg.result];
       inferenced = arg.inferenced;
@@ -395,7 +413,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result
       ];
       target = findVariableInfo(
@@ -412,7 +431,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result
       ];
       targetName = "Object.keys";
@@ -433,7 +453,8 @@ export function addCallToTypeGraph(
         parentNode,
         pre,
         middle,
-        post
+        post,
+        meta
       ).result;
       args = [target];
       targetName = "Object.values";
@@ -453,7 +474,8 @@ export function addCallToTypeGraph(
             parentNode,
             pre,
             middle,
-            post
+            post,
+            meta
           ).result,
           typeGraph
         ),
@@ -468,7 +490,8 @@ export function addCallToTypeGraph(
               parentNode,
               pre,
               middle,
-              post
+              post,
+            meta
             ).result
       ];
       genericArguments = args;
@@ -487,7 +510,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result,
         addCallToTypeGraph(
           node.consequent,
@@ -496,7 +520,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result,
         addCallToTypeGraph(
           node.alternate,
@@ -505,7 +530,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result
       ];
       targetName = "?:";
@@ -522,7 +548,8 @@ export function addCallToTypeGraph(
         parentNode,
         pre,
         middle,
-        post
+        post,
+        meta
       ).result;
       const argumentType =
         argument instanceof VariableInfo ? argument.type : argument;
@@ -533,7 +560,8 @@ export function addCallToTypeGraph(
         parentNode,
         pre,
         middle,
-        post
+        post,
+        meta
       ).result;
       const defaultObject = ObjectType.createTypeWithName("{ }", typeScope, []);
       args = [
@@ -583,7 +611,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta
         ).result: any);
       }
       const targetType = target instanceof VariableInfo ? target.type : target;
@@ -621,7 +650,8 @@ export function addCallToTypeGraph(
                 parentNode,
                 pre,
                 middle,
-                post
+                post,
+              meta
               ).result
       );
       fnType = getRawFunctionType(
@@ -680,6 +710,7 @@ export function addCallToTypeGraph(
   const options = {
     pre,
     args,
+    meta,
     node,
     post,
     middle,
@@ -728,7 +759,8 @@ function invoke({
   targetType,
   genericArguments,
   args,
-  node
+  node,
+  meta
 }) {
   if (
     !(targetType instanceof $BottomType) &&
@@ -741,59 +773,67 @@ function invoke({
   ) {
     throw new HegelError("The target is not callable type.", node.loc);
   }
-  const invocationType = getInvocationType(
-    targetType,
-    args,
-    genericArguments,
-    typeScope,
-    node.loc
-  );
-  if (!(invocationType instanceof Type)) {
-    return {
-      result: addPropertyToThis(
-        invocationType,
-        parentNode,
-        typeScope,
-        typeGraph,
-        pre,
-        middle,
-        post
-      ),
-      inferenced: false
-    };
-  }
-  if (
-    targetType instanceof TypeVar &&
-    !targetType.isUserDefined &&
-    target instanceof VariableInfo
-  ) {
-    // $FlowIssue
-    let func = findNearestScopeByType(Scope.FUNCTION_TYPE, target.parent);
-    if (
-      func.declaration &&
-      func.declaration.type instanceof GenericType &&
-      invocationType instanceof TypeVar
-    ) {
-      const genericArguments = func.declaration.type.genericArguments;
-      genericArguments.push(invocationType);
-      const fn = Type.getTypeRoot(targetType);
-      fn.argumentsTypes.forEach(arg => {
-        if (
-          arg instanceof TypeVar &&
-          !arg.isUserDefined &&
-          !genericArguments.includes(arg)
-        ) {
-          genericArguments.push(arg);
-        }
-      });
+  try {
+    const invocationType = getInvocationType(
+      targetType,
+      args,
+      genericArguments,
+      typeScope,
+      node.loc,
+      meta.isForAssign
+    );
+    if (!(invocationType instanceof Type)) {
+      return {
+        result: addPropertyToThis(
+          invocationType,
+          parentNode,
+          typeScope,
+          typeGraph,
+          pre,
+          middle,
+          post
+        ),
+        inferenced: false
+      };
     }
+    if (
+      targetType instanceof TypeVar &&
+      !targetType.isUserDefined &&
+      target instanceof VariableInfo
+    ) {
+      // $FlowIssue
+      let func = findNearestScopeByType(Scope.FUNCTION_TYPE, target.parent);
+      if (
+        func.declaration &&
+        func.declaration.type instanceof GenericType &&
+        invocationType instanceof TypeVar
+      ) {
+        const genericArguments = func.declaration.type.genericArguments;
+        genericArguments.push(invocationType);
+        const fn = Type.getTypeRoot(targetType);
+        fn.argumentsTypes.forEach(arg => {
+          if (
+            arg instanceof TypeVar &&
+            !arg.isUserDefined &&
+            !genericArguments.includes(arg)
+          ) {
+            genericArguments.push(arg);
+          }
+        });
+      }
+    }
+    return {
+      result: invocationType,
+      inferenced:
+        isInferencedTypeVar(targetType) &&
+        isInferencedTypeVar(invocationType, true)
+    };
+  } catch (e) {
+    if (e.loc === undefined) {
+      e.loc = node.loc;
+    }
+    throw e;
   }
-  return {
-    result: invocationType,
-    inferenced:
-      isInferencedTypeVar(targetType) &&
-      isInferencedTypeVar(invocationType, true)
-  };
 }
 
 function isInferencedTypeVar(t: Type, withoutRoot: boolean = false) {

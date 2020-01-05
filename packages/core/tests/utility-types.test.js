@@ -36,7 +36,7 @@ describe("Test $PropertyType", () => {
     expect(typeScope.body.get("B").type).toEqual(
       new UnionType("number | undefined", [
         new Type("number"),
-        new Type("undefined")
+        new Type("undefined", { isSubtypeOf: new Type("void") })
       ])
     );
   });
@@ -182,7 +182,7 @@ describe("Test $Pick", () => {
   });
   test("Should throw error with non-string literal second argument", async () => {
     const sourceAST = prepareAST(`
-      type A = $Pick<{ a: 1 }, "a" | 2 | Array>;
+      type A = $Pick<{ a: 1 }, "a" | 2 | Array<number>>;
     `);
     const [, errors] = await createTypeGraph(
       [sourceAST],
@@ -224,7 +224,7 @@ describe("Test $Omit", () => {
   });
   test("Should throw error with non-string literal second argument", async () => {
     const sourceAST = prepareAST(`
-      type A = $Omit<{ a: 2 }, "a" | 2 | Array>;
+      type A = $Omit<{ a: 2 }, "a" | 2 | Array<number>>;
     `);
     const [, errors] = await createTypeGraph(
       [sourceAST],

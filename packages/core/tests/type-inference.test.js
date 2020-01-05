@@ -125,8 +125,8 @@ describe("Simple inference for module variables by literal", () => {
     const a = actual.body.get("a").type;
     expect(errors.length).toBe(0);
     expect(a).toBeInstanceOf(TupleType);
-    expect(a.name).toBe("[number]");
-    expect(a.items).toEqual([new Type("number")]);
+    expect(a.name).toBe("[2]");
+    expect(a.items).toEqual([new Type(2, { isSubtypeOf: new Type("number") })]);
   });
   test("Inference global module variable with multy items array type", async () => {
     const sourceAST = prepareAST(`
@@ -141,8 +141,8 @@ describe("Simple inference for module variables by literal", () => {
     const a = actual.body.get("a").type;
     expect(errors.length).toBe(0);
     expect(a).toBeInstanceOf(TupleType);
-    expect(a.name).toBe("[number, string]");
-    expect(a.items).toEqual([new Type("number"), new Type("string")]);
+    expect(a.name).toBe("[2, '2']");
+    expect(a.items).toEqual([new Type(2, { isSubtypeOf: new Type("number") }), new Type("'2'", { isSubtypeOf: new Type("string") })]);
   });
   test("Inference global module object property type", async () => {
     const sourceAST = prepareAST(`
@@ -1505,7 +1505,7 @@ describe("Collection type inference", () => {
     expect(actualA.type).toEqual(
       new UnionType("number | undefined", [
         new Type("number"),
-        new Type("undefined")
+        new Type("undefined", { isSubtypeOf: new Type("void") })
       ])
     );
   });
@@ -2161,14 +2161,15 @@ describe("Other", () => {
     expect(errors.length).toBe(0);
     expect(actualRes).toBeInstanceOf(CollectionType);
     expect(actualRes.name).toBe("Array<number>");
-    expect(actualRes.valueType).toEqual(new Type("number"));
+    const number = new Type("number");
+    expect(actualRes.valueType).toEqual(number);
     expect(lambda).toBeInstanceOf(FunctionType);
-    expect(lambda.name).toBe("(number, number, Array<number>) => number");
-    expect(lambda.argumentsTypes[0]).toEqual(new Type("number"));
+    expect(lambda.name).toBe("(1 | 2 | 3, number, Array<1 | 2 | 3>) => number");
+    expect(lambda.argumentsTypes[0]).toEqual(new UnionType("1 | 2 | 3", [new Type(1, { isSubtypeOf: number }), new Type(2, { isSubtypeOf: number }), new Type(3, { isSubtypeOf: number })]));
     expect(lambda.argumentsTypes[1]).toEqual(new Type("number"));
     expect(lambda.argumentsTypes[2]).toBeInstanceOf(CollectionType);
-    expect(lambda.argumentsTypes[2].name).toBe("Array<number>");
-    expect(lambda.argumentsTypes[2].valueType).toEqual(new Type("number"));
+    expect(lambda.argumentsTypes[2].name).toBe("Array<1 | 2 | 3>");
+    expect(lambda.argumentsTypes[2].valueType).toEqual(new UnionType("1 | 2 | 3", [new Type(1, { isSubtypeOf: number }), new Type(2, { isSubtypeOf: number }), new Type(3, { isSubtypeOf: number })]));
     expect(lambda.returnType).toEqual(new Type("number"));
   });
 });

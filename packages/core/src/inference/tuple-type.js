@@ -35,10 +35,7 @@ export function inferenceTupleType(
       middle,
       post
     );
-    const inferencedType = inferenced.result.type || inferenced.result;
-    return inferencedType.constructor === Type && inferencedType.isSubtypeOf
-      ? inferencedType.isSubtypeOf
-      : inferencedType;
+    return inferenced.result.type || inferenced.result;
   });
   const parentType = findVariableInfo({ name: "Array" }, globalTypeScope).type;
   if (!(parentType instanceof GenericType)) {

@@ -1,4 +1,5 @@
 // @flow
+import HegelError from "../../utils/errors";
 import { Type } from "./type";
 import { UnionType } from "./union-type";
 import { CollectionType } from "./collection-type";
@@ -8,6 +9,17 @@ import type { Scope } from "../scope";
 import type { TypeMeta } from "./type";
 
 export class TupleType extends Type {
+
+  static mutable = [
+    "pop",
+    "push",
+    "reverse",
+    "shift",
+    "sort",
+    "splice",
+    "unshift",
+  ];
+
   static createTypeWithName = createTypeWithName(TupleType);
 
   static getName(params: Array<Type> | Type) {
@@ -21,6 +33,7 @@ export class TupleType extends Type {
   }
 
   items: Array<Type>;
+  onlyLiteral: boolean = true;
 
   constructor(name: mixed, items: Array<Type>, meta: TypeMeta = {}) {
     const valueType = new UnionType(UnionType.getName(items), items);
@@ -59,7 +72,7 @@ export class TupleType extends Type {
       anotherType instanceof TupleType &&
       anotherType.items.length === this.items.length &&
       //$FlowIssue - instanceof type refinement
-      this.items.every((t, i) => anotherType.items[i].isPrincipalTypeFor(t))
+      this.items.every((t, i) => t.isPrincipalTypeFor(anotherType.items[i]))
     );
   }
 
@@ -79,11 +92,14 @@ export class TupleType extends Type {
   }
 
   getPropertyType(propertyIndex: mixed): ?Type {
-    if (
-      typeof propertyIndex === "number" &&
-      propertyIndex < this.items.length
-    ) {
-      return this.items[propertyIndex];
+    if (typeof propertyIndex === "number") {
+      return propertyIndex < this.items.length ? this.items[propertyIndex] : null;
+    }
+    if (propertyIndex === "length") {
+      return new Type(this.items.length, { isSubtypeOf: new Type("number") });
+    }
+    if (TupleType.mutable.includes(propertyIndex)) {
+      throw new HegelError("You trying to use tuple as Array, please setup variable type as Array");
     }
     return super.getPropertyType(propertyIndex);
   }

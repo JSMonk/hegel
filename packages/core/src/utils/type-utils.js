@@ -385,10 +385,14 @@ export function getTypeFromTypeAnnotation(
             );
       }
       if (!rewritable) {
-        const typeInScope = findVariableInfo(
+        const existedType = findVariableInfo(
           { name: genericName, loc: target.loc },
           typeScope
-        ).type;
+        );
+        const typeInScope = existedType.type;
+        if (existedType.isGeneric) {
+          throw new HegelError(`Generic type "${String(typeInScope.name)}" should be used with type paramteres!`, target.loc)
+        }
         return typeInScope instanceof TypeVar && typeInScope.root != undefined
           ? typeInScope.root
           : typeInScope;
@@ -402,20 +406,18 @@ export function getTypeFromTypeAnnotation(
     case NODE.TS_CALL_SIGNATURE_DECLARATION:
     case NODE.TS_CONSTRUCT_SIGNATURE_DECLARATION:
     case NODE.TS_FUNCTION_TYPE_ANNOTATION:
+      const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
       const genericParams = typeNode.typeAnnotation.typeParameters
         ? typeNode.typeAnnotation.typeParameters.params.map(param =>
             getTypeFromTypeAnnotation(
-              param.type === NODE.TS_TYPE_PARAMETER
-                ? { typeAnnotation: param }
-                : param,
-              typeScope,
+              { typeAnnotation: param },
+              localTypeScope,
               currentScope,
               rewritable,
               self
             )
           )
         : [];
-      const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
       const { params: paramsNode, parameters } = typeNode.typeAnnotation;
       const argNodes = paramsNode || parameters;
       const args = argNodes.map(annotation => {
@@ -424,7 +426,7 @@ export function getTypeFromTypeAnnotation(
           annotation.typeAnnotation.type === NODE.TS_TYPE_ANNOTATION
             ? nullable(annotation)
             : annotation,
-          typeScope,
+          localTypeScope,
           currentScope,
           rewritable,
           self
@@ -439,7 +441,7 @@ export function getTypeFromTypeAnnotation(
           ? { typeAnnotation: returnTypeNode }
           : // Ohhh, TS is beautiful ❤️
             typeNode.typeAnnotation.typeAnnotation,
-        typeScope,
+        localTypeScope,
         currentScope,
         rewritable,
         self

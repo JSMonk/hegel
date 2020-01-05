@@ -109,7 +109,7 @@ export class $BottomType extends Type {
     return self.isPrincipalTypeFor(other);
   }
 
-  applyGeneric(parameters, loc, shouldBeMemoize) {
+  applyGeneric(parameters, loc, shouldBeMemoize, isCalledAsBottom, ...args) {
     const returnType = parameters.some(
       p => p instanceof TypeVar && p.isUserDefined
     )
@@ -118,7 +118,8 @@ export class $BottomType extends Type {
           parameters,
           loc,
           shouldBeMemoize,
-          true
+          true,
+          ...args
         );
     return new FunctionType(
       this.subordinateMagicType.name,

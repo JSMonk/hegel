@@ -42,18 +42,11 @@ export function getSuperTypeOf(type: Type, typeScope: Scope): Type {
     type.name === null ||
     type.name === "undefined" ||
     type instanceof FunctionType ||
+    type instanceof TupleType ||
+    type instanceof UnionType ||
     (type instanceof ObjectType && String(type.name)[0] !== "{")
   ) {
     return type;
-  }
-  if (type instanceof UnionType || type instanceof TupleType) {
-    const target = type instanceof UnionType ? type.variants : type.items;
-    const items = target.map(t => getSuperTypeOf(t, typeScope));
-    return type.constructor.createTypeWithName(
-      type.constructor.getName(items),
-      typeScope,
-      items
-    );
   }
   if (type instanceof ObjectType) {
     const propertyTypes = [...type.properties.entries()].map(([key, v]) => [

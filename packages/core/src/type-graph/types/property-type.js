@@ -32,7 +32,8 @@ export class $PropertyType extends GenericType {
     parameters,
     loc,
     shouldBeMemoize = true,
-    isCalledAsBottom = false
+    isCalledAsBottom = false,
+    initializing = false
   ) {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;
@@ -70,7 +71,7 @@ export class $PropertyType extends GenericType {
         );
       }
     }
-    const fieldType = realTarget.getPropertyType(propertyName);
+    const fieldType = realTarget.getPropertyType(propertyName, initializing);
     if (!property.isSubtypeOf && !isCalledAsBottom) {
       throw new HegelError("Second parameter should be an literal", loc);
     }

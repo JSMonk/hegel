@@ -195,7 +195,7 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "[number, number]" is incompatible with type "[number, string]"'
+      'Type "[2, 2]" is incompatible with type "[number, string]"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 40, line: 2 },
@@ -279,7 +279,7 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "[number, string]" is incompatible with type "Array<number>"'
+      `Type "[2, '2']" is incompatible with type "Array<number>"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 39, line: 2 },

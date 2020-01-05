@@ -27,18 +27,22 @@ export class CollectionType<K: Type, V: Type> extends Type {
     this.valueType = valueType;
   }
 
-  getPropertyType(propertyName: mixed): ?Type {
+  getPropertyType(propertyName: mixed, isForAssign: boolean = false): ?Type {
     if (
       typeof propertyName === this.keyType.name ||
       propertyName === this.keyType.name
     ) {
+      if (isForAssign) {
+        return this.valueType;
+      }
+      const UNDEFINED = new Type("undefined", { isSubtypeOf: new Type("void") });
       const result =
         this.valueType instanceof UnionType &&
         this.valueType.variants.some(a => a.name === "undefined")
           ? this.valueType
           : new UnionType(
-              UnionType.getName([this.valueType, new Type("undefined")]),
-              [this.valueType, new Type("undefined")]
+              UnionType.getName([this.valueType, UNDEFINED]),
+              [this.valueType, UNDEFINED]
             );
       if (result) {
         return result;
