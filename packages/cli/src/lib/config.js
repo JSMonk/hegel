@@ -19,7 +19,6 @@ const DEFAULT_CONFIG = {
   config: {
     include: ["./**/*.js"],
     exclude: null,
-    typings: null,
     extension: ".js",
     workingDirectory: CWD,
     babel: BABELRC,
@@ -40,7 +39,6 @@ export type Config = {
   exclude: ?Array<string>,
   extension: string,
   workingDirectory: string,
-  typings: ?string,
   babel: Object,
   libs: Array<Lib>,
   typings: Array<string>

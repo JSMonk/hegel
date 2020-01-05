@@ -870,7 +870,13 @@ export function addPropertyToThis(
       currentNode.typeAnnotation,
       currentTypeScope,
       currentClassScope,
-      false
+      false,
+      null,
+      parentNode,
+      typeGraph,
+      precompute,
+      middlecompute,
+      postcompute
     );
   }
   const property = new VariableInfo(
@@ -897,6 +903,9 @@ export function addPropertyToThis(
       postcompute
     );
     property.hasInitializer = true;
+    if (fn === undefined) {
+      throw new Error("Never!!!");
+    }
     property.type = fn.type;
   } else if (currentNode.value != null) {
     const inferencedType = addCallToTypeGraph(

@@ -102,7 +102,14 @@ export function inferenceFunctionLiteralType(
         (getTypeFromTypeAnnotation(
           { typeAnnotation },
           localTypeScope,
-          parentScope
+          parentScope,
+          true,
+          null,
+          parentNode,
+          typeGraph,
+          pre,
+          middle,
+          post
         ): any)
       )
     );
@@ -135,7 +142,13 @@ export function inferenceFunctionLiteralType(
       typeAnnotation,
       localTypeScope,
       parentScope,
-      false
+      false,
+      null,
+      parentNode,
+      typeGraph,
+      pre,
+      middle,
+      post
     );
     const isWithoutAnnotation = paramType.name === UNDEFINED_TYPE;
     functionScope.body.set(
@@ -203,7 +216,13 @@ export function inferenceFunctionLiteralType(
           currentNode.returnType,
           localTypeScope,
           parentScope,
-          false
+          false,
+          null,
+          parentNode,
+          typeGraph,
+          pre,
+          middle,
+          post
         ): any)
       : addTypeVar(
           typeVarNames[nameIndex + argumentsTypes.length],

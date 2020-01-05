@@ -50,7 +50,8 @@ export function findVariableInfo(
       }
       if (!(variableInfo instanceof Scope) && canTraverseFunction(rest)) {
         // $FlowIssue
-        return addAndTraverseFunctionWithType(undefined, variableInfo, ...rest);
+        const result = addAndTraverseFunctionWithType(undefined, variableInfo, ...rest);
+        return result === undefined ? findVariableInfo({ name, loc }, parentContext) : result;
       }
     }
     parent = parent.parent;
@@ -76,37 +77,13 @@ export function addAndTraverseFunctionWithType(
   traverseTree(currentNode, precompute, middlecompute, postcompute, parentNode);
   const scope = typeGraph.body.get(scopeName);
   if (!(scope instanceof Scope)) {
-    throw new Error("Never!!!");
+    return;
   }
   const declaration = scope.declaration;
   if (!(declaration instanceof VariableInfo)) {
     throw new Error("Never!!!");
   }
   return declaration;
-}
-
-export function findFunctionOrClass(
-  node: Identifier,
-  parentContext: ModuleScope | Scope,
-  parentNode: Node,
-  typeGraph: ModuleScope,
-  precompute: Handler,
-  middlecompute: Handler,
-  postcompute: Handler
-) {
-  const variableOrNode = findRecordInfo(node, parentContext);
-  if (variableOrNode instanceof VariableInfo) {
-    return variableOrNode;
-  }
-  return addAndTraverseFunctionWithType(
-    undefined,
-    variableOrNode,
-    parentNode,
-    typeGraph,
-    precompute,
-    middlecompute,
-    postcompute
-  );
 }
 
 export function findRecordInfo(

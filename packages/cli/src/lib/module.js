@@ -45,7 +45,7 @@ async function findInsideTypingsDirectories(
 ): Promise<string | null> {
   const paths = await Promise.all(
     config.typings.map(typingPath =>
-      resolveModule(join(typingPath, importPath))
+      resolveModule(join(typingPath, `${importPath.replace(/\.js$/, "")}.d.ts`))
     )
   );
   return paths.find(isNotNull) || null;
@@ -56,7 +56,7 @@ async function getModuleTypingsPath(
   currentPath: string,
   loc: SourceLocation,
   config: Config
-): Promise<[string, boolean]> {
+) {
   let resolvedPath: string | null = null;
   let isLibrary: boolean = false;
   let isUserDefined: boolean = false;
@@ -66,16 +66,17 @@ async function getModuleTypingsPath(
   } else {
     isLibrary = true;
     resolvedPath = await findTypingsInsideNodeModules(importPath, config);
-    if (resolvedPath === null) {
-      resolvedPath = await findInsideTypingsDirectories(importPath, config);
+    if (resolvedPath === null || extname(resolvedPath) !== ".ts") {
+      const newResolvedPath = await findInsideTypingsDirectories(importPath, config);
       isUserDefined =
-        resolvedPath !== null && resolvedPath.includes("node_modules");
+        newResolvedPath !== null && newResolvedPath.includes("node_modules");
+      resolvedPath = newResolvedPath || resolvedPath; 
     }
   }
   if (resolvedPath === null) {
     throw new HegelError(`Path "${importPath}" cannot be resolved`, loc);
   }
-  const isTypings = extname(path) === ".ts";
+  const isTypings = extname(resolvedPath) === ".ts";
   return { resolvedPath, isTypings, isLibrary, isUserDefined };
 }
 

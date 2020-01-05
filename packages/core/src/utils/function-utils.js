@@ -75,6 +75,9 @@ export function addFunctionToTypeGraph(
     currentNode,
     parentNode,
     typeGraph,
+    pre,
+    middle,
+    post,
     name
   );
   const currentTypeScope = findNearestTypeScope(variableInfo.parent, typeGraph);

@@ -12,6 +12,7 @@ import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { CollectionType } from "../type-graph/types/collection-type";
+import { getDeclarationName, getAnonymousKey } from "./common";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import { unique, findVariableInfo } from "./common";
 import {
@@ -22,8 +23,18 @@ import {
   CONSTRUCTABLE,
   UNDEFINED_TYPE
 } from "../type-graph/constants";
+import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
+
+export function addTypeNodeToTypeGraph(
+  currentNode: Node,
+  typeGraph: ModuleScope
+) {
+  const name = getDeclarationName(currentNode);
+  // $FlowIssue
+  typeGraph.body.get(TYPE_SCOPE).body.set(name, currentNode);
+}
 
 export function isReachableType(type: Type, typeScope: Scope) {
   let reachableType = null;
@@ -66,7 +77,12 @@ export function getTypeFromTypeAnnotation(
   typeScope: Scope,
   currentScope: Scope | ModuleScope,
   rewritable: ?boolean = true,
-  self: ?Type = null
+  self: ?Type = null,
+  parentNode: Node,
+  typeGraph: ModuleScope,
+  precompute: Handler,
+  middlecompute: Handler,
+  postcompute: Handler
 ): Type {
   if (!typeNode || !typeNode.typeAnnotation) {
     return TypeVar.createTypeWithName(UNDEFINED_TYPE, typeScope);
@@ -90,7 +106,12 @@ export function getTypeFromTypeAnnotation(
         typeScope,
         currentScope,
         rewritable,
-        self
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
       );
     case NODE.TS_ANY_TYPE_ANNOTATION:
       return Type.createTypeWithName("unknown", typeScope);
@@ -151,7 +172,12 @@ export function getTypeFromTypeAnnotation(
         typeScope,
         currentScope,
         rewritable,
-        self
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
       );
       return UnionType.createTypeWithName(
         `${getNameForType(resultType)} | undefined`,
@@ -165,7 +191,12 @@ export function getTypeFromTypeAnnotation(
         typeScope,
         currentScope,
         false,
-        self
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
       );
     case NODE.UNION_TYPE_ANNOTATION:
     case NODE.TS_UNION_TYPE_ANNOTATION:
@@ -175,7 +206,12 @@ export function getTypeFromTypeAnnotation(
           typeScope,
           currentScope,
           false,
-          self
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         )
       );
       return UnionType.createTypeWithName(
@@ -191,7 +227,12 @@ export function getTypeFromTypeAnnotation(
           typeScope,
           currentScope,
           false,
-          self
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         )
       );
       const parentType = findVariableInfo({ name: "Array" }, typeScope).type;
@@ -222,7 +263,12 @@ export function getTypeFromTypeAnnotation(
             typeScope,
             currentScope,
             false,
-            self
+            self,
+            parentNode,
+            typeGraph,
+            precompute,
+            middlecompute,
+            postcompute
           ),
         true
       );
@@ -234,7 +280,12 @@ export function getTypeFromTypeAnnotation(
           typeScope,
           currentScope,
           rewritable,
-          self
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         ),
         getTypeFromTypeAnnotation(
           // Ohhh, TS is beautiful ❤️
@@ -242,7 +293,12 @@ export function getTypeFromTypeAnnotation(
           typeScope,
           currentScope,
           rewritable,
-          self
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         )
       );
     case NODE.OBJECT_TYPE_ANNOTATION:
@@ -258,7 +314,12 @@ export function getTypeFromTypeAnnotation(
           typeScope,
           currentScope,
           rewritable,
-          self
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         )
       );
       const params = properties.map(property => [
@@ -268,7 +329,12 @@ export function getTypeFromTypeAnnotation(
           typeScope,
           currentScope,
           rewritable,
-          self
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         )
       ]);
       const objectName = annotation.id
@@ -305,7 +371,12 @@ export function getTypeFromTypeAnnotation(
         typeScope,
         currentScope,
         rewritable,
-        self
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
       );
     case NODE.TS_TYPE_QUERY:
       typeNode.typeAnnotation = {
@@ -325,7 +396,12 @@ export function getTypeFromTypeAnnotation(
       if (genericArguments != undefined) {
         const typeInScope = findVariableInfo(
           { name: genericName, loc: target.loc },
-          typeScope
+          typeScope,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         ).type;
         const existedGenericType =
           typeInScope instanceof TypeVar && typeInScope.root != undefined
@@ -368,7 +444,12 @@ export function getTypeFromTypeAnnotation(
             typeScope,
             currentScope,
             rewritable,
-            self
+            self,
+            parentNode,
+            typeGraph,
+            precompute,
+            middlecompute,
+            postcompute
           )
         );
         return genericParams.some(t => t instanceof TypeVar && t !== self) ||
@@ -387,11 +468,21 @@ export function getTypeFromTypeAnnotation(
       if (!rewritable) {
         const existedType = findVariableInfo(
           { name: genericName, loc: target.loc },
-          typeScope
+          typeScope,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         );
         const typeInScope = existedType.type;
         if (existedType.isGeneric) {
-          throw new HegelError(`Generic type "${String(typeInScope.name)}" should be used with type paramteres!`, target.loc)
+          throw new HegelError(
+            `Generic type "${String(
+              typeInScope.name
+            )}" should be used with type paramteres!`,
+            target.loc
+          );
         }
         return typeInScope instanceof TypeVar && typeInScope.root != undefined
           ? typeInScope.root
@@ -414,7 +505,12 @@ export function getTypeFromTypeAnnotation(
               localTypeScope,
               currentScope,
               rewritable,
-              self
+              self,
+              parentNode,
+              typeGraph,
+              precompute,
+              middlecompute,
+              postcompute
             )
           )
         : [];
@@ -429,7 +525,12 @@ export function getTypeFromTypeAnnotation(
           localTypeScope,
           currentScope,
           rewritable,
-          self
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         );
         return annotation.type === NODE.REST_ELEMENT
           ? new RestArgument(result)
@@ -444,7 +545,12 @@ export function getTypeFromTypeAnnotation(
         localTypeScope,
         currentScope,
         rewritable,
-        self
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
       );
       const typeName = FunctionType.getName(args, returnType, genericParams);
       const type = FunctionType.createTypeWithName(

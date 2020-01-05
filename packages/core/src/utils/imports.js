@@ -32,11 +32,11 @@ export function importDependencies(
 ) {
   const { exports, exportsTypes } = moduleTypeGraph;
   const importSource =
-    importNode.importKind === "value" ? exports : exportsTypes;
+    importNode.importKind === "type" ? exportsTypes : exports;
   const importTarget =
-    importNode.importKind === "value"
-      ? currentModuleTypeGraph
-      : currentModuleTypeScope;
+    importNode.importKind === "type"
+      ? currentModuleTypeScope
+      : currentModuleTypeGraph;
   const importEntries = [...importSource.entries()];
   importNode.specifiers.forEach(specifier => {
     const importName = getImportName(specifier);

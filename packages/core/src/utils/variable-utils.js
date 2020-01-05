@@ -13,12 +13,16 @@ import { getTypeFromTypeAnnotation } from "./type-utils";
 import { getParentForNode, findNearestTypeScope } from "./scope-utils";
 import type { Node } from "@babel/parser";
 import type { Scope } from "../type-graph/scope";
+import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
 
 export function getVariableInfoFromDelcaration(
   currentNode: Node,
   parentNode: Node,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  precompute: Handler,
+  middlecompute: Handler,
+  postcompute: Handler
 ) {
   const parentScope = getParentForNode(currentNode, parentNode, typeGraph);
   const currentTypeScope = findNearestTypeScope(parentScope, typeGraph);
@@ -26,7 +30,13 @@ export function getVariableInfoFromDelcaration(
     currentNode.id && currentNode.id.typeAnnotation,
     currentTypeScope,
     parentScope,
-    false
+    false,
+    null,
+    parentNode,
+    typeGraph,
+    precompute,
+    middlecompute,
+    postcompute
   );
   return new VariableInfo(
     annotatedType,
@@ -88,12 +98,18 @@ export function addVariableToGraph(
   currentNode: Node,
   parentNode: ?Node,
   typeGraph: ModuleScope,
+  precompute: Handler,
+  middlecompute: Handler,
+  postcompute: Handler,
   customName?: string = getDeclarationName(currentNode)
 ) {
   const variableInfo = getVariableInfoFromDelcaration(
     currentNode,
     parentNode,
-    typeGraph
+    typeGraph,
+    precompute,
+    middlecompute,
+    postcompute
   );
   variableInfo.parent.body.set(customName, variableInfo);
   if (currentNode.id != null) {

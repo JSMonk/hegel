@@ -24,17 +24,21 @@ import { inferenceErrorType } from "../inference/error-type";
 import { inferenceTypeForNode } from "../inference";
 import { findVariableInfo, findRecordInfo } from "../utils/common";
 import { addCallToTypeGraph, addPropertyToThis } from "./call";
-import { getTypeFromTypeAnnotation, createSelf } from "../utils/type-utils";
 import { POSITIONS, TYPE_SCOPE, UNDEFINED_TYPE } from "./constants";
+import {
+  createSelf,
+  addTypeNodeToTypeGraph,
+  getTypeFromTypeAnnotation
+} from "../utils/type-utils";
 import {
   addFunctionToTypeGraph,
   addFunctionNodeToTypeGraph
 } from "../utils/function-utils";
 import {
+  addObjectName,
   addClassToTypeGraph,
   addClassNodeToTypeGraph,
-  addPropertyNodeToThis,
-  addObjectName
+  addPropertyNodeToThis
 } from "../utils/class-utils";
 import {
   prepareGenericFunctionType,
@@ -68,7 +72,14 @@ const getAliasBody = (node: Node) => {
   throw new Error("Never!");
 };
 
-const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
+const addTypeAlias = (
+  node: Node,
+  parentNode: Node,
+  typeGraph: ModuleScope,
+  precompute: Handler,
+  middlecompute: Handler,
+  postcompute: Handler
+) => {
   const typeScope = typeGraph.body.get(TYPE_SCOPE);
   if (typeScope === undefined || !(typeScope instanceof Scope)) {
     throw new Error(
@@ -82,14 +93,30 @@ const addTypeAlias = (node: Node, typeGraph: ModuleScope) => {
   const genericArguments =
     node.typeParameters &&
     node.typeParameters.params.map(typeAnnotation =>
-      getTypeFromTypeAnnotation({ typeAnnotation }, localTypeScope, typeGraph)
+      getTypeFromTypeAnnotation(
+        { typeAnnotation },
+        localTypeScope,
+        typeGraph,
+        true,
+        null,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      )
     );
   const type = getTypeFromTypeAnnotation(
     getAliasBody(node),
     localTypeScope,
     typeGraph,
     false,
-    self.type
+    self.type,
+    parentNode,
+    typeGraph,
+    precompute,
+    middlecompute,
+    postcompute
   );
   if (genericArguments) {
     type.name = GenericType.getName(type.name, genericArguments);
@@ -144,7 +171,14 @@ const fillModuleScope = (
       case NODE.TYPE_ALIAS:
       case NODE.TS_TYPE_ALIAS:
       case NODE.TS_INTERFACE_DECLARATION:
-        addTypeAlias(currentNode, typeGraph);
+        addTypeAlias(
+          currentNode,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
+        );
         break;
       case NODE.CLASS_DECLARATION:
       case NODE.CLASS_EXPRESSION:
@@ -154,7 +188,10 @@ const fillModuleScope = (
           parentNode,
           // $FlowIssue
           typeScope,
-          typeGraph
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         );
         break;
       case NODE.IF_STATEMENT:
@@ -255,6 +292,9 @@ const fillModuleScope = (
           currentNode.handler.param,
           currentNode.handler.body,
           typeGraph,
+          precompute,
+          middlecompute,
+          postcompute,
           currentNode.handler.param.name
         );
         break;
@@ -281,6 +321,12 @@ const middlefillModuleScope = (
     meta?: TraverseMeta = {}
   ) => {
     const typeScope = typeGraph.body.get(TYPE_SCOPE);
+    if (
+      currentNode.type === NODE.EXPORT_NAMED_DECLARATION ||
+      currentNode.type === NODE.EXPORT_DEFAULT_DECLARATION
+    ) {
+      currentNode = currentNode.declaration;
+    }
     switch (currentNode.type) {
       case NODE.CLASS_DECLARATION:
       case NODE.CLASS_EXPRESSION:
@@ -290,7 +336,10 @@ const middlefillModuleScope = (
           parentNode,
           // $FlowIssue
           typeScope,
-          typeGraph
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         );
         break;
       case NODE.OBJECT_PROPERTY:
@@ -302,6 +351,9 @@ const middlefillModuleScope = (
       case NODE.FUNCTION_DECLARATION:
       case NODE.TS_FUNCTION_DECLARATION:
         addFunctionNodeToTypeGraph(currentNode, parentNode, typeGraph);
+        break;
+      case NODE.TS_INTERFACE_DECLARATION:
+        addTypeNodeToTypeGraph(currentNode, typeGraph);
         break;
     }
   };
@@ -369,7 +421,10 @@ const afterFillierActions = (
         const variableInfo = addVariableToGraph(
           Object.assign(currentNode, meta),
           parentNode,
-          typeGraph
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
         );
         const newTypeOrVar =
           isTypeDefinitions && !currentNode.init

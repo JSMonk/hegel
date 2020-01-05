@@ -34,9 +34,12 @@ import type {
 
 export function addClassScopeToTypeGraph(
   currentNode: ClassDeclaration | ClassExpression | ObjectExpression,
-  parentNode: Node | Scope | ModuleScope,
+  parentNode: Node,
   typeScope: Scope,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  precompute: Handler,
+  middlecompute: Handler,
+  postcompute: Handler
 ) {
   const scope = getScopeFromNode(currentNode, parentNode, typeGraph);
   const parentTypeScope = findNearestTypeScope(scope, typeGraph);
@@ -59,13 +62,22 @@ export function addClassScopeToTypeGraph(
             getTypeFromTypeAnnotation(
               { typeAnnotation },
               localTypeScope,
-              scope.parent
+              scope.parent,
+              true,
+              null,
+              parentNode,
+              typeGraph,
+              precompute,
+              middlecompute,
+              postcompute
             )
           ),
           localTypeScope,
           selfObject
         );
-  scope.body.set(THIS_TYPE, new VariableInfo(self, scope));
+  const selfVar = new VariableInfo(self, scope);
+  scope.body.set(THIS_TYPE, selfVar);
+  parentTypeScope.body.set(name, selfVar);
   typeGraph.body.set(Scope.getName(currentNode), scope);
   return scope;
 }
@@ -74,7 +86,10 @@ export function addClassNodeToTypeGraph(
   currentNode: ClassDeclaration | ClassExpression,
   parentNode: Node,
   typeScope: Scope,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  precompute: Handler,
+  middlecompute: Handler,
+  postcompute: Handler
 ) {
   const name =
     currentNode.id != undefined
@@ -84,7 +99,15 @@ export function addClassNodeToTypeGraph(
   if (currentScope.body.has(name)) {
     return;
   }
-  addClassScopeToTypeGraph(currentNode, currentScope, typeScope, typeGraph);
+  addClassScopeToTypeGraph(
+    currentNode,
+    parentNode,
+    typeScope,
+    typeGraph,
+    precompute,
+    middlecompute,
+    postcompute
+  );
   if (currentNode.type !== NODE.CLASS_DECLARATION) {
     return;
   }
@@ -194,7 +217,7 @@ export function addClassToTypeGraph(
       undefined
     ) {
       const callMeta = new CallMeta(
-        constructor,
+        new FunctionType("", [self.type], self.type),
         [self],
         constructor.meta.loc,
         "return",
