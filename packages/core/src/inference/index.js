@@ -60,11 +60,14 @@ export function inferenceTypeForNode(
         post
       );
     case NODE.OBJECT_EXPRESSION:
+    case NODE.CLASS_EXPRESSION:
       const objectScope = typeGraph.body.get(Scope.getName(currentNode));
       if (!(objectScope instanceof Scope)) {
         throw new Error("Never!!!");
       }
-      const self = objectScope.body.get(THIS_TYPE);
+      const self = objectScope.type === Scope.OBJECT_TYPE ?
+        objectScope.body.get(THIS_TYPE) 
+        : objectScope.declaration;
       if (!(self instanceof VariableInfo)) {
         throw new Error("Never!!!");
       }

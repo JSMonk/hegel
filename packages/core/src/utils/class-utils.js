@@ -243,6 +243,9 @@ export function addClassToTypeGraph(
   // $FlowIssue
   const { properties } =
     self.type instanceof GenericType ? self.type.subordinateType : self.type;
+  if (self.type.name === "{ }") {
+    self.type.name = ObjectType.getName([...properties]);
+  }
   const errors = [];
   // properties.forEach((property, key) => {
   //  if (!property.hasInitializer && property.type.name !== "undefined") {
@@ -253,9 +256,8 @@ export function addClassToTypeGraph(
     throw errors;
   }
 
-  const constructor = properties.get("constructor") || {
-    type: new FunctionType("", [], self.type)
-  };
+  const constructor = properties.get("constructor") ||
+    new VariableInfo(new FunctionType("", [], self.type), classScope);
   properties.delete("constructor");
   const object = findVariableInfo({ name: "Object" }, typeScope).type;
   const type =
@@ -266,7 +268,7 @@ export function addClassToTypeGraph(
     ? type.returnType
     : self.type;
   constructor.type = type;
-  if (constructor instanceof VariableInfo && !isTypeDefinitions) {
+  if (constructor.type.name !== "" && !isTypeDefinitions) {
     const constructorScope = typeGraph.body.get(
       Scope.getName(constructor.meta)
     );
@@ -289,7 +291,7 @@ export function addClassToTypeGraph(
   }
   properties.delete(CONSTRUCTABLE, constructor);
   const classVariable = new VariableInfo(
-    new ObjectType(String(self.type.name), [[CONSTRUCTABLE, constructor]]),
+    new ObjectType(classNode.id ? name : "Anonymous Class", [[CONSTRUCTABLE, constructor]]),
     parentScope
   );
   parentScope.body.set(name, classVariable);
