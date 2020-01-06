@@ -12,7 +12,7 @@ import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { CollectionType } from "../type-graph/types/collection-type";
-import { getDeclarationName, getAnonymousKey } from "./common";
+import { getDeclarationName } from "./common";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import { unique, findVariableInfo } from "./common";
 import {

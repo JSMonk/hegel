@@ -862,6 +862,10 @@ export function addPropertyToThis(
   const self = findVariableInfo({ name: THIS_TYPE }, currentClassScope);
   const selfType =
     self.type instanceof GenericType ? self.type.subordinateType : self.type;
+  if (currentClassScope.declaration !== undefined) {
+    // $FlowIssue
+    return selfType.properties.get(propertyName).type;
+  }
   const currentTypeScope =
     self.type instanceof GenericType ? self.type.localTypeScope : typeScope;
   let type = new Type("undefined", { isSubtypeFor: new Type("void") });

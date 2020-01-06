@@ -76,7 +76,7 @@ export function addAndTraverseFunctionWithType(
   const scopeName = Scope.getName(currentNode);
   traverseTree(currentNode, precompute, middlecompute, postcompute, parentNode);
   const scope = typeGraph.body.get(scopeName);
-  if (!(scope instanceof Scope)) {
+  if (!(scope instanceof Scope) || scope.type !== Scope.FUNCTION_TYPE) {
     return;
   }
   const declaration = scope.declaration;

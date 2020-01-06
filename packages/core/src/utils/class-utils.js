@@ -7,6 +7,8 @@ import { ObjectType } from "../type-graph/types/object-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
+import { CollectionType } from "../type-graph/types/collection-type";
+import { addCallToTypeGraph } from "../type-graph/call";
 import { THIS_TYPE, CONSTRUCTABLE } from "../type-graph/constants";
 import { getTypeFromTypeAnnotation } from "./type-utils";
 import {
@@ -32,7 +34,7 @@ import type {
   ObjectExpression
 } from "@babel/core";
 
-export function addClassScopeToTypeGraph(
+export function addThisToClassScope(
   currentNode: ClassDeclaration | ClassExpression | ObjectExpression,
   parentNode: Node,
   typeScope: Scope,
@@ -41,8 +43,11 @@ export function addClassScopeToTypeGraph(
   middlecompute: Handler,
   postcompute: Handler
 ) {
-  const scope = getScopeFromNode(currentNode, parentNode, typeGraph);
-  const parentTypeScope = findNearestTypeScope(scope, typeGraph);
+  const classScope = typeGraph.body.get(Scope.getName(currentNode));
+  if (!(classScope instanceof Scope)) {
+    throw new Error("Never!!!");
+  }
+  const parentTypeScope = findNearestTypeScope(classScope, typeGraph);
   const name =
     currentNode.id != undefined ? getDeclarationName(currentNode) : "{ }";
   const Object = findVariableInfo({ name: "Object" }, typeScope);
@@ -52,6 +57,40 @@ export function addClassScopeToTypeGraph(
       currentNode.type === NODE.CLASS_EXPRESSION ||
       currentNode.type === NODE.CLASS_DECLARATION
   });
+  if (currentNode.superClass != null) {
+    const genericNode = {
+      loc: currentNode.superClass.loc,
+      type: NODE.GENERIC_TYPE_ANNOTATION,
+      id: currentNode.superClass,
+      typeParameters: currentNode.superTypeParameters
+    };
+    const superClass = currentNode.superClass.type === NODE.IDENTIFIER ?
+        getTypeFromTypeAnnotation(
+          { typeAnnotation: genericNode },
+          parentTypeScope,
+          classScope.parent, 
+          false,
+          null,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
+        )
+      : addCallToTypeGraph(
+          currentNode.superClass,
+          typeGraph,
+          classScope.parent,
+          parentNode,
+          precompute,
+          middlecompute,
+          postcompute,
+        ).result;
+    if (!(superClass instanceof ObjectType || superClass instanceof CollectionType)) {
+      throw new HegelError("Cannot extend class from non-class type", genericNode.loc);
+    }
+    selfObject.isSubtypeOf = superClass;
+  }
   const localTypeScope = new Scope(Scope.BLOCK_TYPE, parentTypeScope);
   const self =
     currentNode.typeParameters === undefined
@@ -62,7 +101,7 @@ export function addClassScopeToTypeGraph(
             getTypeFromTypeAnnotation(
               { typeAnnotation },
               localTypeScope,
-              scope.parent,
+              classScope.parent,
               true,
               null,
               parentNode,
@@ -75,9 +114,24 @@ export function addClassScopeToTypeGraph(
           localTypeScope,
           selfObject
         );
-  const selfVar = new VariableInfo(self, scope);
-  scope.body.set(THIS_TYPE, selfVar);
+  const selfVar = new VariableInfo(self, classScope);
+  classScope.body.set(THIS_TYPE, selfVar);
   parentTypeScope.body.set(name, selfVar);
+}
+
+export function addClassScopeToTypeGraph(
+  currentNode: ClassDeclaration | ClassExpression | ObjectExpression,
+  parentNode: Node,
+  typeGraph: ModuleScope,
+) {
+  const scope = getScopeFromNode(currentNode, parentNode, typeGraph);
+  const parentTypeScope = findNearestTypeScope(scope, typeGraph);
+  const name =
+    currentNode.id != undefined
+      ? getDeclarationName(currentNode)
+      : getAnonymousKey(currentNode);
+  scope.body.set(THIS_TYPE, { type: NODE.THIS_TYPE_DEFINITION, definition: currentNode, loc: currentNode.loc });
+  parentTypeScope.body.set(name, currentNode);
   typeGraph.body.set(Scope.getName(currentNode), scope);
   return scope;
 }
@@ -85,11 +139,7 @@ export function addClassScopeToTypeGraph(
 export function addClassNodeToTypeGraph(
   currentNode: ClassDeclaration | ClassExpression,
   parentNode: Node,
-  typeScope: Scope,
   typeGraph: ModuleScope,
-  precompute: Handler,
-  middlecompute: Handler,
-  postcompute: Handler
 ) {
   const name =
     currentNode.id != undefined
@@ -99,15 +149,7 @@ export function addClassNodeToTypeGraph(
   if (currentScope.body.has(name)) {
     return;
   }
-  addClassScopeToTypeGraph(
-    currentNode,
-    parentNode,
-    typeScope,
-    typeGraph,
-    precompute,
-    middlecompute,
-    postcompute
-  );
+  addClassScopeToTypeGraph(currentNode, parentNode, typeGraph);
   if (currentNode.type !== NODE.CLASS_DECLARATION) {
     return;
   }
@@ -117,7 +159,10 @@ export function addClassNodeToTypeGraph(
 export function addPropertyNodeToThis(
   currentNode: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod,
   parentNode: Node,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  pre: Handler,
+  middle: Handler,
+  post: Handler,
 ) {
   const propertyName = currentNode.key.name || `${currentNode.key.value}`;
   const currentClassScope = getParentForNode(
@@ -125,7 +170,18 @@ export function addPropertyNodeToThis(
     parentNode,
     typeGraph
   );
-  const self = findVariableInfo({ name: THIS_TYPE }, currentClassScope);
+  if (currentClassScope.declaration !== undefined) {
+    return;
+  }
+  const self = findVariableInfo(
+    { name: THIS_TYPE },
+    currentClassScope,
+    parentNode,
+    typeGraph,
+    pre,
+    middle,
+    post
+  );
   const selfType =
     self.type instanceof GenericType ? self.type.subordinateType : self.type;
   if (!(selfType instanceof ObjectType)) {
@@ -175,10 +231,15 @@ export function addClassToTypeGraph(
     throw new Error("Never!!!");
   }
   const parentScope = classScope.parent;
-  const self = classScope.body.get(THIS_TYPE);
-  if (!(self instanceof VariableInfo)) {
-    throw new Error("Never!!!");
-  }
+  const self = findVariableInfo(
+    { name: THIS_TYPE },
+    classScope,
+    parentNode,
+    typeGraph,
+    pre,
+    middle,
+    post
+  );
   // $FlowIssue
   const { properties } =
     self.type instanceof GenericType ? self.type.subordinateType : self.type;
@@ -232,6 +293,7 @@ export function addClassToTypeGraph(
     parentScope
   );
   parentScope.body.set(name, classVariable);
+  classScope.declaration = classVariable;
   // $FlowIssue
   typeScope.body.set(name, self);
 }

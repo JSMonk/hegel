@@ -152,6 +152,10 @@ export const SPECIFIERS_TYPES = {
   IMPORT_SPECIFIER: "ImportSpecifier"
 };
 
+export const SPECIAL_TYPES = {
+  THIS_TYPE_DEFINITION: "ThisTypeDefinition"
+}
+
 export const isUnscopableDeclaration = ({ kind }: Object) =>
   kind === DECLARATION_KINDS.VAR;
 
@@ -196,5 +200,6 @@ export default {
   ...OBJECT_PROPERTIES,
   ...CLASS_PROPERTIES,
   ...LITERAL_TYPES,
-  ...SPECIFIERS_TYPES
+  ...SPECIFIERS_TYPES,
+  ...SPECIAL_TYPES,
 };

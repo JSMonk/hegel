@@ -18,6 +18,7 @@ import { GenericType } from "./types/generic-type";
 import { ModuleScope } from "./module-scope";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
+import { CollectionType } from "./types/collection-type";
 import { getVariableType } from "../utils/variable-utils";
 import { addVariableToGraph } from "../utils/variable-utils";
 import { inferenceErrorType } from "../inference/error-type";
@@ -37,8 +38,9 @@ import {
 import {
   addObjectName,
   addClassToTypeGraph,
+  addThisToClassScope,
+  addPropertyNodeToThis,
   addClassNodeToTypeGraph,
-  addPropertyNodeToThis
 } from "../utils/class-utils";
 import {
   prepareGenericFunctionType,
@@ -121,6 +123,35 @@ const addTypeAlias = (
   if (genericArguments) {
     type.name = GenericType.getName(type.name, genericArguments);
   }
+  if (node.extends != null) {
+    let objType = type instanceof GenericType ? type.subordinateType : type;
+    objType = objType instanceof CollectionType ? objType.isSubtypeOf : objType;
+    if (!(objType instanceof ObjectType)) {
+      throw new Error("Never!!!");
+    }
+    const exts = node.extends.map(n =>
+      getTypeFromTypeAnnotation(
+        { typeAnnotation: n },
+        localTypeScope,
+        typeGraph,
+        false,
+        self.type,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      )
+    );
+    exts.forEach((type, index) => {
+      type = type instanceof CollectionType ? type.isSubtypeOf : type;
+      if (!(type instanceof ObjectType)) {
+        throw new HegelError("Cannot extend interface from non-object type", node.extends[index].loc);
+      }
+      // $FlowIssue
+      objType.properties = new Map([...objType.properties, ...type.properties]); 
+    });
+  }
   const typeFor = genericArguments
     ? GenericType.createTypeWithName(
         typeName,
@@ -186,12 +217,7 @@ const fillModuleScope = (
         addClassNodeToTypeGraph(
           currentNode,
           parentNode,
-          // $FlowIssue
-          typeScope,
           typeGraph,
-          precompute,
-          middlecompute,
-          postcompute
         );
         break;
       case NODE.IF_STATEMENT:
@@ -245,6 +271,9 @@ const fillModuleScope = (
         const classScope = typeGraph.body.get(Scope.getName(parentNode));
         if (!(classScope instanceof Scope)) {
           throw new Error("Never!!!");
+        }
+        if (classScope.declaration !== undefined) {
+          return;
         }
         const classVar = findVariableInfo({ name: THIS_TYPE }, classScope);
         const classType =
@@ -334,19 +363,14 @@ const middlefillModuleScope = (
         addClassNodeToTypeGraph(
           currentNode,
           parentNode,
-          // $FlowIssue
-          typeScope,
           typeGraph,
-          precompute,
-          middlecompute,
-          postcompute
         );
         break;
       case NODE.OBJECT_PROPERTY:
       case NODE.OBJECT_METHOD:
       case NODE.CLASS_PROPERTY:
       case NODE.CLASS_METHOD:
-        addPropertyNodeToThis(currentNode, parentNode, typeGraph);
+        addPropertyNodeToThis(currentNode, parentNode, typeGraph, precompute, middlecompute, postcompute);
         break;
       case NODE.FUNCTION_DECLARATION:
       case NODE.TS_FUNCTION_DECLARATION:
@@ -380,6 +404,17 @@ const afterFillierActions = (
     switch (currentNode.type) {
       case NODE.OBJECT_EXPRESSION:
         addObjectName(currentNode, typeGraph);
+        break;
+      case NODE.THIS_TYPE_DEFINITION:
+        addThisToClassScope(
+          currentNode.definition,
+          parentNode,
+          typeScope,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
+        );
         break;
       case NODE.CLASS_PROPERTY:
       case NODE.OBJECT_PROPERTY:
