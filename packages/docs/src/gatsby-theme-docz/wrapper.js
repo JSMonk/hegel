@@ -1,0 +1,28 @@
+import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
+
+const DARK_FAVICON = "/public/images/favicon-dark.png";
+const LIGHT_FAVICON = "/public/images/favicon-light.png";
+
+export default function Wrapper({ children }) {
+  const [favicon, changeFavicon] = useState(DARK_FAVICON);
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+      const darkMatcher = window.matchMedia("(prefers-color-scheme: dark)");
+      const switchFavicon = () =>
+        changeFavicon(darkMatcher.matches ? DARK_FAVICON : LIGHT_FAVICON);
+      darkMatcher.addListener(switchFavicon);
+      switchFavicon();
+      return () => darkMatcher.removeListener(switchFavicon);
+    }
+  }, []);
+  return (
+    <>
+      <Helmet>
+        <meta charSet="utf-8" />
+        <link rel="icon" type="image/png" href={favicon} />
+      </Helmet>
+      {children}
+    </>
+  );
+}

@@ -8,7 +8,6 @@ const STANDARD_LIB_OPTIONS = { plugins: ["typescript"] };
 const DEFAULT_OPTIONS = { plugins: ["flow"] };
 // eslint-disable-next-line
 const STANDARD_AST = parse(STD_LIB_CONTENT, STANDARD_LIB_OPTIONS).program;
-debugger;
 
 export function getTypeByLocation(location) {
   if (globalScope === null) {

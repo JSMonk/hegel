@@ -2,15 +2,11 @@ export default {
   title: "Hegel",
   description: "Feel power of types",
   indexHtml: "public/index.html",
-  theme: "src/theme/index",
   typescript: false,
   propsParser: false,
   mdPlugins: [],
-  ignore: ["src/theme/**"],
+  ignore: ["src/gatsby-theme-docz/**"],
   public: "./public",
-  htmlContext: {
-    // favicon: '/public/images/favicon.png',
-  },
   menu: [
     {
       name: "Intro",
@@ -61,13 +57,4 @@ export default {
       menu: ["Frequently Asked Questions", "Newcomer Examples", "Next Steps"]
     }
   ],
-  onCreateWebpackChain: config => {
-    config.resolve.alias
-      // .set("@fonts", `${PUBLIC}/fonts`)
-      .set("@images", `${PUBLIC}/images`)
-      .set("@components", `${SRC}/theme/components`)
-      .set("@styles", `${SRC}/theme/styles`);
-
-    return config;
-  },
 };
