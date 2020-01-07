@@ -358,6 +358,12 @@ export function getTypeFromTypeAnnotation(
             )
           )
       );
+      const constructor = resultObj.properties.get(CONSTRUCTABLE);
+      if (constructor !== undefined) {
+        const constructorType = constructor.type instanceof GenericType ? constructor.type.subordinateType : constructor.type;
+        // $FlowIssue
+        resultObj.instanceType = constructorType.returnType;
+      }
       return getResultObjectType(resultObj);
     case NODE.TS_ARRAY_TYPE_ANNOTATION:
       return getTypeFromTypeAnnotation(
@@ -420,14 +426,14 @@ export function getTypeFromTypeAnnotation(
             typeNode.typeAnnotation.loc
           );
         }
-        if (existedGenericType.name === "$TypeOf") {
+        if (existedGenericType.name === "$TypeOf" || existedGenericType.name === "$InstanceOf") {
           if (
             genericArguments.length !== 1 ||
-            (genericArguments[0].id &&
+            (genericArguments[0].id == undefined ||
               genericArguments[0].id.type !== NODE.IDENTIFIER)
           ) {
             throw new HegelError(
-              `"$TypeOf" work only with identifier`,
+              `"${existedGenericType.name}" work only with identifier`,
               typeNode.typeAnnotation.loc
             );
           }

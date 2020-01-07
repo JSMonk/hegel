@@ -282,3 +282,36 @@ describe("Test $TypeOf", () => {
     expect(errors[0].message).toEqual('Variable "a" is not defined!');
   });
 });
+
+describe("Test $InstanceOf", () => {
+  test("Simple test of instance of", async () => {
+    const sourceAST = prepareAST(`
+      class User { name: string = "" }
+      type A = $InstanceOf<User>;
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const typeScope = actual.body.get(TYPE_SCOPE);
+    expect(errors.length).toEqual(0);
+    const type =typeScope.body.get("A").type;
+    expect(type).toBeInstanceOf(ObjectType);
+    expect(type.name).toBe("User");
+    expect(type.properties.get("name").type).toEqual(new Type("string"));
+  });
+  test("Should throw error with non-runtime first argument", async () => {
+    const sourceAST = prepareAST(`
+      type A = $InstanceOf<number>;
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].message).toEqual('"$InstanceOf" work only with identifier');
+  });
+  test("Should throw error with non-class first argument", async () => {
+    const sourceAST = prepareAST(`
+      const a = {};
+      type A = $InstanceOf<a>;
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].message).toEqual("Cannot apply $InstanceOf to non-class type");
+  });
+});

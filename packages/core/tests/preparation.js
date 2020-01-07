@@ -4,7 +4,7 @@ const path = require("path");
 
 const babelrc = {
   sourceType: "module",
-  plugins: ["flow"]
+  plugins: ["flow", "classProperties"]
 };
 
 const definitionsRc = {

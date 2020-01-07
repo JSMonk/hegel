@@ -235,12 +235,16 @@ export function instanceofRefinement(
   ) {
     return;
   }
-  const constructor = findVariableInfo(constructorNode, typeScope);
+  const constructor = findVariableInfo(constructorNode, currentScope);
+  if (!(constructor.type instanceof ObjectType &&constructor.type.instanceType !== null)) {
+    throw new HegelError("Cannot apply instanceof to non-class type", constructorNode.loc);
+  }
+  const instanceType = constructor.type.instanceType;
   let refinementedType, alternateType, name;
   if (target.type === NODE.IDENTIFIER) {
     [name, refinementedType, alternateType] = instanceofIdentifier(
       target,
-      constructor.type,
+      instanceType,
       currentScope,
       typeScope,
       currentRefinementNode
@@ -249,7 +253,7 @@ export function instanceofRefinement(
   if (target.type === NODE.MEMBER_EXPRESSION) {
     const result = instanceofProperty(
       target,
-      constructor.type,
+      instanceType,
       currentScope,
       typeScope,
       currentRefinementNode

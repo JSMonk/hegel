@@ -18,7 +18,6 @@ import { GenericType } from "./types/generic-type";
 import { ModuleScope } from "./module-scope";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
-import { CollectionType } from "./types/collection-type";
 import { getVariableType } from "../utils/variable-utils";
 import { addVariableToGraph } from "../utils/variable-utils";
 import { inferenceErrorType } from "../inference/error-type";
@@ -122,35 +121,6 @@ const addTypeAlias = (
   );
   if (genericArguments) {
     type.name = GenericType.getName(type.name, genericArguments);
-  }
-  if (node.extends != null) {
-    let objType = type instanceof GenericType ? type.subordinateType : type;
-    objType = objType instanceof CollectionType ? objType.isSubtypeOf : objType;
-    if (!(objType instanceof ObjectType)) {
-      throw new Error("Never!!!");
-    }
-    const exts = node.extends.map(n =>
-      getTypeFromTypeAnnotation(
-        { typeAnnotation: n },
-        localTypeScope,
-        typeGraph,
-        false,
-        self.type,
-        parentNode,
-        typeGraph,
-        precompute,
-        middlecompute,
-        postcompute
-      )
-    );
-    exts.forEach((type, index) => {
-      type = type instanceof CollectionType ? type.isSubtypeOf : type;
-      if (!(type instanceof ObjectType)) {
-        throw new HegelError("Cannot extend interface from non-object type", node.extends[index].loc);
-      }
-      // $FlowIssue
-      objType.properties = new Map([...objType.properties, ...type.properties]); 
-    });
   }
   const typeFor = genericArguments
     ? GenericType.createTypeWithName(

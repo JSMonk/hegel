@@ -40,6 +40,7 @@ export class ObjectType extends Type {
   isNominal: boolean;
   properties: Map<string, VariableInfo>;
   onlyLiteral = true;
+  instanceType: Type | null = null;
 
   constructor(
     name: ?string,
