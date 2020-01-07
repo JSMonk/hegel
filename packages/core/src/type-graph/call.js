@@ -83,6 +83,9 @@ export function addCallToTypeGraph(
   if (node.type === NODE.EXPRESSION_STATEMENT) {
     node = node.expression;
   }
+  if(node.type === NODE.SUPER) {
+    node = { type: NODE.IDENTIFIER, name: "super", loc: node.loc }; 
+  }
   switch (node.type) {
     case NODE.IF_STATEMENT:
       target = findVariableInfo({ name: "if", loc: node.loc }, currentScope);
@@ -152,8 +155,6 @@ export function addCallToTypeGraph(
         Type.createTypeWithName("unknown", typeScope)
       ];
       break;
-    case NODE.SUPER:
-      node = { type: NODE.IDENTIFIER, name: "super", loc: node.loc }; 
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
     case NODE.IDENTIFIER:
@@ -577,9 +578,10 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.CALL_EXPRESSION:
-      if (node.callee.type === NODE.IDENTIFIER) {
+      if (node.callee.type === NODE.IDENTIFIER || node.callee.type === NODE.SUPER) {
+        const callee = node.callee.type === NODE.IDENTIFIER ? node.callee : { name: "super", loc: node.callee.loc };
         target = findVariableInfo(
-          node.callee,
+          callee,
           currentScope,
           parentNode,
           typeGraph,
@@ -587,6 +589,7 @@ export function addCallToTypeGraph(
           middle,
           post
         );
+        targetName = callee.name;
         if (
           !(target.type instanceof FunctionType) ||
           !(
@@ -692,6 +695,11 @@ export function addCallToTypeGraph(
         targetType instanceof GenericType &&
         targetType.subordinateType.returnType instanceof TypeVar;
       break;
+    case NODE.THIS_EXPRESSION:
+      const selfVar = findVariableInfo({ name: THIS_TYPE, loc: node.loc }, currentScope);
+      const nearestFunctionScope = findNearestScopeByType(Scope.FUNCTION_TYPE, currentScope);
+      nearestFunctionScope.calls.push(new CallMeta(undefined, [], node.loc, "this"));
+      return { result: selfVar.type, inferenced: false };
     default:
       return {
         result: inferenceTypeForNode(

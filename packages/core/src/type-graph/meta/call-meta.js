@@ -17,13 +17,13 @@ export type CallableTarget =
 export type CallableArguments = Type | VariableInfo;
 
 export class CallMeta extends Meta {
-  target: CallableTarget;
+  target: ?CallableTarget;
   targetName: string;
   arguments: Array<CallableArguments>;
   inferenced: boolean;
 
   constructor(
-    target: CallableTarget,
+    target: ?CallableTarget,
     args: Array<CallableArguments>,
     loc: SourceLocation,
     targetName: string,

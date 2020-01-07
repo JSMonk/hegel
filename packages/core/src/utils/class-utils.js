@@ -260,7 +260,9 @@ export function addClassToTypeGraph(
     throw errors;
   }
 
-  const constructor = properties.get("constructor") ||
+  const superType = classScope.body.get("super");
+  const existedConstructor = properties.get("constructor");
+  const constructor = existedConstructor || superType ||
     new VariableInfo(new FunctionType("", [], self.type), classScope);
   properties.delete("constructor");
   const object = findVariableInfo({ name: "Object" }, typeScope).type;
@@ -272,7 +274,15 @@ export function addClassToTypeGraph(
     ? type.returnType
     : self.type;
   constructor.type = type;
-  if (constructor.type.name !== "" && !isTypeDefinitions) {
+  properties.delete(CONSTRUCTABLE, constructor);
+  const staticType = new ObjectType(classNode.id ? name : "Anonymous Class", [[CONSTRUCTABLE, constructor]]);
+  staticType.instanceType = self.type;
+  const classVariable = new VariableInfo(staticType, parentScope, new Meta(classNode.loc));
+  parentScope.body.set(name, classVariable);
+  classScope.declaration = classVariable;
+  // $FlowIssue
+  typeScope.body.set(name, self);
+  if (existedConstructor !== undefined && !isTypeDefinitions) {
     const constructorScope = typeGraph.body.get(
       Scope.getName(constructor.meta)
     );
@@ -292,13 +302,16 @@ export function addClassToTypeGraph(
       );
       constructorScope.calls.push(callMeta);
     }
+    if (superType !== undefined) {
+      const superFnType = superType.type instanceof GenericType ? superType.type.subordinateType : superType.type;
+      const superCallIndex = constructorScope.calls.findIndex(call => call.targetName === "super");
+      const thisCallIndex = constructorScope.calls.findIndex(call => call.targetName === "this");
+      if (superCallIndex === -1) {
+        throw new HegelError('Constructor must contain "super" call super inside', constructor.meta.loc);
+      }
+      if (thisCallIndex !== -1 && superCallIndex > thisCallIndex) {
+        throw new HegelError('"super" must be called before accessing "this"', constructorScope.calls[thisCallIndex].loc);
+      }
+    }
   }
-  properties.delete(CONSTRUCTABLE, constructor);
-  const staticType = new ObjectType(classNode.id ? name : "Anonymous Class", [[CONSTRUCTABLE, constructor]]);
-  staticType.instanceType = self.type;
-  const classVariable = new VariableInfo(staticType, parentScope, new Meta(classNode.loc));
-  parentScope.body.set(name, classVariable);
-  classScope.declaration = classVariable;
-  // $FlowIssue
-  typeScope.body.set(name, self);
 }

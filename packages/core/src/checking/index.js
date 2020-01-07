@@ -98,12 +98,20 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
         a instanceof RestArgument
       )
   );
-  if (
-    requiredTargetArguments.length > givenArgumentsTypes.length &&
-    !(targetArguments[0] instanceof RestArgument)
-  ) {
+  if (requiredTargetArguments.length > givenArgumentsTypes.length) {
     throw new HegelError(
       `${requiredTargetArguments.length} arguments are required. Given ${
+        givenArgumentsTypes.length
+      }.`,
+      call.loc
+    );
+  }
+  if (
+    targetArguments.length < givenArgumentsTypes.length &&
+    !(targetArguments[targetArguments.length - 1] instanceof RestArgument)
+  ) {
+    throw new HegelError(
+      `${targetArguments.length} arguments are expected. Given ${
         givenArgumentsTypes.length
       }.`,
       call.loc
@@ -143,11 +151,15 @@ function checkCalls(
 ): void {
   let returnWasCalled = false;
   for (let i = 0; i < scope.calls.length; i++) {
-    if (scope.calls[i].targetName === "return") {
+    const call = scope.calls[i];
+    if (call.target === undefined) {
+      continue;
+    }
+    if (call.targetName === "return") {
       returnWasCalled = true;
     }
     try {
-      checkSingleCall(scope.calls[i], typeScope);
+      checkSingleCall(call, typeScope);
     } catch (e) {
       e.source = path;
       errors.push(e);

@@ -260,7 +260,7 @@ export function getCallTarget(
   call: CallMeta,
   withClean?: boolean = true
 ): FunctionType {
-  let callTargetType = call.target.type || call.target;
+  let callTargetType = call.target instanceof VariableInfo ? call.target.type : call.target;
   if (callTargetType instanceof TypeVar) {
     callTargetType = Type.getTypeRoot(callTargetType);
   }
@@ -294,6 +294,9 @@ function resolveOuterTypeVarsFromCall(
     return;
   }
   const callTarget: FunctionType = getCallTarget(call, false);
+  if (callTarget === undefined) {
+    return;
+  }
 
   for (let i = 0; i < call.arguments.length; i++) {
     const callArgument = call.arguments[i];
