@@ -152,9 +152,10 @@ export function addCallToTypeGraph(
         Type.createTypeWithName("unknown", typeScope)
       ];
       break;
+    case NODE.SUPER:
+      node = { type: NODE.IDENTIFIER, name: "super", loc: node.loc }; 
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
-    case NODE.CLASS_DECLARATION:
     case NODE.IDENTIFIER:
       const nodeName =
         node.type === NODE.IDENTIFIER

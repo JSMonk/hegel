@@ -1302,8 +1302,8 @@ describe("Classes", () => {
   });
   test("Simple class declaration with extends", async () => {
     const sourceAST = prepareAST(`
-      class A extends B {}
       class B {}
+      class A extends B {}
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(0);

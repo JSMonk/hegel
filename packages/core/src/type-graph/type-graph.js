@@ -39,7 +39,7 @@ import {
   addClassToTypeGraph,
   addThisToClassScope,
   addPropertyNodeToThis,
-  addClassNodeToTypeGraph,
+  addClassScopeToTypeGraph,
 } from "../utils/class-utils";
 import {
   prepareGenericFunctionType,
@@ -184,7 +184,7 @@ const fillModuleScope = (
       case NODE.CLASS_DECLARATION:
       case NODE.CLASS_EXPRESSION:
       case NODE.OBJECT_EXPRESSION:
-        addClassNodeToTypeGraph(
+        addClassScopeToTypeGraph(
           currentNode,
           parentNode,
           typeGraph,
@@ -327,15 +327,6 @@ const middlefillModuleScope = (
       currentNode = currentNode.declaration;
     }
     switch (currentNode.type) {
-      case NODE.CLASS_DECLARATION:
-      case NODE.CLASS_EXPRESSION:
-      case NODE.OBJECT_EXPRESSION:
-        addClassNodeToTypeGraph(
-          currentNode,
-          parentNode,
-          typeGraph,
-        );
-        break;
       case NODE.OBJECT_PROPERTY:
       case NODE.OBJECT_METHOD:
       case NODE.CLASS_PROPERTY:

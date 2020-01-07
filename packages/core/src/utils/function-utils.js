@@ -155,3 +155,11 @@ export function isCallableType(a: Type) {
   }
   return a instanceof FunctionType;
 }
+
+export function functionWithReturnType(functionType: GenericType<FunctionType> | FunctionType, newReturnType: Type) {
+  const oldFunctionType = functionType instanceof GenericType ? functionType.subordinateType : functionType;
+  const newFunctionArguments = [...oldFunctionType.argumentsTypes];
+  const newFunctionGenericArguments = functionType instanceof GenericType ? [...functionType.genericArguments] : [];
+  const newFunctionType = new FunctionType(FunctionType.getName(newFunctionArguments, newReturnType, newFunctionGenericArguments), newFunctionArguments, newReturnType);;
+  return functionType instanceof GenericType ? new GenericType(newFunctionType.name, newFunctionGenericArguments, functionType.localTypeScope, newFunctionType) : newFunctionType;
+}

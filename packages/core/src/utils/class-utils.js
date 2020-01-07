@@ -9,12 +9,13 @@ import { GenericType } from "../type-graph/types/generic-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { addCallToTypeGraph } from "../type-graph/call";
+import { functionWithReturnType } from "./function-utils";
 import { getTypeFromTypeAnnotation } from "./type-utils";
 import { THIS_TYPE, TYPE_SCOPE, CONSTRUCTABLE } from "../type-graph/constants";
 import {
+  getAnonymousKey,
   findVariableInfo,
   getDeclarationName,
-  getAnonymousKey
 } from "./common";
 import {
   getParentForNode,
@@ -104,6 +105,8 @@ export function addThisToClassScope(
         currentNode.superClass.loc
       );
     }
+    // $FlowIssue
+    const superFunctionType = functionWithReturnType(superClass.properties.get(CONSTRUCTABLE).type, self); 
     const genericParams = (currentNode.superTypeParameters || []).map(arg =>
       getTypeFromTypeAnnotation(
         { typeAnnotation: arg },
@@ -121,6 +124,7 @@ export function addThisToClassScope(
     selfObject.isSubtypeOf = superType instanceof GenericType ?
       superType.applyGeneric(genericParams, currentNode.superClass.loc) 
       : superClass.instanceType;
+    classScope.body.set("super", new VariableInfo(superFunctionType, classScope));
   }
   const selfVar = new VariableInfo(self, classScope);
   classScope.body.set(THIS_TYPE, selfVar);
@@ -154,26 +158,6 @@ export function addClassScopeToTypeGraph(
     scope.body.set(THIS_TYPE, { type: NODE.THIS_TYPE_DEFINITION, parentNode, definition: currentNode, loc: currentNode.loc });
   }
   return scope;
-}
-
-export function addClassNodeToTypeGraph(
-  currentNode: ClassDeclaration | ClassExpression,
-  parentNode: Node,
-  typeGraph: ModuleScope,
-) {
-  const name =
-    currentNode.id != undefined
-      ? getDeclarationName(currentNode)
-      : getAnonymousKey(currentNode);
-  const currentScope = getParentForNode(currentNode, parentNode, typeGraph);
-  if (currentScope.body.has(name)) {
-    return;
-  }
-  addClassScopeToTypeGraph(currentNode, parentNode, typeGraph);
-  if (currentNode.type !== NODE.CLASS_DECLARATION) {
-    return;
-  }
-  currentScope.body.set(name, currentNode);
 }
 
 export function addPropertyNodeToThis(
