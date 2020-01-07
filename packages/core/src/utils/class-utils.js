@@ -43,6 +43,7 @@ export function addThisToClassScope(
   middlecompute: Handler,
   postcompute: Handler
 ) {
+  parentNode = currentNode.parentNode;
   const classScope = typeGraph.body.get(Scope.getName(currentNode));
   if (!(classScope instanceof Scope)) {
     throw new Error("Never!!!");
@@ -150,7 +151,7 @@ export function addClassScopeToTypeGraph(
     // $FlowIssue
     addThisToObjectScope(scope, typeGraph.body.get(TYPE_SCOPE));
   } else {
-    scope.body.set(THIS_TYPE, { type: NODE.THIS_TYPE_DEFINITION, definition: currentNode, loc: currentNode.loc });
+    scope.body.set(THIS_TYPE, { type: NODE.THIS_TYPE_DEFINITION, parentNode, definition: currentNode, loc: currentNode.loc });
   }
   return scope;
 }

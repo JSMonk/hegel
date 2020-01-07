@@ -1272,33 +1272,51 @@ describe("Classes", () => {
     const sourceAST = prepareAST(`
       class A {}
     `);
-    const [[actual]] = await createTypeGraph([sourceAST]);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
     const typeScope = actual.body.get(TYPE_SCOPE);
     const actualAType = typeScope.body.get("A").type;
     const actualAClass = actual.body.get("A").type;
     expect(actualAClass.properties.get(CONSTRUCTABLE).type.returnType).toEqual(actualAType);
   });
   test("Simple class declaration with constructor", async () => {
-     const sourceAST = prepareAST(`
-       class A {
-         a: number;
+    const sourceAST = prepareAST(`
+      class A {
+        a: number;
 
-         constructor(a: number) {
-           this.a = a;
-         }
-       }
-     `);
-     const [[actual], errors] = await createTypeGraph([sourceAST]);
-     debugger;
-     const typeScope = actual.body.get(TYPE_SCOPE);
-     const actualAType = typeScope.body.get("A").type;
-     const actualAClass = actual.body.get("A").type;
-     expect(actualAClass.properties.get(CONSTRUCTABLE).type.returnType).toEqual(actualAType);
-     expect(actualAClass.properties.get(CONSTRUCTABLE).type.argumentsTypes.length).toBe(1);
-     expect(actualAClass.properties.get(CONSTRUCTABLE).type.argumentsTypes[0]).toEqual(
-       new Type("number")
-     );
-   });
+        constructor(a: number) {
+          this.a = a;
+        }
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
+    const typeScope = actual.body.get(TYPE_SCOPE);
+    const actualAType = typeScope.body.get("A").type;
+    const actualAClass = actual.body.get("A").type;
+    expect(actualAClass.properties.get(CONSTRUCTABLE).type.returnType).toEqual(actualAType);
+    expect(actualAClass.properties.get(CONSTRUCTABLE).type.argumentsTypes.length).toBe(1);
+    expect(actualAClass.properties.get(CONSTRUCTABLE).type.argumentsTypes[0]).toEqual(
+      new Type("number")
+    );
+  });
+  test("Simple class declaration with extends", async () => {
+    const sourceAST = prepareAST(`
+      class A extends B {}
+      class B {}
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
+    const typeScope = actual.body.get(TYPE_SCOPE);
+    const actualAType = typeScope.body.get("A").type;
+    const actualAClass = actual.body.get("A").type;
+    const actualBType = typeScope.body.get("B").type;
+    const actualBClass = actual.body.get("B").type;
+    expect(actualAClass.properties.get(CONSTRUCTABLE).type.returnType).toEqual(actualAType);
+    expect(actualBClass.properties.get(CONSTRUCTABLE).type.returnType).toEqual(actualBType);
+    expect(actualAType.isSubtypeOf).toBe(actualBType);
+  });
+
   test("Get concat method of tuple", async () => {
     const sourceAST = prepareAST(`
       const a: [number, string] = [2, '2']; 
