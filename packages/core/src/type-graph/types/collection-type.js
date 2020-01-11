@@ -1,27 +1,46 @@
 // @flow
 import { Type } from "./type";
+import { TypeVar } from "./type-var";
 import { TupleType } from "./tuple-type";
 import { UnionType } from "./union-type";
 import { GenericType } from "./generic-type";
-import { getNameForType } from "../../utils/type-utils";
-import { createTypeWithName } from "./create-type";
-import type { Scope } from "../scope";
 import type { TypeMeta } from "./type";
+import type { TypeScope } from "../type-scope";
 
 export class CollectionType<K: Type, V: Type> extends Type {
-  static createTypeWithName = createTypeWithName(CollectionType);
+  static term(
+    name: mixed,
+    meta?: TypeMeta = {},
+    keyType: Type,
+    valueType: Type,
+    ...args: Array<any>
+  ) {
+    let parent: TypeScope | void = meta.parent;
+    if (
+      !TypeVar.isSelf(keyType) &&
+      (parent === undefined || keyType.parent.priority > parent.priority)
+    ) {
+      parent = keyType.parent;
+    }
+    if (
+      !TypeVar.isSelf(valueType) &&
+      (parent === undefined || valueType.parent.priority > parent.priority)
+    ) {
+      parent = valueType.parent;
+    }
+    const newMeta = { ...meta, parent };
+    return super.term(name, newMeta, keyType, valueType, ...args);
+  }
 
   static getName(keyType: Type, valueType: Type) {
-    return `{ [key: ${getNameForType(keyType)}]: ${getNameForType(
-      valueType
-    )} }`;
+    return `{ [key: ${String(keyType.name)}]: ${String(valueType.name)} }`;
   }
 
   keyType: K;
   valueType: V;
   onlyLiteral = true;
 
-  constructor(name: string, keyType: K, valueType: V, meta?: TypeMeta = {}) {
+  constructor(name: string, meta?: TypeMeta = {}, keyType: K, valueType: V) {
     super(name, meta);
     this.keyType = keyType;
     this.valueType = valueType;
@@ -35,14 +54,14 @@ export class CollectionType<K: Type, V: Type> extends Type {
       if (isForAssign) {
         return this.valueType;
       }
-      const UNDEFINED = new Type("undefined", { isSubtypeOf: new Type("void") });
       const result =
         this.valueType instanceof UnionType &&
-        this.valueType.variants.some(a => a.name === "undefined")
+        this.valueType.variants.some(a => a.equalsTo(Type.Undefined))
           ? this.valueType
-          : new UnionType(
-              UnionType.getName([this.valueType, UNDEFINED]),
-              [this.valueType, UNDEFINED]
+          : UnionType.term(
+              UnionType.getName([this.valueType, Type.Undefined]),
+              {},
+              [this.valueType, Type.Undefined]
             );
       if (result) {
         return result;
@@ -82,7 +101,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
         (anotherType.isSubtypeOf === null ||
           selfNameWithoutApplying ===
             GenericType.getNameWithoutApplying(anotherType.isSubtypeOf.name)) &&
-        this.keyType.equalsTo(new Type("number")) &&
+        this.keyType.equalsTo(Type.Number) &&
         anotherType.items.every(t => this.valueType.isPrincipalTypeFor(t)))
     );
   }
@@ -90,7 +109,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
   changeAll(
     sourceTypes: Array<Type>,
     targetTypes: Array<Type>,
-    typeScope: Scope
+    typeScope: TypeScope
   ) {
     const newValueType = this.valueType.changeAll(
       sourceTypes,
@@ -103,11 +122,11 @@ export class CollectionType<K: Type, V: Type> extends Type {
     if (newValueType === this.valueType && isSubtypeOf === this.isSubtypeOf) {
       return this;
     }
-    return new CollectionType<Type, Type>(
+    return CollectionType.term(
       this.getChangedName(sourceTypes, targetTypes),
+      { isSubtypeOf },
       this.keyType,
-      newValueType,
-      { isSubtypeOf }
+      newValueType
     );
   }
 

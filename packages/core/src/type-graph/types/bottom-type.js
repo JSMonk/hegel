@@ -2,21 +2,30 @@ import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
 import { FunctionType } from "./function-type";
-import { getNameForType } from "../../utils/type-utils";
 
 export class $BottomType extends Type {
+  static new(name, meta = {}, ...args) {
+    const scope = meta.parent || Type.GlobalTypeScope;
+    const newType = new this(meta, ...args);
+    scope.body.set(name, newType);
+    return newType;
+  }
+
   static getName(name, parameters) {
     if (parameters.length === 0) {
       return String(name);
     }
     return `${String(name)}<${parameters.reduce(
-      (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
+      (res, t) => `${res}${res ? ", " : ""}${String(t.name)}`,
       ""
     )}>`;
   }
 
-  constructor(subordinateMagicType, genericArguments = [], loc) {
-    super($BottomType.getName(subordinateMagicType.name, genericArguments));
+  constructor(meta, subordinateMagicType, genericArguments = [], loc) {
+    super(
+      $BottomType.getName(subordinateMagicType.name, genericArguments),
+      meta
+    );
     this.subordinateMagicType = subordinateMagicType;
     this.genericArguments = genericArguments;
     this.loc = loc;
@@ -68,10 +77,11 @@ export class $BottomType extends Type {
         targetTypes,
         typeScope
       );
-      return new $BottomType(type, type.genericArguments, this.loc);
+      return new $BottomType({}, type, type.genericArguments, this.loc);
     }
     if (includedBottom) {
       return new $BottomType(
+        {},
         this.subordinateMagicType,
         appliedParameters,
         this.loc
@@ -113,7 +123,7 @@ export class $BottomType extends Type {
     const returnType = parameters.some(
       p => p instanceof TypeVar && p.isUserDefined
     )
-      ? new $BottomType(this.subordinateMagicType, parameters, loc)
+      ? new $BottomType({}, this.subordinateMagicType, parameters, loc)
       : this.subordinateMagicType.applyGeneric(
           parameters,
           loc,
@@ -121,9 +131,10 @@ export class $BottomType extends Type {
           true,
           ...args
         );
-    return new FunctionType(
-      this.subordinateMagicType.name,
-      this.subordinateMagicType.genericArguments,
+    return FunctionType.term(
+      FunctionType.getName(parameters, returnType),
+      {},
+      parameters,
       returnType
     );
   }

@@ -1,11 +1,6 @@
 const HegelError = require("../build/utils/errors").default;
 const createTypeGraph = require("../build/type-graph/type-graph").default;
 const { Type } = require("../build/type-graph/types/type");
-const { UnionType } = require("../build/type-graph/types/union-type");
-const { ObjectType } = require("../build/type-graph/types/object-type");
-const { FunctionType } = require("../build/type-graph/types/function-type");
-const { VariableInfo } = require("../build/type-graph/variable-info");
-const { UNDEFINED_TYPE, TYPE_SCOPE } = require("../build/type-graph/constants");
 const {
   prepareAST,
   mixTypeDefinitions,
@@ -190,7 +185,7 @@ describe("Variable declrataion and assignment", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
@@ -210,7 +205,7 @@ describe("Variable declrataion and assignment", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toEqual(0);
   });
@@ -274,7 +269,7 @@ describe("Variable declrataion and assignment", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
@@ -294,7 +289,7 @@ describe("Variable declrataion and assignment", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toEqual(0);
   });
@@ -336,46 +331,46 @@ describe("Variable declrataion and assignment", () => {
   });
   test("Simple typed const declaration with function type without argument", async () => {
     const sourceAST = prepareAST(`
-      const a: () => void = (a: number) => {}; 
+      const a: () => undefined = (a: number) => {}; 
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => void" is incompatible with type "() => void"'
+      'Type "(number) => undefined" is incompatible with type "() => undefined"'
     );
     expect(errors[0].loc).toEqual({
-      end: { column: 45, line: 2 },
+      end: { column: 50, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
   test("Simple typed const declaration with function type with wrong argument", async () => {
     const sourceAST = prepareAST(`
-      const a: number => void = (a: ?number) => 2; 
+      const a: number => undefined = (a: ?number) => 2; 
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number | undefined) => number" is incompatible with type "(number) => void"'
+      'Type "(number | undefined) => number" is incompatible with type "(number) => undefined"'
     );
     expect(errors[0].loc).toEqual({
-      end: { column: 49, line: 2 },
+      end: { column: 54, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
   test("Simple typed const declaration with function type with wrong return", async () => {
     const sourceAST = prepareAST(`
-      const a: number => void = (a: number) => a; 
+      const a: number => undefined = (a: number) => a; 
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => number" is incompatible with type "(number) => void"'
+      'Type "(number) => number" is incompatible with type "(number) => undefined"'
     );
     expect(errors[0].loc).toEqual({
-      end: { column: 48, line: 2 },
+      end: { column: 53, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
@@ -410,16 +405,16 @@ describe("Variable declrataion and assignment", () => {
   });
   test("Simple typed const declaration with function type with wrong argument", async () => {
     const sourceAST = prepareAST(`
-      const a: ?number => void = (a: number) => 2; 
+      const a: ?number => undefined = (a: number) => 2; 
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => number" is incompatible with type "(number | undefined) => void"'
+      'Type "(number) => number" is incompatible with type "(number | undefined) => undefined"'
     );
     expect(errors[0].loc).toEqual({
-      end: { column: 49, line: 2 },
+      end: { column: 54, line: 2 },
       start: { column: 12, line: 2 }
     });
   });
@@ -711,7 +706,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "number" is incompatible with type "boolean"'
+      'Type "number" is incompatible with type "boolean | undefined"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 28, line: 2 },
@@ -821,7 +816,7 @@ describe("Object and collection properties", () => {
 describe("Callable types", () => {
   test("Call non-function variable", async () => {
     const sourceAST = prepareAST(`
-      const a = 2;
+      let a = 2;
       a();
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
@@ -886,7 +881,7 @@ describe("Checking objects and collections reference behavior", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
@@ -907,7 +902,7 @@ describe("Checking objects and collections reference behavior", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toBe(0);
   });
@@ -973,7 +968,7 @@ describe("Rest parameter typing", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toBe(0);
   });
@@ -986,7 +981,7 @@ describe("Rest parameter typing", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toBe(0);
   });
@@ -999,7 +994,7 @@ describe("Rest parameter typing", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
@@ -1020,7 +1015,7 @@ describe("Rest parameter typing", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toBe(0);
   });
@@ -1033,7 +1028,7 @@ describe("Rest parameter typing", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toBe(0);
   });
@@ -1046,7 +1041,7 @@ describe("Rest parameter typing", () => {
       [sourceAST],
       getModuleAST,
       false,
-      await mixTypeDefinitions(createTypeGraph)
+      mixTypeDefinitions()
     );
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);

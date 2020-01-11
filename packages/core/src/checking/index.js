@@ -1,16 +1,16 @@
 // @flow
 import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
-import { Scope } from "../type-graph/scope";
 import { TypeVar } from "../type-graph/types/type-var";
 import { CallMeta } from "../type-graph/meta/call-meta";
+import { TypeScope } from "../type-graph/type-scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
-import { getNameForType } from "../utils/type-utils";
+import { VariableScope } from "../type-graph/variable-scope";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import {
   getCallTarget,
@@ -22,14 +22,14 @@ import type { SourceLocation } from "@babel/parser";
 
 function getActualType(
   actual: ?Type | VariableInfo | Array<Type | VariableInfo>,
-  typeScope: Scope
+  typeScope: TypeScope
 ) {
   if (actual === undefined || actual === null) {
-    return Type.createTypeWithName("undefined", typeScope);
+    return Type.Undefined;
   }
   if (Array.isArray(actual)) {
     const items = actual.map(a => getActualType(a, typeScope));
-    return new TupleType(TupleType.getName(items), items);
+    return TupleType.term(TupleType.getName(items), {}, items);
   }
   if (actual instanceof VariableInfo) {
     return getActualType(actual.type, typeScope);
@@ -47,7 +47,7 @@ function isValidTypes(
   targetName: mixed,
   declaratedType: Type | RestArgument,
   actual: ?Type | VariableInfo | Array<VariableInfo | Type>,
-  typeScope: Scope
+  typeScope: TypeScope
 ): boolean {
   let declaratedRootType =
     declaratedType instanceof RestArgument
@@ -82,7 +82,7 @@ function isValidTypes(
   throw new Error("Never!");
 }
 
-function checkSingleCall(call: CallMeta, typeScope: Scope): void {
+function checkSingleCall(call: CallMeta, typeScope: TypeScope): void {
   const givenArgumentsTypes = call.arguments.map(
     t => (t instanceof VariableInfo ? t.type : t)
   );
@@ -92,9 +92,7 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
     a =>
       !(
         (a instanceof UnionType &&
-          a.variants.find(a =>
-            a.equalsTo(Type.createTypeWithName("undefined", typeScope))
-          )) ||
+          a.variants.find(a => a.equalsTo(Type.Undefined))) ||
         a instanceof RestArgument
       )
   );
@@ -134,8 +132,8 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
         // $FlowIssue
         arg2 === undefined ? "undefined" : TupleType.getName(actualType);
       throw new HegelError(
-        `Type "${actualTypeName}" is incompatible with type "${getNameForType(
-          arg1
+        `Type "${actualTypeName}" is incompatible with type "${String(
+          arg1.name
         )}"`,
         call.loc
       );
@@ -145,8 +143,8 @@ function checkSingleCall(call: CallMeta, typeScope: Scope): void {
 
 function checkCalls(
   path: string,
-  scope: Scope | ModuleScope,
-  typeScope: Scope,
+  scope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   errors: Array<HegelError>
 ): void {
   let returnWasCalled = false;
@@ -166,8 +164,8 @@ function checkCalls(
     }
   }
   if (
-    scope instanceof Scope &&
-    scope.type === Scope.FUNCTION_TYPE &&
+    scope instanceof VariableScope &&
+    scope.type === VariableScope.FUNCTION_TYPE &&
     scope.declaration instanceof VariableInfo &&
     !returnWasCalled
   ) {
@@ -181,13 +179,12 @@ function checkCalls(
     }
     try {
       if (
-        !functionDeclaration.returnType.isPrincipalTypeFor(
-          new Type("undefined", { isSubtypeOf: new Type("void") })
-        )
+        functionDeclaration.returnType !== Type.Undefined &&
+        functionDeclaration.returnType !== Type.Unknown
       ) {
         throw new HegelError(
-          `Function should return something with type "${getNameForType(
-            functionDeclaration.returnType
+          `Function should return something with type "${String(
+            functionDeclaration.returnType.name
           )}"`,
           declaration.meta.loc,
           path

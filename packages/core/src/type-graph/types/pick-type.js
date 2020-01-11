@@ -2,16 +2,21 @@ import HegelError from "../../utils/errors";
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
+import { TypeScope } from "../type-scope";
 import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
-import { VariableInfo } from "../variable-info";
 
 export class $Pick extends GenericType {
-  constructor() {
+  constructor(_, meta = {}) {
+    const parent = new TypeScope(meta.parent);
     super(
       "$Pick",
-      [new TypeVar("target"), new TypeVar("properties")],
-      null,
+      meta,
+      [
+        TypeVar.term("target", { parent }),
+        TypeVar.term("properties", { parent })
+      ],
+      parent,
       null
     );
   }
@@ -31,10 +36,7 @@ export class $Pick extends GenericType {
     const picks =
       properties instanceof UnionType ? properties.variants : [properties];
     const pickedProperties = picks.map(variant => {
-      if (
-        variant.isSubtypeOf &&
-        variant.isSubtypeOf.equalsTo(new Type("string"))
-      ) {
+      if (variant.isSubtypeOf && variant.isSubtypeOf.equalsTo(Type.String)) {
         return variant.name;
       }
       throw new HegelError(
@@ -42,9 +44,13 @@ export class $Pick extends GenericType {
       );
     });
     const oldProperties = [...realTarget.properties.entries()];
-    const newProperties = oldProperties.filter(([name, property]) =>
+    const newProperties = oldProperties.filter(([name]) =>
       pickedProperties.includes(`'${name}'`)
     );
-    return new ObjectType(ObjectType.getName(newProperties), newProperties);
+    return ObjectType.term(
+      ObjectType.getName(newProperties),
+      {},
+      newProperties
+    );
   }
 }

@@ -1,12 +1,13 @@
 // @flow
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
-import { Scope } from "../type-graph/scope";
+import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { VariableInfo } from "../type-graph/variable-info";
+import { VariableScope } from "../type-graph/variable-scope";
+import { getMemberExressionTarget } from "../utils/common";
 import { createObjectWith, mergeObjectsTypes } from "../utils/type-utils";
-import { findVariableInfo, getMemberExressionTarget } from "../utils/common";
 import {
   getPropertyChaining,
   getTypesFromVariants,
@@ -28,12 +29,12 @@ type RefinemantableIn = {
 
 function inIdentifier(
   targetNode: Identifier,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   propertyName: string,
   refinementNode: Node
 ): [string, ?Type, ?Type] {
-  const variable = findVariableInfo(targetNode, currentScope);
+  const variable = currentScope.findVariable(targetNode);
   const type = variable.type;
   if (!(type instanceof UnionType)) {
     throw new HegelError(
@@ -66,7 +67,7 @@ function refinementProperty(
   refinementNode: Node,
   currentPropertyNameIndex: number,
   chainingProperties: Array<string>,
-  typeScope: Scope
+  typeScope: TypeScope
 ): ?[?Type, ?Type] {
   const currentPropertyName = chainingProperties[currentPropertyNameIndex];
   const isLast = currentPropertyNameIndex === chainingProperties.length - 1;
@@ -109,7 +110,7 @@ function refinementProperty(
         refinement[0],
         refinement[1],
         new VariableInfo(
-          new ObjectType("{  }", []),
+          ObjectType.term("{ }", {}, []),
           property.parent,
           property.meta
         ),
@@ -195,8 +196,8 @@ function refinementProperty(
 
 function inProperty(
   targetNode: MemberExpression,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   propertyName: string,
   refinementNode: Node
 ): ?[string, Type, Type] {
@@ -206,12 +207,12 @@ function inProperty(
   }
   const variableName = targetObject.name;
   const propertiesChaining = getPropertyChaining(targetNode);
-  const targetVariableInfo = findVariableInfo(targetObject, currentScope);
+  const targetVariableInfo = currentScope.findVariable(targetObject);
   if (
     !variableName ||
     !targetVariableInfo ||
     !propertiesChaining ||
-    targetVariableInfo instanceof Scope
+    targetVariableInfo instanceof VariableScope
   ) {
     return;
   }
@@ -239,8 +240,8 @@ function inProperty(
 
 export function inRefinement(
   currentRefinementNode: Node,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   moduleScope: ModuleScope
 ): ?[string, Type, Type] {
   if (

@@ -1,22 +1,22 @@
 // @flow
 import NODE from "./nodes";
 import { Meta } from "../type-graph/meta/meta";
-import { Scope } from "../type-graph/scope";
+import { Type } from "../type-graph/types/type";
 import { TypeVar } from "../type-graph/types/type-var";
 import { UnionType } from "../type-graph/types/union-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { FunctionType } from "../type-graph/types/function-type";
-import { addPosition } from "./position-utils";
 import { VariableInfo } from "../type-graph/variable-info";
-import { inferenceTypeForNode } from "../inference";
+import { VariableScope } from "../type-graph/variable-scope";
 import { addVariableToGraph } from "./variable-utils";
+import { inferenceTypeForNode } from "../inference";
+import { PositionedModuleScope } from "../type-graph/module-scope";
 import { getDeclarationName, getAnonymousKey } from "./common";
 import {
   getParentForNode,
   getScopeFromNode,
   findNearestTypeScope
 } from "../utils/scope-utils";
-import type { Type } from "../type-graph/types/type";
 import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
@@ -29,18 +29,18 @@ import type {
 
 export function addFunctionScopeToTypeGraph(
   currentNode: Node,
-  parentNode: Node | Scope | ModuleScope,
-  typeGraph: ModuleScope,
+  parentNode: Node | VariableScope | ModuleScope,
+  moduleScope: ModuleScope,
   variableInfo: VariableInfo
 ) {
   const scope = getScopeFromNode(
     currentNode,
     parentNode,
-    typeGraph,
+    moduleScope,
     variableInfo
   );
   scope.throwable = [];
-  typeGraph.body.set(Scope.getName(currentNode), scope);
+  moduleScope.body.set(VariableScope.getName(currentNode), scope);
   if (currentNode.type === NODE.FUNCTION_EXPRESSION && currentNode.id) {
     scope.body.set(getDeclarationName(currentNode), variableInfo);
   }
@@ -50,17 +50,17 @@ export function addFunctionScopeToTypeGraph(
 export function addFunctionNodeToTypeGraph(
   currentNode: FunctionDeclaration | ClassMethod | ClassProperty,
   parentNode: Node,
-  typeGraph: ModuleScope
+  moduleScope: ModuleScope
 ) {
   const name = getDeclarationName(currentNode);
-  const currentScope = getParentForNode(currentNode, parentNode, typeGraph);
+  const currentScope = getParentForNode(currentNode, parentNode, moduleScope);
   currentScope.body.set(name, currentNode);
 }
 
 export function addFunctionToTypeGraph(
   currentNode: Node,
   parentNode: Node,
-  typeGraph: ModuleScope,
+  moduleScope: ModuleScope | PositionedModuleScope,
   pre: Handler,
   middle: Handler,
   post: Handler,
@@ -74,26 +74,29 @@ export function addFunctionToTypeGraph(
   const variableInfo = addVariableToGraph(
     currentNode,
     parentNode,
-    typeGraph,
+    moduleScope,
     pre,
     middle,
     post,
     name
   );
-  const currentTypeScope = findNearestTypeScope(variableInfo.parent, typeGraph);
+  const currentTypeScope = findNearestTypeScope(
+    variableInfo.parent,
+    moduleScope
+  );
   const scope = isTypeDefinitions
-    ? new Scope(Scope.FUNCTION_TYPE, currentTypeScope)
+    ? new VariableScope(VariableScope.FUNCTION_TYPE, variableInfo.parent)
     : addFunctionScopeToTypeGraph(
         currentNode,
         parentNode,
-        typeGraph,
+        moduleScope,
         variableInfo
       );
   variableInfo.type = inferenceTypeForNode(
     currentNode,
     currentTypeScope,
     variableInfo.parent,
-    typeGraph,
+    moduleScope,
     parentNode,
     pre,
     middle,
@@ -108,7 +111,6 @@ export function addFunctionToTypeGraph(
   if (expectedType instanceof FunctionType) {
     // $FlowIssue
     const inferencedArgumentsTypes = functionType.argumentsTypes;
-    // $FlowIssue
     const expectedArgumentsTypes = expectedType.argumentsTypes;
     for (let i = 0; i < inferencedArgumentsTypes.length; i++) {
       const inferenced = inferencedArgumentsTypes[i];
@@ -122,17 +124,18 @@ export function addFunctionToTypeGraph(
       }
     }
   }
+  const withPositions = moduleScope instanceof PositionedModuleScope;
   currentNode.params.forEach((param, index) => {
     let type = (functionType: any).argumentsTypes[index];
-    if (param.left !== undefined && param.left.typeAnnotation === undefined) {
-      const types = (type.variants: any).filter(a => a.name !== "undefined");
-      type = UnionType.createTypeWithName(
-        UnionType.getName(types),
-        currentTypeScope,
-        types
-      );
-    }
     const id = param.left || param;
+    if (
+      param.left != undefined &&
+      type instanceof UnionType &&
+      id.typeAnnotation == undefined
+    ) {
+      const types = type.variants.filter(a => a !== Type.Undefined);
+      type = UnionType.term(null, { parent: currentTypeScope }, types);
+    }
     let varInfo = scope.body.get(id.name);
     if (varInfo !== undefined) {
       varInfo.type = type;
@@ -141,10 +144,14 @@ export function addFunctionToTypeGraph(
       varInfo = new VariableInfo(type, scope, new Meta(id.loc));
       scope.body.set(id.name, varInfo);
     }
-    addPosition(id, varInfo, typeGraph);
+    if (withPositions) {
+      // $FlowIssue
+      moduleScope.addPosition(id, varInfo);
+    }
   });
-  if (currentNode.id) {
-    addPosition(currentNode.id, variableInfo, typeGraph);
+  if (withPositions && currentNode.id != null) {
+    // $FlowIssue
+    moduleScope.addPosition(currentNode.id, variableInfo);
   }
   return variableInfo;
 }
@@ -156,10 +163,36 @@ export function isCallableType(a: Type) {
   return a instanceof FunctionType;
 }
 
-export function functionWithReturnType(functionType: GenericType<FunctionType> | FunctionType, newReturnType: Type) {
-  const oldFunctionType = functionType instanceof GenericType ? functionType.subordinateType : functionType;
+export function functionWithReturnType(
+  functionType: GenericType<FunctionType> | FunctionType,
+  newReturnType: Type
+) {
+  const oldFunctionType =
+    functionType instanceof GenericType
+      ? functionType.subordinateType
+      : functionType;
   const newFunctionArguments = [...oldFunctionType.argumentsTypes];
-  const newFunctionGenericArguments = functionType instanceof GenericType ? [...functionType.genericArguments] : [];
-  const newFunctionType = new FunctionType(FunctionType.getName(newFunctionArguments, newReturnType, newFunctionGenericArguments), newFunctionArguments, newReturnType);;
-  return functionType instanceof GenericType ? new GenericType(newFunctionType.name, newFunctionGenericArguments, functionType.localTypeScope, newFunctionType) : newFunctionType;
+  const newFunctionGenericArguments =
+    functionType instanceof GenericType
+      ? [...functionType.genericArguments]
+      : [];
+  const newFunctionType = FunctionType.term(
+    FunctionType.getName(
+      newFunctionArguments,
+      newReturnType,
+      newFunctionGenericArguments
+    ),
+    {},
+    newFunctionArguments,
+    newReturnType
+  );
+  return functionType instanceof GenericType
+    ? GenericType.new(
+        newFunctionType.name,
+        {},
+        newFunctionGenericArguments,
+        functionType.localTypeScope,
+        newFunctionType
+      )
+    : newFunctionType;
 }

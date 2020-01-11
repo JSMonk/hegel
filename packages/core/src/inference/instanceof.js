@@ -1,21 +1,16 @@
 // @flow
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
-import { Scope } from "../type-graph/scope";
+import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
-import { findVariableInfo, getMemberExressionTarget } from "../utils/common";
+import { VariableScope } from "../type-graph/variable-scope";
+import { getMemberExressionTarget } from "../utils/common";
 import {
   getPropertyChaining,
-  getTypesFromVariants,
-  mergeRefinementsVariants
+  getTypesFromVariants
 } from "../utils/inference-utils";
-import {
-  get,
-  getNameForType,
-  createObjectWith,
-  mergeObjectsTypes
-} from "../utils/type-utils";
+import { createObjectWith, mergeObjectsTypes } from "../utils/type-utils";
 import type { Type } from "../type-graph/types/type";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
@@ -28,17 +23,17 @@ import type {
 function instanceofIdentifier(
   targetNode: Identifier,
   constructor: Type,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   refinementNode: Node
 ): [string, ?Type, ?Type] {
-  const variable = findVariableInfo(targetNode, currentScope);
+  const variable = currentScope.findVariable(targetNode);
   const type = variable.type;
   if (!(type instanceof UnionType)) {
     throw new HegelError(
-      `Type "${getNameForType(
-        type
-      )}" never or always instance of "${getNameForType(constructor)}"`,
+      `Type "${String(type.name)}" never or always instance of "${String(
+        constructor.name
+      )}"`,
       targetNode.loc
     );
   }
@@ -64,7 +59,7 @@ function refinementProperty(
   refinementNode: Node,
   currentPropertyNameIndex: number,
   chainingProperties: Array<string>,
-  typeScope: Scope
+  typeScope: TypeScope
 ): ?[?Type, ?Type] {
   const currentPropertyName = chainingProperties[currentPropertyNameIndex];
   const isLast = currentPropertyNameIndex === chainingProperties.length - 1;
@@ -180,8 +175,8 @@ function refinementProperty(
 function instanceofProperty(
   targetNode: Identifier,
   constructor: Type,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   refinementNode: Node
 ): ?[string, ?Type, ?Type] {
   const targetObject = getMemberExressionTarget(targetNode);
@@ -190,12 +185,12 @@ function instanceofProperty(
   }
   const variableName = targetObject.name;
   const propertiesChaining = getPropertyChaining(targetNode);
-  const targetVariableInfo = findVariableInfo(targetObject, currentScope);
+  const targetVariableInfo = currentScope.findVariable(targetObject);
   if (
     !variableName ||
     !targetVariableInfo ||
     !propertiesChaining ||
-    targetVariableInfo instanceof Scope
+    targetVariableInfo instanceof VariableScope
   ) {
     return;
   }
@@ -223,8 +218,8 @@ function instanceofProperty(
 
 export function instanceofRefinement(
   currentRefinementNode: BinaryExpression,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   moduleScope: ModuleScope
 ): ?[string, Type, Type] {
   const { left: target, right: constructorNode } = currentRefinementNode;
@@ -235,9 +230,17 @@ export function instanceofRefinement(
   ) {
     return;
   }
-  const constructor = findVariableInfo(constructorNode, currentScope);
-  if (!(constructor.type instanceof ObjectType &&constructor.type.instanceType !== null)) {
-    throw new HegelError("Cannot apply instanceof to non-class type", constructorNode.loc);
+  const constructor = currentScope.findVariable(constructorNode);
+  if (
+    !(
+      constructor.type instanceof ObjectType &&
+      constructor.type.instanceType !== null
+    )
+  ) {
+    throw new HegelError(
+      "Cannot apply instanceof to non-class type",
+      constructorNode.loc
+    );
   }
   const instanceType = constructor.type.instanceType;
   let refinementedType, alternateType, name;

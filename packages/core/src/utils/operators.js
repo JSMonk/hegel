@@ -1,9 +1,9 @@
 import { Meta } from "../type-graph/meta/meta";
 import { Type } from "../type-graph/types/type";
-import { Scope } from "../type-graph/scope";
 import { TypeVar } from "../type-graph/types/type-var";
+import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
-import { TYPE_SCOPE } from "../type-graph/constants";
+import { ObjectType } from "../type-graph/types/object-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { FunctionType } from "../type-graph/types/function-type";
@@ -13,27 +13,26 @@ const zeroMetaLocation = new Meta();
 
 export const genericFunction = (
   typeScope,
-  genericArguments,
+  getGenericArguments,
   getTypeParameters,
   getReturnType
 ) => {
-  const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
-  genericArguments.forEach(([key, type]) => {
-    localTypeScope.body.set(key, new VariableInfo(type, localTypeScope));
-  });
+  const localTypeScope = new TypeScope(typeScope);
+  let genericArguments = getGenericArguments(localTypeScope);
+  genericArguments.forEach(([key, type]) => localTypeScope.body.set(key, type));
   genericArguments = genericArguments.map(([, t]) =>
     Object.assign(t, { isUserDefined: true })
   );
   const parametersTypes = getTypeParameters(localTypeScope);
   const returnType = getReturnType(localTypeScope);
-  return GenericType.createTypeWithName(
+  return GenericType.term(
     FunctionType.getName(parametersTypes, returnType, genericArguments),
-    typeScope,
+    { parent: typeScope },
     genericArguments,
     localTypeScope,
-    FunctionType.createTypeWithName(
+    FunctionType.term(
       FunctionType.getName(parametersTypes, returnType),
-      localTypeScope,
+      { parent: localTypeScope },
       parametersTypes,
       returnType
     )
@@ -41,109 +40,94 @@ export const genericFunction = (
 };
 
 const mixBaseOperators = moduleScope => {
-  const typeScope = moduleScope.body.get(TYPE_SCOPE);
+  const typeScope = moduleScope.typeScope;
   const operators = [
     [
       "+",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(number) => number",
-        typeScope,
-        [Type.createTypeWithName("number", typeScope)],
-        Type.createTypeWithName("number", typeScope)
+        { parent: typeScope },
+        [Type.Number],
+        Type.Number
       )
     ],
     [
       "-",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(number) => number",
-        typeScope,
-        [Type.createTypeWithName("number", typeScope)],
-        Type.createTypeWithName("number", typeScope)
+        { parent: typeScope },
+        [Type.Number],
+        Type.Number
       )
     ],
     [
       "!",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(boolean) => boolean",
-        typeScope,
-        [Type.createTypeWithName("unknown", typeScope)],
-        Type.createTypeWithName("boolean", typeScope)
+        { parent: typeScope },
+        [Type.Boolean],
+        Type.Boolean
       )
     ],
     [
       "~",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
+              { parent },
+              UnionType.term("bigint | number", { parent: typeScope }, [
+                Type.BigInt,
+                Type.Number
               ])
             )
           ]
         ],
-        l => [l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "typeof",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         '(unknown) => "string" | "boolean" | "number" | "function" | "object" | "undefined" | "symbol" | "bigint"',
-        typeScope,
-        [Type.createTypeWithName("unknown", typeScope)],
-        UnionType.createTypeWithName(
+        { parent: typeScope },
+        [Type.Unknown],
+        UnionType.term(
           "'string' | 'boolean' | 'number' | 'function' | 'object' | 'undefined' | 'symbol' | 'bigint'",
-          typeScope,
+          { parent: typeScope },
           [
-            Type.createTypeWithName("'string'", typeScope, {
-              isSubtypeOf: Type.createTypeWithName("string", typeScope)
-            }),
-            Type.createTypeWithName("'number'", typeScope, {
-              isSubtypeOf: Type.createTypeWithName("string", typeScope)
-            }),
-            Type.createTypeWithName("'boolean'", typeScope, {
-              isSubtypeOf: Type.createTypeWithName("string", typeScope)
-            }),
-            Type.createTypeWithName("'undefined'", typeScope, {
-              isSubtypeOf: Type.createTypeWithName("string", typeScope)
-            }),
-            Type.createTypeWithName("'object'", typeScope, {
-              isSubtypeOf: Type.createTypeWithName("string", typeScope)
-            }),
-            Type.createTypeWithName("'bigint'", typeScope, {
-              isSubtypeOf: Type.createTypeWithName("string", typeScope)
-            }),
-            Type.createTypeWithName("'symbol'", typeScope, {
-              isSubtypeOf: Type.createTypeWithName("string", typeScope)
-            }),
-            Type.createTypeWithName("'function'", typeScope, {
-              isSubtypeOf: Type.createTypeWithName("string", typeScope)
-            })
+            Type.term("'string'", { isSubtypeOf: Type.String }),
+            Type.term("'number'", { isSubtypeOf: Type.String }),
+            Type.term("'boolean'", { isSubtypeOf: Type.String }),
+            Type.term("'undefined'", { isSubtypeOf: Type.String }),
+            Type.term("'object'", { isSubtypeOf: Type.String }),
+            Type.term("'bigint'", { isSubtypeOf: Type.String }),
+            Type.term("'symbol'", { isSubtypeOf: Type.String }),
+            Type.term("'function'", { isSubtypeOf: Type.String })
           ]
         )
       )
     ],
     [
       "void",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(unknown) => undefined",
-        typeScope,
-        [Type.createTypeWithName("unknown", typeScope)],
-        Type.createTypeWithName("string", typeScope)
+        { parent: typeScope },
+        [Type.Unknown],
+        Type.String
       )
     ],
     [
       "delete",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(unknown) => undefined",
-        typeScope,
-        [Type.createTypeWithName("unknown", typeScope)],
-        Type.createTypeWithName("undefined", typeScope)
+        { parent: typeScope },
+        [Type.Unknown],
+        Type.Undefined
       )
     ],
     // [
@@ -161,559 +145,578 @@ const mixBaseOperators = moduleScope => {
     // ],
     [
       "==",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(unknown, unknown) => boolean",
-        typeScope,
-        [
-          Type.createTypeWithName("unknown", typeScope),
-          Type.createTypeWithName("unknown", typeScope)
-        ],
-        Type.createTypeWithName("boolean", typeScope)
+        { parent: typeScope },
+        [Type.Unknown, Type.Unknown],
+        Type.Boolean
       )
     ],
     [
       "===",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(unknown, unknown) => boolean",
-        typeScope,
-        [
-          Type.createTypeWithName("unknown", typeScope),
-          Type.createTypeWithName("unknown", typeScope)
-        ],
-        Type.createTypeWithName("boolean", typeScope)
+        { parent: typeScope },
+        [Type.Unknown, Type.Unknown],
+        Type.Boolean
       )
     ],
     [
       "!==",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(unknown, unknown) => boolean",
-        typeScope,
-        [
-          Type.createTypeWithName("unknown", typeScope),
-          Type.createTypeWithName("unknown", typeScope)
-        ],
-        Type.createTypeWithName("boolean", typeScope)
+        { parent: typeScope },
+        [Type.Unknown, Type.Unknown],
+        Type.Boolean
       )
     ],
     [
       "!=",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(unknown, unknown) => boolean",
-        typeScope,
-        [
-          Type.createTypeWithName("unknown", typeScope),
-          Type.createTypeWithName("unknown", typeScope)
-        ],
-        Type.createTypeWithName("boolean", typeScope)
+        { parent: typeScope },
+        [Type.Unknown, Type.Unknown],
+        Type.Boolean
       )
     ],
     [
       ">=",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number | string", [
-                new Type("bigint"),
-                new Type("number"),
-                new Type("string")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => Type.createTypeWithName("boolean", l)
+        l => [l.body.get("T"), l.body.get("T")],
+        _ => Type.Boolean
       )
     ],
     [
       "<=",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number | string", [
-                new Type("bigint"),
-                new Type("number"),
-                new Type("string")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => Type.createTypeWithName("boolean", l)
+        l => [l.body.get("T"), l.body.get("T")],
+        _ => Type.Boolean
       )
     ],
     [
       ">",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number | string", [
-                new Type("bigint"),
-                new Type("number"),
-                new Type("string")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => Type.createTypeWithName("boolean", l)
+        l => [l.body.get("T"), l.body.get("T")],
+        _ => Type.Boolean
       )
     ],
     [
       "<",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number | string", [
-                new Type("bigint"),
-                new Type("number"),
-                new Type("string")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => Type.createTypeWithName("boolean", l)
+        l => [l.body.get("T"), l.body.get("T")],
+        _ => Type.Boolean
       )
     ],
     [
       "b+",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number | string", [
-                new Type("bigint"),
-                new Type("number"),
-                new Type("string")
+              { parent },
+              UnionType.term("bigint | number | string", {}, [
+                Type.BigInt,
+                Type.Number,
+                Type.String
               ])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "b-",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "/",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "%",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "|",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "&",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "*",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "^",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "**",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "<<",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       ">>",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("bigint | number", [
-                new Type("bigint"),
-                new Type("number")
-              ])
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       ">>>",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(number, number) => number",
-        typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
-        ],
-        Type.createTypeWithName("number", typeScope)
+        { parent: typeScope },
+        [Type.Number, Type.Number],
+        Type.Number
       )
     ],
     [
       "in",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(string, Object) => boolean",
-        typeScope,
-        [
-          Type.createTypeWithName("string", typeScope),
-          Type.createTypeWithName("Object", typeScope)
-        ],
-        Type.createTypeWithName("boolean", typeScope)
+        { parent: typeScope },
+        [Type.String, ObjectType.Object],
+        Type.Boolean
       )
     ],
     [
       "instanceof",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(unknown, unknown) => boolean",
-        typeScope,
-        [
-          Type.createTypeWithName("unknown", typeScope),
-          Type.createTypeWithName("unknown", typeScope)
-        ],
-        Type.createTypeWithName("boolean", typeScope)
+        { parent: typeScope },
+        [Type.Unknown, Type.Unknown],
+        Type.Boolean
       )
     ],
     [
       "=",
       genericFunction(
         typeScope,
-        [["T", new TypeVar("T")]],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        parent => [["T", TypeVar.term("T", { parent })]],
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "+=",
       genericFunction(
         typeScope,
-        [
+        parent => [
           [
             "T",
-            new TypeVar(
+            TypeVar.term(
               "T",
-              new UnionType("number | string", [
-                new Type("number"),
-                new Type("string")
+              { parent },
+              UnionType.term("bigint | number | string", {}, [
+                Type.BigInt,
+                Type.Number,
+                Type.String
               ])
             )
           ]
         ],
-        l => [l.body.get("T").type, l.body.get("T").type],
-        l => l.body.get("T").type
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "-=",
-      FunctionType.createTypeWithName(
-        "(number, number) => number",
+      genericFunction(
         typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
         ],
-        Type.createTypeWithName("number", typeScope)
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "*=",
-      FunctionType.createTypeWithName(
-        "(number, number) => number",
+      genericFunction(
         typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
         ],
-        Type.createTypeWithName("number", typeScope)
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "/=",
-      FunctionType.createTypeWithName(
-        "(number, number) => number",
+      genericFunction(
         typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
         ],
-        Type.createTypeWithName("number", typeScope)
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "%=",
-      FunctionType.createTypeWithName(
-        "(number, number) => number",
+      genericFunction(
         typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
         ],
-        Type.createTypeWithName("number", typeScope)
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "**=",
-      FunctionType.createTypeWithName(
-        "(number, number) => number",
+      genericFunction(
         typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
         ],
-        Type.createTypeWithName("number", typeScope)
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       ">>=",
-      FunctionType.createTypeWithName(
-        "(number, number) => number",
+      genericFunction(
         typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
         ],
-        Type.createTypeWithName("number", typeScope)
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       ">>>=",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(number, number) => number",
-        typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
-        ],
-        Type.createTypeWithName("number", typeScope)
+        { parent: typeScope },
+        [Type.Number, Type.Number],
+        Type.Number
       )
     ],
     [
       "<<=",
-      FunctionType.createTypeWithName(
-        "(number, number) => number",
+      genericFunction(
         typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
         ],
-        Type.createTypeWithName("number", typeScope)
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "|=",
-      FunctionType.createTypeWithName(
-        "(number, number) => number",
+      genericFunction(
         typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
         ],
-        Type.createTypeWithName("number", typeScope)
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "&=",
-      FunctionType.createTypeWithName(
-        "(number, number) => number",
+      genericFunction(
         typeScope,
-        [
-          Type.createTypeWithName("number", typeScope),
-          Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
         ],
-        Type.createTypeWithName("number", typeScope)
+        l => [l.body.get("T"), l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     // Updates
     [
       "++",
-      FunctionType.createTypeWithName(
-        "(number) => number",
+      genericFunction(
         typeScope,
-        [Type.createTypeWithName("number", typeScope)],
-        Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
+        ],
+        l => [l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "--",
-      FunctionType.createTypeWithName(
-        "(number) => number",
+      genericFunction(
         typeScope,
-        [Type.createTypeWithName("number", typeScope)],
-        Type.createTypeWithName("number", typeScope)
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
+            )
+          ]
+        ],
+        l => [l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
@@ -721,12 +724,15 @@ const mixBaseOperators = moduleScope => {
       "&&",
       genericFunction(
         typeScope,
-        [["A", new TypeVar("A")], ["B", new TypeVar("B")]],
-        l => [l.body.get("A").type, l.body.get("B").type],
+        parent => [
+          ["A", TypeVar.term("A", { parent })],
+          ["B", TypeVar.term("B", { parent })]
+        ],
+        l => [l.body.get("A"), l.body.get("B")],
         l =>
-          UnionType.createTypeWithName("A | B", l, [
-            l.body.get("A").type,
-            l.body.get("B").type
+          UnionType.term("A | B", { parent: l }, [
+            l.body.get("A"),
+            l.body.get("B")
           ])
       )
     ],
@@ -734,12 +740,15 @@ const mixBaseOperators = moduleScope => {
       "||",
       genericFunction(
         typeScope,
-        [["A", new TypeVar("A")], ["B", new TypeVar("B")]],
-        l => [l.body.get("A").type, l.body.get("B").type],
+        parent => [
+          ["A", TypeVar.term("A", { parent })],
+          ["B", TypeVar.term("B", { parent })]
+        ],
+        l => [l.body.get("A"), l.body.get("B")],
         l =>
-          UnionType.createTypeWithName("A | B", l, [
-            l.body.get("A").type,
-            l.body.get("B").type
+          UnionType.term("A | B", { parent: l }, [
+            l.body.get("A"),
+            l.body.get("B")
           ])
       )
     ],
@@ -747,85 +756,93 @@ const mixBaseOperators = moduleScope => {
       "?:",
       genericFunction(
         typeScope,
-        [["A", new TypeVar("A")], ["B", new TypeVar("B")]],
-        l => [
-          Type.createTypeWithName("boolean", typeScope),
-          l.body.get("A").type,
-          l.body.get("B").type
+        parent => [
+          ["A", TypeVar.term("A", { parent })],
+          ["B", TypeVar.term("B", { parent })]
         ],
+        l => [Type.Boolean, l.body.get("A"), l.body.get("B")],
         l =>
-          UnionType.createTypeWithName("A | B", l, [
-            l.body.get("A").type,
-            l.body.get("B").type
+          UnionType.term("A | B", { parent: l }, [
+            l.body.get("A"),
+            l.body.get("B")
           ])
       )
     ],
     [
       "if",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(boolean) => void",
-        typeScope,
-        [Type.createTypeWithName("boolean", typeScope)],
-        Type.createTypeWithName("void", typeScope)
+        { parent: typeScope },
+        [Type.Boolean],
+        Type.Undefined
       )
     ],
     [
       "while",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(boolean) => void",
-        typeScope,
-        [Type.createTypeWithName("boolean", typeScope)],
-        Type.createTypeWithName("void", typeScope)
+        { parent: typeScope },
+        [Type.Boolean],
+        Type.Undefined
       )
     ],
     [
       "do-while",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(boolean) => void",
-        typeScope,
-        [Type.createTypeWithName("boolean", typeScope)],
-        Type.createTypeWithName("void", typeScope)
+        { parent: typeScope },
+        [Type.Boolean],
+        Type.Undefined
       )
     ],
     [
       "for",
-      FunctionType.createTypeWithName(
+      FunctionType.term(
         "(?unknown, ?boolean, ?unknown) => void",
-        typeScope,
+        { parent: typeScope },
         [
-          Type.createTypeWithName("unknown", typeScope),
-          Type.createTypeWithName("boolean", typeScope),
-          Type.createTypeWithName("unknown", typeScope)
+          UnionType.term("undefined | unknown", {}, [
+            Type.Undefined,
+            Type.Unknown
+          ]),
+          UnionType.term("boolean | undefined", {}, [
+            Type.Boolean,
+            Type.Undefined
+          ]),
+          UnionType.term("undefined | unknown", {}, [
+            Type.Undefined,
+            Type.Unknown
+          ])
         ],
-        Type.createTypeWithName("void", typeScope)
+        Type.Undefined
       )
     ],
-    [".", new $BottomType(typeScope.body.get("$PropertyType").type)],
+    [".", $BottomType.term(".", {}, typeScope.body.get("$PropertyType"))],
     [
       "return",
       genericFunction(
         typeScope,
-        [["T", new TypeVar("T")]],
-        l => [l.body.get("T").type],
-        l => l.body.get("T").type
+        parent => [["T", TypeVar.term("T", { parent })]],
+        l => [l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "new",
       genericFunction(
         typeScope,
-        [["T", new TypeVar("T")]],
-        l => [l.body.get("T").type],
-        l => l.body.get("T").type
+        parent => [["T", TypeVar.term("T", { parent })]],
+        l => [l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "throw",
       genericFunction(
         typeScope,
-        [["T", new TypeVar("T")]],
-        l => [l.body.get("T").type],
-        l => l.body.get("T").type
+        parent => [["T", TypeVar.term("T", { parent })]],
+        l => [l.body.get("T")],
+        l => l.body.get("T")
       )
     ]
   ].map(([name, type]) => [

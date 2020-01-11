@@ -1,30 +1,33 @@
 // @flow
 import { Type } from "../type-graph/types/type";
-import { Scope } from "../type-graph/scope";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
+import { VariableScope } from "../type-graph/variable-scope";
 
-function findThrowableBlock(parentScope: Scope | ModuleScope): ?Scope {
-  if (!parentScope || !(parentScope instanceof Scope)) {
+function findThrowableBlock(
+  parentScope: VariableScope | ModuleScope
+): ?VariableScope {
+  if (!parentScope || !(parentScope instanceof VariableScope)) {
     throw new Error("Never");
   }
+  let parent = parentScope;
   do {
-    if (parentScope.throwable) {
-      return parentScope;
+    if (parent.throwable) {
+      return parent;
     }
-    parentScope = parentScope.parent;
-  } while (parentScope !== null);
+    parent = parent.parent;
+  } while (parent !== null);
   return null;
 }
 
 export function addToThrowable(
   throwType: Type | VariableInfo,
-  currentScope: Scope | ModuleScope
+  currentScope: VariableScope | ModuleScope
 ) {
   const throwableScope = findThrowableBlock(currentScope);
   if (
     !throwableScope ||
-    !(currentScope instanceof Scope) ||
+    !(currentScope instanceof VariableScope) ||
     !throwableScope.throwable
   ) {
     return;

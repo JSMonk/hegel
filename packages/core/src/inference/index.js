@@ -1,12 +1,11 @@
 // @flow
 import NODE from "../utils/nodes";
 import { Type } from "../type-graph/types/type";
-import { Scope } from "../type-graph/scope";
+import { TypeScope } from "../type-graph/type-scope";
 import { THIS_TYPE } from "../type-graph/constants";
 import { ModuleScope } from "../type-graph/module-scope";
-import { ObjectType } from "../type-graph/types/object-type";
 import { VariableInfo } from "../type-graph/variable-info";
-import { findVariableInfo } from "../utils/common";
+import { VariableScope } from "../type-graph/variable-scope";
 import { inferenceTupleType } from "./tuple-type";
 import { inferenceFunctionLiteralType } from "./function-type";
 import type { Node } from "@babel/parser";
@@ -14,8 +13,8 @@ import type { Handler } from "../utils/traverse";
 
 export function inferenceTypeForNode(
   currentNode: Node,
-  typeScope: Scope,
-  parentScope: Scope | ModuleScope,
+  typeScope: TypeScope,
+  parentScope: VariableScope | ModuleScope,
   typeGraph: ModuleScope,
   parentNode: Node,
   pre: Handler,
@@ -25,29 +24,27 @@ export function inferenceTypeForNode(
 ): Type {
   switch (currentNode.type) {
     case NODE.NUMERIC_LITERAL:
-      return Type.createTypeWithName(currentNode.value, typeScope, {
-        isSubtypeOf: Type.createTypeWithName("number", typeScope)
+      return Type.term(currentNode.value, {
+        isSubtypeOf: Type.Number
       });
     case NODE.BIGINT_LITERAL:
-      return Type.createTypeWithName(`${currentNode.value}n`, typeScope, {
-        isSubtypeOf: Type.createTypeWithName("bigint", typeScope)
+      return Type.term(`${currentNode.value}n`, {
+        isSubtypeOf: Type.BigInt
       });
     case NODE.TEMPLATE_LITERAL:
-      return Type.createTypeWithName("string", typeScope);
+      return Type.String;
     case NODE.STRING_LITERAL:
-      return Type.createTypeWithName(`'${currentNode.value}'`, typeScope, {
-        isSubtypeOf: Type.createTypeWithName("string", typeScope)
+      return Type.term(`'${currentNode.value}'`, {
+        isSubtypeOf: Type.String
       });
     case NODE.BOOLEAN_LITERAL:
-      return Type.createTypeWithName(currentNode.value, typeScope, {
-        isSubtypeOf: Type.createTypeWithName("boolean", typeScope)
+      return Type.term(currentNode.value, {
+        isSubtypeOf: Type.Boolean
       });
     case NODE.NULL_LITERAL:
-      return Type.createTypeWithName(null, typeScope, {
-        isSubtypeOf: Type.createTypeWithName("void", typeScope)
-      });
+      return Type.Null;
     case NODE.REG_EXP_LITERAL:
-      return ObjectType.createTypeWithName("RegExp", typeScope);
+      return Type.find("RegExp");
     case NODE.ARRAY_EXPRESSION:
       return inferenceTupleType(
         currentNode,
@@ -61,13 +58,16 @@ export function inferenceTypeForNode(
       );
     case NODE.OBJECT_EXPRESSION:
     case NODE.CLASS_EXPRESSION:
-      const objectScope = typeGraph.body.get(Scope.getName(currentNode));
-      if (!(objectScope instanceof Scope)) {
+      const objectScope = typeGraph.body.get(
+        VariableScope.getName(currentNode)
+      );
+      if (!(objectScope instanceof VariableScope)) {
         throw new Error("Never!!!");
       }
-      const self = objectScope.type === Scope.OBJECT_TYPE ?
-        objectScope.body.get(THIS_TYPE) 
-        : objectScope.declaration;
+      const self =
+        objectScope.type === VariableScope.OBJECT_TYPE
+          ? objectScope.body.get(THIS_TYPE)
+          : objectScope.declaration;
       if (!(self instanceof VariableInfo)) {
         throw new Error("Never!!!");
       }
@@ -90,16 +90,10 @@ export function inferenceTypeForNode(
         middle,
         post
       );
-    case NODE.NEW_EXPRESSION:
-      const constructor: any = findVariableInfo(
-        currentNode.callee,
-        parentScope
-      );
-      return constructor.type.returnType;
     case NODE.IDENTIFIER:
     case NODE.THIS_EXPRESSION:
       const query = { ...currentNode, name: currentNode.name || THIS_TYPE };
-      const variableInfo = findVariableInfo(query, parentScope);
+      const variableInfo = parentScope.findVariable(query);
       return variableInfo.type;
   }
   throw new Error(currentNode.type);

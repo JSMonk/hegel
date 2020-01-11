@@ -1,4 +1,3 @@
-const HegelError = require("../build/utils/errors").default;
 const createTypeGraph = require("../build/type-graph/type-graph").default;
 const { Type } = require("../build/type-graph/types/type");
 const { prepareAST } = require("./preparation");
@@ -6,7 +5,6 @@ const { ObjectType } = require("../build/type-graph/types/object-type");
 const { GenericType } = require("../build/type-graph/types/generic-type");
 const { FunctionType } = require("../build/type-graph/types/function-type");
 const { CollectionType } = require("../build/type-graph/types/collection-type");
-const { TYPE_SCOPE, CALLABLE } = require("../build/type-graph/constants");
 
 describe("TypeScript type defitions", () => {
   describe("Simple defitions", () => {
@@ -75,8 +73,8 @@ describe("TypeScript type defitions", () => {
         () => {},
         true
       );
-      const typeScope = actual.body.get(TYPE_SCOPE);
-      const actualType = typeScope.body.get("Symbol").type;
+      const typeScope = actual.typeScope;
+      const actualType = typeScope.body.get("Symbol");
       expect(errors.length).toBe(0);
       expect(actualType).toBeInstanceOf(ObjectType);
       expect(actualType.name).toBe("Symbol");
@@ -97,14 +95,12 @@ describe("TypeScript type defitions", () => {
         () => {},
         true
       );
-      const typeScope = actual.body.get(TYPE_SCOPE);
-      const actualType = typeScope.body.get("DateConstructor").type;
+      const typeScope = actual.typeScope;
+      const actualType = typeScope.body.get("DateConstructor");
       expect(errors.length).toBe(0);
       expect(actualType).toBeInstanceOf(ObjectType);
       expect(actualType.name).toBe("DateConstructor");
-      expect(actualType.properties.get("test").type.name).toBe(
-        "string"
-      );
+      expect(actualType.properties.get("test").type.name).toBe("string");
     });
     test("Define simple indexable interface without error", async () => {
       const sourceAST = prepareAST(
@@ -121,8 +117,8 @@ describe("TypeScript type defitions", () => {
         () => {},
         true
       );
-      const typeScope = actual.body.get(TYPE_SCOPE);
-      const actualType = typeScope.body.get("Array").type;
+      const typeScope = actual.typeScope;
+      const actualType = typeScope.body.get("Array");
       expect(errors.length).toBe(0);
       expect(actualType).toBeInstanceOf(GenericType);
       expect(actualType.subordinateType).toBeInstanceOf(CollectionType);

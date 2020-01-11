@@ -1,50 +1,39 @@
 // @flow
 import NODE from "../utils/nodes";
-import { Scope } from "../type-graph/scope";
+import { TypeScope } from "../type-graph/type-scope";
 import { ModuleScope } from "../type-graph/module-scope";
-import { TYPE_SCOPE } from "../type-graph/constants";
+import { VariableScope } from "../type-graph/variable-scope";
 import type { Node } from "@babel/parser";
-import type { ScopeType } from "../type-graph/scope";
 import type { VariableInfo } from "../type-graph/variable-info";
+import type { VariableScopeType } from "../type-graph/variable-scope";
 
-export function getScopeType(node: Node): ScopeType {
+export function getScopeType(node: Node): VariableScopeType {
   switch (node.type) {
     case NODE.BLOCK_STATEMENT:
-      return Scope.BLOCK_TYPE;
+      return VariableScope.BLOCK_TYPE;
     case NODE.FUNCTION_DECLARATION:
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
     case NODE.OBJECT_METHOD:
     case NODE.CLASS_METHOD:
     case NODE.FUNCTION_TYPE_ANNOTATION:
-      return Scope.FUNCTION_TYPE;
+      return VariableScope.FUNCTION_TYPE;
     case NODE.OBJECT_EXPRESSION:
-      return Scope.OBJECT_TYPE;
+      return VariableScope.OBJECT_TYPE;
     case NODE.CLASS_DECLARATION:
     case NODE.CLASS_EXPRESSION:
-      return Scope.CLASS_TYPE;
+      return VariableScope.CLASS_TYPE;
   }
   throw new Error("Never for getScopeType");
 }
 
-export function getTypeScope(scope: Scope | ModuleScope): Scope {
-  const typeScope = scope.body.get(TYPE_SCOPE);
-  if (typeScope instanceof Scope) {
-    return typeScope;
-  }
-  if (scope.parent) {
-    return getTypeScope(scope.parent);
-  }
-  throw new Error("Never");
-}
-
 export function findNearestScopeByType(
-  type: $PropertyType<Scope, "type"> | Array<$PropertyType<Scope, "type">>,
-  parentContext: ModuleScope | Scope
-): Scope | ModuleScope {
+  type: VariableScopeType | Array<VariableScopeType>,
+  parentContext: ModuleScope | VariableScope
+): VariableScope | ModuleScope {
   type = Array.isArray(type) ? type : [type];
   let parent = parentContext;
-  while (parent instanceof Scope) {
+  while (parent instanceof VariableScope) {
     if (type.includes(parent.type)) {
       return parent;
     }
@@ -53,60 +42,63 @@ export function findNearestScopeByType(
   return parent;
 }
 
-export const findNearestTypeScope = (
-  currentScope: Scope | ModuleScope,
+export function findNearestTypeScope(
+  currentScope: VariableScope | ModuleScope,
   typeGraph: ModuleScope
-): Scope => {
+): TypeScope {
   let scope = findNearestScopeByType(
-    [Scope.FUNCTION_TYPE, Scope.CLASS_TYPE],
+    [VariableScope.FUNCTION_TYPE, VariableScope.CLASS_TYPE],
     currentScope
   );
-  const moduleTypeScope = typeGraph.body.get(TYPE_SCOPE);
-  if (!(moduleTypeScope instanceof Scope)) {
-    throw new Error("Never!");
-  }
-  while (scope.parent) {
+  do {
     // $FlowIssue
     if (scope.declaration && "localTypeScope" in scope.declaration.type) {
       // $FlowIssue
       return scope.declaration.type.localTypeScope;
     }
+    const parent = scope.parent;
+    if (parent === null) {
+      break;
+    }
     scope = findNearestScopeByType(
-      [Scope.FUNCTION_TYPE, Scope.CLASS_TYPE],
-      scope.parent
+      [VariableScope.FUNCTION_TYPE, VariableScope.CLASS_TYPE],
+      parent
     );
-  }
-  return moduleTypeScope;
-};
+  } while (scope.parent instanceof VariableScope);
+  return typeGraph.typeScope;
+}
 
 export function getParentForNode(
   currentNode: Node,
   parentNode: ?Node,
   typeGraph: ModuleScope
-): ModuleScope | Scope {
+): ModuleScope | VariableScope {
   if (!parentNode || parentNode.type === NODE.PROGRAM) {
     return typeGraph;
   }
-  const name = Scope.getName(parentNode);
+  const name = VariableScope.getName(parentNode);
   const scope = typeGraph.body.get(name);
-  if (!(scope instanceof Scope)) {
+  if (!(scope instanceof VariableScope)) {
     return typeGraph;
   }
   if (NODE.isUnscopableDeclaration(currentNode)) {
-    return findNearestScopeByType(Scope.FUNCTION_TYPE, scope || typeGraph);
+    return findNearestScopeByType(
+      VariableScope.FUNCTION_TYPE,
+      scope || typeGraph
+    );
   }
   return scope;
 }
 
 export function getScopeFromNode(
   currentNode: Node,
-  parentNode: Node | ModuleScope | Scope,
+  parentNode: Node | ModuleScope | VariableScope,
   typeGraph: ModuleScope,
   declaration?: VariableInfo
 ) {
-  return new Scope(
+  return new VariableScope(
     getScopeType(currentNode),
-    parentNode instanceof Scope || parentNode instanceof ModuleScope
+    parentNode instanceof VariableScope || parentNode instanceof ModuleScope
       ? parentNode
       : getParentForNode(currentNode, parentNode, typeGraph),
     declaration
@@ -118,7 +110,7 @@ export function addScopeToTypeGraph(
   parentNode: Node,
   typeGraph: ModuleScope
 ) {
-  const scopeName = Scope.getName(currentNode);
+  const scopeName = VariableScope.getName(currentNode);
   if (typeGraph.body.get(scopeName)) {
     return;
   }

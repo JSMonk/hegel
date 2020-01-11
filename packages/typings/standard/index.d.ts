@@ -102,13 +102,13 @@ interface Symbol {
 }
 
 interface SymbolConstructor {
-  readonly prototype: Symbol;
+  readonly prototype: symbol;
 
-  (description?: string | number): Symbol;
+  (description?: string | number): symbol;
 
-  for(key: string): Symbol;
+  for(key: string): symbol;
 
-  keyFor(sym: Symbol): string | undefined;
+  keyFor(sym: symbol): string | undefined;
 }
 
 declare var Symbol: SymbolConstructor;

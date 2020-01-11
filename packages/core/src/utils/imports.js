@@ -3,10 +3,10 @@ import NODE from "./nodes";
 import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
 import { ObjectType } from "../type-graph/types/object-type";
-import { addPosition } from "../utils/position-utils";
 import { VariableInfo } from "../type-graph/variable-info";
-import type { Scope } from "../type-graph/scope";
-import type { ModuleScope, TypeGraph } from "../type-graph/module-scope";
+import { ModuleScope, PositionedModuleScope } from "../type-graph/module-scope";
+import type { TypeScope } from "../type-graph/type-scope";
+import type { TypeGraph } from "../type-graph/module-scope";
 import type {
   Program,
   SourceLocation,
@@ -27,8 +27,8 @@ function getImportName(specifier: ImportSpecifier): ?string {
 export function importDependencies(
   importNode: ImportDeclaration,
   moduleTypeGraph: ModuleScope,
-  currentModuleTypeGraph: ModuleScope,
-  currentModuleTypeScope: Scope
+  currentModuleTypeGraph: ModuleScope | PositionedModuleScope,
+  currentModuleTypeScope: TypeScope
 ) {
   const { exports, exportsTypes } = moduleTypeGraph;
   const importSource =
@@ -37,34 +37,49 @@ export function importDependencies(
     importNode.importKind === "type"
       ? currentModuleTypeScope
       : currentModuleTypeGraph;
-  const importEntries = [...importSource.entries()];
+  const importEntries = [...importSource.entries()].map(([key, a]) => [
+    key,
+    a instanceof VariableInfo ? a : new VariableInfo(a)
+  ]);
+  const withPositions = currentModuleTypeGraph instanceof PositionedModuleScope;
+  const shouldBeVariable = importTarget instanceof ModuleScope;
   importNode.specifiers.forEach(specifier => {
     const importName = getImportName(specifier);
-    const importElement = importName
+    let importElement = importName
       ? importSource.get(importName)
-      : ObjectType.createTypeWithName(
+      : ObjectType.term(
           // $FlowIssue
           ObjectType.getName(importEntries),
-          currentModuleTypeScope,
+          { typeScope: currentModuleTypeScope },
           importEntries
         );
-    if (!importElement) {
+    if (importElement === undefined) {
       throw new HegelError(
         `Module "${importNode.source.value}" hasn't "${importName ||
           "*"}" export`,
         specifier.loc
       );
     }
-    const finalImportVariable =
-      importElement instanceof VariableInfo
-        ? importElement
-        : new VariableInfo(
-            importElement,
-            importTarget,
-            new Meta(specifier.loc)
-          );
+    if (
+      importElement instanceof ObjectType &&
+      importElement.instanceType !== null
+    ) {
+      currentModuleTypeScope.body.set(importName, importElement.instanceType);
+    }
+    if (shouldBeVariable && !(importElement instanceof VariableInfo)) {
+      // $FlowIssue
+      importElement = new VariableInfo(
+        importElement,
+        importTarget,
+        new Meta(specifier.loc)
+      );
+    }
+    // $FlowIssue
     importTarget.body.set(specifier.local.name, finalImportVariable);
-    addPosition(specifier, finalImportVariable, currentModuleTypeGraph);
+    if (withPositions) {
+      // $FlowIssue
+      currentModuleTypeGraph.addPosition(specifier, finalImportVariable);
+    }
   });
 }
 
@@ -72,7 +87,7 @@ export default async function mixImportedDependencies(
   ast: Program,
   errors: Array<HegelError>,
   currentModuleScope: ModuleScope,
-  currentTypeScope: Scope,
+  currentTypeScope: TypeScope,
   getModuleTypeGraph: (string, string, SourceLocation) => Promise<ModuleScope>
 ): Promise<void> {
   const importRequests = [];

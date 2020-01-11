@@ -2,17 +2,22 @@ import HegelError from "../../utils/errors";
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
+import { TypeScope } from "../type-scope";
 import { ObjectType } from "./object-type";
 import { $BottomType } from "./bottom-type";
 import { GenericType } from "./generic-type";
-import { addPropertyToThis } from "../../utils/class-utils";
 
 export class $PropertyType extends GenericType {
-  constructor() {
+  constructor(_, meta = {}) {
+    const parent = new TypeScope(meta.parent);
     super(
       "$PropertyType",
-      [new TypeVar("target"), new TypeVar("property")],
-      null,
+      meta,
+      [
+        TypeVar.term("target", { parent }),
+        TypeVar.term("property", { parent })
+      ],
+      parent,
       null
     );
   }
@@ -48,7 +53,7 @@ export class $PropertyType extends GenericType {
         : property.name;
 
     if (property instanceof TypeVar && property.root === undefined) {
-      return new $BottomType(this, [realTarget, property], loc);
+      return new $BottomType({}, this, [realTarget, property], loc);
     }
 
     if (realTarget instanceof UnionType) {
@@ -61,7 +66,7 @@ export class $PropertyType extends GenericType {
             isCalledAsBottom
           )
         );
-        return new UnionType(UnionType.getName(variants), variants);
+        return UnionType.term(UnionType.getName(variants), {}, variants);
       } catch {
         throw new HegelError(
           `Property "${propertyName}" does not exist in "${

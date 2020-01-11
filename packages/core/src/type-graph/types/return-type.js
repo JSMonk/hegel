@@ -1,14 +1,19 @@
 import HegelError from "../../utils/errors";
-import { Type } from "./type";
 import { TypeVar } from "./type-var";
-import { UnionType } from "./union-type";
-import { ObjectType } from "./object-type";
+import { TypeScope } from "../type-scope";
 import { GenericType } from "./generic-type";
 import { FunctionType } from "./function-type";
 
 export class $ReturnType extends GenericType {
-  constructor() {
-    super("$ReturnType", [new TypeVar("target")], null, null);
+  constructor(_, meta = {}) {
+    const parent = new TypeScope(meta.parent);
+    super(
+      "$ReturnType",
+      meta,
+      [TypeVar.term("target", { parent })],
+      parent,
+      null
+    );
   }
 
   applyGeneric(

@@ -40,6 +40,21 @@ function mixBodyToArrowFunctionExpression(currentNode: Node) {
   return currentNode;
 }
 
+function mixScopeToLogicalAnd(currentNode: Node) {
+  if (
+    currentNode.type !== NODE.LOGICAL_EXPRESSION ||
+    currentNode.operator !== "&&"
+  ) {
+    return currentNode;
+  }
+  currentNode.left = {
+    type: NODE.BLOCK_STATEMENT,
+    body: [currentNode.left],
+    loc: currentNode.loc
+  };
+  return currentNode;
+}
+
 function mixBlockForStatements(currentNode: Node) {
   if (
     currentNode.type !== NODE.IF_STATEMENT &&

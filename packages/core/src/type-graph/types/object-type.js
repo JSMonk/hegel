@@ -1,14 +1,13 @@
 // @flow
 import { Type } from "./type";
 import { unique } from "../../utils/common";
+import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
 import { FunctionType } from "./function-type";
 import { VariableInfo } from "../variable-info";
-import { getNameForType } from "../../utils/type-utils";
-import { createTypeWithName } from "./create-type";
 import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../constants";
-import type { Scope } from "../scope";
 import type { TypeMeta } from "./type";
+import type { TypeScope } from "../type-scope";
 import type {
   ClassProperty,
   ObjectProperty,
@@ -19,7 +18,32 @@ import type {
 type ExtendedTypeMeta = { ...TypeMeta, isNominal?: boolean };
 
 export class ObjectType extends Type {
-  static createTypeWithName = createTypeWithName(ObjectType);
+  static Object = new TypeVar("Object");
+
+  static term(
+    name: mixed,
+    meta?: TypeMeta = {},
+    properties: Array<[string, VariableInfo]>,
+    ...args: Array<any>
+  ) {
+    let parent: TypeScope | void = meta.parent || Type.GlobalTypeScope;
+    const length = properties.length;
+    for (let i = 0; i < length; i++) {
+      const property = properties[i][1];
+      if (property instanceof VariableInfo) {
+        const propertyType = property.type;
+        if (
+          !TypeVar.isSelf(propertyType) &&
+          (parent === undefined ||
+            parent.priority < propertyType.parent.priority)
+        ) {
+          parent = propertyType.parent;
+        }
+      }
+    }
+    const newMeta = { ...meta, parent };
+    return super.term(name, newMeta, properties, ...args);
+  }
 
   static getName(params: Array<[string, any]>, type?: ObjectType) {
     if (type !== undefined && String(type.name)[0] !== "{") {
@@ -30,8 +54,8 @@ export class ObjectType extends Type {
       .sort(([name1], [name2]) => String(name1).localeCompare(String(name2)))
       .map(
         ([name, type]) =>
-          `${name}: ${getNameForType(
-            type instanceof VariableInfo ? type.type : type
+          `${name}: ${String(
+            type instanceof VariableInfo ? type.type.name : type.name
           )}`
       )
       .join(", ")} }`;
@@ -44,11 +68,11 @@ export class ObjectType extends Type {
 
   constructor(
     name: ?string,
-    properties: Array<[string, VariableInfo]>,
-    options: ExtendedTypeMeta = {}
+    options: ExtendedTypeMeta = {},
+    properties: Array<[string, VariableInfo]>
   ) {
     super(name, {
-      isSubtypeOf: name === "Object" ? undefined : new ObjectType("Object", []),
+      isSubtypeOf: name === "Object" ? undefined : ObjectType.Object,
       ...options
     });
     this.isNominal = Boolean(options.isNominal);
@@ -91,7 +115,7 @@ export class ObjectType extends Type {
         continue;
       }
       const anotherProperty = anotherType.properties.get(key) || {
-        type: new Type("undefined")
+        type: Type.Undefined
       };
       /* $FlowIssue - flow doesn't type methods by name */
       if (!type[predicate](anotherProperty.type)) {
@@ -104,7 +128,7 @@ export class ObjectType extends Type {
   changeAll(
     sourceTypes: Array<Type>,
     targetTypes: Array<Type>,
-    typeScope: Scope
+    typeScope: TypeScope
   ): Type {
     let isAnyPropertyChanged = false;
     const newProperties: Array<[string, VariableInfo]> = [];
@@ -120,18 +144,17 @@ export class ObjectType extends Type {
       ]);
     });
     const isSubtypeOf =
-      this.isSubtypeOf &&
-      this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
+      this.isSubtypeOf === null || this.isSubtypeOf === ObjectType.Object
+        ? this.isSubtypeOf
+        : this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
     if (!isAnyPropertyChanged && this.isSubtypeOf === isSubtypeOf) {
       return this;
     }
-    return new ObjectType(
+    return ObjectType.term(
       ObjectType.getName(newProperties, this) ||
         this.getChangedName(sourceTypes, targetTypes),
-      newProperties,
-      {
-        isSubtypeOf
-      }
+      { isSubtypeOf },
+      newProperties
     );
   }
 
@@ -155,9 +178,7 @@ export class ObjectType extends Type {
     const requiredProperties = [...this.properties.values()].filter(
       ({ type }) =>
         !(type instanceof UnionType) ||
-        !type.variants.some(t =>
-          t.equalsTo(new Type("undefined", { isSubtypeOf: new Type("void") }))
-        )
+        !type.variants.some(t => t.equalsTo(Type.Undefined))
     );
     return anotherType instanceof ObjectType && !this.isNominal
       ? anotherType.properties.size >= requiredProperties.length &&

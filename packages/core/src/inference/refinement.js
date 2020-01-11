@@ -1,10 +1,11 @@
 // @flow
 import NODE from "../utils/nodes";
 import { Type } from "../type-graph/types/type";
-import { Scope } from "../type-graph/scope";
+import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
+import { VariableScope } from "../type-graph/variable-scope";
 import { inRefinement } from "./in-operator";
 import { typeofRefinement } from "./typeof";
 import { intersection, union } from "../utils/common";
@@ -13,20 +14,22 @@ import type { Node, BinaryExpression } from "@babel/parser";
 
 function getPrimaryAndAlternativeScopes(
   currentRefinementNode: Node,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   moduleScope: ModuleScope
-): [Scope, ?Scope] {
-  let primaryScope: ?Node = null;
-  let alternateScope: ?Node = null;
+): [VariableScope, VariableScope | void] {
+  let primaryScope: Node | void;
+  let alternateScope: Node | void;
   switch (currentRefinementNode.type) {
     case NODE.IF_STATEMENT:
       primaryScope = moduleScope.body.get(
-        Scope.getName(currentRefinementNode.consequent)
+        VariableScope.getName(currentRefinementNode.consequent)
       );
       alternateScope =
         currentRefinementNode.alternate &&
-        moduleScope.body.get(Scope.getName(currentRefinementNode.alternate));
+        moduleScope.body.get(
+          VariableScope.getName(currentRefinementNode.alternate)
+        );
       break;
     case NODE.WHILE_STATEMENT:
     case NODE.DO_WHILE_STATEMENT:
@@ -34,7 +37,7 @@ function getPrimaryAndAlternativeScopes(
     case NODE.FOR_IN_STATEMENT:
     case NODE.FOR_OF_STATEMENT:
       primaryScope = moduleScope.body.get(
-        Scope.getName(currentRefinementNode.body)
+        VariableScope.getName(currentRefinementNode.body)
       );
   }
   if (
@@ -47,16 +50,20 @@ function getPrimaryAndAlternativeScopes(
   return [primaryScope, alternateScope];
 }
 
-function intersectionOfTypes(type1: Type, type2: Type, typeScope: Scope): Type {
+function intersectionOfTypes(
+  type1: Type,
+  type2: Type,
+  typeScope: TypeScope
+): Type {
   if (type1 instanceof UnionType && type2 instanceof UnionType) {
     const intersectedVariants = intersection(
       type1.variants,
       type2.variants,
       (a, b) => a.equalsTo(b)
     )[0];
-    return UnionType.createTypeWithName(
+    return UnionType.term(
       UnionType.getName(intersectedVariants),
-      typeScope,
+      {},
       intersectedVariants
     );
   }
@@ -66,23 +73,17 @@ function intersectionOfTypes(type1: Type, type2: Type, typeScope: Scope): Type {
       type1 instanceof UnionType ? [type1, type2] : [type2, type1];
     // $FlowIssue
     const isTypeExisting = unionType.variants.some(t => t.equalsTo(notUnion));
-    return isTypeExisting
-      ? notUnion
-      : Type.createTypeWithName("never", typeScope);
+    return isTypeExisting ? notUnion : Type.Never;
   }
-  return Type.createTypeWithName("never", typeScope);
+  return Type.Never;
 }
 
-function unionOfTypes(type1: Type, type2: Type, typeScope): Type {
+function unionOfTypes(type1: Type, type2: Type, typeScope: TypeScope): Type {
   if (type1 instanceof UnionType && type2 instanceof UnionType) {
     const unionVariants = union(type1.variants, type2.variants, (a, b) =>
       a.equalsTo(b)
     );
-    return UnionType.createTypeWithName(
-      UnionType.getName(unionVariants),
-      typeScope,
-      unionVariants
-    );
+    return UnionType.term(UnionType.getName(unionVariants), {}, unionVariants);
   }
   if (type1 instanceof UnionType || type2 instanceof UnionType) {
     const [unionType, notUnion]: [Type, Type] =
@@ -93,11 +94,7 @@ function unionOfTypes(type1: Type, type2: Type, typeScope): Type {
       [notUnion],
       (a, b) => a.equalsTo(b)
     );
-    return UnionType.createTypeWithName(
-      UnionType.getName(newVariants),
-      typeScope,
-      newVariants
-    );
+    return UnionType.term(UnionType.getName(newVariants), {}, newVariants);
   }
   if (type1.isPrincipalTypeFor(type2)) {
     return type1;
@@ -106,17 +103,13 @@ function unionOfTypes(type1: Type, type2: Type, typeScope): Type {
     return type2;
   }
   const variants = [type1, type2];
-  return UnionType.createTypeWithName(
-    UnionType.getName(variants),
-    typeScope,
-    variants
-  );
+  return UnionType.term(UnionType.getName(variants), {}, variants);
 }
 
 function getRefinementByBinaryExpression(
   binaryExpression: BinaryExpression,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   moduleScope: ModuleScope
 ): ?[string, Type, Type] {
   switch (binaryExpression.operator) {
@@ -149,8 +142,8 @@ function getRefinementByBinaryExpression(
 
 function refinementByCondition(
   condition: Node,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   moduleScope: ModuleScope
 ): ?Array<[string, Type, Type]> {
   switch (condition.type) {
@@ -218,8 +211,8 @@ function refinementByCondition(
 
 export function refinement(
   currentRefinementNode: Node,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   moduleScope: ModuleScope
 ): void {
   const [primaryScope, alternateScope] = getPrimaryAndAlternativeScopes(

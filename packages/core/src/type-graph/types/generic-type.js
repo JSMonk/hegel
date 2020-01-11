@@ -3,18 +3,14 @@ import HegelError from "../../utils/errors";
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
-import { ModuleScope } from "../module-scope";
+import { TypeScope } from "../type-scope";
 import { $BottomType } from "./bottom-type";
-import { getNameForType } from "../../utils/type-utils";
-import { createTypeWithName } from "./create-type";
-import type { Scope } from "../scope";
+import type { TypeMeta } from "./type";
 import type { SourceLocation } from "@babel/parser";
 
 export class GenericType<T: Type> extends Type {
-  static createTypeWithName = createTypeWithName(GenericType);
-
   static getNameWithoutApplying(name: mixed) {
-    return String(name).replace(/<.+?>/g, "");
+    return String(name).replace(/<.+>/g, "");
   }
 
   static getName<T: Type>(name: mixed, parameters: Array<T>) {
@@ -22,22 +18,23 @@ export class GenericType<T: Type> extends Type {
       return String(name);
     }
     return `${String(name)}<${parameters.reduce(
-      (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
+      (res, t) => `${res}${res ? ", " : ""}${String(t.name)}`,
       ""
     )}>`;
   }
 
   genericArguments: Array<TypeVar>;
   subordinateType: T;
-  localTypeScope: Scope;
+  localTypeScope: TypeScope;
 
   constructor(
     name: string,
+    meta?: TypeMeta = {},
     genericArguments: Array<TypeVar>,
-    typeScope: Scope,
+    typeScope: TypeScope,
     type: T
   ) {
-    super(name);
+    super(name, meta);
     this.subordinateType = type;
     this.localTypeScope = typeScope;
     this.genericArguments = genericArguments;
@@ -71,8 +68,8 @@ export class GenericType<T: Type> extends Type {
     );
     if (wrongArgumentIndex !== -1) {
       throw new HegelError(
-        `Parameter "${getNameForType(
-          parameters[wrongArgumentIndex]
+        `Parameter "${String(
+          parameters[wrongArgumentIndex].name
         )}" is incompatible with restriction of type argument "${String(
           this.genericArguments[wrongArgumentIndex].name
         )}"`,
@@ -84,7 +81,7 @@ export class GenericType<T: Type> extends Type {
   changeAll(
     sourceTypes: Array<Type>,
     targetTypes: Array<Type>,
-    typeScope: Scope
+    typeScope: TypeScope
   ): Type {
     const newSubordinateType = this.subordinateType.changeAll(
       sourceTypes,
@@ -108,8 +105,9 @@ export class GenericType<T: Type> extends Type {
             newGenericArguments
           )
         : GenericType.getName(newSubordinateType.name, newGenericArguments);
-    return new GenericType(
+    return GenericType.term(
       newName,
+      {},
       newGenericArguments,
       this.localTypeScope,
       newSubordinateType
@@ -155,19 +153,25 @@ export class GenericType<T: Type> extends Type {
       return variant;
     });
     const appliedTypeName = GenericType.getName(this.name, parameters);
-    if (this.localTypeScope.parent instanceof ModuleScope) {
-      throw new Error("Never!");
+    const oldAppliedSelf = new $BottomType({}, this, this.genericArguments);
+    const localTypeScope = new TypeScope(this.localTypeScope);
+    const appliedSelf = TypeVar.term(
+      appliedTypeName,
+      { parent: localTypeScope, isSubtypeOf: TypeVar.Self },
+      null,
+      true
+    );
+    if (!(appliedSelf instanceof TypeVar)) {
+      return appliedSelf;
     }
-    const oldAppliedSelf = new $BottomType(this, this.genericArguments);
-    const appliedSelf = new TypeVar(appliedTypeName, null, true);
     const result = this.subordinateType.changeAll(
       [...this.genericArguments, oldAppliedSelf],
       [...parameters, appliedSelf],
-      this.localTypeScope.parent
+      localTypeScope
     );
     result.name = result.name === undefined ? appliedTypeName : result.name;
     appliedSelf.root = result;
-    return result;
+    return result.save();
   }
 
   getPropertyType(propertyName: mixed): ?Type {

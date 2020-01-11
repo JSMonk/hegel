@@ -1,23 +1,19 @@
 import HegelError from "../../utils/errors";
-import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { TupleType } from "./tuple-type";
+import { TypeScope } from "../type-scope";
 import { UnionType } from "./union-type";
 import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 import { CollectionType } from "./collection-type";
 
 export class $Values extends GenericType {
-  constructor() {
-    super("$Values", [new TypeVar("target")], null, null);
+  constructor(_, meta = {}) {
+    const parent = new TypeScope(meta.parent);
+    super("$Values", meta, [TypeVar.term("target", { parent })], parent, null);
   }
 
-  applyGeneric(
-    parameters,
-    loc,
-    shouldBeMemoize = true,
-    isCalledAsBottom = false
-  ) {
+  applyGeneric(parameters, loc) {
     super.assertParameters(parameters, loc);
     const [target] = parameters;
     const realTarget = target.constraint || target;
@@ -39,6 +35,6 @@ export class $Values extends GenericType {
     }
     const values = [...realTarget.properties.values()];
     const variants = values.map(value => value.type);
-    return new UnionType(UnionType.getName(variants), variants);
+    return UnionType.term(UnionType.getName(variants), {}, variants);
   }
 }

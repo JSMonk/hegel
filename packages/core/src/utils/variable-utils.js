@@ -4,16 +4,15 @@ import { Type } from "../type-graph/types/type";
 import { UnionType } from "../type-graph/types/union-type";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { ObjectType } from "../type-graph/types/object-type";
-import { addPosition } from "./position-utils";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
-import { UNDEFINED_TYPE } from "../type-graph/constants";
 import { getDeclarationName } from "./common";
+import { PositionedModuleScope } from "../type-graph/module-scope";
 import { getTypeFromTypeAnnotation } from "./type-utils";
 import { getParentForNode, findNearestTypeScope } from "./scope-utils";
 import type { Node } from "@babel/parser";
-import type { Scope } from "../type-graph/scope";
 import type { Handler } from "./traverse";
+import type { TypeScope } from "../type-graph/type-scope";
 import type { ModuleScope } from "../type-graph/module-scope";
 
 export function getVariableInfoFromDelcaration(
@@ -46,7 +45,7 @@ export function getVariableInfoFromDelcaration(
   );
 }
 
-export function getSuperTypeOf(type: Type, typeScope: Scope): Type {
+export function getSuperTypeOf(type: Type, typeScope: TypeScope): Type {
   if (
     !type.isSubtypeOf ||
     type.name === null ||
@@ -70,9 +69,9 @@ export function getSuperTypeOf(type: Type, typeScope: Scope): Type {
         type: getSuperTypeOf(p, typeScope)
       })
     ]);
-    return ObjectType.createTypeWithName(
+    return ObjectType.term(
       ObjectType.getName(newProperties),
-      typeScope,
+      {},
       newProperties
     );
   }
@@ -80,15 +79,18 @@ export function getSuperTypeOf(type: Type, typeScope: Scope): Type {
 }
 
 export function getVariableType(
-  variable: ?VariableInfo,
+  variable: VariableInfo | void,
   newType: Type,
-  typeScope: Scope,
+  typeScope: TypeScope,
   inferenced: boolean = false
 ): Type {
-  if (variable && variable.type.name !== UNDEFINED_TYPE) {
+  if (variable && variable.type !== Type.Unknown) {
     return variable.type;
   }
-  if (!inferenced) {
+  if (
+    !inferenced ||
+    (variable && variable.isConstant && newType.constructor === Type)
+  ) {
     return newType;
   }
   return getSuperTypeOf(newType, typeScope);
@@ -97,7 +99,7 @@ export function getVariableType(
 export function addVariableToGraph(
   currentNode: Node,
   parentNode: ?Node,
-  typeGraph: ModuleScope,
+  moduleScope: ModuleScope | PositionedModuleScope,
   precompute: Handler,
   middlecompute: Handler,
   postcompute: Handler,
@@ -106,14 +108,14 @@ export function addVariableToGraph(
   const variableInfo = getVariableInfoFromDelcaration(
     currentNode,
     parentNode,
-    typeGraph,
+    moduleScope,
     precompute,
     middlecompute,
     postcompute
   );
   variableInfo.parent.body.set(customName, variableInfo);
-  if (currentNode.id != null) {
-    addPosition(currentNode.id, variableInfo, typeGraph);
+  if (moduleScope instanceof PositionedModuleScope && currentNode.id != null) {
+    moduleScope.addPosition(currentNode.id, variableInfo);
   }
   return variableInfo;
 }

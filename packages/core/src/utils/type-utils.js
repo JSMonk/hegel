@@ -3,25 +3,24 @@ import NODE from "./nodes";
 import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
 import { Type } from "../type-graph/types/type";
-import { Scope } from "../type-graph/scope";
+import { unique } from "./common";
 import { TypeVar } from "../type-graph/types/type-var";
+import { TypeScope } from "../type-graph/type-scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { VariableInfo } from "../type-graph/variable-info";
+import { VariableScope } from "../type-graph/variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { getDeclarationName } from "./common";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
-import { unique, findVariableInfo } from "./common";
 import {
   CALLABLE,
   INDEXABLE,
   THIS_TYPE,
-  TYPE_SCOPE,
-  CONSTRUCTABLE,
-  UNDEFINED_TYPE
+  CONSTRUCTABLE
 } from "../type-graph/constants";
 import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
@@ -32,33 +31,29 @@ export function addTypeNodeToTypeGraph(
   typeGraph: ModuleScope
 ) {
   const name = getDeclarationName(currentNode);
-  // $FlowIssue
-  typeGraph.body.get(TYPE_SCOPE).body.set(name, currentNode);
+  typeGraph.typeScope.body.set(name, currentNode);
 }
 
-export function isReachableType(type: Type, typeScope: Scope) {
+export function isReachableType(type: Type, typeScope: TypeScope) {
   let reachableType = null;
   try {
-    reachableType = findVariableInfo({ name: String(type.name) }, typeScope)
-      .type;
+    reachableType = Type.find(type.name, { parent: typeScope });
   } catch {}
   return reachableType !== null && type.equalsTo(reachableType);
 }
 
 export function addTypeVar(
   name: string,
-  localTypeScope: Scope,
+  localTypeScope: TypeScope,
   constraint: ?Type,
   isUserDefined?: boolean = false
 ): TypeVar {
-  const typeVar = new TypeVar(name, constraint, isUserDefined);
-  const varInfo = new VariableInfo(typeVar, localTypeScope, new Meta());
-  localTypeScope.body.set(name, varInfo);
-  return typeVar;
-}
-
-export function getNameForType(arg: Type | RestArgument): string {
-  return String(arg.name);
+  return TypeVar.new(
+    name,
+    { parent: localTypeScope },
+    constraint,
+    isUserDefined
+  );
 }
 
 function nullable(annotation: Node) {
@@ -74,20 +69,25 @@ function nullable(annotation: Node) {
 
 export function getTypeFromTypeAnnotation(
   typeNode: ?TypeAnnotation,
-  typeScope: Scope,
-  currentScope: Scope | ModuleScope,
+  typeScope: TypeScope,
+  currentScope: VariableScope | ModuleScope,
   rewritable: ?boolean = true,
   self: ?Type = null,
   parentNode: Node,
   typeGraph: ModuleScope,
   precompute: Handler,
   middlecompute: Handler,
-  postcompute: Handler
+  postcompute: Handler,
+  customName?: string
 ): Type {
   if (!typeNode || !typeNode.typeAnnotation) {
-    return TypeVar.createTypeWithName(UNDEFINED_TYPE, typeScope);
+    return Type.Unknown;
   }
-  if (typeNode.typeAnnotation.type === NODE.TS_PARENTHESIZED_TYPE) {
+  // TODO: ADd $Readonly instead ignoring
+  if (
+    typeNode.typeAnnotation.type === NODE.TS_PARENTHESIZED_TYPE ||
+    typeNode.typeAnnotation.type === NODE.TS_TYPE_OPERATOR
+  ) {
     typeNode.typeAnnotation = typeNode.typeAnnotation.typeAnnotation;
   }
   switch (typeNode.typeAnnotation.type) {
@@ -113,59 +113,59 @@ export function getTypeFromTypeAnnotation(
         middlecompute,
         postcompute
       );
-    case NODE.TS_ANY_TYPE_ANNOTATION:
-      return Type.createTypeWithName("unknown", typeScope);
     case NODE.ANY_TYPE_ANNOTATION:
       throw new HegelError(
         'There is no "any" type in Hegel.',
         typeNode.typeAnnotation.loc
       );
     case NODE.TS_SYMBOL_TYPE_ANNOTATION:
-      return Type.createTypeWithName("Symbol", typeScope);
+      return Type.Symbol;
     case NODE.TS_BIGINT_TYPE_ANNOTATION:
-      return Type.createTypeWithName("bigint", typeScope);
+      return Type.BigInt;
     case NODE.TS_UNDEFINED_TYPE_ANNOTATION:
-      return Type.createTypeWithName("undefined", typeScope);
+      return Type.Undefined;
+    case NODE.TS_OBJECT_KEYWORD:
+      return ObjectType.Object;
     case NODE.VOID_TYPE_ANNOTATION:
     case NODE.TS_VOID_TYPE_ANNOTATION:
-      return Type.createTypeWithName("void", typeScope);
+      return Type.Undefined;
     case NODE.BOOLEAN_TYPE_ANNOTATION:
     case NODE.TS_BOOLEAN_TYPE_ANNOTATION:
-      return Type.createTypeWithName("boolean", typeScope);
+      return Type.Boolean;
+    case NODE.TS_ANY_TYPE_ANNOTATION:
     case NODE.MIXED_TYPE_ANNOTATION:
     case NODE.TS_UNKNOWN_TYPE_ANNOTATION:
     case NODE.TS_ANY_TYPE_ANNOTATION:
-      return Type.createTypeWithName("unknown", typeScope);
+      return Type.Unknown;
     case NODE.EMPTY_TYPE_ANNOTATION:
     case NODE.TS_NEVER_TYPE_ANNOTATION:
-      return Type.createTypeWithName("never", typeScope);
+      return Type.Never;
     case NODE.NUMBER_TYPE_ANNOTATION:
     case NODE.TS_NUMBER_TYPE_ANNOTATION:
-      return Type.createTypeWithName("number", typeScope);
+      return Type.Number;
     case NODE.STRING_TYPE_ANNOTATION:
     case NODE.TS_STRING_TYPE_ANNOTATION:
-      return Type.createTypeWithName("string", typeScope);
+      return Type.String;
     case NODE.NULL_LITERAL_TYPE_ANNOTATION:
-      return Type.createTypeWithName(null, typeScope);
+    case NODE.TS_NULL_LITERAL_TYPE_ANNOTATION:
+      return Type.Null;
     case NODE.NUBMER_LITERAL_TYPE_ANNOTATION:
     case NODE.NUMERIC_LITERAL:
-      return Type.createTypeWithName(typeNode.typeAnnotation.value, typeScope, {
-        isSubtypeOf: Type.createTypeWithName("number", typeScope)
+      return Type.term(typeNode.typeAnnotation.value, {
+        isSubtypeOf: Type.Number
       });
     case NODE.BOOLEAN_LITERAL_TYPE_ANNOTATION:
     case NODE.BOOLEAN_LITERAL:
-      return Type.createTypeWithName(typeNode.typeAnnotation.value, typeScope, {
-        isSubtypeOf: Type.createTypeWithName("boolean", typeScope)
+      return Type.term(typeNode.typeAnnotation.value, {
+        isSubtypeOf: Type.Boolean
       });
     case NODE.STRING_LITERAL_TYPE_ANNOTATION:
     case NODE.STRING_LITERAL:
-      return Type.createTypeWithName(
-        `'${typeNode.typeAnnotation.value}'`,
-        typeScope,
-        { isSubtypeOf: Type.createTypeWithName("string", typeScope) }
-      );
+      return Type.term(`'${typeNode.typeAnnotation.value}'`, {
+        isSubtypeOf: Type.String
+      });
     case NODE.TS_SYMBOL_TYPE_ANNOTATION:
-      return Type.createTypeWithName("Symbol", typeScope);
+      return Type.Symbol;
     case NODE.NULLABLE_TYPE_ANNOTATION:
       const resultType = getTypeFromTypeAnnotation(
         typeNode.typeAnnotation,
@@ -179,11 +179,7 @@ export function getTypeFromTypeAnnotation(
         middlecompute,
         postcompute
       );
-      return UnionType.createTypeWithName(
-        `${getNameForType(resultType)} | undefined`,
-        typeScope,
-        [resultType, Type.createTypeWithName("undefined", typeScope)]
-      );
+      return UnionType.term(null, {}, [resultType, Type.Undefined]);
     case NODE.TS_OBJECT_PROPERTY:
       return getTypeFromTypeAnnotation(
         // Ohhh, TS is beautiful ❤️
@@ -214,14 +210,12 @@ export function getTypeFromTypeAnnotation(
           postcompute
         )
       );
-      return UnionType.createTypeWithName(
-        UnionType.getName(unionVariants),
-        typeScope,
-        unionVariants
-      );
+      return UnionType.term(null, {}, unionVariants);
     case NODE.TUPLE_TYPE_ANNOTATION:
     case NODE.TS_TUPLE_TYPE_ANNOTATION:
-      const tupleVariants = typeNode.typeAnnotation.types.map(typeAnnotation =>
+      const tupleVariants = (
+        typeNode.typeAnnotation.types || typeNode.typeAnnotation.elementTypes
+      ).map(typeAnnotation =>
         getTypeFromTypeAnnotation(
           { typeAnnotation },
           typeScope,
@@ -235,22 +229,10 @@ export function getTypeFromTypeAnnotation(
           postcompute
         )
       );
-      const parentType = findVariableInfo({ name: "Array" }, typeScope).type;
-      if (!(parentType instanceof GenericType)) {
-        throw new Error("Never!");
-      }
-      const isSubtypeOf = parentType.applyGeneric([
-        UnionType.createTypeWithName(
-          UnionType.getName(tupleVariants),
-          typeScope,
-          tupleVariants
-        )
-      ]);
-      return TupleType.createTypeWithName(
+      return TupleType.term(
         TupleType.getName(tupleVariants),
-        typeScope,
-        tupleVariants,
-        { isSubtypeOf }
+        {},
+        tupleVariants
       );
     case NODE.TYPE_PARAMETER:
     case NODE.TS_TYPE_PARAMETER:
@@ -275,6 +257,7 @@ export function getTypeFromTypeAnnotation(
     case NODE.TS_INDEX_PROPERTY:
       return new CollectionType(
         "",
+        {},
         getTypeFromTypeAnnotation(
           typeNode.typeAnnotation.parameters[0].typeAnnotation,
           typeScope,
@@ -337,12 +320,15 @@ export function getTypeFromTypeAnnotation(
           postcompute
         )
       ]);
-      const objectName = annotation.id
-        ? annotation.id.name
-        : ObjectType.getName(params);
-      const resultObj = ObjectType.createTypeWithName(
-        objectName,
-        typeScope,
+      if (customName === undefined) {
+        customName =
+          annotation.id != undefined
+            ? annotation.id.name
+            : ObjectType.getName(params);
+      }
+      const resultObj = ObjectType.term(
+        customName,
+        {},
         params
           .map(([name, type], index) => [
             name,
@@ -360,8 +346,10 @@ export function getTypeFromTypeAnnotation(
       );
       const constructor = resultObj.properties.get(CONSTRUCTABLE);
       if (constructor !== undefined) {
-        const constructorType = constructor.type instanceof GenericType ? constructor.type.subordinateType : constructor.type;
-        // $FlowIssue
+        const constructorType =
+          constructor.type instanceof GenericType
+            ? constructor.type.subordinateType
+            : constructor.type;
         resultObj.instanceType = constructorType.returnType;
       }
       return getResultObjectType(resultObj);
@@ -400,15 +388,15 @@ export function getTypeFromTypeAnnotation(
       const genericName = (target.id || target.typeName || target.expression)
         .name;
       if (genericArguments != undefined) {
-        const typeInScope = findVariableInfo(
-          { name: genericName, loc: target.loc },
-          typeScope,
+        const typeInScope = Type.find(
+          genericName,
+          { parent: typeScope, loc: target.loc },
           parentNode,
           typeGraph,
           precompute,
           middlecompute,
           postcompute
-        ).type;
+        );
         const existedGenericType =
           typeInScope instanceof TypeVar && typeInScope.root != undefined
             ? typeInScope.root
@@ -416,17 +404,17 @@ export function getTypeFromTypeAnnotation(
         if (
           !existedGenericType ||
           (!(existedGenericType instanceof GenericType) &&
-            !(
-              existedGenericType instanceof TypeVar &&
-              !existedGenericType.isUserDefined
-            ))
+            !TypeVar.isSelf(existedGenericType))
         ) {
           throw new HegelError(
             `Apply undeclareted generic type '${genericName}'`,
             typeNode.typeAnnotation.loc
           );
         }
-        if (existedGenericType.name === "$TypeOf" || existedGenericType.name === "$InstanceOf") {
+        if (
+          existedGenericType.name === "$TypeOf" ||
+          existedGenericType.name === "$InstanceOf"
+        ) {
           if (
             genericArguments.length !== 1 ||
             (genericArguments[0].id == undefined ||
@@ -439,7 +427,7 @@ export function getTypeFromTypeAnnotation(
           }
           return existedGenericType.applyGeneric(
             // $FlowIssue
-            [findVariableInfo(genericArguments[0].id, currentScope)],
+            [currentScope.findVariable(genericArguments[0].id)],
             typeNode.typeAnnotation.loc,
             false
           );
@@ -459,8 +447,9 @@ export function getTypeFromTypeAnnotation(
           )
         );
         return genericParams.some(t => t instanceof TypeVar && t !== self) ||
-          isSelf(existedGenericType)
+          TypeVar.isSelf(existedGenericType)
           ? new $BottomType(
+              {},
               existedGenericType,
               genericParams,
               typeNode.typeAnnotation.loc
@@ -472,17 +461,16 @@ export function getTypeFromTypeAnnotation(
             );
       }
       if (!rewritable) {
-        const existedType = findVariableInfo(
-          { name: genericName, loc: target.loc },
-          typeScope,
+        const typeInScope = Type.find(
+          genericName,
+          { parent: typeScope, loc: target.loc },
           parentNode,
           typeGraph,
           precompute,
           middlecompute,
           postcompute
         );
-        const typeInScope = existedType.type;
-        if (existedType.isGeneric) {
+        if (typeInScope.shouldBeUsedAsGeneric) {
           throw new HegelError(
             `Generic type "${String(
               typeInScope.name
@@ -494,7 +482,10 @@ export function getTypeFromTypeAnnotation(
           ? typeInScope.root
           : typeInScope;
       }
-      const typeInScope = Type.createTypeWithName(genericName, typeScope);
+      const typeInScope = Type.find(genericName, {
+        parent: typeScope,
+        loc: target.loc
+      });
       return typeInScope instanceof TypeVar && typeInScope.root != undefined
         ? typeInScope.root
         : typeInScope;
@@ -503,7 +494,7 @@ export function getTypeFromTypeAnnotation(
     case NODE.TS_CALL_SIGNATURE_DECLARATION:
     case NODE.TS_CONSTRUCT_SIGNATURE_DECLARATION:
     case NODE.TS_FUNCTION_TYPE_ANNOTATION:
-      const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
+      const localTypeScope = new TypeScope(typeScope);
       const genericParams = typeNode.typeAnnotation.typeParameters
         ? typeNode.typeAnnotation.typeParameters.params.map(param =>
             getTypeFromTypeAnnotation(
@@ -559,29 +550,18 @@ export function getTypeFromTypeAnnotation(
         postcompute
       );
       const typeName = FunctionType.getName(args, returnType, genericParams);
-      const type = FunctionType.createTypeWithName(
-        typeName,
-        typeScope,
-        args,
-        returnType
-      );
+      const type = FunctionType.term(typeName, {}, args, returnType);
       return genericParams.length
-        ? GenericType.createTypeWithName(
-            typeName,
-            typeScope,
-            genericParams,
-            localTypeScope,
-            type
-          )
+        ? GenericType.new(typeName, {}, genericParams, localTypeScope, type)
         : type;
   }
-  return TypeVar.createTypeWithName(UNDEFINED_TYPE, typeScope);
+  return Type.Unknown;
 }
 
 export function mergeObjectsTypes(
-  obj1?: TypeVar | ObjectType = new ObjectType("{  }", []),
-  obj2?: TypeVar | ObjectType = new ObjectType("{  }", []),
-  typeScope: Scope
+  obj1?: TypeVar | ObjectType = ObjectType.term("{ }", {}, []),
+  obj2?: TypeVar | ObjectType = ObjectType.term("{ }", {}, []),
+  typeScope: TypeScope
 ): ObjectType | TypeVar {
   if (obj1 instanceof TypeVar) {
     return obj1;
@@ -593,9 +573,9 @@ export function mergeObjectsTypes(
     [...obj1.properties.entries(), ...obj2.properties.entries()],
     ([key]) => key
   );
-  return ObjectType.createTypeWithName(
+  return ObjectType.term(
     ObjectType.getName(resultProperties),
-    typeScope,
+    {},
     resultProperties
   );
 }
@@ -603,15 +583,11 @@ export function mergeObjectsTypes(
 export function createObjectWith(
   key: string,
   type: Type,
-  typeScope: Scope,
+  typeScope: TypeScope,
   meta?: Meta
 ): ObjectType {
-  const properties = [[key, new VariableInfo(type, null, meta)]];
-  return ObjectType.createTypeWithName(
-    ObjectType.getName(properties),
-    typeScope,
-    properties
-  );
+  const properties = [[key, new VariableInfo(type, undefined, meta)]];
+  return ObjectType.term(ObjectType.getName(properties), {}, properties);
 }
 
 export function get(
@@ -634,38 +610,13 @@ export function get(
   }, variable.type);
 }
 
-const self = new TypeVar(THIS_TYPE);
-
-export function createSelf(node: Node, parent: Scope | ModuleScope) {
-  return new VariableInfo(
-    new TypeVar(node.id.name, undefined, false, { isSubtypeOf: self }),
-    parent,
-    new Meta(node.loc)
+export function createSelf(node: Node, parent: TypeScope) {
+  return TypeVar.new(
+    node.id.name,
+    { isSubtypeOf: TypeVar.Self, parent },
+    null,
+    true
   );
-}
-
-export function isSelf(type: Type) {
-  return type.isSubtypeOf === self;
-}
-
-export function copyTypeInScopeIfNeeded(type: Type, typeScope: Scope) {
-  if (!(type instanceof TypeVar) || !type.isUserDefined) {
-    return type;
-  }
-  const name = String(type.name);
-  try {
-    const existedInScopeType = findVariableInfo({ name }, typeScope);
-    return existedInScopeType.type;
-  } catch {
-    const copiedType = Object.create(Object.getPrototypeOf(type));
-    // $FlowIssue
-    Object.assign(copiedType, type);
-    if (copiedType instanceof TypeVar) {
-      copiedType.isUserDefined = false;
-    }
-    typeScope.body.set(name, new VariableInfo(copiedType));
-    return copiedType;
-  }
 }
 
 function getPropertyName(property: Node): string {
@@ -689,6 +640,7 @@ function getResultObjectType(object: ObjectType) {
     object.properties.delete(INDEXABLE);
     indexable.type.isSubtypeOf = object;
     indexable.type.name = object.name;
+    object.name = `${String(object.name)}.prototype`;
     return indexable.type;
   }
   return object;
@@ -721,31 +673,23 @@ export function getWrapperType(
   argument: VariableInfo | Type,
   typeGraph: ModuleScope
 ) {
-  // $FlowIssue
-  const typeScope: Scope = typeGraph.body.get(TYPE_SCOPE);
   const type = argument instanceof VariableInfo ? argument.type : argument;
   if (type instanceof UnionType) {
     const variants = type.variants.map(t => getWrapperType(t, typeGraph));
     // $FlowIssue
-    return new UnionType(null, variants);
+    return UnionType.term(null, {}, variants);
   }
-  if (
-    type.name === "string" ||
-    (type.isSubtypeOf != null && type.isSubtypeOf.name === "string")
-  ) {
-    return findVariableInfo({ name: "String" }, typeScope).type;
+  if (type === Type.String || type.isSubtypeOf === Type.String) {
+    return Type.find("String");
   }
-  if (
-    type.name === "number" ||
-    (type.isSubtypeOf != null && type.isSubtypeOf.name === "number")
-  ) {
-    return findVariableInfo({ name: "Number" }, typeScope).type;
+  if (type === Type.Number || type.isSubtypeOf === Type.Number) {
+    return Type.find("Number");
   }
-  if (
-    type.name === "boolean" ||
-    (type.isSubtypeOf != null && type.isSubtypeOf.name === "boolean")
-  ) {
-    return findVariableInfo({ name: "Boolean" }, typeScope).type;
+  if (type === Type.Boolean || type.isSubtypeOf === Type.Boolean) {
+    return Type.find("Boolean");
+  }
+  if (type === Type.Symbol || type.isSubtypeOf === Type.Symbol) {
+    return Type.find("Symbol");
   }
   return argument;
 }

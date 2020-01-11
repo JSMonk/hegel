@@ -3,7 +3,7 @@ import NODE from "../utils/nodes";
 import { UnionType } from "../type-graph/types/union-type";
 import { createObjectWith, mergeObjectsTypes } from "./type-utils";
 import type { Type } from "../type-graph/types/type";
-import type { Scope } from "../type-graph/scope";
+import type { TypeScope } from "../type-graph/type-scope";
 import type { ObjectType } from "../type-graph/types/object-type";
 import type { VariableInfo } from "../type-graph/variable-info";
 import type { MemberExpression } from "@babel/parser";
@@ -11,7 +11,7 @@ import type { MemberExpression } from "@babel/parser";
 export function getTypesFromVariants(
   _refinementedVariants: Array<?Type>,
   _alternateVariants: Array<?Type>,
-  typeScope: Scope
+  typeScope: TypeScope
 ): [?Type, ?Type] {
   // $FlowIssue
   const refinementedVariants: Array<Type> = _refinementedVariants.filter(
@@ -23,18 +23,10 @@ export function getTypesFromVariants(
   );
   return [
     refinementedVariants.length
-      ? UnionType.createTypeWithName(
-          UnionType.getName(refinementedVariants),
-          typeScope,
-          refinementedVariants
-        )
+      ? UnionType.term(null, {}, refinementedVariants)
       : undefined,
     alternateVariants.length
-      ? UnionType.createTypeWithName(
-          UnionType.getName(alternateVariants),
-          typeScope,
-          alternateVariants
-        )
+      ? UnionType.term(null, {}, alternateVariants)
       : undefined
   ];
 }
@@ -62,7 +54,7 @@ export function mergeRefinementsVariants(
   alternateType: ?Type,
   originalProperty: VariableInfo,
   propertyName: string,
-  typeScope: Scope
+  typeScope: TypeScope
 ): [?Type, ?Type] {
   const nestedRefinementedType =
     refinementedType &&

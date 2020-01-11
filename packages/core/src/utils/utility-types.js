@@ -4,24 +4,25 @@ import { $Omit } from "../type-graph/types/omit-type";
 import { $TypeOf } from "../type-graph/types/type-of-type";
 import { $Values } from "../type-graph/types/values-type";
 import { $Partial } from "../type-graph/types/partial-type";
-import { TYPE_SCOPE } from "../type-graph/constants";
 import { $ReturnType } from "../type-graph/types/return-type";
 import { $InstanceOf } from "../type-graph/types/instance-of-type";
-import { VariableInfo } from "../type-graph/variable-info";
 import { $PropertyType } from "../type-graph/types/property-type";
 
 const mixUtilityTypes = moduleScope => {
-  const typeScope = moduleScope.body.get(TYPE_SCOPE);
+  const typeScope = moduleScope.typeScope;
   const utilityTypes = new Map([
-    ["$PropertyType", new VariableInfo(new $PropertyType())],
-    ["$InstanceOf", new VariableInfo(new $InstanceOf())],
-    ["$Keys", new VariableInfo(new $Keys())],
-    ["$Values", new VariableInfo(new $Values())],
-    ["$Partial", new VariableInfo(new $Partial())],
-    ["$Pick", new VariableInfo(new $Pick())],
-    ["$Omit", new VariableInfo(new $Omit())],
-    ["$ReturnType", new VariableInfo(new $ReturnType())],
-    ["$TypeOf", new VariableInfo(new $TypeOf())]
+    [
+      "$PropertyType",
+      new $PropertyType($PropertyType.name, { parent: typeScope })
+    ],
+    ["$InstanceOf", new $InstanceOf($InstanceOf.name, { parent: typeScope })],
+    ["$Keys", new $Keys($Keys.name, { parent: typeScope })],
+    ["$Values", new $Values($Values.name, { parent: typeScope })],
+    ["$Partial", new $Partial($Partial.name, { parent: typeScope })],
+    ["$Pick", new $Pick($Pick.name, { parent: typeScope })],
+    ["$Omit", new $Omit($Omit.name, { parent: typeScope })],
+    ["$ReturnType", new $ReturnType($ReturnType.name, { parent: typeScope })],
+    ["$TypeOf", new $TypeOf($TypeOf.name, { parent: typeScope })]
   ]);
 
   typeScope.body = new Map([...typeScope.body, ...utilityTypes]);

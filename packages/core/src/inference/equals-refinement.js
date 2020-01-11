@@ -2,21 +2,18 @@
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
-import { Scope } from "../type-graph/scope";
 import { TypeVar } from "../type-graph/types/type-var";
+import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { VariableInfo } from "../type-graph/variable-info";
-import {
-  getNameForType,
-  createObjectWith,
-  mergeObjectsTypes
-} from "../utils/type-utils";
-import { findVariableInfo, getMemberExressionTarget } from "../utils/common";
+import { VariableScope } from "../type-graph/variable-scope";
+import { getMemberExressionTarget } from "../utils/common";
 import {
   getPropertyChaining,
   getTypesFromVariants
 } from "../utils/inference-utils";
+import { createObjectWith, mergeObjectsTypes } from "../utils/type-utils";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
   Node,
@@ -98,54 +95,66 @@ function getRefinmentType(
     | BooleanLiteral,
   refinementNode: Node
 ): Type {
-  const VOID = new Type("void");
-  const UNDEFINED = new Type("undefined", { isSubtypeOf: VOID });
-  const NULL = new Type(null, { isSubtypeOf: VOID });
-  const UNION = new UnionType(null, [UNDEFINED, NULL]);
+  const UNION = UnionType.term("undefined | null", {}, [
+    Type.Undefined,
+    Type.Null
+  ]);
   const strict = isStrict(refinementNode);
   switch (value.type) {
     case NODE.NUMERIC_LITERAL:
-      return new Type(value.value, {
-        isSubtypeOf: new Type("number")
+      return Type.term(value.value, {
+        isSubtypeOf: Type.Number
       });
     case NODE.BIGINT_LITERAL:
-      return new Type(`${value.value}n`, {
-        isSubtypeOf: new Type("bigint")
+      return Type.term(`${value.value}n`, {
+        isSubtypeOf: Type.BigInt
       });
     case NODE.STRING_LITERAL:
-      return new Type(`'${value.value}'`, {
-        isSubtypeOf: new Type("string")
+      return Type.term(`'${value.value}'`, {
+        isSubtypeOf: Type.String
       });
     case NODE.BOOLEAN_LITERAL:
-      return new Type(value.value, {
-        isSubtypeOf: new Type("boolean")
+      return Type.term(value.value, {
+        isSubtypeOf: Type.Boolean
       });
     case NODE.NULL_LITERAL:
-      return strict ? NULL : UNION;
+      return strict ? Type.Null : UNION;
   }
   if (value.type === NODE.IDENTIFIER && value.name === "undefined") {
-    return strict ? UNDEFINED : UNION;
+    return strict ? Type.Undefined : UNION;
   }
   throw new Error("Never!");
 }
 
 function equalsIdentifier(
   node: Identifier,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   value: Identifier | NullLiteral,
   refinementNode: Node
 ): [string, Type, Type] {
   const variableName = node.name;
   const refinementType = getRefinmentType(value, refinementNode);
-  const variableInfo = findVariableInfo(node, currentScope);
+  const variableInfo = currentScope.findVariable(node);
   const [refinementedVariants, alternateVariants] =
     variableInfo.type instanceof UnionType
       ? variableInfo.type.variants.reduce(
-          ([refinementedVariants, alternateVariants], variant) =>
-            refinementType.isPrincipalTypeFor(variant)
-              ? [refinementedVariants.concat([variant]), alternateVariants]
-              : [refinementedVariants, alternateVariants.concat([variant])],
+          ([refinementedVariants, alternateVariants], variant) => {
+            if (refinementType.isPrincipalTypeFor(variant)) {
+              return [
+                refinementedVariants.concat([variant]),
+                alternateVariants
+              ];
+            }
+            if (variant.isSuperTypeFor(refinementType)) {
+              return [
+                refinementedVariants.concat([refinementType]),
+                alternateVariants.concat([variant])
+              ];
+            }
+            return [refinementedVariants, alternateVariants.concat([variant])];
+          },
+
           [[], []]
         )
       : [[], []];
@@ -154,7 +163,7 @@ function equalsIdentifier(
     refinementedVariants.length === 0
   ) {
     throw new HegelError(
-      `Type ${getNameForType(variableInfo.type)} can't be "${String(
+      `Type ${String(variableInfo.type.name)} can't be "${String(
         refinementType.name
       )}" type`,
       refinementNode.loc
@@ -163,16 +172,8 @@ function equalsIdentifier(
   let refinementedType;
   let alternateType;
   if (variableInfo.type instanceof UnionType) {
-    refinementedType = UnionType.createTypeWithName(
-      UnionType.getName(refinementedVariants),
-      typeScope,
-      refinementedVariants
-    );
-    alternateType = UnionType.createTypeWithName(
-      UnionType.getName(alternateVariants),
-      typeScope,
-      alternateVariants
-    );
+    refinementedType = UnionType.term(null, {}, refinementedVariants);
+    alternateType = UnionType.term(null, {}, alternateVariants);
   } else {
     refinementedType = refinementType;
     alternateType = variableInfo.type;
@@ -184,13 +185,13 @@ export function refinePropertyWithConstraint(
   chaining: Array<string>,
   refinementType: Type,
   variableType: TypeVar,
-  typeScope: Scope
+  typeScope: TypeScope
 ): [?Type, ?Type] {
   const refinementedType: Type = chaining.reduceRight((res: Type, property) => {
     const propertiesForObjectType = [[property, new VariableInfo(res)]];
-    return ObjectType.createTypeWithName(
+    return ObjectType.term(
       ObjectType.getName(propertiesForObjectType),
-      typeScope,
+      {},
       propertiesForObjectType
     );
   }, refinementType);
@@ -201,7 +202,7 @@ function propertyWith(
   propertyName: string,
   propertyType: ?Type,
   propertyOwner: ObjectType,
-  typeScope: Scope
+  typeScope: TypeScope
 ) {
   if (propertyType == undefined) {
     return propertyType;
@@ -221,7 +222,7 @@ export function refinementProperty(
   refinementNode: Node,
   currentPropertyNameIndex: number,
   chainingProperties: Array<string>,
-  typeScope: Scope
+  typeScope: TypeScope
 ): ?[?Type, ?Type] {
   const currentPropertyName = chainingProperties[currentPropertyNameIndex];
   const isLast = currentPropertyNameIndex === chainingProperties.length - 1;
@@ -247,10 +248,21 @@ export function refinementProperty(
           refinementedVariants,
           alternateVariants
         ] = property.variants.reduce(
-          ([refinementedVariants, alternateVariants], variant) =>
-            refinementType.isPrincipalTypeFor(variant)
-              ? [refinementedVariants.concat([variant]), alternateVariants]
-              : [refinementedVariants, alternateVariants.concat([variant])],
+          ([refinementedVariants, alternateVariants], variant) => {
+            if (refinementType.isPrincipalTypeFor(variant)) {
+              return [
+                refinementedVariants.concat([variant]),
+                alternateVariants
+              ];
+            }
+            if (variant.isSuperTypeFor(refinementType)) {
+              return [
+                refinementedVariants.concat([refinementType]),
+                alternateVariants.concat([variant])
+              ];
+            }
+            return [refinementedVariants, alternateVariants.concat([variant])];
+          },
           [[], []]
         );
         const [refinemented, alternate] = getTypesFromVariants(
@@ -268,9 +280,21 @@ export function refinementProperty(
           propertyWith(currentPropertyName, alternate, variableType, typeScope)
         ];
       }
-      return refinementType.isPrincipalTypeFor(property)
-        ? [variableType, undefined]
-        : [undefined, variableType];
+      if (refinementType.isPrincipalTypeFor(property)) {
+        return [variableType, undefined];
+      }
+      if (property.isSuperTypeFor(refinementType)) {
+        return [
+          propertyWith(
+            currentPropertyName,
+            refinementType,
+            variableType,
+            typeScope
+          ),
+          variableType
+        ];
+      }
+      return [undefined, variableType];
     }
     const nextIndex = currentPropertyNameIndex + 1;
     const nestedRefinement = refinementProperty(
@@ -348,8 +372,8 @@ export function refinementProperty(
 
 function equalsProperty(
   node: MemberExpression,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   value: Identifier | NullLiteral,
   refinementNode: Node
 ): ?[string, Type, Type] {
@@ -360,12 +384,12 @@ function equalsProperty(
   const variableName = targetObject.name;
   const propertiesChaining = getPropertyChaining(node);
   const refinementType = getRefinmentType(value, refinementNode);
-  const targetVariableInfo = findVariableInfo(targetObject, currentScope);
+  const targetVariableInfo = currentScope.findVariable(targetObject);
   if (
     !variableName ||
     !targetVariableInfo ||
     !propertiesChaining ||
-    targetVariableInfo instanceof Scope
+    targetVariableInfo instanceof VariableScope
   ) {
     return;
   }
@@ -393,8 +417,8 @@ function equalsProperty(
 }
 export function equalsRefinement(
   currentRefinementNode: Node,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   moduleScope: ModuleScope
 ): ?[string, Type, Type] {
   const args = getEqualsArguments(

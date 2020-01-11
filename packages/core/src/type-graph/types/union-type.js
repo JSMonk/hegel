@@ -2,14 +2,36 @@
 import { Type } from "./type";
 import { unique } from "../../utils/common";
 import { TypeVar } from "./type-var";
-import { getNameForType } from "../../utils/type-utils";
-import { createTypeWithName } from "./create-type";
-import type { Scope } from "../scope";
 import type { TypeMeta } from "./type";
+import type { TypeScope } from "../type-scope";
 
 // $FlowIssue
 export class UnionType extends Type {
-  static _createTypeWithName = createTypeWithName(UnionType);
+  static term(
+    name: mixed,
+    meta?: TypeMeta = {},
+    variants: Array<Type>,
+    ...args: Array<any>
+  ) {
+    const principalTypeInside = UnionType.getPrincipalTypeInside(variants);
+    if (principalTypeInside !== undefined) {
+      return principalTypeInside;
+    }
+    name = name == null ? UnionType.getName(variants) : name;
+    let parent: TypeScope | void = meta.parent;
+    const length = variants.length;
+    for (let i = 0; i < length; i++) {
+      const variant = variants[i];
+      if (
+        !TypeVar.isSelf(variant) &&
+        (parent === undefined || parent.priority < variant.parent.priority)
+      ) {
+        parent = variant.parent;
+      }
+    }
+    const newMeta = { ...meta, parent };
+    return super.term(name, newMeta, variants, ...args);
+  }
 
   static getPrincipalTypeInside(variants: any) {
     return variants.length === 1
@@ -21,45 +43,38 @@ export class UnionType extends Type {
         );
   }
 
-  static createTypeWithName(name: string, typeScope: Scope, variants: any) {
-    return (
-      UnionType.getPrincipalTypeInside(variants) ||
-      this._createTypeWithName(name, typeScope, variants)
-    );
-  }
-
   static getName(params: Array<Type>) {
-    return `${unique(params, a => getNameForType(a))
-      .sort((t1, t2) => getNameForType(t1).localeCompare(getNameForType(t2)))
+    return `${unique(params, a => String(a.name))
+      .sort((t1, t2) => String(t1.name).localeCompare(String(t2.name)))
       .reduce((res, t) => {
         const isFunction =
           "argumentsTypes" in t ||
           // $FlowIssue
           ("subordinateType" in t && "argumentsTypes" in t.subordinateType);
-        return `${res}${res ? " | " : ""}${
-          isFunction ? "(" : ""
-        }${getNameForType(t)}${isFunction ? ")" : ""}`;
+        return `${res}${res ? " | " : ""}${isFunction ? "(" : ""}${String(
+          t.name
+        )}${isFunction ? ")" : ""}`;
       }, "")}`;
   }
 
   variants: Array<Type>;
 
-  constructor(name: ?string, variants: Array<Type>, meta?: TypeMeta = {}) {
+  constructor(name: ?string, meta?: TypeMeta = {}, variants: Array<Type>) {
     name = name == null ? UnionType.getName(variants) : name;
     super(name, meta);
     const principalTypeInside = UnionType.getPrincipalTypeInside(variants);
     if (principalTypeInside) {
       return principalTypeInside;
     }
-    this.variants = unique(variants, a => getNameForType(a)).sort((t1, t2) =>
-      getNameForType(t1).localeCompare(getNameForType(t2))
+    this.variants = unique(variants, a => String(a.name)).sort((t1, t2) =>
+      String(t1.name).localeCompare(String(t2.name))
     );
   }
 
   changeAll(
     sourceTypes: Array<Type>,
     targetTypes: Array<Type>,
-    typeScope: Scope
+    typeScope: TypeScope
   ) {
     let isVariantsChanged = false;
     const newVariants = this.variants.map(t => {
@@ -73,7 +88,7 @@ export class UnionType extends Type {
     if (!isVariantsChanged) {
       return this;
     }
-    return new UnionType(UnionType.getName(newVariants), newVariants);
+    return UnionType.term(null, {}, newVariants);
   }
 
   equalsTo(anotherType: Type) {
@@ -123,12 +138,12 @@ export class UnionType extends Type {
     );
   }
 
-  generalize(types: Array<TypeVar>, typeScope: Scope) {
+  generalize(types: Array<TypeVar>, typeScope: TypeScope) {
     const variants = this.variants.map(v => v.generalize(types, typeScope));
     if (this.variants.every((v, i) => v === variants[i])) {
       return this;
     }
-    return new UnionType(null, variants);
+    return UnionType.term(null, {}, variants);
   }
 
   containsAsGeneric(type: Type) {

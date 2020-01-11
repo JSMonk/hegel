@@ -1,14 +1,18 @@
 // @flow
 import { Type } from "./type";
-import { createTypeWithName } from "./create-type";
-import type { Scope } from "../scope";
+import { THIS_TYPE } from "../constants";
 import type { TypeMeta } from "./type";
+import type { TypeScope } from "../type-scope";
 
 export class TypeVar extends Type {
-  static createTypeWithName = createTypeWithName(TypeVar);
+  static Self = new TypeVar(THIS_TYPE);
 
-  constraint: ?Type;
-  root: ?Type;
+  static isSelf(type: Type) {
+    return type.isSubtypeOf === this.Self;
+  }
+
+  constraint: Type | void;
+  root: Type | void;
   _isUserDefined: ?boolean;
 
   get isUserDefined() {
@@ -21,9 +25,9 @@ export class TypeVar extends Type {
 
   constructor(
     name: string,
-    constraint: ?Type,
-    isUserDefined?: boolean = false,
-    meta?: TypeMeta = {}
+    meta?: TypeMeta = {},
+    constraint: Type | void,
+    isUserDefined?: boolean = false
   ) {
     super(name, meta);
     this.name = name;
@@ -60,10 +64,10 @@ export class TypeVar extends Type {
   }
 
   isSuperTypeFor(type: Type): boolean {
-    if (this.root != undefined) {
+    if (this.root !== undefined) {
       return this.root.isSuperTypeFor(type);
     }
-    if (!this.constraint) {
+    if (this.constraint === undefined) {
       return true;
     }
     return this.constraint.isSuperTypeFor(type);
@@ -72,7 +76,7 @@ export class TypeVar extends Type {
   changeAll(
     sourceTypes: Array<Type>,
     targetTypes: Array<Type>,
-    typeScope: Scope
+    typeScope: TypeScope
   ): Type {
     const indexOfNewRootType = sourceTypes.findIndex(a =>
       a.equalsTo(this.root != undefined ? this.root : this)

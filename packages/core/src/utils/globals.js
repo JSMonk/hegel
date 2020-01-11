@@ -1,42 +1,21 @@
 import { Type } from "../type-graph/types/type";
-import { TYPE_SCOPE } from "../type-graph/constants";
 import { VariableInfo } from "../type-graph/variable-info";
 
 const mixBaseGlobals = moduleScope => {
-  const typeScope = moduleScope.body.get(TYPE_SCOPE);
+  const typeScope = moduleScope.typeScope;
   const globalTypes = [
-    [
-      "unknown",
-      new VariableInfo(Type.createTypeWithName("unknown", typeScope))
-    ],
-    ["never", new VariableInfo(Type.createTypeWithName("never", typeScope))],
-    ["void", new VariableInfo(Type.createTypeWithName("void", typeScope))],
-    [
-      "undefined",
-      new VariableInfo(
-        Type.createTypeWithName("undefined", typeScope, {
-          isSubtypeOf: Type.createTypeWithName("void", typeScope)
-        })
-      )
-    ],
-    [
-      "null",
-      new VariableInfo(
-        Type.createTypeWithName(null, typeScope, {
-          isSubtypeOf: Type.createTypeWithName("void", typeScope)
-        })
-      )
-    ],
-    ["number", new VariableInfo(Type.createTypeWithName("number", typeScope))],
-    ["bigint", new VariableInfo(Type.createTypeWithName("bigint", typeScope))],
-    ["string", new VariableInfo(Type.createTypeWithName("string", typeScope))],
-    ["boolean", new VariableInfo(Type.createTypeWithName("boolean", typeScope))]
+    ["unknown", Type.new("unknown", { parent: typeScope })],
+    ["never", Type.new("never", { parent: typeScope })],
+    ["undefined", Type.new("undefined", { parent: typeScope })],
+    [null, Type.new(null, { parent: typeScope })],
+    ["number", Type.new("number", { parent: typeScope })],
+    ["bigint", Type.new("bigint", { parent: typeScope })],
+    ["string", Type.new("string", { parent: typeScope })],
+    ["boolean", Type.new("boolean", { parent: typeScope })],
+    ["symbol", Type.new("symbol", { parent: typeScope })]
   ];
   const globals = [
-    [
-      "undefined",
-      new VariableInfo(Type.createTypeWithName("undefined", typeScope))
-    ]
+    ["undefined", new VariableInfo(typeScope.body.get("undefined"))]
   ];
   typeScope.body = new Map(globalTypes.concat([...typeScope.body]));
   moduleScope.body = new Map(globals.concat([...moduleScope.body]));

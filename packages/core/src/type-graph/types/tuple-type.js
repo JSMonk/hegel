@@ -1,14 +1,37 @@
 // @flow
 import HegelError from "../../utils/errors";
 import { Type } from "./type";
+import { TypeVar } from "./type-var";
+import { TypeScope } from "../type-scope";
 import { UnionType } from "./union-type";
+import { $BottomType } from "./bottom-type";
 import { CollectionType } from "./collection-type";
-import { getNameForType } from "../../utils/type-utils";
-import { createTypeWithName } from "./create-type";
-import type { Scope } from "../scope";
 import type { TypeMeta } from "./type";
 
 export class TupleType extends Type {
+  static Array = new TypeVar("Array");
+
+  static term(
+    name: mixed,
+    meta?: TypeMeta = {},
+    items: Array<Type>,
+    ...args: Array<any>
+  ) {
+    let parent: TypeScope | void = meta.parent;
+    const length = items.length;
+    for (let i = 0; i < length; i++) {
+      const item = items[i];
+      if (
+        !TypeVar.isSelf(item) &&
+        (parent === undefined || parent.priority < item.parent.priority)
+      ) {
+        parent = item.parent;
+      }
+    }
+    name = name === null ? TupleType.getName(items) : name;
+    const newMeta = { ...meta, parent };
+    return super.term(name, newMeta, items, ...args);
+  }
 
   static mutable = [
     "pop",
@@ -17,17 +40,15 @@ export class TupleType extends Type {
     "shift",
     "sort",
     "splice",
-    "unshift",
+    "unshift"
   ];
-
-  static createTypeWithName = createTypeWithName(TupleType);
 
   static getName(params: Array<Type> | Type) {
     if (params instanceof Type) {
       return String(params.name);
     }
     return `[${params.reduce(
-      (res, t) => `${res}${res ? ", " : ""}${getNameForType(t)}`,
+      (res, t) => `${res}${res ? ", " : ""}${String(t.name)}`,
       ""
     )}]`;
   }
@@ -35,16 +56,22 @@ export class TupleType extends Type {
   items: Array<Type>;
   onlyLiteral: boolean = true;
 
-  constructor(name: mixed, items: Array<Type>, meta: TypeMeta = {}) {
-    const valueType = new UnionType(UnionType.getName(items), items);
-    super(name, meta);
+  constructor(name: mixed, meta: TypeMeta = {}, items: Array<Type>) {
+    const arrayValue = [
+      items.length !== 0 ? UnionType.term(null, {}, items) : Type.Unknown
+    ];
+    const isSubtypeOf =
+      TupleType.Array.root === undefined
+        ? new $BottomType({}, TupleType.Array, arrayValue)
+        : TupleType.Array.root.applyGeneric(arrayValue);
+    super(name, { ...meta, isSubtypeOf });
     this.items = items;
   }
 
   changeAll(
     sourceTypes: Array<Type>,
     targetTypes: Array<Type>,
-    typeScope: Scope
+    typeScope: TypeScope
   ) {
     let isItemsChanged = false;
     const newItems = this.items.map(t => {
@@ -61,9 +88,7 @@ export class TupleType extends Type {
     if (!isItemsChanged && isSubtypeOf === this.isSubtypeOf) {
       return this;
     }
-    return new TupleType(TupleType.getName(newItems), newItems, {
-      isSubtypeOf
-    });
+    return TupleType.term(null, { isSubtypeOf }, newItems);
   }
 
   isSuperTypeFor(anotherType: Type) {
@@ -93,13 +118,17 @@ export class TupleType extends Type {
 
   getPropertyType(propertyIndex: mixed): ?Type {
     if (typeof propertyIndex === "number") {
-      return propertyIndex < this.items.length ? this.items[propertyIndex] : null;
+      return propertyIndex < this.items.length
+        ? this.items[propertyIndex]
+        : null;
     }
     if (propertyIndex === "length") {
-      return new Type(this.items.length, { isSubtypeOf: new Type("number") });
+      return Type.term(this.items.length, { isSubtypeOf: Type.Number });
     }
     if (TupleType.mutable.includes(propertyIndex)) {
-      throw new HegelError("You trying to use tuple as Array, please setup variable type as Array");
+      throw new HegelError(
+        "You trying to use tuple as Array, please setup variable type as Array"
+      );
     }
     return super.getPropertyType(propertyIndex);
   }

@@ -1,15 +1,15 @@
 // @flow
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
-import { Scope } from "../type-graph/scope";
 import { Type } from "../type-graph/types/type";
 import { TypeVar } from "../type-graph/types/type-var";
+import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { FunctionType } from "../type-graph/types/function-type";
-import { getNameForType } from "../utils/type-utils";
+import { VariableScope } from "../type-graph/variable-scope";
+import { getMemberExressionTarget } from "../utils/common";
 import { equalsRefinement, refinementProperty } from "./equals-refinement";
-import { findVariableInfo, getMemberExressionTarget } from "../utils/common";
 import {
   getPropertyChaining,
   getTypesFromVariants
@@ -79,18 +79,21 @@ function getTypeofAndLiteral(
 function getRefinmentType(typeName: string): Type {
   switch (typeName) {
     case "number":
+      return Type.Number;
     case "string":
+      return Type.String;
     case "boolean":
+      return Type.Boolean;
     case "bigint":
-      return new Type(typeName);
-    case "function":
-      return new ObjectType("Function", []);
+      return Type.BigInt;
     case "undefined":
-      return new Type("undefined", { isSubtypeOf: new Type("void") });
+      return Type.Undefined;
+    case "function":
+      return FunctionType.Function;
     case "object":
-      return new UnionType("Object | null", [
-        new ObjectType("Object", []),
-        new Type(null, { isSubtypeOf: new Type("void") })
+      return UnionType.term("Object | null", {}, [
+        ObjectType.Object,
+        Type.Null
       ]);
   }
   throw new Error("Never!");
@@ -98,14 +101,14 @@ function getRefinmentType(typeName: string): Type {
 
 function typeofIdentifier(
   node: Identifier,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   stringLiteral: string,
   refinementNode: Node
 ): [string, Type, Type] {
   const variableName = node.name;
   const refinementType = getRefinmentType(stringLiteral);
-  const variableInfo = findVariableInfo(node, currentScope);
+  const variableInfo = currentScope.findVariable(node);
   const [refinementedVariants, alternateVariants] =
     variableInfo.type instanceof UnionType
       ? variableInfo.type.variants.reduce(
@@ -121,25 +124,15 @@ function typeofIdentifier(
     refinementedVariants.length === 0
   ) {
     throw new HegelError(
-      `Type ${getNameForType(
-        variableInfo.type
-      )} can't be "${stringLiteral}" type`,
+      `Type ${String(variableInfo.type.name)} can't be "${stringLiteral}" type`,
       refinementNode.loc
     );
   }
   let refinementedType;
   let alternateType;
   if (variableInfo.type instanceof UnionType) {
-    refinementedType = UnionType.createTypeWithName(
-      UnionType.getName(refinementedVariants),
-      typeScope,
-      refinementedVariants
-    );
-    alternateType = UnionType.createTypeWithName(
-      UnionType.getName(alternateVariants),
-      typeScope,
-      alternateVariants
-    );
+    refinementedType = UnionType.term(null, {}, refinementedVariants);
+    alternateType = UnionType.term(null, {}, alternateVariants);
   } else {
     refinementedType = refinementType;
     alternateType = variableInfo.type;
@@ -149,8 +142,8 @@ function typeofIdentifier(
 
 function typeofProperty(
   node: MemberExpression,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   stringLiteral: string,
   refinementNode: Node
 ): ?[string, Type, Type] {
@@ -161,13 +154,8 @@ function typeofProperty(
   const variableName = targetObject.name;
   const propertiesChaining = getPropertyChaining(node);
   const refinementType = getRefinmentType(stringLiteral);
-  const targetVariableInfo = findVariableInfo(targetObject, currentScope);
-  if (
-    !variableName ||
-    !targetVariableInfo ||
-    !propertiesChaining ||
-    targetVariableInfo instanceof Scope
-  ) {
+  const targetVariableInfo = currentScope.findVariable(targetObject);
+  if (!variableName || !propertiesChaining) {
     return;
   }
   const refinmentedAndAlternate = refinementProperty(
@@ -194,14 +182,11 @@ function typeofProperty(
 
 export function typeofRefinement(
   currentRefinementNode: Node,
-  currentScope: Scope | ModuleScope,
-  typeScope: Scope,
+  currentScope: VariableScope | ModuleScope,
+  typeScope: TypeScope,
   moduleScope: ModuleScope
 ): ?[string, Type, Type] {
-  const typeofOperator = findVariableInfo({ name: "typeof" }, moduleScope);
-  if (!typeofOperator || typeofOperator instanceof Scope) {
-    throw new Error("Never!");
-  }
+  const typeofOperator = moduleScope.findVariable({ name: "typeof" });
   if (!isEqualOperator(currentRefinementNode)) {
     return;
   }

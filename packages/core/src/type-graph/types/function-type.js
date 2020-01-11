@@ -1,18 +1,25 @@
 // @flow
 import { Type } from "./type";
-import { Scope } from "../scope";
+import { TypeVar } from "./type-var";
+import { TypeScope } from "../type-scope";
 import { CALLABLE } from "../constants";
-import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
-import { getNameForType } from "../../utils/type-utils";
-import { CollectionType } from "./collection-type";
-import { createTypeWithName } from "./create-type";
-import type { TypeVar } from "./type-var";
 import type { TypeMeta } from "./type";
 
-const UNDEFINED = new Type("undefined", { isSubtypeOf: new Type("void") });
-
 export class RestArgument extends Type {
+  static term(
+    name: mixed,
+    meta?: TypeMeta = {},
+    type: Type,
+    ...args: Array<any>
+  ) {
+    const newMeta = {
+      ...meta,
+      parent: TypeVar.isSelf(type) ? meta.parent : type.parent
+    };
+    return super.term(name, newMeta, type, ...args);
+  }
+
   type: Type;
 
   constructor(type: Type) {
@@ -23,7 +30,7 @@ export class RestArgument extends Type {
   changeAll(
     sourceTypes: Array<Type>,
     targetTypes: Array<Type>,
-    typeScope: Scope
+    typeScope: TypeScope
   ) {
     const newType = this.type.changeAll(sourceTypes, targetTypes, typeScope);
     if (this.type === newType) {
@@ -41,14 +48,10 @@ export class RestArgument extends Type {
     }
     const selfType = this.getOponentType(this.type, false);
     const otherType = this.getOponentType(anotherType.type, false);
-    if (
-      !(
-        selfType instanceof CollectionType &&
-        otherType instanceof CollectionType
-      )
-    ) {
+    if (!("valueType" in selfType && "valueType" in otherType)) {
       return false;
     }
+    // $FlowIssue
     return selfType.valueType[action](otherType.valueType);
   }
 
@@ -62,7 +65,30 @@ export class RestArgument extends Type {
 }
 
 export class FunctionType extends Type {
-  static createTypeWithName = createTypeWithName(FunctionType);
+  static Function = new TypeVar("Function");
+
+  static term(
+    name: mixed,
+    meta?: TypeMeta = {},
+    argumentsTypes: Array<Type>,
+    returnType: Type,
+    ...args: Array<any>
+  ) {
+    let parent: TypeScope | void = meta.parent;
+    const searchingItems = argumentsTypes.concat([returnType]);
+    const length = searchingItems.length;
+    for (let i = 0; i < length; i++) {
+      const item = searchingItems[i];
+      if (
+        !TypeVar.isSelf(item) &&
+        (parent === undefined || parent.priority < item.parent.priority)
+      ) {
+        parent = item.parent;
+      }
+    }
+    const newMeta = { ...meta, parent };
+    return super.term(name, newMeta, argumentsTypes, returnType, ...args);
+  }
 
   static getName(
     params: Array<Type | RestArgument>,
@@ -72,8 +98,8 @@ export class FunctionType extends Type {
     const genericPart = genericParams.length
       ? `<${genericParams.reduce(
           (res, t) =>
-            `${res}${res ? ", " : ""}${getNameForType(t)}${
-              t.constraint ? `: ${getNameForType(t.constraint)}` : ""
+            `${res}${res ? ", " : ""}${String(t.name)}${
+              t.constraint ? `: ${String(t.constraint.name)}` : ""
             }`,
           ""
         )}>`
@@ -82,11 +108,11 @@ export class FunctionType extends Type {
       .map(param => {
         const isRest = param instanceof RestArgument;
         // $FlowIssue
-        const t = getNameForType(isRest ? param.type : param);
+        const t = String(isRest ? param.type.name : param.name);
         return isRest ? `...${t} ` : t;
       })
       .join(", ");
-    return `${genericPart}(${args}) => ${getNameForType(returnType)}`;
+    return `${genericPart}(${args}) => ${String(returnType.name)}`;
   }
 
   argumentsTypes: Array<Type | RestArgument>;
@@ -95,11 +121,11 @@ export class FunctionType extends Type {
 
   constructor(
     name: string,
+    typeMeta: TypeMeta = {},
     argumentsTypes: Array<Type | RestArgument>,
-    returnType: Type,
-    typeMeta: TypeMeta = { isSubtypeOf: new ObjectType("Function", []) }
+    returnType: Type
   ) {
-    super(name, typeMeta);
+    super(name, { isSubtypeOf: FunctionType.Function, ...typeMeta });
     this.argumentsTypes = argumentsTypes;
     this.returnType = returnType;
   }
@@ -107,7 +133,7 @@ export class FunctionType extends Type {
   changeAll(
     sourceTypes: Array<Type | RestArgument>,
     targetTypes: Array<Type | RestArgument>,
-    typeScope: Scope
+    typeScope: TypeScope
   ): Type {
     let isArgumentsChanged = false;
     const newArguments = this.argumentsTypes.map(t => {
@@ -123,22 +149,15 @@ export class FunctionType extends Type {
       targetTypes,
       typeScope
     );
-    const isSubtypeOf =
-      this.isSubtypeOf &&
-      this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
-    if (
-      newReturn === this.returnType &&
-      isSubtypeOf === this.isSubtypeOf &&
-      !isArgumentsChanged
-    ) {
+    if (newReturn === this.returnType && !isArgumentsChanged) {
       return this;
     }
 
-    return new FunctionType(
+    return FunctionType.term(
       FunctionType.getName(newArguments, newReturn),
+      {},
       newArguments,
-      newReturn,
-      { isSubtypeOf }
+      newReturn
     );
   }
 
@@ -173,7 +192,7 @@ export class FunctionType extends Type {
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
       this.argumentsTypes.length >= anotherType.argumentsTypes.length &&
       anotherType.argumentsTypes.every((arg, i) =>
-        arg.isPrincipalTypeFor(this.argumentsTypes[i] || UNDEFINED)
+        arg.isPrincipalTypeFor(this.argumentsTypes[i] || Type.Undefined)
       )
     );
   }
@@ -214,8 +233,8 @@ export class FunctionType extends Type {
     );
   }
 
-  generalize(types: Array<TypeVar>, typeScope: Scope) {
-    const localTypeScope = new Scope(Scope.BLOCK_TYPE, typeScope);
+  generalize(types: Array<TypeVar>, typeScope: TypeScope) {
+    const localTypeScope = new TypeScope(typeScope);
     const newArguments = this.argumentsTypes.map(arg =>
       arg.generalize(types, localTypeScope)
     );
@@ -238,12 +257,18 @@ export class FunctionType extends Type {
       newReturnType,
       newGenericArguments
     );
-    const newFnType = new FunctionType(fnName, newArguments, newReturnType);
+    const newFnType = FunctionType.term(
+      fnName,
+      {},
+      newArguments,
+      newReturnType
+    );
     if (newGenericArguments.length === 0) {
       return newFnType;
     }
-    return new GenericType(
+    return GenericType.new(
       fnName,
+      { parent: typeScope },
       newGenericArguments,
       localTypeScope,
       newFnType

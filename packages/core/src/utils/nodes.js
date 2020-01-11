@@ -124,6 +124,8 @@ export const ANNOTATION_TYPES = {
   TS_SYMBOL_TYPE_ANNOTATION: "TSSymbolKeyword",
   TS_STRING_TYPE_ANNOTATION: "TSStringKeyword",
   TS_NULL_LITERAL_TYPE_ANNOTATION: "TSNullKeyword",
+  TS_OBJECT_KEYWORD: "TSObjectKeyword",
+  TS_TYPE_OPERATOR: "TSTypeOperator",
   TS_GENERIC_TYPE_ANNOTATION: "TSTypeReference",
   TS_OBJECT_TYPE_ANNOTATION: "TSTypeLiteral",
   TS_UNION_TYPE_ANNOTATION: "TSUnionType",
@@ -155,7 +157,7 @@ export const SPECIFIERS_TYPES = {
 
 export const SPECIAL_TYPES = {
   THIS_TYPE_DEFINITION: "ThisTypeDefinition"
-}
+};
 
 export const isUnscopableDeclaration = ({ kind }: Object) =>
   kind === DECLARATION_KINDS.VAR;
@@ -202,5 +204,5 @@ export default {
   ...CLASS_PROPERTIES,
   ...LITERAL_TYPES,
   ...SPECIFIERS_TYPES,
-  ...SPECIAL_TYPES,
+  ...SPECIAL_TYPES
 };

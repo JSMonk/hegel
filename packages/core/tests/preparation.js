@@ -1,10 +1,11 @@
-const babylon = require("@babel/parser");
 const fs = require("fs");
 const path = require("path");
+const babylon = require("@babel/parser");
+const { createModuleScope } = require("../build/type-graph/type-graph");
 
 const babelrc = {
   sourceType: "module",
-  plugins: ["flow", "classProperties"]
+  plugins: ["flow", "bigInt", "classProperties"]
 };
 
 const definitionsRc = {
@@ -20,22 +21,26 @@ const libsFile = fs.readFileSync(
 exports.prepareAST = (source, isTypeDefinitions) =>
   babylon.parse(source, isTypeDefinitions ? definitionsRc : babelrc).program;
 
-exports.mixTypeDefinitions = async createModuleScope => {
+exports.mixTypeDefinitions = () => {
   const definitionsAST = exports.prepareAST(libsFile, true);
-  const [[globalScope]] = await createModuleScope(
-    [definitionsAST],
-    () => {},
-    true
-  );
-  return scope => {
-    const body = new Map([...globalScope.body, ...scope.body]);
+  return async globalScope => {
+    const errors = [];
+    const typingsScope = await createModuleScope(
+      definitionsAST,
+      errors,
+      () => {},
+      globalScope,
+      true
+    );
+    if (errors.length !== 0) {
+      throw errors;
+    }
+    const body = new Map([...typingsScope.body, ...globalScope.body]);
     const typesBody = new Map([
-      ...globalScope.body.get("[[TypeScope]]").body,
-      ...scope.body.get("[[TypeScope]]").body
+      ...typingsScope.typeScope.body,
+      ...globalScope.typeScope.body
     ]);
-    scope.body = body;
-    scope.body.get("[[TypeScope]]").body = typesBody;
+    globalScope.body = body;
+    globalScope.typeScope.body = typesBody;
   };
 };
-
-exports.getModuleAST = () => {};

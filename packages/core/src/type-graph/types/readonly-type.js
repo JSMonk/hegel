@@ -1,13 +1,28 @@
 import HegelError from "../../utils/errors";
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
-import { UnionType } from "./union-type";
-import { ObjectType } from "./object-type";
+import { TypeScope } from "../type-scope";
 import { GenericType } from "./generic-type";
 
+class $AppliedReadonly extends Type {
+  readonly: Type;
+
+  constructor(name, meta = {}, type) {
+    super(name, meta);
+    this.type = type;
+  }
+}
+
 export class $Readonly extends GenericType {
-  constructor() {
-    super("$Readonly", [new TypeVar("target")], null, null);
+  constructor(_, meta = {}) {
+    const parent = new TypeScope(meta.parent);
+    super(
+      "$Readonly",
+      meta,
+      [TypeVar.term("target", { parent })],
+      parent,
+      null
+    );
   }
 
   applyGeneric(
@@ -21,6 +36,10 @@ export class $Readonly extends GenericType {
     if (!(target instanceof Type)) {
       throw new HegelError("First parameter should be an type", loc);
     }
-    return new UnionType(UnionType.getName(variants), variants);
+    return $AppliedReadonly.term(
+      `$ReadOnly<${String(target.name)}>`,
+      { paremt: target.parent },
+      target
+    );
   }
 }
