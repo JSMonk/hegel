@@ -8,16 +8,15 @@ import { FunctionType } from "../type-graph/types/function-type";
 
 export function setupBaseHierarchy(globalTypeScope) {
   Type.GlobalTypeScope = globalTypeScope;
-  Type.Undefined =
-    globalTypeScope.body.get("undefined") || Type.new("undefined");
-  Type.Null = globalTypeScope.body.get(null) || Type.new(null);
-  Type.String = globalTypeScope.body.get("string") || Type.new("string");
-  Type.Symbol = globalTypeScope.body.get("symbol") || Type.new("symbol");
-  Type.Boolean = globalTypeScope.body.get("boolean") || Type.new("boolean");
-  Type.Number = globalTypeScope.body.get("number") || Type.new("number");
-  Type.BigInt = globalTypeScope.body.get("bigint") || Type.new("bigint");
-  Type.Unknown = globalTypeScope.body.get("unknown") || Type.new("unknown");
-  Type.Never = globalTypeScope.body.get("never") || Type.new("never");
+  Type.Undefined.parent = globalTypeScope
+  Type.Null.parent = globalTypeScope;
+  Type.String.parent = globalTypeScope;
+  Type.Symbol.parent = globalTypeScope;
+  Type.Boolean.parent = globalTypeScope;
+  Type.Number.parent = globalTypeScope;
+  Type.BigInt.parent = globalTypeScope;
+  Type.Unknown.parent = globalTypeScope;
+  Type.Never.parent = globalTypeScope;
   ObjectType.Object.parent = globalTypeScope;
   FunctionType.Function.parent = globalTypeScope;
   TupleType.Array.parent = globalTypeScope;

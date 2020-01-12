@@ -8,9 +8,32 @@ import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
 import { inRefinement } from "./in-operator";
 import { typeofRefinement } from "./typeof";
+import { variableRefinement } from "./variable-refinement";
 import { intersection, union } from "../utils/common";
 import { instanceofRefinement } from "./instanceof";
-import type { Node, BinaryExpression } from "@babel/parser";
+import type { Node, BinaryExpression, LogicalExpression } from "@babel/parser";
+
+function getScopesForLogicalExpression(
+  condition: LogicalExpression,
+  currentScope: VariableScope | ModuleScope,
+  moduleScope: ModuleScope
+): [VariableScope, VariableScope] {
+  const primaryScopeName = VariableScope.getName({ loc: { start: condition.loc.end } });
+  // $FlowIssue
+  let primaryScope: VariableScope = moduleScope.body.get(primaryScopeName);
+  if (!(primaryScope instanceof VariableScope)) {
+    primaryScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
+    moduleScope.body.set(primaryScopeName, primaryScope);
+  }
+  const alternateScopeName = VariableScope.getName({ loc: { start: condition.loc.start } });
+  // $FlowIssue
+  let alternateScope: VariableScope = moduleScope.body.get(alternateScopeName);
+  if (!(alternateScope instanceof VariableScope)) {
+    alternateScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
+    moduleScope.body.set(alternateScopeName, alternateScope);
+  }
+  return condition.operator === "&&" ? [primaryScope, alternateScope] : [alternateScope, primaryScope];
+}
 
 function getPrimaryAndAlternativeScopes(
   currentRefinementNode: Node,
@@ -34,11 +57,12 @@ function getPrimaryAndAlternativeScopes(
     case NODE.WHILE_STATEMENT:
     case NODE.DO_WHILE_STATEMENT:
     case NODE.FOR_STATEMENT:
-    case NODE.FOR_IN_STATEMENT:
-    case NODE.FOR_OF_STATEMENT:
       primaryScope = moduleScope.body.get(
         VariableScope.getName(currentRefinementNode.body)
       );
+      break;
+    case NODE.LOGICAL_EXPRESSION:
+      [primaryScope, alternateScope] = getScopesForLogicalExpression(currentRefinementNode, currentScope, moduleScope);
   }
   if (
     !primaryScope ||
@@ -48,6 +72,18 @@ function getPrimaryAndAlternativeScopes(
     throw new Error("Never!");
   }
   return [primaryScope, alternateScope];
+}
+
+function getCondition(currentRefinementNode: Node) {
+  switch (currentRefinementNode.type) {
+    case NODE.IF_STATEMENT:
+    case NODE.WHILE_STATEMENT:
+    case NODE.DO_WHILE_STATEMENT:
+    case NODE.FOR_STATEMENT:
+      return currentRefinementNode.test;
+    case NODE.LOGICAL_EXPRESSION:
+      return currentRefinementNode;
+  }
 }
 
 function intersectionOfTypes(
@@ -147,6 +183,22 @@ function refinementByCondition(
   moduleScope: ModuleScope
 ): ?Array<[string, Type, Type]> {
   switch (condition.type) {
+    case NODE.UNARY_EXPRESSION:
+      if (condition.operator === "!") {
+        const refinements = refinementByCondition(
+          condition.argument,
+          currentScope,
+          typeScope,
+          moduleScope
+        );
+        return (
+          refinements &&
+          refinements.map(
+            refinement =>
+              refinement && [refinement[0], refinement[2], refinement[1]]
+          )
+        );
+      }
     case NODE.BINARY_EXPRESSION:
       const typeofResult = getRefinementByBinaryExpression(
         condition,
@@ -155,15 +207,23 @@ function refinementByCondition(
         moduleScope
       );
       return typeofResult && [typeofResult];
+    case NODE.IDENTIFIER:
+      const refinemented = variableRefinement(
+        condition,
+        currentScope,
+        typeScope,
+        moduleScope
+      );
+      return refinemented && [refinemented];
     case NODE.LOGICAL_EXPRESSION:
       const leftSideRefinement = refinementByCondition(
-        condition.left,
+        condition.left.body || condition.left,
         currentScope,
         typeScope,
         moduleScope
       );
       const rightSideRefinement = refinementByCondition(
-        condition.right,
+        condition.right.body || condition.right,
         currentScope,
         typeScope,
         moduleScope
@@ -179,25 +239,20 @@ function refinementByCondition(
       if (sameRefinement.length === 0) {
         return other;
       }
-      const conditionScopeName = VariableScope.getName(condition);
-      // $FlowIssue
-      let additionalRefinementScope: VariableScope = moduleScope.body.get(conditionScopeName);
-      if (!(additionalRefinementScope instanceof VariableScope)) {
-        additionalRefinementScope = new VariableScope(
-          VariableScope.BLOCK_TYPE,
-          currentScope
-        );
-        moduleScope.body.set(conditionScopeName, additionalRefinementScope);
-      }
+      const [additionalPrimaryScope, additionalAlternateScope] = getScopesForLogicalExpression(
+        condition,
+        currentScope,
+        moduleScope
+      );
       const sameRefinementVariants = sameRefinement.map(
         ([key, refinementedType, alternateType]) => {
           const sameRefinement: any = leftSideRefinement.find(
             a => a[0] === key
           );
           if (condition.operator === "||") {
-            additionalRefinementScope.body.set(
+            additionalPrimaryScope.body.set(
               key,
-              new VariableInfo(alternateType, additionalRefinementScope)
+              new VariableInfo(alternateType, additionalPrimaryScope)
             );
             return [
               key,
@@ -206,9 +261,9 @@ function refinementByCondition(
             ];
           }
           if (condition.operator === "&&") {
-            additionalRefinementScope.body.set(
+            additionalPrimaryScope.body.set(
               key,
-              new VariableInfo(refinementedType, additionalRefinementScope)
+              new VariableInfo(refinementedType, additionalPrimaryScope)
             );
             return [
               key,
@@ -232,15 +287,18 @@ export function refinement(
   currentScope: VariableScope | ModuleScope,
   typeScope: TypeScope,
   moduleScope: ModuleScope
-): void {
+) {
+  if (currentRefinementNode.isRefinemented) {
+    return;
+  }
   const [primaryScope, alternateScope] = getPrimaryAndAlternativeScopes(
     currentRefinementNode,
     currentScope,
     typeScope,
     moduleScope
   );
-  const condition: ?Node = currentRefinementNode.test;
-  if (!condition) {
+  const condition: ?Node = getCondition(currentRefinementNode);
+  if (condition == undefined) {
     return;
   }
   const currentRefinements = refinementByCondition(

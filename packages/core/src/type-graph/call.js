@@ -287,16 +287,13 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.LOGICAL_EXPRESSION:
-      const newCurrentScope = moduleScope.body.get(VariableScope.getName(node.right));
-      if (!(newCurrentScope instanceof VariableScope)) {
-        throw new Error("Never!!!");
-      }
       args = [
         addCallToTypeGraph(
-          node.left,
+          node.left.body,
           moduleScope,
-          currentScope,
-          parentNode,
+          // $FlowIssue
+          moduleScope.body.get(VariableScope.getName(node.left)),
+          node.left,
           pre,
           middle,
           post,
@@ -305,7 +302,8 @@ export function addCallToTypeGraph(
         addCallToTypeGraph(
           node.right.body,
           moduleScope,
-          newCurrentScope,
+          // $FlowIssue
+          moduleScope.body.get(VariableScope.getName(node.right)),
           node.right,
           pre,
           middle,

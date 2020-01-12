@@ -50,10 +50,21 @@ function mixBlockToLogicalOperator(currentNode: Node) {
   ) {
     return currentNode;
   }
+  currentNode.left = {
+    type: NODE.BLOCK_STATEMENT,
+    body: currentNode.left,
+    loc: {
+      start: currentNode.loc.start,
+      end: currentNode.loc.start,
+    }
+  };
   currentNode.right = {
     type: NODE.BLOCK_STATEMENT,
     body: currentNode.right,
-    loc: currentNode.loc
+    loc: {
+      start: currentNode.loc.end,
+      end: currentNode.loc.end,
+    }
   };
   return currentNode;
 }

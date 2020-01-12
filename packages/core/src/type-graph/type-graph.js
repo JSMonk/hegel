@@ -193,12 +193,18 @@ const fillModuleScope = (
       case NODE.OBJECT_EXPRESSION:
         addClassScopeToTypeGraph(currentNode, parentNode, typeGraph);
         break;
+      case NODE.LOGICAL_EXPRESSION:
+        refinement(
+          currentNode,
+          getParentForNode(currentNode, parentNode, typeGraph),
+          typeScope,
+          typeGraph
+        );
+        break;
       case NODE.IF_STATEMENT:
       case NODE.WHILE_STATEMENT:
       case NODE.DO_WHILE_STATEMENT:
       case NODE.FOR_STATEMENT:
-      case NODE.FOR_IN_STATEMENT:
-      case NODE.FOR_OF_STATEMENT:
         const block = currentNode.body || currentNode.consequent;
         addScopeToTypeGraph(block, parentNode, typeGraph);
         if (currentNode.alternate) {
@@ -210,6 +216,9 @@ const fillModuleScope = (
           typeScope,
           typeGraph
         );
+        if (currentNode.test != undefined) {
+          currentNode.test.isRefinemented = true;
+        }
         break;
       case NODE.FUNCTION_DECLARATION:
       case NODE.TS_FUNCTION_DECLARATION:

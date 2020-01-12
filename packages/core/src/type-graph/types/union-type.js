@@ -13,6 +13,7 @@ export class UnionType extends Type {
     variants: Array<Type>,
     ...args: Array<any>
   ) {
+    variants = UnionType.flatten(variants);
     const principalTypeInside = UnionType.getPrincipalTypeInside(variants);
     if (principalTypeInside !== undefined) {
       return principalTypeInside;
@@ -57,9 +58,15 @@ export class UnionType extends Type {
       }, "")}`;
   }
 
+  static flatten(variants: Array<Type>) {
+    // $FlowIssue
+    return variants.flatMap(variant => variant instanceof UnionType ? this.flatten(variant.variants) : [variant]);
+  }
+
   variants: Array<Type>;
 
   constructor(name: ?string, meta?: TypeMeta = {}, variants: Array<Type>) {
+    variants = UnionType.flatten(variants);
     name = name == null ? UnionType.getName(variants) : name;
     super(name, meta);
     const principalTypeInside = UnionType.getPrincipalTypeInside(variants);

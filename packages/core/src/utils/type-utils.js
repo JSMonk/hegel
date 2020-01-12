@@ -693,3 +693,22 @@ export function getWrapperType(
   }
   return argument;
 }
+
+export let FALSY = [];
+
+export function getFalsy() {
+  if (FALSY.length === 0) {
+    FALSY = [
+      Type.term(false, { isSubtypeOf: Type.Boolean }),
+      Type.term(0, { isSubtypeOf: Type.Number }),
+      Type.term("''", { isSubtypeOf: Type.String }),
+      Type.Null,
+      Type.Undefined,
+    ]
+  }
+  return FALSY;
+}
+
+export function isFalsy(type: Type) {
+  return getFalsy().includes(type);
+}

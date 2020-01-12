@@ -4,18 +4,18 @@ import { VariableInfo } from "../type-graph/variable-info";
 const mixBaseGlobals = moduleScope => {
   const typeScope = moduleScope.typeScope;
   const globalTypes = [
-    ["unknown", Type.new("unknown", { parent: typeScope })],
-    ["never", Type.new("never", { parent: typeScope })],
-    ["undefined", Type.new("undefined", { parent: typeScope })],
-    [null, Type.new(null, { parent: typeScope })],
-    ["number", Type.new("number", { parent: typeScope })],
-    ["bigint", Type.new("bigint", { parent: typeScope })],
-    ["string", Type.new("string", { parent: typeScope })],
-    ["boolean", Type.new("boolean", { parent: typeScope })],
-    ["symbol", Type.new("symbol", { parent: typeScope })]
+    ["unknown", Type.Unknown],
+    ["never", Type.Never],
+    ["undefined", Type.Undefined],
+    [null, Type.Null],
+    ["number", Type.Number],
+    ["bigint", Type.BigInt],
+    ["string", Type.String],
+    ["boolean", Type.Boolean],
+    ["symbol", Type.Symbol]
   ];
   const globals = [
-    ["undefined", new VariableInfo(typeScope.body.get("undefined"))]
+    ["undefined", new VariableInfo(Type.Undefined)]
   ];
   typeScope.body = new Map(globalTypes.concat([...typeScope.body]));
   moduleScope.body = new Map(globals.concat([...moduleScope.body]));

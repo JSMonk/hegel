@@ -5,7 +5,6 @@ const { TypeVar } = require("../build/type-graph/types/type-var");
 const { TupleType } = require("../build/type-graph/types/tuple-type");
 const { UnionType } = require("../build/type-graph/types/union-type");
 const { ObjectType } = require("../build/type-graph/types/object-type");
-const { TYPE_SCOPE } = require("../build/type-graph/constants");
 const { GenericType } = require("../build/type-graph/types/generic-type");
 const { FunctionType } = require("../build/type-graph/types/function-type");
 const { CollectionType } = require("../build/type-graph/types/collection-type");
@@ -2606,31 +2605,57 @@ describe("Type refinement", () => {
     expect(a.type.variants[1]).toBe(Type.String);
     expect(b.type).toBe(Type.String);
   });
-  // test("And operator inference", async () => {
-  //   const sourceAST = prepareAST(`
-  //     const a: number | null = 2;
-  //     const b = a && a.toString();
-  //   `);
-  //   const [[actual], errors] = await createTypeGraph(
-  //     [sourceAST],
-  //     getModuleAST,
-  //     false,
-  //     mixTypeDefinitions()
-  //   );
-  //   const a = actual.body.get("a");
-  //   const b = actual.body.get("b");
-  //   expect(errors.length).toBe(0);
-  //   expect(a.type).toBeInstanceOf(UnionType);
-  //   expect(a.type).toBe(Type.find("null | number"));
-  //   expect(a.type.variants.length).toBe(2);
-  //   expect(a.type.variants[0]).toBe(Type.Null);
-  //   expect(a.type.variants[1]).toBe(Type.Number);
-  //   expect(a.type).toBeInstanceOf(UnionType);
-  //   expect(a.type).toBe(Type.find("null | string"));
-  //   expect(a.type.variants.length).toBe(2);
-  //   expect(a.type.variants[0]).toBe(Type.Null);
-  //   expect(a.type.variants[1]).toBe(Type.String);
-  // });
+  test("And operator inference", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | null = 2;
+      const b = a && a.toString();
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const a = actual.body.get("a");
+    const b = actual.body.get("b");
+    expect(errors.length).toBe(0);
+    expect(a.type).toBeInstanceOf(UnionType);
+    expect(a.type).toBe(Type.find("null | number"));
+    expect(a.type.variants.length).toBe(2);
+    expect(a.type.variants[0]).toBe(Type.Null);
+    expect(a.type.variants[1]).toBe(Type.Number);
+    expect(b.type).toBeInstanceOf(UnionType);
+    expect(b.type).toBe(Type.find("0 | null | string"));
+    expect(b.type.variants.length).toBe(3);
+    expect(b.type.variants[0]).toBe(Type.find(0));
+    expect(b.type.variants[1]).toBe(Type.Null);
+    expect(b.type.variants[2]).toBe(Type.String);
+  });
+  test("Or operator inference", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | null = 2;
+      const b = a || 4;
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const a = actual.body.get("a");
+    const b = actual.body.get("b");
+    expect(errors.length).toBe(0);
+    expect(a.type).toBeInstanceOf(UnionType);
+    expect(a.type).toBe(Type.find("null | number"));
+    expect(a.type.variants.length).toBe(2);
+    expect(a.type.variants[0]).toBe(Type.Null);
+    expect(a.type.variants[1]).toBe(Type.Number);
+    expect(b.type).toBeInstanceOf(UnionType);
+    expect(b.type).toBe(Type.find("4 | number"));
+    expect(b.type.variants.length).toBe(2);
+    expect(b.type.variants[0]).toBe(Type.find(4));
+    expect(b.type.variants[1]).toBe(Type.Number);
+  });
   test("Typeof refinement for property in nested member expression", async () => {
     const sourceAST = prepareAST(`
       const a: { a: { b: number } } | { a: { b: string }, b: string } = { a: { b: 2 } };
