@@ -2,11 +2,10 @@ const path = require("path");
 const utils = require("util");
 const babylon = require("@babel/parser");
 const HegelError = require("@hegel/core/utils/errors").default;
-const createTypeGraph = require("@hegel/core/type-graph/type-graph").default;
 const { getConfig } = require("@hegel/cli/lib/config");
-const { TYPE_SCOPE } = require("@hegel/core/type-graph/constants");
 const { importModule } = require("@hegel/cli/lib/module");
-const { getVarAtPosition } = require("@hegel/core/utils/position-utils");
+const { PositionedModuleScope } = require("@hegel/core/type-graph/module-scope");
+const { default: createTypeGraph, createModuleScope }  = require("@hegel/core/type-graph/type-graph");
 const {
   promises: { readFile }
 } = require("fs");
@@ -60,12 +59,14 @@ connection.onInitialize(() => ({
 }));
 connection.onHover(meta => {
   const location = convertRangeToLoc(meta.position);
-  const varInfo = getVarAtPosition(location, types);
-  return varInfo === undefined || varInfo.type === undefined
-    ? undefined
-    : {
-        contents: [{ language: "typescript", value: getTypeName(varInfo.type) }]
-      };
+  if (types instanceof PositionedModuleScope) {
+    const varInfo = types.getVarAtPosition(location, types);
+    return varInfo === undefined || varInfo.type === undefined
+      ? undefined
+      : {
+          contents: [{ language: "typescript", value: getTypeName(varInfo.type) }]
+        };
+  }
 });
 documents.onDidChangeContent(change => validateTextDocument(change.document));
 
@@ -90,16 +91,14 @@ async function validateTextDocument(textDocument) {
 
 async function getHegelTypings(source, path) {
   path = path.replace("file://", "");
-  if (!stdLibTypeGraph) {
-    stdLibTypeGraph = await getStandardTypeDefinitions();
-  }
   try {
     const ast = babylon.parse(source, babelrc);
     const [[types], errors] = await createTypeGraph(
       [Object.assign(ast.program, { path })],
       await getModuleAST(path),
       false,
-      mixTypeDefinitions
+      mixTypeDefinitions,
+      true
     );
     return [types, errors];
   } catch (e) {
@@ -107,14 +106,17 @@ async function getHegelTypings(source, path) {
   }
 }
 
-async function getStandardTypeDefinitions() {
+async function getStandardTypeDefinitions(globalScope) {
   const stdLibContent = await readFile(
     path.join(__dirname, "../node_modules/@hegel/typings/standard/index.d.ts"),
     "utf8"
   );
-  const [[stdLibTypeGraph], errors] = await createTypeGraph(
-    [babylon.parse(stdLibContent, dtsrc).program],
+  const errors = [];
+  stdLibTypeGraph = await createModuleScope(
+    babylon.parse(stdLibContent, dtsrc).program,
+    errors,
     () => {},
+    globalScope,
     true
   );
   if (errors.length > 0) {
@@ -134,15 +136,17 @@ async function getModuleAST(currentModulePath) {
   });
 }
 
-function mixTypeDefinitions(scope) {
-  const body = new Map([...stdLibTypeGraph.body, ...scope.body]);
-  const typeScope = scope.body.get(TYPE_SCOPE);
+async function mixTypeDefinitions(globalScope) {
+  if (stdLibTypeGraph === undefined) {
+    stdLibTypeGraph = await getStandardTypeDefinitions(globalScope);
+  }
+  const body = new Map([...stdLibTypeGraph.body, ...globalScope.body]);
   const typesBody = new Map([
-    ...stdLibTypeGraph.body.get(TYPE_SCOPE).body,
-    ...typeScope.body
+    ...stdLibTypeGraph.typeScope.body,
+    ...globalScope.typeScope.body
   ]);
-  scope.body = body;
-  typeScope.body = typesBody;
+  globalScope.body = body;
+  globalScope.typeScope.body = typesBody;
 }
 
 function formatErrorRange(error) {

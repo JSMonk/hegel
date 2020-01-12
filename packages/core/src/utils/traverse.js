@@ -197,6 +197,7 @@ function mixElseIfReturnOrThrowExisted(currentNode: Node, parentNode: Node) {
   }
   const alternate = currentNode.alternate || {
     type: NODE.BLOCK_STATEMENT,
+    skipCalls: true,
     body: [],
     loc: {
       start: currentNode.loc.end,

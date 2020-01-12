@@ -24,18 +24,17 @@ export function setupBaseHierarchy(globalTypeScope) {
 }
 
 export function setupFullHierarchy(globalTypeScope) {
-  ObjectType.Object.root =
-    globalTypeScope.body.get("Object") || ObjectType.new("Object", {}, []);
-  FunctionType.Function.root =
-    globalTypeScope.body.get("Function") || ObjectType.new("Function", {}, []);
+  ObjectType.Object.root = ObjectType.term("Object", {}, []);
+  globalTypeScope.body.set("Object", ObjectType.Object);
+  FunctionType.Function.root = ObjectType.term("Function", {}, []);
+  globalTypeScope.body.set("Function", FunctionType.Function);
   const local = new TypeScope(globalTypeScope);
-  TupleType.Array.root =
-    globalTypeScope.body.get("Array") ||
-    GenericType.new(
+  TupleType.Array.root = GenericType.term(
       "Array",
       {},
       [TypeVar.new("T", { parent: local })],
       local,
       ObjectType.new("Array<T>", { parent: local }, [])
     );
+  globalTypeScope.body.set("Array", TupleType.Array);
 }

@@ -9,7 +9,6 @@ import mixImportedDependencies from "../utils/imports";
 import HegelError, { UnreachableError } from "../utils/errors";
 import { Type } from "./types/type";
 import { TypeScope } from "./type-scope";
-import { THIS_TYPE } from "../type-graph/constants";
 import { refinement } from "../inference/refinement";
 import { ObjectType } from "./types/object-type";
 import { GenericType } from "./types/generic-type";
@@ -262,6 +261,7 @@ const fillModuleScope = (
         );
         break;
       case NODE.TRY_STATEMENT:
+        currentNode.block.skipCalls = true;
         const tryBlock = getScopeFromNode(
           currentNode.block,
           parentNode,
@@ -579,10 +579,11 @@ export async function createModuleScope(
   errors: Array<HegelError>,
   getModuleTypeGraph: (string, string, SourceLocation) => Promise<ModuleScope>,
   globalModule: ModuleScope,
-  isTypeDefinitions: boolean
+  isTypeDefinitions: boolean,
+  withPositions?: boolean = true
 ): Promise<ModuleScope> {
   const typeScope = new TypeScope(globalModule.typeScope);
-  const module = new ModuleScope(new Map(), globalModule, typeScope);
+  const module = new (withPositions ? PositionedModuleScope : ModuleScope)(new Map(), globalModule, typeScope);
   await mixImportedDependencies(
     ast,
     errors,
@@ -632,9 +633,7 @@ async function createGlobalScope(
   [Array<ModuleScope | PositionedModuleScope>, Array<HegelError>, ModuleScope]
 > {
   const errors: Array<HegelError> = [];
-  const globalModule = withPositions
-    ? new PositionedModuleScope()
-    : new ModuleScope();
+  const globalModule = new ModuleScope();
   mixBaseGlobals(globalModule);
   setupBaseHierarchy(globalModule.typeScope);
   await mixTypeDefinitions(globalModule);
@@ -664,7 +663,8 @@ async function createGlobalScope(
         errors,
         getModuleFromString,
         globalModule,
-        isTypeDefinitions
+        isTypeDefinitions,
+        withPositions
       )
     )
   );

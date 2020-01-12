@@ -19,6 +19,9 @@ export function inferenceTupleType(
   post: Handler
 ): TupleType {
   const items = currentNode.elements.map(a => {
+    if (a === null) {
+      return Type.Undefined;
+    }
     const { result } = addCallToTypeGraph(
       a,
       typeGraph,

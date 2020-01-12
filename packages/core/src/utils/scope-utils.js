@@ -101,7 +101,8 @@ export function getScopeFromNode(
     parentNode instanceof VariableScope || parentNode instanceof ModuleScope
       ? parentNode
       : getParentForNode(currentNode, parentNode, typeGraph),
-    declaration
+    declaration,
+    currentNode.skipCalls !== undefined
   );
 }
 

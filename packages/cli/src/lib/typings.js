@@ -1,8 +1,8 @@
 // @flow
-import createTypeGraph from "@hegel/core/type-graph/type-graph";
 // $FlowIssue
 import { repository } from "../package.json";
 import { dirname, join } from "path";
+import { createModuleScope } from "@hegel/core/type-graph/type-graph";
 import type { AST } from "./parser";
 import type { Scope } from "@hegel/core/type-graph/scope";
 
@@ -15,25 +15,26 @@ export async function mixTypeDefinitions(
   prepeareAST: (string, boolean) => Promise<AST>
 ) {
   const definitionsAST = await prepeareAST(standard, true);
-  const [[globalScope]] = await createTypeGraph(
-    [definitionsAST],
-    () => {},
-    true
-  );
-  return (scope: Scope) => {
-    const body = new Map([...globalScope.body, ...scope.body]);
-    const globalTypeScope = globalScope.body.get("[[TypeScope]]");
-    const localTypeScope = scope.body.get("[[TypeScope]]");
-    if (globalTypeScope === undefined || localTypeScope === undefined) {
+  return async (globalScope: Scope) => {
+    const errors = [];
+    const typingsScope = await createModuleScope(
+      definitionsAST,
+      errors,
+      () => {},
+      globalScope,
+      true
+    );
+    if (typingsScope === undefined || errors.length !== 0) {
       throw new Error(
         `@hegel/core is broken. Please, sent issue at ${repository}!`
       );
     }
+    const body = new Map([...typingsScope.body, ...globalScope.body]);
     const typesBody = new Map([
-      ...globalTypeScope.body,
-      ...localTypeScope.body
+      ...typingsScope.typeScope.body,
+      ...globalScope.typeScope.body
     ]);
-    scope.body = body;
-    localTypeScope.body = typesBody;
+    globalScope.body = body;
+    globalScope.typeScope.body = typesBody;
   };
 }

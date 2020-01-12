@@ -27,10 +27,9 @@ const DEFAULT_CONFIG = {
   }
 };
 
-const DEFAULT_CONFIG_CONTENT = `
-include:
-  - ./**/*.js
-`;
+const DEFAULT_CONFIG_CONTENT = 
+`include:
+  - ./**/*.js`;
 
 export type Lib = "browser" | "nodejs";
 

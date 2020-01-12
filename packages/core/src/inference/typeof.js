@@ -10,10 +10,7 @@ import { FunctionType } from "../type-graph/types/function-type";
 import { VariableScope } from "../type-graph/variable-scope";
 import { getMemberExressionTarget } from "../utils/common";
 import { equalsRefinement, refinementProperty } from "./equals-refinement";
-import {
-  getPropertyChaining,
-  getTypesFromVariants
-} from "../utils/inference-utils";
+import { getPropertyChaining } from "../utils/inference-utils";
 import type { VariableInfo } from "../type-graph/variable-info";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
@@ -39,18 +36,8 @@ function isTypeofOperator(node: Node) {
   return node.type === NODE.UNARY_EXPRESSION && node.operator === "typeof";
 }
 
-function isReturnTypeOfTypeof(node: Node, typeofOperator: VariableInfo) {
-  if (
-    !(typeofOperator.type instanceof FunctionType) ||
-    !(typeofOperator.type.returnType instanceof UnionType)
-  ) {
-    throw new Error("Never!");
-  }
-  const returnTypes = typeofOperator.type.returnType;
-  return (
-    node.type === NODE.STRING_LITERAL &&
-    returnTypes.variants.some(type => type.name === `'${node.value}'`)
-  );
+function isReturnTypeOfTypeof(node: Node) {
+  return node.type === NODE.STRING_LITERAL;
 }
 
 function getTypeofAndLiteral(
@@ -65,9 +52,9 @@ function getTypeofAndLiteral(
     typeofNode = right;
   }
   let stringNode: ?Node = null;
-  if (isReturnTypeOfTypeof(left, typeofOperator)) {
+  if (isReturnTypeOfTypeof(left)) {
     stringNode = left;
-  } else if (isReturnTypeOfTypeof(right, typeofOperator)) {
+  } else if (isReturnTypeOfTypeof(right)) {
     stringNode = right;
   }
   if (!typeofNode || !stringNode) {
@@ -76,8 +63,8 @@ function getTypeofAndLiteral(
   return { typeofNode, stringNode };
 }
 
-function getRefinmentType(typeName: string): Type {
-  switch (typeName) {
+function getRefinmentType(stringNode: Node): Type {
+  switch (stringNode.value) {
     case "number":
       return Type.Number;
     case "string":
@@ -96,18 +83,18 @@ function getRefinmentType(typeName: string): Type {
         Type.Null
       ]);
   }
-  throw new Error("Never!");
+  throw new HegelError(`Typeof cannot return "${stringNode.value}" value`, stringNode.loc);
 }
 
 function typeofIdentifier(
   node: Identifier,
   currentScope: VariableScope | ModuleScope,
   typeScope: TypeScope,
-  stringLiteral: string,
+  stringNode: Node,
   refinementNode: Node
 ): [string, Type, Type] {
   const variableName = node.name;
-  const refinementType = getRefinmentType(stringLiteral);
+  const refinementType = getRefinmentType(stringNode);
   const variableInfo = currentScope.findVariable(node);
   const [refinementedVariants, alternateVariants] =
     variableInfo.type instanceof UnionType
@@ -124,7 +111,7 @@ function typeofIdentifier(
     refinementedVariants.length === 0
   ) {
     throw new HegelError(
-      `Type ${String(variableInfo.type.name)} can't be "${stringLiteral}" type`,
+      `Type ${String(variableInfo.type.name)} can't be "${stringNode.value}" type`,
       refinementNode.loc
     );
   }
@@ -144,7 +131,7 @@ function typeofProperty(
   node: MemberExpression,
   currentScope: VariableScope | ModuleScope,
   typeScope: TypeScope,
-  stringLiteral: string,
+  stringNode: Node,
   refinementNode: Node
 ): ?[string, Type, Type] {
   const targetObject = getMemberExressionTarget(node);
@@ -153,7 +140,7 @@ function typeofProperty(
   }
   const variableName = targetObject.name;
   const propertiesChaining = getPropertyChaining(node);
-  const refinementType = getRefinmentType(stringLiteral);
+  const refinementType = getRefinmentType(stringNode);
   const targetVariableInfo = currentScope.findVariable(targetObject);
   if (!variableName || !propertiesChaining) {
     return;
@@ -173,7 +160,7 @@ function typeofProperty(
     !refinmentedAndAlternate[1]
   ) {
     throw new HegelError(
-      `Property can't be "${stringLiteral}" type or always have type "${stringLiteral}"`,
+      `Property can't be "${stringNode.value}" type or always have type "${stringNode.value}"`,
       refinementNode.loc
     );
   }
@@ -204,14 +191,13 @@ export function typeofRefinement(
     );
   }
   const { typeofNode, stringNode } = args;
-  const stringLiteral = stringNode.value;
   let refinementedType, alternateType, name;
   if (typeofNode.argument.type === NODE.IDENTIFIER) {
     [name, refinementedType, alternateType] = typeofIdentifier(
       typeofNode.argument,
       currentScope,
       typeScope,
-      stringLiteral,
+      stringNode,
       currentRefinementNode
     );
   }
@@ -220,7 +206,7 @@ export function typeofRefinement(
       typeofNode.argument,
       currentScope,
       typeScope,
-      stringLiteral,
+      stringNode,
       currentRefinementNode
     );
     if (!result) {

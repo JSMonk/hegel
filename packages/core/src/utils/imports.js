@@ -2,6 +2,7 @@
 import NODE from "./nodes";
 import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
+import { Type } from "../type-graph/types/type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { ModuleScope, PositionedModuleScope } from "../type-graph/module-scope";
@@ -72,6 +73,13 @@ export function importDependencies(
         importTarget,
         new Meta(specifier.loc)
       );
+    }
+    let finalImportVariable = importElement;
+    if (importNode.importKind !== "type" && importElement instanceof Type) {
+      finalImportVariable = new VariableInfo(importElement, currentModuleTypeGraph);
+    }
+    if (importNode.importKind === "type" && importElement instanceof VariableInfo) {
+      finalImportVariable = importElement.type;
     }
     // $FlowIssue
     importTarget.body.set(specifier.local.name, finalImportVariable);

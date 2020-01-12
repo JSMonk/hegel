@@ -559,9 +559,9 @@ export function addCallToTypeGraph(
         post,
         meta
       ).result;
-      const defaultObject = ObjectType.term("{ }", {}, []);
+      const defaultObject = ObjectType.term("{  }", {}, []);
       args = [
-        defaultObject.isPrincipalTypeFor(potentialArgument)
+        ObjectType.Object.isPrincipalTypeFor(potentialArgument)
           ? potentialArgument
           : defaultObject
       ];
@@ -763,6 +763,10 @@ export function addCallToTypeGraph(
       targetName,
       inferenced
     );
+    while(currentScope.skipCalls !== false && currentScope !== moduleScope) {
+      // $FlowIssue
+      currentScope = currentScope.parent;
+    }
     currentScope.calls.push(callMeta);
   }
   return { result: invocationType, inferenced };

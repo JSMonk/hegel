@@ -21,15 +21,18 @@ export class VariableScope extends Scope {
   calls: Array<CallMeta> = [];
   throwable: Array<VariableInfo | Type> | void;
   declaration: VariableInfo | void;
+  skipCalls: boolean;
 
   constructor(
     type: VariableScopeType,
     parent: ModuleScope | VariableScope,
-    declaration?: VariableInfo
+    declaration?: VariableInfo,
+    skipCalls?: boolean = false
   ) {
     super(parent);
     this.parent = parent;
     this.type = type;
     this.declaration = declaration;
+    this.skipCalls = skipCalls;
   }
 }

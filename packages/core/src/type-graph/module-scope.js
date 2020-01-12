@@ -74,7 +74,7 @@ export class PositionedModuleScope extends ModuleScope {
     if (line === undefined) {
       return;
     }
-    let varInfo = null;
+    let varInfo = undefined;
     for (const [startEnd, vi] of line.entries()) {
       let [start, end] = startEnd.split(",");
       start = Number(start);

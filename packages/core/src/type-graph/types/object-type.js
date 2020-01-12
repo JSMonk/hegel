@@ -173,20 +173,20 @@ export class ObjectType extends Type {
     return this.isAllProperties("equalsTo", anotherType);
   }
 
-  isInHierarchy(anotherType: Type) {
-    let current = this;
+  isInHierarchyOf(anotherType: Type) {
     do {
-      if (current === anotherType) {
+      if (this === anotherType) {
         return true;
       }
-      current = current.isSubtypeOf;
-    } while(current && current.isSubtypeOf);
+      // $FlowIssue
+      anotherType = anotherType.isSubtypeOf;
+    } while(anotherType && anotherType.isSubtypeOf);
     return false;
   }
 
   isSuperTypeFor(anotherType: Type): boolean {
     anotherType = this.getOponentType(anotherType);
-    if (anotherType === ObjectType.Object || this.isInHierarchy(anotherType)) {
+    if ((anotherType instanceof ObjectType && this === ObjectType.Object.root) || this.isInHierarchyOf(anotherType)) {
       return true;
     }
     const requiredProperties = [...this.properties.values()].filter(
