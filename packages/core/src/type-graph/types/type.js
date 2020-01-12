@@ -130,7 +130,7 @@ export class Type {
   }
 
   isSuperTypeFor(type: Type): boolean {
-    if (!type.isSubtypeOf) {
+    if (type.isSubtypeOf === null) {
       return false;
     }
     return this.isPrincipalTypeFor(type.isSubtypeOf);

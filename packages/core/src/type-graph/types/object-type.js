@@ -173,8 +173,22 @@ export class ObjectType extends Type {
     return this.isAllProperties("equalsTo", anotherType);
   }
 
+  isInHierarchy(anotherType: Type) {
+    let current = this;
+    do {
+      if (current === anotherType) {
+        return true;
+      }
+      current = current.isSubtypeOf;
+    } while(current && current.isSubtypeOf);
+    return false;
+  }
+
   isSuperTypeFor(anotherType: Type): boolean {
     anotherType = this.getOponentType(anotherType);
+    if (anotherType === ObjectType.Object || this.isInHierarchy(anotherType)) {
+      return true;
+    }
     const requiredProperties = [...this.properties.values()].filter(
       ({ type }) =>
         !(type instanceof UnionType) ||
@@ -182,6 +196,7 @@ export class ObjectType extends Type {
     );
     return anotherType instanceof ObjectType && !this.isNominal
       ? anotherType.properties.size >= requiredProperties.length &&
+        anotherType.properties.size <= this.properties.size &&
           this.isAllProperties("isPrincipalTypeFor", anotherType)
       : anotherType.isSubtypeOf != undefined &&
           this.isPrincipalTypeFor(anotherType.isSubtypeOf);
