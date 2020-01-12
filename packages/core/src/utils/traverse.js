@@ -15,9 +15,12 @@ export type TraverseMeta = {
   kind?: ?string
 };
 
-export const compose = (fn: Function, ...fns: Array<Function>) => (
-  ...args: Array<mixed>
-) => fns.reduce((res, fn) => fn(res), fn(...args));
+export const compose = (...fns: Array<Function>) => (
+  ...args: Array<any>
+) => {
+  const additionalArgs = args.slice(1);
+  return fns.reduce((res, fn) => fn(res, ...additionalArgs), args[0]);
+}
 
 function mixBodyToArrowFunctionExpression(currentNode: Node) {
   if (
@@ -40,16 +43,16 @@ function mixBodyToArrowFunctionExpression(currentNode: Node) {
   return currentNode;
 }
 
-function mixScopeToLogicalAnd(currentNode: Node) {
+function mixBlockToLogicalOperator(currentNode: Node) {
   if (
     currentNode.type !== NODE.LOGICAL_EXPRESSION ||
-    currentNode.operator !== "&&"
+    (currentNode.operator !== "&&" && currentNode.operator !== "||")
   ) {
     return currentNode;
   }
-  currentNode.left = {
+  currentNode.right = {
     type: NODE.BLOCK_STATEMENT,
-    body: [currentNode.left],
+    body: currentNode.right,
     loc: currentNode.loc
   };
   return currentNode;
@@ -161,6 +164,41 @@ function mixTryCatchInfo(currentNode: Node) {
   };
 }
 
+function mixElseIfReturnOrThrowExisted(currentNode: Node, parentNode: Node) {
+  if (
+    parentNode === undefined ||
+    currentNode.type !== NODE.IF_STATEMENT ||
+    currentNode.consequent.body.findIndex(
+      node =>
+        node.type === NODE.RETURN_STATEMENT ||
+        node.type === NODE.THROW_STATEMENT
+    ) === -1
+  ) {
+    return currentNode;
+  }
+  const body = parentNode.body.body || parentNode.body;
+  if (!Array.isArray(body)) {
+    return currentNode;
+  }
+  const indexOfSlice = body.indexOf(currentNode);
+  if (indexOfSlice === -1) {
+    return currentNode;
+  }
+  const alternate = currentNode.alternate || {
+    type: NODE.BLOCK_STATEMENT,
+    body: [],
+    loc: {
+      start: currentNode.loc.end,
+      end: currentNode.loc.end
+    }
+  };
+  alternate.body = alternate.body.concat(body.splice(indexOfSlice + 1));
+  return {
+    ...currentNode,
+    alternate,
+  };
+}
+
 const getBody = (currentNode: any) =>
   currentNode.body ||
   currentNode.declarations ||
@@ -168,6 +206,7 @@ const getBody = (currentNode: any) =>
   [
     currentNode.block,
     currentNode.handler,
+    currentNode.test,
     currentNode.finalizer,
     currentNode.consequent,
     currentNode.alternate,
@@ -197,7 +236,9 @@ const getCurrentNode = compose(
   mixBodyToArrowFunctionExpression,
   mixTryCatchInfo,
   mixBlockForStatements,
-  mixExportInfo
+  mixExportInfo,
+  mixBlockToLogicalOperator,
+  mixElseIfReturnOrThrowExisted
 );
 
 export type Handler = (

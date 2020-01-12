@@ -510,8 +510,8 @@ const afterFillierActions = (
             // $FlowIssue - Type refinements
             prepareGenericFunctionType(functionScope);
             if (fnType.genericArguments.some(a => !a.isUserDefined)) {
-              // $FlowIssue - Type refinements
               inferenceFunctionTypeByScope(
+                // $FlowIssue - Type refinements
                 functionScope,
                 typeScope,
                 moduleScope

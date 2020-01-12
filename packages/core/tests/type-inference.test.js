@@ -2566,25 +2566,70 @@ describe("Type refinement", () => {
     expect(a.type.variants[2]).toBe(Type.String);
     expect(b.type).toBe(Type.find("number | string"));
   });
-  // test("Multiple typeof refinement for property", async () => {
+  test("Multiple typeof refinement for property", async () => {
+    const sourceAST = prepareAST(`
+      const a: { a: string } | { a: number, b: string } | { a: number, b: number } = { a: 2, b: 2 };
+      if (typeof a.a === "number" && typeof a.b === "number") {
+        const b = a;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope3-62]]");
+    const a = actual.body.get("a");
+    const b = actualScope.body.get("b");
+    expect(errors.length).toBe(0);
+    expect(a.type).toBeInstanceOf(UnionType);
+    expect(a.type).toBe(Type.find("{ a: number, b: number } | { a: number, b: string } | { a: string }"));
+    expect(a.type.variants.length).toBe(3);
+    expect(a.type.variants[0]).toBe(Type.find("{ a: number, b: number }"));
+    expect(a.type.variants[1]).toBe(Type.find("{ a: number, b: string }"));
+    expect(a.type.variants[2]).toBe(Type.find("{ a: string }"));
+    expect(b.type).toBe(Type.find("{ a: number, b: number }"));
+  });
+  test("After throw inside refinement", async () => {
+    const sourceAST = prepareAST(`
+      const a: number | string = 2;
+      if (typeof a === "number") {
+        throw {};
+      }
+      const b = a;
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const actualScope = actual.body.get("[[Scope5-7]]");
+    const a = actual.body.get("a");
+    const b = actualScope.body.get("b");
+    expect(errors.length).toBe(0);
+    expect(a.type).toBeInstanceOf(UnionType);
+    expect(a.type).toBe(Type.find("number | string"));
+    expect(a.type.variants.length).toBe(2);
+    expect(a.type.variants[0]).toBe(Type.Number);
+    expect(a.type.variants[1]).toBe(Type.String);
+    expect(b.type).toBe(Type.String);
+  });
+  // test("And operator inference", async () => {
   //   const sourceAST = prepareAST(`
-  //     const a: { a: string } | { a: number, b: string } | { a: number, b: number } = { a: 2, b: 2 };
-  //     if (typeof a.a === "number" && typeof a.b === "number") {
-  //       const b = a;
-  //     }
+  //     const a: number | null = 2;
+  //     const b = a && a.toString();
   //   `);
-  //   const [[actual], errors] = await createTypeGraph([sourceAST]);
-  //   const actualScope = actual.body.get("[[Scope3-62]]");
+  //   const [[actual], errors] = await createTypeGraph(
+  //     [sourceAST],
+  //     getModuleAST,
+  //     false,
+  //     mixTypeDefinitions()
+  //   );
   //   const a = actual.body.get("a");
-  //   const b = actualScope.body.get("b");
+  //   const b = actual.body.get("b");
   //   expect(errors.length).toBe(0);
   //   expect(a.type).toBeInstanceOf(UnionType);
-  //   expect(a.type).toBe(Type.find("{ a: number, b: number } | { a: number, b: string } | { a: string }"));
-  //   expect(a.type.variants.length).toBe(3);
-  //   expect(a.type.variants[0]).toBe(Type.find("{ a: number, b: number }"));
-  //   expect(a.type.variants[1]).toBe(Type.find("{ a: number, b: string }"));
-  //   expect(a.type.variants[2]).toBe(Type.find("{ a: string }"));
-  //   expect(b.type).toBe(Type.find("{ a: number, b: number }"));
+  //   expect(a.type).toBe(Type.find("null | number"));
+  //   expect(a.type.variants.length).toBe(2);
+  //   expect(a.type.variants[0]).toBe(Type.Null);
+  //   expect(a.type.variants[1]).toBe(Type.Number);
+  //   expect(a.type).toBeInstanceOf(UnionType);
+  //   expect(a.type).toBe(Type.find("null | string"));
+  //   expect(a.type.variants.length).toBe(2);
+  //   expect(a.type.variants[0]).toBe(Type.Null);
+  //   expect(a.type.variants[1]).toBe(Type.String);
   // });
   test("Typeof refinement for property in nested member expression", async () => {
     const sourceAST = prepareAST(`

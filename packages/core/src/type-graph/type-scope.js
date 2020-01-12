@@ -30,6 +30,7 @@ export class TypeScope {
         if (Scope.canTraverseFunction(rest)) {
           // $FlowIssue
           const result = Scope.addAndTraverseNodeWithType(
+            // $FlowIssue
             undefined,
             existedType,
             ...rest

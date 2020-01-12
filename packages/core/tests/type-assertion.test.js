@@ -702,7 +702,9 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const sourceAST = prepareAST(`
        for(let i = 5; i--;);
     `);
+    debugger;
     const [, errors] = await createTypeGraph([sourceAST]);
+    debugger;
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(

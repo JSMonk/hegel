@@ -48,7 +48,6 @@ export function importDependencies(
     let importElement = importName
       ? importSource.get(importName)
       : ObjectType.term(
-          // $FlowIssue
           ObjectType.getName(importEntries),
           { typeScope: currentModuleTypeScope },
           importEntries
@@ -67,9 +66,9 @@ export function importDependencies(
       currentModuleTypeScope.body.set(importName, importElement.instanceType);
     }
     if (shouldBeVariable && !(importElement instanceof VariableInfo)) {
-      // $FlowIssue
       importElement = new VariableInfo(
         importElement,
+        // $FlowIssue
         importTarget,
         new Meta(specifier.loc)
       );

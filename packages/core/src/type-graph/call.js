@@ -62,11 +62,11 @@ export function addCallToTypeGraph(
   post: Handler,
   meta?: CallableMeta = {}
 ): CallResult {
-  let target: ?VariableInfo | Type = null;
+  let target: VariableInfo | Type | null = null;
   let inferenced = undefined;
   let targetName: string = "";
-  let args: ?Array<CallableArguments> = null;
-  let genericArguments: ?Array<CallableArguments> = null;
+  let args: Array<CallableArguments> | null = null;
+  let genericArguments: Array<CallableArguments> | null = null;
   const typeScope = findNearestTypeScope(currentScope, moduleScope);
   const withPositions = moduleScope instanceof PositionedModuleScope;
   if (node == null) {
@@ -286,9 +286,35 @@ export function addCallToTypeGraph(
         post
       );
       break;
-    case NODE.BINARY_EXPRESSION:
     case NODE.LOGICAL_EXPRESSION:
+      const newCurrentScope = moduleScope.body.get(VariableScope.getName(node.right));
+      if (!(newCurrentScope instanceof VariableScope)) {
+        throw new Error("Never!!!");
+      }
       args = [
+        addCallToTypeGraph(
+          node.left,
+          moduleScope,
+          currentScope,
+          parentNode,
+          pre,
+          middle,
+          post,
+          meta
+        ).result,
+        addCallToTypeGraph(
+          node.right.body,
+          moduleScope,
+          newCurrentScope,
+          node.right,
+          pre,
+          middle,
+          post,
+          meta
+        ).result
+      ];
+    case NODE.BINARY_EXPRESSION:
+      args = args || [
         addCallToTypeGraph(
           node.left,
           moduleScope,
@@ -698,6 +724,9 @@ export function addCallToTypeGraph(
         inferenced: true
       };
   }
+  if (target === null || args === null) {
+    throw new Error("Never!!!");
+  }
   const targetType = target instanceof VariableInfo ? target.type : target;
   const options = {
     pre,
@@ -796,9 +825,9 @@ function invoke({
       !targetType.isUserDefined &&
       target instanceof VariableInfo
     ) {
-      // $FlowIssue
       let func = findNearestScopeByType(
         VariableScope.FUNCTION_TYPE,
+        // $FlowIssue
         target.parent
       );
       if (

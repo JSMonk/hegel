@@ -111,7 +111,7 @@ export function addScopeToTypeGraph(
   typeGraph: ModuleScope
 ) {
   const scopeName = VariableScope.getName(currentNode);
-  if (typeGraph.body.get(scopeName)) {
+  if (typeGraph.body.has(scopeName)) {
     return;
   }
   typeGraph.body.set(

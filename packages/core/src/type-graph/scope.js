@@ -91,6 +91,7 @@ export class Scope {
         ) {
           // $FlowIssue
           const result = Scope.addAndTraverseNodeWithType(
+            // $FlowIssue
             undefined,
             variableInfo,
             ...rest

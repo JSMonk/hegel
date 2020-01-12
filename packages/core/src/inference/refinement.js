@@ -179,12 +179,26 @@ function refinementByCondition(
       if (sameRefinement.length === 0) {
         return other;
       }
+      const conditionScopeName = VariableScope.getName(condition);
+      // $FlowIssue
+      let additionalRefinementScope: VariableScope = moduleScope.body.get(conditionScopeName);
+      if (!(additionalRefinementScope instanceof VariableScope)) {
+        additionalRefinementScope = new VariableScope(
+          VariableScope.BLOCK_TYPE,
+          currentScope
+        );
+        moduleScope.body.set(conditionScopeName, additionalRefinementScope);
+      }
       const sameRefinementVariants = sameRefinement.map(
         ([key, refinementedType, alternateType]) => {
           const sameRefinement: any = leftSideRefinement.find(
             a => a[0] === key
           );
           if (condition.operator === "||") {
+            additionalRefinementScope.body.set(
+              key,
+              new VariableInfo(alternateType, additionalRefinementScope)
+            );
             return [
               key,
               unionOfTypes(refinementedType, sameRefinement[1], typeScope),
@@ -192,6 +206,10 @@ function refinementByCondition(
             ];
           }
           if (condition.operator === "&&") {
+            additionalRefinementScope.body.set(
+              key,
+              new VariableInfo(refinementedType, additionalRefinementScope)
+            );
             return [
               key,
               intersectionOfTypes(
