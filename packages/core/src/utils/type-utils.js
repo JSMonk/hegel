@@ -16,12 +16,7 @@ import { VariableScope } from "../type-graph/variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { getDeclarationName } from "./common";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
-import {
-  CALLABLE,
-  INDEXABLE,
-  THIS_TYPE,
-  CONSTRUCTABLE
-} from "../type-graph/constants";
+import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../type-graph/constants";
 import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
@@ -305,21 +300,41 @@ export function getTypeFromTypeAnnotation(
           postcompute
         )
       );
-      const params = properties.map(property => [
-        getPropertyName(property),
-        getTypeFromTypeAnnotation(
-          { typeAnnotation: property.value || property },
-          typeScope,
-          currentScope,
-          rewritable,
-          self,
-          parentNode,
-          typeGraph,
-          precompute,
-          middlecompute,
-          postcompute
-        )
-      ]);
+      const params = properties.flatMap(property => {
+      if (property.type === NODE.OBJECT_TYPE_SPREAD_PROPERTY) {
+        const spreadType = getTypeFromTypeAnnotation(
+            { typeAnnotation: property.argument },
+            typeScope,
+            currentScope,
+            rewritable,
+            self,
+            parentNode,
+            typeGraph,
+            precompute,
+            middlecompute,
+            postcompute
+          );
+        if (!(spreadType instanceof ObjectType)) {
+          throw new HegelError("Cannot spread non-object type", property.loc);
+        }
+        return [...spreadType.properties];
+      }
+      return [[
+          getPropertyName(property),
+          getTypeFromTypeAnnotation(
+            { typeAnnotation: property.value || property },
+            typeScope,
+            currentScope,
+            rewritable,
+            self,
+            parentNode,
+            typeGraph,
+            precompute,
+            middlecompute,
+            postcompute
+          )
+        ]];
+      });
       if (customName === undefined) {
         customName =
           annotation.id != undefined
@@ -330,9 +345,9 @@ export function getTypeFromTypeAnnotation(
         customName,
         {},
         params
-          .map(([name, type], index) => [
+          .map(([name, type]) => [
             name,
-            new VariableInfo(type, undefined, new Meta(properties[index].loc))
+            type instanceof VariableInfo ? type : new VariableInfo(type, currentScope)
           ])
           .concat(
             superTypes.reduce(

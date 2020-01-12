@@ -108,6 +108,7 @@ export const ANNOTATION_TYPES = {
   STRING_LITERAL_TYPE_ANNOTATION: "StringLiteralTypeAnnotation",
   OBJECT_TYPE_ANNOTATION: "ObjectTypeAnnotation",
   OBJECT_TYPE_PROPERTY: "ObjectTypeProperty",
+  OBJECT_TYPE_SPREAD_PROPERTY: "ObjectTypeSpreadProperty",
   UNION_TYPE_ANNOTATION: "UnionTypeAnnotation",
   NULLABLE_TYPE_ANNOTATION: "NullableTypeAnnotation",
   TUPLE_TYPE_ANNOTATION: "TupleTypeAnnotation",
