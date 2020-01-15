@@ -83,7 +83,10 @@ function getRefinmentType(stringNode: Node): Type {
         Type.Null
       ]);
   }
-  throw new HegelError(`Typeof cannot return "${stringNode.value}" value`, stringNode.loc);
+  throw new HegelError(
+    `Typeof cannot return "${stringNode.value}" value`,
+    stringNode.loc
+  );
 }
 
 function typeofIdentifier(
@@ -111,7 +114,9 @@ function typeofIdentifier(
     refinementedVariants.length === 0
   ) {
     throw new HegelError(
-      `Type ${String(variableInfo.type.name)} can't be "${stringNode.value}" type`,
+      `Type ${String(variableInfo.type.name)} can't be "${
+        stringNode.value
+      }" type`,
       refinementNode.loc
     );
   }
@@ -160,7 +165,9 @@ function typeofProperty(
     !refinmentedAndAlternate[1]
   ) {
     throw new HegelError(
-      `Property can't be "${stringNode.value}" type or always have type "${stringNode.value}"`,
+      `Property can't be "${stringNode.value}" type or always have type "${
+        stringNode.value
+      }"`,
       refinementNode.loc
     );
   }

@@ -63,16 +63,32 @@ export class GenericType<T: Type> extends Type {
         loc
       );
     }
-    const wrongArgumentIndex = this.genericArguments.findIndex(
+    const genericArguments = this.genericArguments.map(
+      a =>
+        a.constraint !== undefined
+          ? new TypeVar(
+              String(a.name),
+              { isSubtypeOf: a.isSubtypeOf, parent: a.parent },
+              // $FlowIssue
+              a.constraint.changeAll(this.genericArguments, parameters),
+              a.isUserDefined
+            )
+          : a
+    );
+    const wrongArgumentIndex = genericArguments.findIndex(
       (arg, i) => !arg.isPrincipalTypeFor(parameters[i])
     );
     if (wrongArgumentIndex !== -1) {
+      const parameter = parameters[wrongArgumentIndex];
+      const typeVar = genericArguments[wrongArgumentIndex];
       throw new HegelError(
         `Parameter "${String(
-          parameters[wrongArgumentIndex].name
-        )}" is incompatible with restriction of type argument "${String(
-          this.genericArguments[wrongArgumentIndex].name
-        )}"`,
+          parameter.name
+        )}" is incompatible with restriction ${
+          typeVar.constraint
+            ? `"${String(typeVar.constraint.name)}`
+            : `of type "${String(typeVar.name)}"`
+        }"`,
         loc
       );
     }

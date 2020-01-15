@@ -180,13 +180,16 @@ export class ObjectType extends Type {
       }
       // $FlowIssue
       anotherType = anotherType.isSubtypeOf;
-    } while(anotherType && anotherType.isSubtypeOf);
+    } while (anotherType && anotherType.isSubtypeOf);
     return false;
   }
 
   isSuperTypeFor(anotherType: Type): boolean {
     anotherType = this.getOponentType(anotherType);
-    if ((anotherType instanceof ObjectType && this === ObjectType.Object.root) || this.isInHierarchyOf(anotherType)) {
+    if (
+      (anotherType instanceof ObjectType && this === ObjectType.Object.root) ||
+      this.isInHierarchyOf(anotherType)
+    ) {
       return true;
     }
     const requiredProperties = [...this.properties.values()].filter(
@@ -196,7 +199,7 @@ export class ObjectType extends Type {
     );
     return anotherType instanceof ObjectType && !this.isNominal
       ? anotherType.properties.size >= requiredProperties.length &&
-        anotherType.properties.size <= this.properties.size &&
+          anotherType.properties.size <= this.properties.size &&
           this.isAllProperties("isPrincipalTypeFor", anotherType)
       : anotherType.isSubtypeOf != undefined &&
           this.isPrincipalTypeFor(anotherType.isSubtypeOf);

@@ -1,11 +1,14 @@
 import HegelError from "../../utils/errors";
 import { Type } from "./type";
+import { $Keys } from "./keys-type";
 import { TypeVar } from "./type-var";
+import { TupleType } from "./tuple-type";
 import { UnionType } from "./union-type";
 import { TypeScope } from "../type-scope";
 import { ObjectType } from "./object-type";
 import { $BottomType } from "./bottom-type";
 import { GenericType } from "./generic-type";
+import { CollectionType } from "./collection-type";
 
 export class $PropertyType extends GenericType {
   constructor(_, meta = {}) {
@@ -42,17 +45,42 @@ export class $PropertyType extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;
-    const realTarget = Type.getTypeRoot(
-      currentTarget.constraint != undefined
-        ? currentTarget.constraint
-        : currentTarget
-    );
+    const realTarget = Type.getTypeRoot(currentTarget);
     const propertyName =
       property.isSubtypeOf && property.isSubtypeOf.name === "string"
         ? property.name.slice(1, -1)
         : property.name;
 
-    if (property instanceof TypeVar && property.root === undefined) {
+    const isTargetVariable =
+      realTarget instanceof TypeVar && !property.isUserDefined;
+    if (isTargetVariable) {
+      realTarget.constraint = ObjectType.Object;
+    }
+    const isPropertyVariable =
+      property instanceof TypeVar && !property.isUserDefined;
+    if (isPropertyVariable) {
+      let constraint = undefined;
+      if (realTarget instanceof CollectionType) {
+        constraint = realTarget.keyType;
+      } else if (realTarget instanceof TupleType) {
+        constraint = Array.from({ length: realTarget.items.length }).map(
+          (_, i) => Type.term(i + 1, { isSubtypeOf: Type.Number })
+        );
+      } else if (realTarget instanceof ObjectType) {
+        constraint = UnionType.term(
+          null,
+          {},
+          [...realTarget.properties].map(([key]) =>
+            Type.term(`'${key}'`, { isSubtypeOf: Type.String })
+          )
+        );
+      } else if (isTargetVariable) {
+        constraint = new $BottomType({}, new $Keys(), [realTarget]);
+      }
+      property.constraint = constraint;
+    }
+
+    if (isTargetVariable || isPropertyVariable) {
       return new $BottomType({}, this, [realTarget, property], loc);
     }
 

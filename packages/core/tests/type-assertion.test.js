@@ -949,7 +949,7 @@ describe("Generics", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Parameter "1" is incompatible with restriction of type argument "T"'
+      'Parameter "1" is incompatible with restriction "2 | 3"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 19, line: 3 },

@@ -583,7 +583,11 @@ export async function createModuleScope(
   withPositions?: boolean = true
 ): Promise<ModuleScope> {
   const typeScope = new TypeScope(globalModule.typeScope);
-  const module = new (withPositions ? PositionedModuleScope : ModuleScope)(new Map(), globalModule, typeScope);
+  const module = new (withPositions ? PositionedModuleScope : ModuleScope)(
+    new Map(),
+    globalModule,
+    typeScope
+  );
   await mixImportedDependencies(
     ast,
     errors,

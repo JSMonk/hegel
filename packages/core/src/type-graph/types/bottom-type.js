@@ -168,6 +168,7 @@ export class $BottomType extends Type {
   equalsTo(type: Type) {
     return (
       type instanceof $BottomType &&
+      this.genericArguments.length === type.genericArguments.length &&
       this.genericArguments.every((arg, i) =>
         arg.equalsTo(type.genericArguments[i])
       ) &&
@@ -177,11 +178,17 @@ export class $BottomType extends Type {
   }
 
   contains(type: Type) {
-    return this.subordinateMagicType.contains(type);
+    return (
+      this.genericArguments.some(a => a.contains(type)) ||
+      this.subordinateMagicType.contains(type)
+    );
   }
 
   weakContains(type: Type) {
-    return this.subordinateMagicType.weakContains(type);
+    return (
+      this.genericArguments.some(a => a.weakContains(type)) ||
+      this.subordinateMagicType.weakContains(type)
+    );
   }
 
   makeNominal() {

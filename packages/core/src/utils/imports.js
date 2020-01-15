@@ -76,9 +76,15 @@ export function importDependencies(
     }
     let finalImportVariable = importElement;
     if (importNode.importKind !== "type" && importElement instanceof Type) {
-      finalImportVariable = new VariableInfo(importElement, currentModuleTypeGraph);
+      finalImportVariable = new VariableInfo(
+        importElement,
+        currentModuleTypeGraph
+      );
     }
-    if (importNode.importKind === "type" && importElement instanceof VariableInfo) {
+    if (
+      importNode.importKind === "type" &&
+      importElement instanceof VariableInfo
+    ) {
       finalImportVariable = importElement.type;
     }
     // $FlowIssue

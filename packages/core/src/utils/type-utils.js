@@ -301,8 +301,8 @@ export function getTypeFromTypeAnnotation(
         )
       );
       const params = properties.flatMap(property => {
-      if (property.type === NODE.OBJECT_TYPE_SPREAD_PROPERTY) {
-        const spreadType = getTypeFromTypeAnnotation(
+        if (property.type === NODE.OBJECT_TYPE_SPREAD_PROPERTY) {
+          const spreadType = getTypeFromTypeAnnotation(
             { typeAnnotation: property.argument },
             typeScope,
             currentScope,
@@ -314,26 +314,28 @@ export function getTypeFromTypeAnnotation(
             middlecompute,
             postcompute
           );
-        if (!(spreadType instanceof ObjectType)) {
-          throw new HegelError("Cannot spread non-object type", property.loc);
+          if (!(spreadType instanceof ObjectType)) {
+            throw new HegelError("Cannot spread non-object type", property.loc);
+          }
+          return [...spreadType.properties];
         }
-        return [...spreadType.properties];
-      }
-      return [[
-          getPropertyName(property),
-          getTypeFromTypeAnnotation(
-            { typeAnnotation: property.value || property },
-            typeScope,
-            currentScope,
-            rewritable,
-            self,
-            parentNode,
-            typeGraph,
-            precompute,
-            middlecompute,
-            postcompute
-          )
-        ]];
+        return [
+          [
+            getPropertyName(property),
+            getTypeFromTypeAnnotation(
+              { typeAnnotation: property.value || property },
+              typeScope,
+              currentScope,
+              rewritable,
+              self,
+              parentNode,
+              typeGraph,
+              precompute,
+              middlecompute,
+              postcompute
+            )
+          ]
+        ];
       });
       if (customName === undefined) {
         customName =
@@ -347,7 +349,9 @@ export function getTypeFromTypeAnnotation(
         params
           .map(([name, type]) => [
             name,
-            type instanceof VariableInfo ? type : new VariableInfo(type, currentScope)
+            type instanceof VariableInfo
+              ? type
+              : new VariableInfo(type, currentScope)
           ])
           .concat(
             superTypes.reduce(
@@ -718,8 +722,8 @@ export function getFalsy() {
       Type.term(0, { isSubtypeOf: Type.Number }),
       Type.term("''", { isSubtypeOf: Type.String }),
       Type.Null,
-      Type.Undefined,
-    ]
+      Type.Undefined
+    ];
   }
   return FALSY;
 }

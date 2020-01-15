@@ -14,9 +14,7 @@ const mixBaseGlobals = moduleScope => {
     ["boolean", Type.Boolean],
     ["symbol", Type.Symbol]
   ];
-  const globals = [
-    ["undefined", new VariableInfo(Type.Undefined)]
-  ];
+  const globals = [["undefined", new VariableInfo(Type.Undefined)]];
   typeScope.body = new Map(globalTypes.concat([...typeScope.body]));
   moduleScope.body = new Map(globals.concat([...moduleScope.body]));
 };

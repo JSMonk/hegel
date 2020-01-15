@@ -587,7 +587,7 @@ export function addCallToTypeGraph(
         );
         targetName = callee.name;
         if (
-          !(target.type instanceof FunctionType) ||
+          !(target.type instanceof FunctionType) &&
           !(
             target.type instanceof GenericType &&
             target.type.subordinateType instanceof FunctionType
@@ -763,7 +763,7 @@ export function addCallToTypeGraph(
       targetName,
       inferenced
     );
-    while(currentScope.skipCalls !== false && currentScope !== moduleScope) {
+    while (currentScope.skipCalls !== false && currentScope !== moduleScope) {
       // $FlowIssue
       currentScope = currentScope.parent;
     }

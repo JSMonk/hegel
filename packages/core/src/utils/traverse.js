@@ -15,12 +15,10 @@ export type TraverseMeta = {
   kind?: ?string
 };
 
-export const compose = (...fns: Array<Function>) => (
-  ...args: Array<any>
-) => {
+export const compose = (...fns: Array<Function>) => (...args: Array<any>) => {
   const additionalArgs = args.slice(1);
   return fns.reduce((res, fn) => fn(res, ...additionalArgs), args[0]);
-}
+};
 
 function mixBodyToArrowFunctionExpression(currentNode: Node) {
   if (
@@ -55,7 +53,7 @@ function mixBlockToLogicalOperator(currentNode: Node) {
     body: currentNode.left,
     loc: {
       start: currentNode.loc.start,
-      end: currentNode.loc.start,
+      end: currentNode.loc.start
     }
   };
   currentNode.right = {
@@ -63,7 +61,7 @@ function mixBlockToLogicalOperator(currentNode: Node) {
     body: currentNode.right,
     loc: {
       start: currentNode.loc.end,
-      end: currentNode.loc.end,
+      end: currentNode.loc.end
     }
   };
   return currentNode;
@@ -207,7 +205,7 @@ function mixElseIfReturnOrThrowExisted(currentNode: Node, parentNode: Node) {
   alternate.body = alternate.body.concat(body.splice(indexOfSlice + 1));
   return {
     ...currentNode,
-    alternate,
+    alternate
   };
 }
 

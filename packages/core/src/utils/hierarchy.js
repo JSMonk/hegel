@@ -8,7 +8,7 @@ import { FunctionType } from "../type-graph/types/function-type";
 
 export function setupBaseHierarchy(globalTypeScope) {
   Type.GlobalTypeScope = globalTypeScope;
-  Type.Undefined.parent = globalTypeScope
+  Type.Undefined.parent = globalTypeScope;
   Type.Null.parent = globalTypeScope;
   Type.String.parent = globalTypeScope;
   Type.Symbol.parent = globalTypeScope;
@@ -30,11 +30,11 @@ export function setupFullHierarchy(globalTypeScope) {
   globalTypeScope.body.set("Function", FunctionType.Function);
   const local = new TypeScope(globalTypeScope);
   TupleType.Array.root = GenericType.term(
-      "Array",
-      {},
-      [TypeVar.new("T", { parent: local })],
-      local,
-      ObjectType.new("Array<T>", { parent: local }, [])
-    );
+    "Array",
+    {},
+    [TypeVar.new("T", { parent: local })],
+    local,
+    ObjectType.new("Array<T>", { parent: local }, [])
+  );
   globalTypeScope.body.set("Array", TupleType.Array);
 }

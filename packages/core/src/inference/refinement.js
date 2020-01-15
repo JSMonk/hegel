@@ -18,21 +18,27 @@ function getScopesForLogicalExpression(
   currentScope: VariableScope | ModuleScope,
   moduleScope: ModuleScope
 ): [VariableScope, VariableScope] {
-  const primaryScopeName = VariableScope.getName({ loc: { start: condition.loc.end } });
+  const primaryScopeName = VariableScope.getName({
+    loc: { start: condition.loc.end }
+  });
   // $FlowIssue
   let primaryScope: VariableScope = moduleScope.body.get(primaryScopeName);
   if (!(primaryScope instanceof VariableScope)) {
     primaryScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
     moduleScope.body.set(primaryScopeName, primaryScope);
   }
-  const alternateScopeName = VariableScope.getName({ loc: { start: condition.loc.start } });
+  const alternateScopeName = VariableScope.getName({
+    loc: { start: condition.loc.start }
+  });
   // $FlowIssue
   let alternateScope: VariableScope = moduleScope.body.get(alternateScopeName);
   if (!(alternateScope instanceof VariableScope)) {
     alternateScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
     moduleScope.body.set(alternateScopeName, alternateScope);
   }
-  return condition.operator === "&&" ? [primaryScope, alternateScope] : [alternateScope, primaryScope];
+  return condition.operator === "&&"
+    ? [primaryScope, alternateScope]
+    : [alternateScope, primaryScope];
 }
 
 function getPrimaryAndAlternativeScopes(
@@ -62,7 +68,11 @@ function getPrimaryAndAlternativeScopes(
       );
       break;
     case NODE.LOGICAL_EXPRESSION:
-      [primaryScope, alternateScope] = getScopesForLogicalExpression(currentRefinementNode, currentScope, moduleScope);
+      [primaryScope, alternateScope] = getScopesForLogicalExpression(
+        currentRefinementNode,
+        currentScope,
+        moduleScope
+      );
   }
   if (
     !primaryScope ||
@@ -239,11 +249,10 @@ function refinementByCondition(
       if (sameRefinement.length === 0) {
         return other;
       }
-      const [additionalPrimaryScope, additionalAlternateScope] = getScopesForLogicalExpression(
-        condition,
-        currentScope,
-        moduleScope
-      );
+      const [
+        additionalPrimaryScope,
+        additionalAlternateScope
+      ] = getScopesForLogicalExpression(condition, currentScope, moduleScope);
       const sameRefinementVariants = sameRefinement.map(
         ([key, refinementedType, alternateType]) => {
           const sameRefinement: any = leftSideRefinement.find(

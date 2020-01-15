@@ -324,9 +324,10 @@ export function implicitApplyGeneric(
 ): FunctionType {
   const appliedArgumentsTypes: Map<mixed, Type> = new Map();
   const unreachableTypes: Set<TypeVar> = new Set();
-  for (let i = 0; i < argumentsTypes.length; i++) {
-    const maybeBottom = fn.subordinateType.argumentsTypes[i];
-    const givenArgument = argumentsTypes[i];
+  const declaratedArgumentsTypes = fn.subordinateType.argumentsTypes;
+  for (let i = 0; i < declaratedArgumentsTypes.length; i++) {
+    const maybeBottom = declaratedArgumentsTypes[i];
+    const givenArgument = argumentsTypes[i] || Type.Undefined;
     const givenArgumentType =
       givenArgument instanceof VariableInfo
         ? givenArgument.type

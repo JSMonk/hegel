@@ -21,8 +21,7 @@ export class $Keys extends GenericType {
     isCalledAsBottom = false
   ) {
     super.assertParameters(parameters, loc);
-    const [target] = parameters;
-    const realTarget = target.constraint || target;
+    const [realTarget] = parameters;
     if (
       !(realTarget instanceof ObjectType) &&
       !(realTarget instanceof TupleType) &&

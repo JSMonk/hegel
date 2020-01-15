@@ -177,21 +177,19 @@ function checkCalls(
     if (functionDeclaration.returnType === undefined) {
       return;
     }
-    try {
-      if (
-        functionDeclaration.returnType !== Type.Undefined &&
-        functionDeclaration.returnType !== Type.Unknown
-      ) {
-        throw new HegelError(
+    if (
+      functionDeclaration.returnType !== Type.Undefined &&
+      functionDeclaration.returnType !== Type.Unknown
+    ) {
+      errors.push(
+        new HegelError(
           `Function should return something with type "${String(
             functionDeclaration.returnType.name
           )}"`,
           declaration.meta.loc,
           path
-        );
-      }
-    } catch (e) {
-      errors.push(e);
+        )
+      );
     }
   }
 }

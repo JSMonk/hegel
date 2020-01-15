@@ -60,7 +60,12 @@ export class UnionType extends Type {
 
   static flatten(variants: Array<Type>) {
     // $FlowIssue
-    return variants.flatMap(variant => variant instanceof UnionType ? this.flatten(variant.variants) : [variant]);
+    return variants.flatMap(
+      variant =>
+        variant instanceof UnionType
+          ? this.flatten(variant.variants)
+          : [variant]
+    );
   }
 
   variants: Array<Type>;
