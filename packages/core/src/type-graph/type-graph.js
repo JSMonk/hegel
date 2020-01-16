@@ -316,6 +316,17 @@ const middlefillModuleScope = (
       currentNode = currentNode.declaration;
     }
     switch (currentNode.type) {
+      case NODE.THIS_TYPE_DEFINITION:
+        addThisToClassScope(
+          currentNode,
+          parentNode,
+          typeScope,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
+        );
+        break;
       case NODE.OBJECT_PROPERTY:
       case NODE.OBJECT_METHOD:
       case NODE.CLASS_PROPERTY:
@@ -358,17 +369,6 @@ const afterFillierActions = (
     switch (currentNode.type) {
       case NODE.OBJECT_EXPRESSION:
         addObjectToTypeGraph(currentNode, moduleScope);
-        break;
-      case NODE.THIS_TYPE_DEFINITION:
-        addThisToClassScope(
-          currentNode.definition,
-          parentNode,
-          typeScope,
-          moduleScope,
-          precompute,
-          middlecompute,
-          postcompute
-        );
         break;
       case NODE.CLASS_PROPERTY:
       case NODE.OBJECT_PROPERTY:

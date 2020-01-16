@@ -169,10 +169,16 @@ export function addCallToTypeGraph(
       return { result: varInfo };
     case NODE.CLASS_PROPERTY:
     case NODE.OBJECT_PROPERTY:
-      const self = currentScope.findVariable({ name: THIS_TYPE }).type;
-      const selfObject =
+      const self = currentScope.findVariable({ name: THIS_TYPE });
+      // $FlowIssue
+      let selfObject: ObjectType = node.static
         // $FlowIssue
-        self instanceof ObjectType ? self : self.subordinateType;
+        ? self.parent.declaration.type
+        : self.type;
+      selfObject =
+        selfObject instanceof GenericType
+          ? selfObject.subordinateType
+          : selfObject;
       const propertyType = selfObject.properties.get(
         node.key.name || `${node.key.value}`
       );
@@ -571,21 +577,24 @@ export function addCallToTypeGraph(
     case NODE.CALL_EXPRESSION:
       if (
         node.callee.type === NODE.IDENTIFIER ||
+        node.callee.type === NODE.THIS_EXPRESSION ||
         node.callee.type === NODE.SUPER
       ) {
-        const callee =
-          node.callee.type === NODE.IDENTIFIER
-            ? node.callee
-            : { name: "super", loc: node.callee.loc };
+        targetName = node.callee.name;
+        if (node.callee.type === NODE.SUPER) {
+          targetName = "super";
+        }
+        if (node.callee.type === NODE.THIS_EXPRESSION) {
+          targetName = THIS_TYPE;
+        }
         target = currentScope.findVariable(
-          callee,
+          { name: targetName, loc: node.callee.loc },
           parentNode,
           moduleScope,
           pre,
           middle,
           post
         );
-        targetName = callee.name;
         if (
           !(target.type instanceof FunctionType) &&
           !(
@@ -597,6 +606,19 @@ export function addCallToTypeGraph(
             target.type.getPropertyType(
               node.isConstructor ? CONSTRUCTABLE : CALLABLE
             ) || target;
+          target =
+            typeof target.type === "string"
+              ? VariableScope.addAndTraverseNodeWithType(
+                // $FlowIssue
+                undefined,
+                target,
+                parentNode,
+                moduleScope,
+                pre,
+                middle,
+                post
+              )
+              : target;
           target =
             target instanceof VariableInfo
               ? target
@@ -883,15 +905,23 @@ export function addPropertyToThis(
   postcompute: Handler
 ) {
   const propertyName = currentNode.key.name || `${currentNode.key.value}`;
-  const currentClassScope = getParentForNode(
+  // $FlowIssue
+  const currentScope: VariableScope = getParentForNode(
     currentNode,
     parentNode,
     moduleScope
   );
-  const self = currentClassScope.findVariable({ name: THIS_TYPE });
+  const currentClassScope: any = findNearestScopeByType(
+    [VariableScope.CLASS_TYPE, VariableScope.OBJECT_TYPE],
+    currentScope
+  );
+  // $FlowIssue
+  const self: VariableInfo = currentNode.static
+    ? currentClassScope.declaration
+    : currentClassScope.findVariable({ name: THIS_TYPE });
   const selfType =
     self.type instanceof GenericType ? self.type.subordinateType : self.type;
-  if (currentClassScope.declaration !== undefined) {
+  if (currentClassScope.isProcessed) {
     // $FlowIssue
     return selfType.properties.get(propertyName).type;
   }
@@ -931,7 +961,7 @@ export function addPropertyToThis(
     currentNode.type === NODE.OBJECT_METHOD ||
     currentNode.type === NODE.CLASS_METHOD
   ) {
-    const fn = VariableScope.addAndTraverseFunctionWithType(
+    const fn = VariableScope.addAndTraverseNodeWithType(
       null,
       currentNode,
       parentNode,
@@ -972,19 +1002,31 @@ export function addMethodToThis(
   post: Handler,
   isTypeDefinitions: boolean
 ) {
-  const classScope = moduleScope.body.get(VariableScope.getName(parentNode));
-  if (!(classScope instanceof VariableScope)) {
+  const currentScope = moduleScope.body.get(VariableScope.getName(parentNode));
+  if (!(currentScope instanceof VariableScope)) {
     throw new Error("Never!!!");
   }
-  if (classScope.declaration !== undefined) {
+  const classScope: any = findNearestScopeByType(
+    [VariableScope.CLASS_TYPE, VariableScope.OBJECT_TYPE],
+    currentScope
+  );
+  if (classScope.isProcessed) {
     return;
   }
-  const classVar = classScope.findVariable({ name: THIS_TYPE });
+  const propertyName =
+    currentNode.key.name === "constructor"
+      ? CONSTRUCTABLE
+      : currentNode.key.name;
+  const self = classScope.findVariable({ name: THIS_TYPE });
+  // $FlowIssue
+  const classVar: VariableInfo =
+    currentNode.static || propertyName === CONSTRUCTABLE
+      ? classScope.declaration
+      : self;
   const classType =
     classVar.type instanceof GenericType
       ? classVar.type.subordinateType
       : classVar.type;
-  const propertyName = currentNode.key.name;
   const methodScope = moduleScope.body.get(VariableScope.getName(currentNode));
   if (methodScope !== undefined && !isTypeDefinitions) {
     return false;
@@ -1004,6 +1046,19 @@ export function addMethodToThis(
     isTypeDefinitions
   );
   fn.hasInitializer = true;
+  if (!isTypeDefinitions && classScope.type === VariableScope.CLASS_TYPE) {
+    const fnScope = moduleScope.body.get(VariableScope.getName(currentNode));
+    // $FlowIssue
+    fnScope.body.set(THIS_TYPE, currentNode.static ? classScope.declaration : self);
+  }
   // $FlowIssue
   classType.properties.set(propertyName, fn);
+  if (propertyName === CONSTRUCTABLE) {
+    const type: FunctionType =
+      fn.type instanceof GenericType ? fn.type.subordinateType : fn.type;
+    type.returnType = ObjectType.Object.isPrincipalTypeFor(type.returnType)
+      ? type.returnType
+      : self.type;
+    fn.type = type;
+  }
 }

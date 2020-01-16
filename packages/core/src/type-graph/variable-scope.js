@@ -22,6 +22,8 @@ export class VariableScope extends Scope {
   throwable: Array<VariableInfo | Type> | void;
   declaration: VariableInfo | void;
   skipCalls: boolean;
+  isProcessed: boolean = false;
+  body: Map<string, VariableInfo>;
 
   constructor(
     type: VariableScopeType,
@@ -34,5 +36,6 @@ export class VariableScope extends Scope {
     this.type = type;
     this.declaration = declaration;
     this.skipCalls = skipCalls;
+    this.body = new Map();
   }
 }

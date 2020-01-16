@@ -80,6 +80,7 @@ export class FunctionType extends Type {
     for (let i = 0; i < length; i++) {
       const item = searchingItems[i];
       if (
+        item instanceof Type &&
         !TypeVar.isSelf(item) &&
         (parent === undefined || parent.priority < item.parent.priority)
       ) {

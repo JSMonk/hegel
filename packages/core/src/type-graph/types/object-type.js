@@ -111,7 +111,7 @@ export class ObjectType extends Type {
     anotherType: ObjectType
   ): boolean {
     for (const [key, { type }] of this.properties) {
-      if ([CALLABLE, INDEXABLE, CONSTRUCTABLE].includes(key)) {
+      if (type === undefined || [CALLABLE, INDEXABLE, CONSTRUCTABLE].includes(key)) {
         continue;
       }
       const anotherProperty = anotherType.properties.get(key) || {
@@ -133,6 +133,9 @@ export class ObjectType extends Type {
     let isAnyPropertyChanged = false;
     const newProperties: Array<[string, VariableInfo]> = [];
     this.properties.forEach((vInfo, key) => {
+      if (!(vInfo instanceof VariableInfo)) {
+        return;
+      }
       const newType = vInfo.type.changeAll(sourceTypes, targetTypes, typeScope);
       if (vInfo.type === newType) {
         return newProperties.push([key, vInfo]);
@@ -232,7 +235,7 @@ export class ObjectType extends Type {
       return true;
     }
     for (const [_, property] of this.properties) {
-      if (property.type.contains(type)) {
+      if (property instanceof VariableInfo && property.type.contains(type)) {
         return true;
       }
     }
