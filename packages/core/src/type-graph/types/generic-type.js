@@ -9,6 +9,28 @@ import type { TypeMeta } from "./type";
 import type { SourceLocation } from "@babel/parser";
 
 export class GenericType<T: Type> extends Type {
+  static term(
+    name: mixed,
+    meta?: TypeMeta = {},
+    genericArguments: Array<TypeVar>,
+    typeScope: TypeScope,
+    type: T,
+    ...args: Array<any>
+  ) {
+    const newMeta = {
+      ...meta,
+      parent: type.parent
+    };
+    return super.term(
+      name,
+      newMeta,
+      genericArguments,
+      typeScope,
+      type,
+      ...args
+    );
+  }
+
   static getNameWithoutApplying(name: mixed) {
     return String(name).replace(/<.+>/g, "");
   }

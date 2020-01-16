@@ -65,7 +65,7 @@ export function getSuperTypeOf(type: Type, typeScope: TypeScope): Type {
     const newProperties = propertyTypes.map(([key, p]) => [
       key,
       // $FlowIssue
-      Object.assign(type.properties.get(key), {
+      Object.assign(new VariableInfo(), type.properties.get(key), {
         type: getSuperTypeOf(p, typeScope)
       })
     ]);

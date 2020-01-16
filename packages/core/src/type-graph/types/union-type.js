@@ -144,6 +144,19 @@ export class UnionType extends Type {
     return super.contains(type) || this.variants.some(v => v.contains(type));
   }
 
+  getDifference(type: Type) {
+    if (type instanceof UnionType) {
+      // $FlowIssue
+      return this.variants
+        .flatMap(
+          variant =>
+            // $FlowIssue
+            type.variants.flatMap(a => variant.getDifference(a))
+        );
+    }
+    return super.getDifference(type);
+  }
+
   weakContains(type: Type) {
     return (
       super.contains(type) || this.variants.some(v => v.weakContains(type))

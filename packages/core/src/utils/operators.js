@@ -130,19 +130,25 @@ const mixBaseOperators = moduleScope => {
         Type.Undefined
       )
     ],
-    // [
-    //   "await",
-    //   genericFunction(
-    //     typeScope,
-    //     [["T", new TypeVar("T")]],
-    //     l => [
-    //       new $BottomType(typeScope.body.get("Promise").type, [
-    //         l.body.get("T").type
-    //       ])
-    //     ],
-    //     l => l.body.get("T").type
-    //   )
-    // ],
+    typeScope.body.has("Promise")
+      ? [
+          "await",
+          genericFunction(
+            typeScope,
+            parent => [["T", TypeVar.term("T", { parent })]],
+            l => [Type.find("Promise").applyGeneric([l.body.get("T")])],
+            l => l.body.get("T")
+          )
+        ]
+      : [
+          "await",
+          FunctionType.term(
+            "(unknown) => unknown",
+            { parent: typeScope },
+            [Type.Unknown],
+            Type.Unknown
+          )
+        ],
     [
       "==",
       FunctionType.term(

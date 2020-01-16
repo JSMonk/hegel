@@ -141,7 +141,7 @@ export class $BottomType extends Type {
 
   getDifference(type: Type) {
     if (type instanceof $BottomType) {
-      type = type.subordinateMaigcType;
+      type = type.subordinateMagicType;
     }
     return this.subordinateMagicType.getDifference(type);
   }
