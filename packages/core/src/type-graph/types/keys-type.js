@@ -7,6 +7,7 @@ import { UnionType } from "./union-type";
 import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 import { CollectionType } from "./collection-type";
+import { CALLABLE, CONSTRUCTABLE, INDEXABLE } from "../constants";
 
 export class $Keys extends GenericType {
   constructor(_, meta = {}) {
@@ -38,10 +39,12 @@ export class $Keys extends GenericType {
     if (realTarget instanceof CollectionType) {
       return realTarget.keyType;
     }
-    const keys = [...realTarget.properties.keys()];
-    const variants = keys.map(key =>
-      Type.term(`'${key}'`, { isSubtypeOf: Type.String })
-    );
+    const variants = [];
+    for (const property of realTarget.properties.keys()) {
+      if (property !== CALLABLE && property !== CONSTRUCTABLE && property !== INDEXABLE) {
+        variants.push(Type.term(`'${property}'`, { isSubtypeOf: Type.String }));
+      }
+    }
     return UnionType.term(UnionType.getName(variants), {}, variants);
   }
 }
