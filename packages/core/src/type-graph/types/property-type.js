@@ -51,14 +51,12 @@ export class $PropertyType extends GenericType {
         ? property.name.slice(1, -1)
         : property.name;
 
-    const isTargetVariable =
-      realTarget instanceof TypeVar && !property.isUserDefined;
-    if (isTargetVariable) {
+    const isTargetVariable = realTarget instanceof TypeVar;
+    if (isTargetVariable && !realTarget.isUserDefined) {
       realTarget.constraint = ObjectType.Object;
     }
-    const isPropertyVariable =
-      property instanceof TypeVar && !property.isUserDefined;
-    if (isPropertyVariable) {
+    const isPropertyVariable = property instanceof TypeVar;
+    if (isPropertyVariable && !property.isUserDefined) {
       let constraint = undefined;
       if (realTarget instanceof CollectionType) {
         constraint = realTarget.keyType;
@@ -79,11 +77,9 @@ export class $PropertyType extends GenericType {
       }
       property.constraint = constraint;
     }
-
     if (isTargetVariable || isPropertyVariable) {
       return new $BottomType({}, this, [realTarget, property], loc);
     }
-
     if (realTarget instanceof UnionType) {
       try {
         const variants = realTarget.variants.map(v =>
