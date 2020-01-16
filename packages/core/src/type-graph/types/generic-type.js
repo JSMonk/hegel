@@ -19,7 +19,7 @@ export class GenericType<T: Type> extends Type {
   ) {
     const newMeta = {
       ...meta,
-      parent: type.parent
+      parent: type.parent.priority >= typeScope.priority ? undefined : type.parent
     };
     return super.term(
       name,

@@ -306,11 +306,14 @@ function resolveOuterTypeVarsFromCall(
     if (callTargetType instanceof TypeVar && !callTargetType.isUserDefined) {
       continue;
     }
-    callArgumentType.root =
+    const potentialRoot =
       callTargetType instanceof RestArgument
         ? // $FlowIssue
           callTargetType.type.valueType
         : callTargetType;
+    if (!potentialRoot.contains(callArgumentType)) {
+      callArgumentType.root = potentialRoot;
+    }
   }
 }
 

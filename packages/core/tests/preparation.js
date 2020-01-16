@@ -35,11 +35,18 @@ exports.mixTypeDefinitions = () => {
     if (errors.length !== 0) {
       throw errors;
     }
-    const body = new Map([...typingsScope.body, ...globalScope.body]);
+    const body = new Map([...globalScope.body]);
+    for (const [name, variable] of typingsScope.body.entries()) {
+      variable.parent = globalScope;
+      body.set(name, variable);
+    }
     const typesBody = new Map([
-      ...typingsScope.typeScope.body,
-      ...globalScope.typeScope.body
+      ...globalScope.typeScope.body,
     ]);
+    for (const [name, type] of typingsScope.typeScope.body.entries()) {
+      type.parent = globalScope.typeScope;
+      typesBody.set(name, type);
+    }
     globalScope.body = body;
     globalScope.typeScope.body = typesBody;
   };
