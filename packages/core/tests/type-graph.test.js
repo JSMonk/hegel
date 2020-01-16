@@ -1181,3 +1181,61 @@ describe("Classes", () => {
     expect(b.type).toBe(Type.find("Array<number | string>"));
   });
 });
+describe("Promises", () => {
+  test("Await undefined value", async () => {
+    const sourceAST = prepareAST(`
+      const a = Promise.resolve();
+      async function b() {
+        const c = await a;
+      } 
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const a = module.body.get("a");
+    const b = module.body.get("b");
+    const bScope = module.body.get("[[Scope3-6]]")
+    const c = bScope.body.get("c");
+    expect(errors.length).toEqual(0);
+    expect(a).not.toBe(undefined);
+    expect(a.type).toBeInstanceOf(ObjectType);
+    expect(a.type).toBe(Type.find("Promise<undefined>"));
+    expect(b).not.toBe(undefined);
+    expect(b.type).toBeInstanceOf(FunctionType);
+    expect(b.type).toBe(Type.find("() => Promise<undefined>"));
+    expect(c).not.toBe(undefined);
+    expect(c.type).toBeInstanceOf(Type);
+    expect(c.type).toBe(Type.Undefined);
+  });
+  test("Await number value", async () => {
+    const sourceAST = prepareAST(`
+      const a = Promise.resolve(2);
+      async function b() {
+        const c = await a;
+      } 
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const a = module.body.get("a");
+    const b = module.body.get("b");
+    const bScope = module.body.get("[[Scope3-6]]")
+    const c = bScope.body.get("c");
+    expect(errors.length).toEqual(0);
+    expect(a).not.toBe(undefined);
+    expect(a.type).toBeInstanceOf(ObjectType);
+    expect(a.type).toBe(Type.find("Promise<2>"));
+    expect(b).not.toBe(undefined);
+    expect(b.type).toBeInstanceOf(FunctionType);
+    expect(b.type).toBe(Type.find("() => Promise<undefined>"));
+    expect(c).not.toBe(undefined);
+    expect(c.type).toBeInstanceOf(Type);
+    expect(c.type).toBe(Type.find(2));
+  });
+})

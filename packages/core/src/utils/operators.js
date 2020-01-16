@@ -136,7 +136,12 @@ const mixBaseOperators = moduleScope => {
           genericFunction(
             typeScope,
             parent => [["T", TypeVar.term("T", { parent })]],
-            l => [Type.find("Promise").applyGeneric([l.body.get("T")])],
+            l => [
+              UnionType.term(null, {}, [
+                Type.find("Promise").applyGeneric([l.body.get("T")]),
+                l.body.get("T")
+              ])
+            ],
             l => l.body.get("T")
           )
         ]

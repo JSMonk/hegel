@@ -119,16 +119,19 @@ export class FunctionType extends Type {
   argumentsTypes: Array<Type | RestArgument>;
   returnType: Type;
   throwable: ?Type;
+  isAsync: boolean;
 
   constructor(
     name: string,
     typeMeta: TypeMeta = {},
     argumentsTypes: Array<Type | RestArgument>,
-    returnType: Type
+    returnType: Type,
+    isAsync?: boolean = false
   ) {
     super(name, { isSubtypeOf: FunctionType.Function, ...typeMeta });
     this.argumentsTypes = argumentsTypes;
     this.returnType = returnType;
+    this.isAsync = isAsync;
   }
 
   changeAll(

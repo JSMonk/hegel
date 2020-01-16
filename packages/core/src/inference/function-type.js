@@ -219,8 +219,18 @@ export function inferenceFunctionLiteralType(
           typeVarNames[nameIndex + argumentsTypes.length],
           localTypeScope
         );
-  if (currentNode.returnType == undefined && returnType instanceof TypeVar) {
-    genericArguments.add(returnType);
+  if (currentNode.returnType == undefined) {
+    if (returnType instanceof TypeVar) {
+      genericArguments.add(returnType);
+    }
+  } else if (currentNode.async) {
+    const unknownPromise = Type.Unknown.promisify();
+    if (!unknownPromise.isPrincipalTypeFor(returnType)) {
+      throw new HegelError(
+        `Return type of async function should be an promise`,
+        currentNode.returnType.loc
+      );
+    }
   }
   const genericArgumentsTypes = [...genericArguments];
   const typeName = FunctionType.getName(
@@ -229,6 +239,7 @@ export function inferenceFunctionLiteralType(
     genericArgumentsTypes
   );
   const type = FunctionType.term(typeName, {}, argumentsTypes, returnType);
+  type.isAsync = currentNode.async === true;
   return genericArgumentsTypes.length > 0
     ? GenericType.new(typeName, {}, genericArgumentsTypes, localTypeScope, type)
     : type;
@@ -349,6 +360,11 @@ export function implicitApplyGeneric(
       let { root, variable } = difference[j];
       root = Type.getTypeRoot(root);
       variable = Type.getTypeRoot(variable);
+      // $FlowIssue
+      variable = fn.genericArguments.find(arg => arg.equalsTo(variable));
+      if (variable === undefined) {
+        continue;
+      }
       const existed = appliedArgumentsTypes.get(variable);
       const shouldSetNewRoot =
         variable instanceof TypeVar &&
@@ -521,7 +537,7 @@ export function inferenceFunctionTypeByScope(
   const {
     genericArguments: oldGenericArguments,
     localTypeScope,
-    subordinateType: { argumentsTypes, returnType }
+    subordinateType: { argumentsTypes, returnType, isAsync }
   } = functionScope.declaration.type;
   const genericArguments = [...oldGenericArguments];
   let returnWasCalled = false;
@@ -620,12 +636,19 @@ export function inferenceFunctionTypeByScope(
     }
     return result;
   });
-  const newReturnType =
+  let newReturnType =
     returnType instanceof TypeVar && returnType.root != undefined
       ? Type.getTypeRoot(returnType)
       : returnType;
   if (newReturnType instanceof TypeVar) {
     newGenericArguments.add(newReturnType);
+  }
+  if (isAsync) {
+    const Promise = Type.find("Promise");
+    const unknownPromise = Type.Unknown.promisify();
+    if (!unknownPromise.isPrincipalTypeFor(newReturnType)) {
+      newReturnType = newReturnType.promisify();
+    }
   }
   const shouldBeCleaned = [];
   for (let i = 0; i < calls.length; i++) {
@@ -695,7 +718,8 @@ export function inferenceFunctionTypeByScope(
     newFunctionTypeName,
     {},
     newArgumentsTypes,
-    newReturnType
+    newReturnType,
+    isAsync
   );
   if (newGenericArgumentsTypes.length > 0) {
     newFunctionType = GenericType.new(

@@ -177,10 +177,13 @@ function checkCalls(
     if (functionDeclaration.returnType === undefined) {
       return;
     }
-    if (
-      functionDeclaration.returnType !== Type.Undefined &&
-      functionDeclaration.returnType !== Type.Unknown
-    ) {
+    const functionShouldNotReturnSomething =
+      functionDeclaration.returnType === Type.Undefined ||
+      functionDeclaration.returnType === Type.Unknown ||
+      (functionDeclaration.isAsync &&
+        (functionDeclaration.returnType.equalsTo(Type.Undefined.promisify()) ||
+          functionDeclaration.returnType.equalsTo(Type.Unknown.promisify())));
+    if (!functionShouldNotReturnSomething) {
       errors.push(
         new HegelError(
           `Function should return something with type "${String(

@@ -202,4 +202,9 @@ export class Type {
   containsAsGeneric(type: Type) {
     return false;
   }
+
+  promisify() {
+    const Promise = Type.find("Promise");
+    return Promise.applyGeneric([this]);
+  }
 }
