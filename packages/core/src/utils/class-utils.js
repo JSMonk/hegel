@@ -12,7 +12,7 @@ import { VariableScope } from "../type-graph/variable-scope";
 import { addCallToTypeGraph } from "../type-graph/call";
 import { functionWithReturnType } from "./function-utils";
 import { getTypeFromTypeAnnotation } from "./type-utils";
-import { THIS_TYPE, CONSTRUCTABLE } from "../type-graph/constants";
+import { THIS_TYPE, CALLABLE, CONSTRUCTABLE } from "../type-graph/constants";
 import { getAnonymousKey, getDeclarationName } from "./common";
 import {
   getParentForNode,
@@ -86,8 +86,9 @@ export function addThisToClassScope(
           localTypeScope,
           selfObject
         );
+  let superClass;
   if (currentNode.superClass != null) {
-    let superClass = addCallToTypeGraph(
+    superClass = addCallToTypeGraph(
       currentNode.superClass,
       typeGraph,
       classScope.parent,
@@ -123,6 +124,11 @@ export function addThisToClassScope(
       superClass.properties.get(CONSTRUCTABLE).type,
       self
     );
+    const $super = new ObjectType(
+      String(superClass.name),
+      { isSubtypeOf: superType },
+      [[CALLABLE, new VariableInfo(superFunctionType)]]
+    );
     const genericParams = (currentNode.superTypeParameters || []).map(arg =>
       getTypeFromTypeAnnotation(
         { typeAnnotation: arg },
@@ -143,7 +149,7 @@ export function addThisToClassScope(
         : superClass.instanceType;
     classScope.body.set(
       "super",
-      new VariableInfo(superFunctionType, classScope)
+      new VariableInfo($super, classScope)
     );
   }
   const selfVar = new VariableInfo(self, classScope);
@@ -154,7 +160,13 @@ export function addThisToClassScope(
   ) {
     parentTypeScope.body.set(name, selfVar);
     const staticName = getClassName(currentNode);
-    const staticSelfObject = ObjectType.term(staticName, { isNominal: true }, []);
+    const options = { isNominal: true };
+    if (superClass !== undefined) {
+      // $FlowIssue
+      options.isSubtypeOf = superClass
+    }
+    // $FlowIssue
+    const staticSelfObject = ObjectType.term(staticName, options, []);
     const staticSelfVar = new VariableInfo(staticSelfObject, classScope.parent);
     classScope.parent.body.set(name, staticSelfVar);
     classScope.declaration = staticSelfVar;
@@ -163,8 +175,10 @@ export function addThisToClassScope(
       m => m.kind === "constructor"
     );
     if (!isConstructorPresented) {
+      const $super = classScope.body.get("super");
       const constructor: VariableInfo =
-        classScope.body.get("super") ||
+        // $FlowIssue
+        ($super && $super.type.properties.get(CALLABLE)) ||
         new VariableInfo(
           FunctionType.new(`() => ${name}`, {}, [], self),
           classScope,

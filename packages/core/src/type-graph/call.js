@@ -990,6 +990,9 @@ export function addPropertyToThis(
       property.type = inferencedType;
     }
   }
+  if (moduleScope instanceof PositionedModuleScope) {
+    moduleScope.addPosition(currentNode, property);
+  }
   return property.type;
 }
 
@@ -1050,6 +1053,10 @@ export function addMethodToThis(
     const fnScope = moduleScope.body.get(VariableScope.getName(currentNode));
     // $FlowIssue
     fnScope.body.set(THIS_TYPE, currentNode.static ? classScope.declaration : self);
+    if (classScope.declaration.type.isSubtypeOf !== ObjectType.Object && currentNode.static) {
+      // $FlowIssue
+      fnScope.body.set("super", new VariableInfo(classScope.declaration.type.isSubtypeOf));
+    }
   }
   // $FlowIssue
   classType.properties.set(propertyName, fn);
@@ -1060,5 +1067,8 @@ export function addMethodToThis(
       ? type.returnType
       : self.type;
     fn.type = type;
+  }
+  if (moduleScope instanceof PositionedModuleScope) {
+    moduleScope.addPosition(currentNode, fn);
   }
 }
