@@ -22,6 +22,7 @@ export class Type {
   static BigInt = new Type("bigint");
   static Unknown = new Type("unknown");
   static Never = new Type("never");
+  static prettyMode: boolean = false;
 
   static find(name: mixed, meta?: TypeMeta = {}, ...args: Array<any>) {
     const scope = meta.parent || Type.GlobalTypeScope;
@@ -89,17 +90,17 @@ export class Type {
   }
 
   getChangedName(sourceTypes: Array<Type>, targetTypes: Array<Type>) {
+    let pattern = "";
+    const map = sourceTypes.reduce((map, type, index) => {
+      const name = String(type.name);
+      map[name] = targetTypes[index].name;
+      pattern += (pattern && "|") + name.replace(/\|/g, "\\|");
+      return map;
+    }, {});
+    const template = new RegExp(`\\b(${pattern})\\b`, "gm");
     return String(this.name).replace(
-      /<(.+?)>/g,
-      (_, typesList) =>
-        `<${typesList
-          .split(", ")
-          .map(name => {
-            const index = sourceTypes.findIndex(a => a.name === name);
-            return index === -1 ? name : targetTypes[index].name;
-          })
-          .filter(Boolean)
-          .join(", ")}>`
+      template,
+      typeName => map[typeName] || ""
     );
   }
 

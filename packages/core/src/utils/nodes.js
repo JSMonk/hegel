@@ -136,7 +136,8 @@ export const ANNOTATION_TYPES = {
   THIS_TYPE_ANNOTATION: "ThisTypeAnnotation",
   TS_THIS_TYPE_ANNOTATION: "TSThisType",
   TS_UNDEFINED_TYPE_ANNOTATION: "TSUndefinedKeyword",
-  TS_ARRAY_TYPE_ANNOTATION: "TSArrayType"
+  TS_ARRAY_TYPE_ANNOTATION: "TSArrayType",
+  TS_INTERSECTION_TYPE: "TSIntersectionType"
 };
 
 export const INITIALIZATION_TYPES = {

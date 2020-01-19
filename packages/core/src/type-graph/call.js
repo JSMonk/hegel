@@ -49,7 +49,8 @@ type CallResult = {
 };
 
 type CallableMeta = {
-  isForAssign?: boolean
+  isForAssign?: boolean,
+  isTypeDefinitions?: boolean
 };
 
 export function addCallToTypeGraph(
@@ -449,11 +450,10 @@ export function addCallToTypeGraph(
         ).result
       ];
       targetName = "Object.keys";
-      target = new $Keys().applyGeneric(
-        args.map(a => (a instanceof VariableInfo ? a.type : a)),
-        node.loc
-      );
-      target = new FunctionType(targetName, {}, [], target);
+      args = args.map(a => (a instanceof VariableInfo ? a.type : a));
+      target = new $Keys().applyGeneric(args, node.loc);
+      // $FlowIssue
+      target = new FunctionType(targetName, {}, args, target);
       break;
     case NODE.PURE_VALUE:
       target = addCallToTypeGraph(
@@ -468,11 +468,10 @@ export function addCallToTypeGraph(
       ).result;
       args = [target];
       targetName = "Object.values";
-      target = new $Values().applyGeneric(
-        args.map(a => (a instanceof VariableInfo ? a.type : a)),
-        node.loc
-      );
-      target = new FunctionType(targetName, {}, [], target);
+      args = args.map(a => (a instanceof VariableInfo ? a.type : a));
+      target = new $Values().applyGeneric(args, node.loc);
+      // $FlowIssue
+      target = new FunctionType(targetName, {}, args, target);
       break;
     case NODE.MEMBER_EXPRESSION:
       args = [
@@ -519,20 +518,22 @@ export function addCallToTypeGraph(
           meta
         ).result,
         addCallToTypeGraph(
-          node.consequent,
+          node.consequent.body,
           moduleScope,
-          currentScope,
-          parentNode,
+          // $FlowIssue
+          moduleScope.body.get(VariableScope.getName(node.consequent)),
+          node.consequent,
           pre,
           middle,
           post,
           meta
         ).result,
         addCallToTypeGraph(
-          node.alternate,
+          node.alternate.body,
           moduleScope,
-          currentScope,
-          parentNode,
+          // $FlowIssue
+          moduleScope.body.get(VariableScope.getName(node.alternate)),
+          node.alternate,
           pre,
           middle,
           post,
@@ -595,35 +596,6 @@ export function addCallToTypeGraph(
           middle,
           post
         );
-        if (
-          !(target.type instanceof FunctionType) &&
-          !(
-            target.type instanceof GenericType &&
-            target.type.subordinateType instanceof FunctionType
-          )
-        ) {
-          target =
-            target.type.getPropertyType(
-              node.isConstructor ? CONSTRUCTABLE : CALLABLE
-            ) || target;
-          target =
-            typeof target.type === "string"
-              ? VariableScope.addAndTraverseNodeWithType(
-                // $FlowIssue
-                undefined,
-                target,
-                parentNode,
-                moduleScope,
-                pre,
-                middle,
-                post
-              )
-              : target;
-          target =
-            target instanceof VariableInfo
-              ? target
-              : new VariableInfo(target, currentScope);
-        }
         if (withPositions) {
           // $FlowIssue
           moduleScope.addPosition(node.callee, target);
@@ -640,7 +612,37 @@ export function addCallToTypeGraph(
           meta
         ).result: any);
       }
-      const targetType = target instanceof VariableInfo ? target.type : target;
+      let targetType = target instanceof VariableInfo ? target.type : target;
+      if (
+        !(targetType instanceof FunctionType) &&
+        !(
+          targetType instanceof GenericType &&
+          targetType.subordinateType instanceof FunctionType
+        )
+      ) {
+        target =
+          targetType.getPropertyType(
+            node.isConstructor ? CONSTRUCTABLE : CALLABLE
+          ) || target;
+        target =
+          typeof targetType === "string"
+            ? VariableScope.addAndTraverseNodeWithType(
+              // $FlowIssue
+              undefined,
+              target,
+              parentNode,
+              moduleScope,
+              pre,
+              middle,
+              post
+            )
+            : target;
+        target =
+          target instanceof VariableInfo
+            ? target
+            : new VariableInfo(target, currentScope);
+        targetType = target.type;
+      }
       let fnType =
         targetType instanceof GenericType
           ? targetType.subordinateType
@@ -679,11 +681,26 @@ export function addCallToTypeGraph(
                 meta
               ).result
       );
+      genericArguments = node.typeArguments && node.typeArguments.params.map(
+        arg =>
+           getTypeFromTypeAnnotation(
+            { typeAnnotation: arg },
+            typeScope,
+            currentScope,
+            false,
+            null,
+            parentNode,
+            moduleScope,
+            pre,
+            middle,
+            post
+          )
+      );
       fnType = getRawFunctionType(
         // $FlowIssue
         targetType,
         args,
-        null,
+        genericArguments,
         localTypeScope,
         node.loc
       );
@@ -712,6 +729,9 @@ export function addCallToTypeGraph(
       if (throwableType.throwable) {
         addToThrowable(throwableType.throwable, currentScope);
       }
+      if (genericArguments != null) {
+        target = fnType;
+      }
       inferenced =
         targetType instanceof GenericType &&
         targetType.subordinateType.returnType instanceof TypeVar;
@@ -739,7 +759,8 @@ export function addCallToTypeGraph(
           parentNode,
           pre,
           middle,
-          post
+          post,
+          meta.isTypeDefinitions
         ),
         inferenced: true
       };

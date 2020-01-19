@@ -159,7 +159,7 @@ function equalsIdentifier(
   const [refinementedVariants, alternateVariants] =
     variableInfo.type instanceof UnionType
       ? variableInfo.type.variants.reduce(
-          (res, variant) => refinementVariants(res, variant, refinementType),
+          (res, variant) => refinementVariants(res, variant, refimenentType),
           [[], []]
         )
       : refinementVariants([[], []], variableInfo.type, refinementType);
@@ -253,11 +253,10 @@ export function refinementProperty(
           refinementedVariants,
           alternateVariants
         ] = property.variants.reduce(
-          (res, variant) => refinementVariants(res, variant, refinementType),
+          (res, variant) => refinementVariants(res, variant, refimenentType),
           [[], []]
         );
         const [refinemented, alternate] = getTypesFromVariants(
-          // $FlowIssue
           refinementedVariants,
           // $FlowIssue
           alternateVariants,

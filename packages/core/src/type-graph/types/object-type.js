@@ -50,8 +50,12 @@ export class ObjectType extends Type {
       return undefined;
     }
     const filteredProperties = params ? unique(params, ([key]) => key) : [];
-    return `{ ${filteredProperties
-      .sort(([name1], [name2]) => String(name1).localeCompare(String(name2)))
+    const properties = filteredProperties.sort(([name1], [name2]) => String(name1).localeCompare(String(name2)));
+    return this.prettyMode && filteredProperties.length > 3 ? this.multyLine(properties) : this.oneLine(properties);
+  }
+
+  static oneLine(properties: Array<[string, Type]>) {
+    return `{ ${properties
       .map(
         ([name, type]) =>
           `${name}: ${String(
@@ -59,6 +63,17 @@ export class ObjectType extends Type {
           )}`
       )
       .join(", ")} }`;
+  }
+
+  static multyLine(properties: Array<[string, Type]>) {
+    return `{\n${properties
+      .map(
+        ([name, type]) =>
+          `  ${name}: ${String(
+            type instanceof VariableInfo ? type.type.name : type.name
+          )}`
+      )
+      .join(",\n")}\n}`;
   }
 
   isNominal: boolean;

@@ -1,3 +1,8 @@
-
 include:
   - ./**/*.js
+typings:
+  - ./@types
+  - ./node_modules/@types
+libs:
+  - nodejs
+  - browser

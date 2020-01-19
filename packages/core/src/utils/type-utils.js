@@ -13,6 +13,7 @@ import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
+import { $Intersection } from "../type-graph/types/intersection-type";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { getDeclarationName } from "./common";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
@@ -161,6 +162,32 @@ export function getTypeFromTypeAnnotation(
       });
     case NODE.TS_SYMBOL_TYPE_ANNOTATION:
       return Type.Symbol;
+    case NODE.TS_INTERSECTION_TYPE:
+      const firstObject = getTypeFromTypeAnnotation(
+        { typeAnnotation: typeNode.typeAnnotation.types[0] },
+        typeScope,
+        currentScope,
+        rewritable,
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      );
+      const secondObject = getTypeFromTypeAnnotation(
+        { typeAnnotation: typeNode.typeAnnotation.types[1] },
+        typeScope,
+        currentScope,
+        rewritable,
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      );
+      return (new $Intersection()).applyGeneric([firstObject, secondObject], typeNode.loc);
     case NODE.NULLABLE_TYPE_ANNOTATION:
       const resultType = getTypeFromTypeAnnotation(
         typeNode.typeAnnotation,
@@ -670,9 +697,13 @@ function getPropertiesForType(type: ?Type, node: Node) {
     case ObjectType:
       // $FlowIssue
       return (type: ObjectType).properties;
+    case $BottomType:
+      // $FlowIssue
+      return getPropertiesForType(type.unpack(), node);
     case FunctionType:
     case CollectionType:
-      return getPropertiesForType(type && type.isSubtypeOf, node);
+      // $FlowIssue
+      return getPropertiesForType(type.isSubtypeOf, node);
     case GenericType:
       throw new HegelError(
         "Generic type should be applied before usage",

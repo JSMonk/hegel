@@ -158,7 +158,7 @@ export function addThisToClassScope(
     currentNode.type === NODE.CLASS_EXPRESSION ||
     currentNode.type === NODE.CLASS_DECLARATION
   ) {
-    parentTypeScope.body.set(name, selfVar);
+    parentTypeScope.body.set(name, selfVar.type);
     const staticName = getClassName(currentNode);
     const options = { isNominal: true };
     if (superClass !== undefined) {

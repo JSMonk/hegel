@@ -2,7 +2,7 @@
   "sourceType": "module",
   "presets": [
     ["@babel/env", { "targets": { "node": "current" } }],
-    "@babel/preset-flow"
+    ["@babel/preset-flow", { "all": true }]
   ],
   "plugins": [
     "@babel/plugin-proposal-class-properties",

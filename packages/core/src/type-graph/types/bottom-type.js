@@ -48,9 +48,7 @@ export class $BottomType extends Type {
       if (argument instanceof TypeVar) {
         const argumentIndex = sourceTypes.findIndex(
           a =>
-            argument instanceof $BottomType
-              ? argument.subordinateType === a
-              : a === argument
+            argument instanceof $BottomType ? argument.subordinateType === a : a.equalsTo(argument)
         );
         const result =
           argumentIndex === -1 ? undefined : targetTypes[argumentIndex];
@@ -61,13 +59,11 @@ export class $BottomType extends Type {
       }
       return argument;
     };
-    const appliedParameters = this.genericArguments.map(argument => {
-      if (argument instanceof UnionType) {
-        const result = argument.variants.map(mapper);
-        return result.find(a => a !== undefined);
-      }
-      return mapper(argument);
-    });
+    const appliedParameters = this.genericArguments.map(argument => 
+      argument instanceof UnionType ?
+        argument.variants.map(mapper).find(a => a !== undefined)
+        : mapper(argument)
+    );
     if (appliedParameters.every(a => a === undefined)) {
       return this;
     }

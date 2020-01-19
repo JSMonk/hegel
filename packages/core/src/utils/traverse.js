@@ -12,7 +12,7 @@ type Tree =
     };
 
 export type TraverseMeta = {
-  kind?: ?string
+  kind?: ?string,
 };
 
 export const compose = (...fns: Array<Function>) => (...args: Array<any>) => {
@@ -59,6 +59,29 @@ function mixBlockToLogicalOperator(currentNode: Node) {
   currentNode.right = {
     type: NODE.BLOCK_STATEMENT,
     body: currentNode.right,
+    loc: {
+      start: currentNode.loc.end,
+      end: currentNode.loc.end
+    }
+  };
+  return currentNode;
+}
+
+function mixBlockToConditionalExpression(currentNode: Node) {
+  if (currentNode.type !== NODE.CONDITIONAL_EXPRESSION) {
+    return currentNode;
+  }
+  currentNode.consequent = {
+    type: NODE.BLOCK_STATEMENT,
+    body: currentNode.consequent,
+    loc: {
+      start: currentNode.loc.start,
+      end: currentNode.loc.start
+    }
+  };
+  currentNode.alternate = {
+    type: NODE.BLOCK_STATEMENT,
+    body: currentNode.alternate,
     loc: {
       start: currentNode.loc.end,
       end: currentNode.loc.end
@@ -231,7 +254,8 @@ const getBody = (currentNode: any) =>
     currentNode.expression && currentNode.expression.callee,
     currentNode.expression,
     currentNode.callee,
-    ...(currentNode.elements || [])
+    ...(currentNode.elements || []),
+    ...(currentNode.arguments || []).filter(a => !NODE.isFunction(a))
   ].filter(Boolean);
 
 const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
@@ -248,7 +272,8 @@ const getCurrentNode = compose(
   mixBlockForStatements,
   mixExportInfo,
   mixBlockToLogicalOperator,
-  mixElseIfReturnOrThrowExisted
+  mixElseIfReturnOrThrowExisted,
+  mixBlockToConditionalExpression
 );
 
 export type Handler = (
@@ -266,7 +291,7 @@ function traverseTree(
   middle: Handler,
   post: Handler,
   parentNode: ?Tree = null,
-  meta?: TraverseMeta = {}
+  meta?: TraverseMeta = {},
 ) {
   const currentNode = getCurrentNode(node, parentNode, meta);
   const shouldContinueTraversing = pre(

@@ -8,6 +8,7 @@ import mixBaseOperators from "../utils/operators";
 import mixImportedDependencies from "../utils/imports";
 import HegelError, { UnreachableError } from "../utils/errors";
 import { Type } from "./types/type";
+import { Meta } from "./meta/meta";
 import { TypeScope } from "./type-scope";
 import { refinement } from "../inference/refinement";
 import { ObjectType } from "./types/object-type";
@@ -78,11 +79,10 @@ const addTypeAlias = (
   postcompute: Handler
 ) => {
   const typeScope = typeGraph.typeScope;
-  const selfTypeScope = new TypeScope(typeScope);
-  const localTypeScope = new TypeScope(selfTypeScope);
+  const localTypeScope = new TypeScope(typeScope);
   const typeName = node.id.name;
-  const self = createSelf(node, selfTypeScope);
-  selfTypeScope.body.set(typeName, self);
+  const self = createSelf(node, typeScope);
+  typeScope.body.set(typeName, self);
   const genericArguments =
     node.typeParameters &&
     node.typeParameters.params.map(typeAnnotation =>
@@ -91,7 +91,7 @@ const addTypeAlias = (
         localTypeScope,
         typeGraph,
         true,
-        null,
+        self,
         parentNode,
         typeGraph,
         precompute,
@@ -127,7 +127,6 @@ const addTypeAlias = (
     : type;
   self.root = typeAlias;
   self.name = typeAlias.name;
-  localTypeScope.body.delete(typeName);
   if (genericArguments != null) {
     typeAlias.shouldBeUsedAsGeneric = true;
   }
@@ -193,6 +192,7 @@ const fillModuleScope = (
         addClassScopeToTypeGraph(currentNode, parentNode, typeGraph);
         break;
       case NODE.LOGICAL_EXPRESSION:
+      case NODE.CONDITIONAL_EXPRESSION:
         refinement(
           currentNode,
           getParentForNode(currentNode, parentNode, typeGraph),
@@ -231,7 +231,7 @@ const fillModuleScope = (
         }
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
-        addFunctionToTypeGraph(
+        const functionVariable = addFunctionToTypeGraph(
           currentNode,
           parentNode,
           typeGraph,
@@ -240,6 +240,9 @@ const fillModuleScope = (
           postcompute,
           isTypeDefinitions
         );
+        if (currentNode.exportAs) {
+          typeGraph.exports.set(currentNode.exportAs, functionVariable);
+        }
         break;
       case NODE.BLOCK_STATEMENT:
         if (NODE.isFunction(parentNode) && parentNode.body === currentNode) {
@@ -564,6 +567,26 @@ const afterFillierActions = (
           });
         }
         break;
+      default:
+        if (currentNode.exportAs) {
+          const value = addCallToTypeGraph(
+            currentNode,
+            moduleScope,
+            currentScope,
+            parentNode,
+            precompute,
+            middlecompute,
+            postcompute,
+            { isTypeDefinitions }
+          ).result;
+          moduleScope.exports.set(
+            currentNode.exportAs,
+            value instanceof VariableInfo ?
+              value
+              : new VariableInfo(value,currentScope, new Meta(currentNode.loc))
+          );
+        }
+        break;
     }
     if (
       currentNode.type === NODE.THROW_STATEMENT ||
@@ -638,11 +661,12 @@ async function createGlobalScope(
 > {
   const errors: Array<HegelError> = [];
   const globalModule = new ModuleScope();
+  Type.prettyMode = withPositions;
   mixBaseGlobals(globalModule);
   setupBaseHierarchy(globalModule.typeScope);
+  mixUtilityTypes(globalModule);
   await mixTypeDefinitions(globalModule);
   setupFullHierarchy(globalModule.typeScope);
-  mixUtilityTypes(globalModule);
   mixBaseOperators(globalModule);
   const createDependencyModuleScope = (
     ast: Program,

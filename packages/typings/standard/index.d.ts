@@ -13,8 +13,6 @@ See the Apache Version 2.0 License for specific language governing permissions
 and limitations under the License.
 ***************************************************************************** */
 
-/// <reference no-default-lib="true"/>
-
 /////////////////////////////
 /// ECMAScript APIs
 /////////////////////////////
@@ -93,6 +91,35 @@ declare function escape(string: string): string;
 //   */
 declare function unescape(string: string): string;
 
+
+interface IteratorYieldResult<TYield> {
+    done?: false;
+    value: TYield;
+}
+
+interface IteratorReturnResult<TReturn> {
+    done: true;
+    value: TReturn;
+}
+
+type IteratorResult<T, TReturn> = IteratorYieldResult<T> | IteratorReturnResult<TReturn>;
+
+
+interface Iterator<T, TReturn, TNext> {
+    // NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
+    next(...args: [] | [TNext]): IteratorResult<T, TReturn>;
+    return?(value?: TReturn): IteratorResult<T, TReturn>;
+    throw?(e?: any): IteratorResult<T, TReturn>;
+}
+
+interface Iterable<T> {
+    //[Symbol.iterator](): Iterator<T>;
+}
+
+interface IterableIterator<T> extends Iterator<T, any, any> {
+    //[Symbol.iterator](): IterableIterator<T>;
+}
+
 interface Symbol {
   //   /** Returns a string representation of an object. */
   toString(): string;
@@ -103,6 +130,8 @@ interface Symbol {
 
 interface SymbolConstructor {
   readonly prototype: symbol;
+  readonly iterator: symbol;
+  readonly asyncIterator: symbol;
 
   (description?: string | number): symbol;
 
@@ -306,6 +335,21 @@ interface Array<T> {
     ) => U,
     initialValue?: U
   ): U;
+
+  /** Iterator */
+  //[Symbol.iterator](): IterableIterator<T>;
+  /**
+   * Returns an iterable of key, value pairs for every entry in the array
+   */
+  // entries(): IterableIterator<[number, T]>;
+  /**
+   * Returns an iterable of keys in the array
+   */
+  // keys(): IterableIterator<number>;
+  /**
+   * Returns an iterable of values in the array
+   */
+  // values(): IterableIterator<T>;
 
   [n: number]: T;
 }
@@ -691,6 +735,14 @@ interface ObjectConstructor {
   //       * @param o Object that contains the properties and methods. This can be an object that you created or an existing Document Object Model (DOM) object.
   //       */
   keys(o: object): string[];
+
+  /**
+   * Copy the values of all of the enumerable own properties from one or more source objects to a
+   * target object. Returns the target object.
+   * @param target The target object to copy to.
+   * @param source The source object from which to copy properties.
+   */
+  assign<T, U>(target: T, source: U): T & U;
 }
 
 // /**
@@ -806,10 +858,6 @@ interface String {
   //       * @param searchValue A string to search for.
   //       * @param replacer A function that returns the replacement text.
   //       */
-  replace(
-    searchValue: string | RegExp,
-    replacer: (substring: string, ...args: any[]) => string
-  ): string;
 
   //     /**
   //       * Finds the first substring match in a regular expression search.
@@ -881,6 +929,12 @@ interface String {
   //     /** Returns the primitive value of the specified object. */
   valueOf(): string;
 
+  //[Symbol.iterator](): IterableIterator<string>;
+  
+  /** Removes whitespace from the left end of a string. */
+  trimLeft(): string;
+  /** Removes whitespace from the right end of a string. */
+  trimRight(): string;
   readonly [index: number]: string;
 }
 
@@ -1637,7 +1691,7 @@ interface Promise<T> {
   //      */
   catch<TResult>(
     onrejected: (reason: any) => TResult | PromiseLike<TResult>
-  ): Promise<T | TResult>;
+  ): Promise<TResult>;
 }
 
 interface PromiseConstructor {
@@ -1759,6 +1813,20 @@ interface PromiseConstructor {
 
 declare var Promise: PromiseConstructor;
 
+//interface AsyncIterator<T, TReturn = any, TNext = undefined> {
+    // NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
+//    next(...args: [] | [TNext]): Promise<IteratorResult<T, TReturn>>;
+//    return?(value?: TReturn | PromiseLike<TReturn>): Promise<IteratorResult<T, TReturn>>;
+//    throw?(e?: any): Promise<IteratorResult<T, TReturn>>;
+//}
+
+// interface AsyncIterable<T> {
+    // [Symbol.asyncIterator](): AsyncIterator<T>;
+// }
+
+// interface AsyncIterableIterator<T> extends AsyncIterator<T, any, any> {
+    // [Symbol.asyncIterator](): AsyncIterableIterator<T>;
+// }
 
 interface ArrayLike<T> {
   readonly length: number;
@@ -2229,7 +2297,19 @@ interface Int8Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-
+  //[Symbol.iterator](): IterableIterator<number>;
+  /**
+   * Returns an array of key, value pairs for every entry in the array
+   */
+  entries(): IterableIterator<[number, number]>;
+  /**
+   * Returns an list of keys in the array
+   */
+  keys(): IterableIterator<number>;
+  /**
+   * Returns an list of values in the array
+   */
+  values(): IterableIterator<number>;
   [index: number]: number;
 }
 
@@ -2237,9 +2317,10 @@ interface Int8ArrayConstructor {
   readonly prototype: Int8Array;
   // new (length: number): Int8Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    bufferOffset?: number,
+    length?: number
   ): Int8Array;
-  // new (buffer: ArrayBufferLike, byteOffset: number, length?: number): Int8Array;
 
   //     /**
   //       * The size in bytes of each element in the array.
@@ -2547,6 +2628,19 @@ interface Uint8Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
+  // [Symbol.iterator](): IterableIterator<number>;
+  /**
+   * Returns an array of key, value pairs for every entry in the array
+   */
+  entries(): IterableIterator<[number, number]>;
+  /**
+   * Returns an list of keys in the array
+   */
+  keys(): IterableIterator<number>;
+  /**
+   * Returns an list of values in the array
+   */
+  values(): IterableIterator<number>;
 
   [index: number]: number;
 }
@@ -2555,13 +2649,10 @@ interface Uint8ArrayConstructor {
   readonly prototype: Uint8Array;
   // new (length: number): Uint8Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    byteOffset: number,
+    length?: number
   ): Uint8Array;
-  // new (
-  //   buffer: ArrayBufferLike,
-  //   byteOffset: number,
-  //   length?: number
-  // ): Uint8Array;
 
   //     /**
   //       * The size in bytes of each element in the array.
@@ -2893,7 +2984,19 @@ interface Uint8ClampedArray {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-
+  // [Symbol.iterator](): IterableIterator<number>;
+  /**
+   * Returns an array of key, value pairs for every entry in the array
+   */
+  entries(): IterableIterator<[number, number]>;
+  /**
+   * Returns an list of keys in the array
+   */
+  keys(): IterableIterator<number>;
+  /**
+   * Returns an list of values in the array
+   */
+  values(): IterableIterator<number>;
   [index: number]: number;
 }
 
@@ -2901,7 +3004,9 @@ interface Uint8ClampedArrayConstructor {
   readonly prototype: Uint8ClampedArray;
   // new (length: number): Uint8ClampedArray;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    byteOffset?: number,
+    length?: number
   ): Uint8ClampedArray;
   // new (
   //   buffer: ArrayBufferLike,
@@ -3213,7 +3318,19 @@ interface Int16Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-
+  // [Symbol.iterator](): IterableIterator<number>;
+  /**
+   * Returns an array of key, value pairs for every entry in the array
+   */
+  entries(): IterableIterator<[number, number]>;
+  /**
+   * Returns an list of keys in the array
+   */
+  keys(): IterableIterator<number>;
+  /**
+   * Returns an list of values in the array
+   */
+  values(): IterableIterator<number>;
   [index: number]: number;
 }
 
@@ -3221,13 +3338,10 @@ interface Int16ArrayConstructor {
   readonly prototype: Int16Array;
   // new (length: number): Int16Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    byteOffset?: number,
+    length?: number
   ): Int16Array;
-  // new (
-  //   buffer: ArrayBufferLike,
-  //   byteOffset: number,
-  //   length?: number
-  // ): Int16Array;
 
   //     /**
   //       * The size in bytes of each element in the array.
@@ -3244,7 +3358,7 @@ interface Int16ArrayConstructor {
   //       * Creates an array from an array-like or iterable object.
   //       * @param arrayLike An array-like or iterable object to convert to an array.
   //       */
-  from(arrayLike: ArrayLike<number>): Int16Array;
+  from(arrayLike: ArrayLike<number> | Iterable<number>): Int16Array;
 
   //     /**
   //       * Creates an array from an array-like or iterable object.
@@ -3252,11 +3366,6 @@ interface Int16ArrayConstructor {
   //       * @param mapfn A mapping function to call on every element of the array.
   //       * @param thisArg Value of 'this' used to invoke the mapfn.
   //       */
-  from<T>(
-    arrayLike: ArrayLike<T>,
-    mapfn: (v: T, k: number) => number,
-    thisArg?: any
-  ): Int16Array;
 }
 declare var Int16Array: Int16ArrayConstructor;
 
@@ -3534,6 +3643,19 @@ interface Uint16Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
+  //[Symbol.iterator](): IterableIterator<number>;
+  /**
+   * Returns an array of key, value pairs for every entry in the array
+   */
+  entries(): IterableIterator<[number, number]>;
+  /**
+   * Returns an list of keys in the array
+   */
+  keys(): IterableIterator<number>;
+  /**
+   * Returns an list of values in the array
+   */
+  values(): IterableIterator<number>;
 
   [index: number]: number;
 }
@@ -3542,13 +3664,10 @@ interface Uint16ArrayConstructor {
   readonly prototype: Uint16Array;
   // new (length: number): Uint16Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    byteOffset?: number,
+    length?: number
   ): Uint16Array;
-  // new (
-  //   buffer: ArrayBufferLike,
-  //   byteOffset: number,
-  //   length?: number
-  // ): Uint16Array;
 
   //     /**
   //       * The size in bytes of each element in the array.
@@ -3565,7 +3684,7 @@ interface Uint16ArrayConstructor {
   //       * Creates an array from an array-like or iterable object.
   //       * @param arrayLike An array-like or iterable object to convert to an array.
   //       */
-  from(arrayLike: ArrayLike<number>): Uint16Array;
+  from(arrayLike: ArrayLike<number> | Iterable<number>): Uint16Array;
 
   //     /**
   //       * Creates an array from an array-like or iterable object.
@@ -3573,11 +3692,6 @@ interface Uint16ArrayConstructor {
   //       * @param mapfn A mapping function to call on every element of the array.
   //       * @param thisArg Value of 'this' used to invoke the mapfn.
   //       */
-  from<T>(
-    arrayLike: ArrayLike<T>,
-    mapfn: (v: T, k: number) => number,
-    thisArg?: any
-  ): Uint16Array;
 }
 declare var Uint16Array: Uint16ArrayConstructor;
 // /**
@@ -3851,6 +3965,19 @@ interface Int32Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
+  // [Symbol.iterator](): IterableIterator<number>;
+  /**
+   * Returns an array of key, value pairs for every entry in the array
+   */
+  entries(): IterableIterator<[number, number]>;
+  /**
+   * Returns an list of keys in the array
+   */
+  keys(): IterableIterator<number>;
+  /**
+   * Returns an list of values in the array
+   */
+  values(): IterableIterator<number>;
 
   [index: number]: number;
 }
@@ -3859,7 +3986,7 @@ interface Int32ArrayConstructor {
   readonly prototype: Int32Array;
   // new (length: number): Int32Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>
   ): Int32Array;
   // new (
   //   buffer: ArrayBufferLike,
@@ -3882,19 +4009,7 @@ interface Int32ArrayConstructor {
   //       * Creates an array from an array-like or iterable object.
   //       * @param arrayLike An array-like or iterable object to convert to an array.
   //       */
-  from(arrayLike: ArrayLike<number>): Int32Array;
-
-  //     /**
-  //       * Creates an array from an array-like or iterable object.
-  //       * @param arrayLike An array-like or iterable object to convert to an array.
-  //       * @param mapfn A mapping function to call on every element of the array.
-  //       * @param thisArg Value of 'this' used to invoke the mapfn.
-  //       */
-  from<T>(
-    arrayLike: ArrayLike<T>,
-    mapfn: (v: T, k: number) => number,
-    thisArg?: any
-  ): Int32Array;
+  from(arrayLike: ArrayLike<number> | Iterable<number>): Int32Array;
 }
 
 declare var Int32Array: Int32ArrayConstructor;
@@ -4172,13 +4287,26 @@ interface Uint32Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
+  //[Symbol.iterator](): IterableIterator<number>;
+  /**
+   * Returns an array of key, value pairs for every entry in the array
+   */
+  entries(): IterableIterator<[number, number]>;
+  /**
+   * Returns an list of keys in the array
+   */
+  keys(): IterableIterator<number>;
+  /**
+   * Returns an list of values in the array
+   */
+  values(): IterableIterator<number>;
 
   [index: number]: number;
 }
 
 interface Uint32ArrayConstructor {
   readonly prototype: Uint32Array;
-  new (arrayOrLength: number | Array<number>): Uint32Array;
+  new (arrayOrLength: number | Array<number> | Iterable<number>): Uint32Array;
   // new (
   //   buffer: ArrayBufferLike,
   //   byteOffset: number,
@@ -4200,7 +4328,7 @@ interface Uint32ArrayConstructor {
   //       * Creates an array from an array-like or iterable object.
   //       * @param arrayLike An array-like or iterable object to convert to an array.
   //       */
-  from(arrayLike: ArrayLike<number>): Uint32Array;
+  from(arrayLike: ArrayLike<number> | Iterable<number>): Uint32Array;
 
   //     /**
   //       * Creates an array from an array-like or iterable object.
@@ -4208,11 +4336,6 @@ interface Uint32ArrayConstructor {
   //       * @param mapfn A mapping function to call on every element of the array.
   //       * @param thisArg Value of 'this' used to invoke the mapfn.
   //       */
-  from<T>(
-    arrayLike: ArrayLike<T>,
-    mapfn: (v: T, k: number) => number,
-    thisArg?: any
-  ): Uint32Array;
 }
 declare var Uint32Array: Uint32ArrayConstructor;
 
@@ -4489,8 +4612,20 @@ interface Float32Array {
   //     /**
   //       * Returns a string representation of an array.
   //       */
-  //     toString(): string;
-
+  toString(): string;
+  //  [Symbol.iterator](): IterableIterator<number>;
+  /**
+   * Returns an array of key, value pairs for every entry in the array
+   */
+  entries(): IterableIterator<[number, number]>;
+  /**
+   * Returns an list of keys in the array
+   */
+  keys(): IterableIterator<number>;
+  /**
+   * Returns an list of values in the array
+   */
+  values(): IterableIterator<number>;
   [index: number]: number;
 }
 
@@ -4498,7 +4633,9 @@ interface Float32ArrayConstructor {
   readonly prototype: Float32Array;
   // new (length: number): Float32Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    byteOffset?: number,
+    length?: number
   ): Float32Array;
   // new (
   //   buffer: ArrayBufferLike,
@@ -4521,7 +4658,7 @@ interface Float32ArrayConstructor {
   //       * Creates an array from an array-like or iterable object.
   //       * @param arrayLike An array-like or iterable object to convert to an array.
   //       */
-  // from(arrayLike: ArrayLike<number>): Float32Array;
+  from(arrayLike: ArrayLike<number> | Iterable<number>): Float32Array;
 
   //     /**
   //       * Creates an array from an array-like or iterable object.
@@ -4529,11 +4666,6 @@ interface Float32ArrayConstructor {
   //       * @param mapfn A mapping function to call on every element of the array.
   //       * @param thisArg Value of 'this' used to invoke the mapfn.
   //       */
-  from<T>(
-    arrayLike: ArrayLike<T>,
-    mapfn?: (v: T, k: number) => number,
-    thisArg?: any
-  ): Float32Array;
 }
 declare var Float32Array: Float32ArrayConstructor;
 
@@ -4811,6 +4943,19 @@ interface Float64Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
+  //[Symbol.iterator](): IterableIterator<number>;
+  /**
+   * Returns an array of key, value pairs for every entry in the array
+   */
+  entries(): IterableIterator<[number, number]>;
+  /**
+   * Returns an list of keys in the array
+   */
+  keys(): IterableIterator<number>;
+  /**
+   * Returns an list of values in the array
+   */
+  values(): IterableIterator<number>;
 
   [index: number]: number;
 }
@@ -4819,13 +4964,10 @@ interface Float64ArrayConstructor {
   readonly prototype: Float64Array;
   // new (length: number): Float64Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number
+    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    byteOffset?: number,
+    length?: number
   ): Float64Array;
-  // new (
-  //   buffer: ArrayBufferLike,
-  //   byteOffset: number,
-  //   length?: number
-  // ): Float64Array;
 
   //     /**
   //       * The size in bytes of each element in the array.
@@ -4842,7 +4984,7 @@ interface Float64ArrayConstructor {
   //       * Creates an array from an array-like or iterable object.
   //       * @param arrayLike An array-like or iterable object to convert to an array.
   //       */
-  // from(arrayLike: ArrayLike<number>): Float64Array;
+  from(arrayLike: ArrayLike<number> | Iterable<number>): Float64Array;
 
   //     /**
   //       * Creates an array from an array-like or iterable object.
@@ -4850,11 +4992,6 @@ interface Float64ArrayConstructor {
   //       * @param mapfn A mapping function to call on every element of the array.
   //       * @param thisArg Value of 'this' used to invoke the mapfn.
   //       */
-  from<T>(
-    arrayLike: ArrayLike<T>,
-    mapfn?: (v: T, k: number) => number,
-    thisArg?: any
-  ): Float64Array;
 }
 declare var Float64Array: Float64ArrayConstructor;
 
@@ -4874,6 +5011,11 @@ interface ArrayConstructor {
       | Float32Array
       | Float64Array
   ): number[];
+  /**
+   * Creates an array from an iterable object.
+   * @param iterable An iterable object to convert to an array.
+   */
+  from<T>(iterable: Iterable<T> | ArrayLike<T>): T[];
 }
 
 declare var Array: ArrayConstructor;
@@ -4886,6 +5028,20 @@ interface Map<K, V> {
     has(key: K): boolean;
     set(key: K, value: V): this;
     readonly size: number;
+    /** Returns an iterable of entries in the map. */
+    //[Symbol.iterator](): IterableIterator<[K, V]>;
+    /**
+     * Returns an iterable of key, value pairs for every entry in the map.
+     */
+    entries(): IterableIterator<[K, V]>;
+    /**
+     * Returns an iterable of keys in the map
+     */
+    keys(): IterableIterator<K>;
+    /**
+     * Returns an iterable of values in the map
+     */
+    values(): IterableIterator<V>;
 }
 
 interface MapConstructor {
@@ -4893,6 +5049,7 @@ interface MapConstructor {
     new<K, V>(entries?: readonly (readonly [K, V])[] | null): Map<K, V>;
     readonly prototype: Map<any, any>;
 }
+
 declare var Map: MapConstructor;
 
 interface ReadonlyMap<K, V> {
@@ -4922,6 +5079,25 @@ interface Set<T> {
     forEach(callbackfn: (value: T, value2: T, set: Set<T>) => void, thisArg?: any): void;
     has(value: T): boolean;
     readonly size: number;
+    /** Iterates over values in the set. */
+    //[Symbol.iterator](): IterableIterator<T>;
+    /**
+     * Returns an iterable of [v,v] pairs for every value `v` in the set.
+     */
+    entries(): IterableIterator<[T, T]>;
+    /**
+     * Despite its name, returns an iterable of the values in the set,
+     */
+    keys(): IterableIterator<T>;
+    /**
+     * Returns an iterable of values in the set.
+     */
+    values(): IterableIterator<T>;
+}
+
+interface ReadonlySet<T> {
+    /** Iterates over values in the set. */
+//    [Symbol.iterator](): IterableIterator<T>;
 }
 
 interface SetConstructor {
@@ -4947,3 +5123,129 @@ interface WeakSetConstructor {
     readonly prototype: WeakSet<object>;
 }
 declare var WeakSet: WeakSetConstructor;
+
+interface SharedArrayBuffer {
+    /**
+     * Read-only. The length of the ArrayBuffer (in bytes).
+     */
+    readonly byteLength: number;
+    /*
+     * The SharedArrayBuffer constructor's length property whose value is 1.
+     */
+    length: number;
+    /**
+     * Returns a section of an SharedArrayBuffer.
+     */
+    slice(begin: number, end?: number): SharedArrayBuffer;
+    //readonly [Symbol.species]: SharedArrayBuffer;
+    //readonly [Symbol.toStringTag]: "SharedArrayBuffer";
+}
+
+
+interface SharedArrayBufferConstructor {
+    readonly prototype: SharedArrayBuffer;
+    new (byteLength: number): SharedArrayBuffer;
+}
+
+declare var SharedArrayBuffer: SharedArrayBufferConstructor;
+
+interface ArrayBufferTypes {
+    SharedArrayBuffer: SharedArrayBuffer;
+}
+
+interface Atomics {
+    /**
+     * Adds a value to the value at the given position in the array, returning the original value.
+     * Until this atomic operation completes, any other read or write operation against the array
+     * will block.
+     */
+    add(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    /**
+     * Stores the bitwise AND of a value with the value at the given position in the array,
+     * returning the original value. Until this atomic operation completes, any other read or
+     * write operation against the array will block.
+     */
+    and(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    /**
+     * Replaces the value at the given position in the array if the original value equals the given
+     * expected value, returning the original value. Until this atomic operation completes, any
+     * other read or write operation against the array will block.
+     */
+    compareExchange(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, expectedValue: number, replacementValue: number): number;
+    /**
+     * Replaces the value at the given position in the array, returning the original value. Until
+     * this atomic operation completes, any other read or write operation against the array will
+     * block.
+     */
+    exchange(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    /**
+     * Returns a value indicating whether high-performance algorithms can use atomic operations
+     * (`true`) or must use locks (`false`) for the given number of bytes-per-element of a typed
+     * array.
+     */
+    isLockFree(size: number): boolean;
+    /**
+     * Returns the value at the given position in the array. Until this atomic operation completes,
+     * any other read or write operation against the array will block.
+     */
+    load(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number): number;
+    /**
+     * Stores the bitwise OR of a value with the value at the given position in the array,
+     * returning the original value. Until this atomic operation completes, any other read or write
+     * operation against the array will block.
+     */
+    or(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    /**
+     * Stores a value at the given position in the array, returning the new value. Until this
+     * atomic operation completes, any other read or write operation against the array will block.
+     */
+    store(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    /**
+     * Subtracts a value from the value at the given position in the array, returning the original
+     * value. Until this atomic operation completes, any other read or write operation against the
+     * array will block.
+     */
+    sub(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    /**
+     * If the value at the given position in the array is equal to the provided value, the current
+     * agent is put to sleep causing execution to suspend until the timeout expires (returning
+     * `"timed-out"`) or until the agent is awoken (returning `"ok"`); otherwise, returns
+     * `"not-equal"`.
+     */
+    wait(typedArray: Int32Array, index: number, value: number, timeout?: number): "ok" | "not-equal" | "timed-out";
+    /**
+     * Wakes up sleeping agents that are waiting on the given index of the array, returning the
+     * number of agents that were awoken.
+     */
+    notify(typedArray: Int32Array, index: number, count: number): number;
+    /**
+     * Stores the bitwise XOR of a value with the value at the given position in the array,
+     * returning the original value. Until this atomic operation completes, any other read or write
+     * operation against the array will block.
+     */
+    xor(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
+    //readonly [Symbol.toStringTag]: "Atomics";
+}
+
+declare var Atomics: Atomics;
+
+type DateTimeFormatPartTypes = "day" | "dayPeriod" | "era" | "hour" | "literal" | "minute" | "month" | "second" | "timeZoneName" | "weekday" | "year";
+
+interface DateTimeFormatPart {
+    type: DateTimeFormatPartTypes;
+    value: string;
+}
+
+interface DateTimeFormat {
+    formatToParts(date?: Date | number): DateTimeFormatPart[];
+}
+
+interface Intl {
+    DateTimeFormat: DateTimeFormat;
+}
+
+declare var Intl: Intl;
+
+interface TemplateStringsArray extends ReadonlyArray<string> {
+    readonly raw: string[];
+}

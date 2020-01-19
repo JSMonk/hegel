@@ -27,6 +27,7 @@
     "@hegel/typings": "^0.0.3",
     "chalk": "^2.4.2",
     "cosmiconfig": "^5.2.1",
+    "meow": "^6.0.0",
     "readdirp": "^3.0.2"
   },
   "devDependencies": {

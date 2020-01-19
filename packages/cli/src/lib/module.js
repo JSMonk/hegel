@@ -1,6 +1,6 @@
 // @flow
 import HegelError from "@hegel/core/utils/errors";
-import { existsSync } from "fs";
+import { existsSync, promises } from "fs";
 import { join, extname, dirname, isAbsolute } from "path";
 import type { AST } from "./parser";
 import type { Config } from "./config";
@@ -30,8 +30,14 @@ async function findTypingsInsideNodeModules(
     return null;
   }
   if (isAbsolute(path)) {
-    const typingPath = `${path.slice(0, -extname(path).length)}.d.ts`;
-    return existsSync(typingPath) ? typingPath : path;
+    const pathToPackage = await resolveModule(join(importPath, "package.json"));
+    let typingsPath = `${path.slice(0, -extname(path).length)}.d.ts`;
+    if (pathToPackage !== null) {
+      const packageJSON = JSON.parse(await promises.readFile(pathToPackage, "utf8")); 
+      typingsPath = packageJSON.types !== undefined ? join(dirname(pathToPackage), packageJSON.types): typingsPath;
+      typingsPath = typingsPath.includes("d.ts") ? typingsPath : `${typingsPath}.d.ts`;
+    }
+    return existsSync(typingsPath) ? typingsPath : path;
   }
   if (config.libs.includes("nodejs")) {
     return join(typings, "nodejs", `${path}.d.ts`);
@@ -61,16 +67,15 @@ async function getModuleTypingsPath(
   let isLibrary: boolean = false;
   let isUserDefined: boolean = false;
   if (isRelative(importPath)) {
-    resolvedPath = await resolveModule(join(currentPath, importPath));
+    resolvedPath = await resolveModule(join(dirname(currentPath), importPath));
     isUserDefined = true;
   } else {
     isLibrary = true;
-    resolvedPath = await findTypingsInsideNodeModules(importPath, config);
+    resolvedPath = await findInsideTypingsDirectories(importPath, config);
+    isUserDefined =
+      resolvedPath !== null && resolvedPath.includes("node_modules");
     if (resolvedPath === null || extname(resolvedPath) !== ".ts") {
-      const newResolvedPath = await findInsideTypingsDirectories(importPath, config);
-      isUserDefined =
-        newResolvedPath !== null && newResolvedPath.includes("node_modules");
-      resolvedPath = newResolvedPath || resolvedPath; 
+      resolvedPath = await findTypingsInsideNodeModules(importPath, config) || resolvedPath; 
     }
   }
   if (resolvedPath === null) {

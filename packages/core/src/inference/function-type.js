@@ -6,6 +6,7 @@ import { Meta } from "../type-graph/meta/meta";
 import { TypeVar } from "../type-graph/types/type-var";
 import { CallMeta } from "../type-graph/meta/call-meta";
 import { TypeScope } from "../type-graph/type-scope";
+import { THIS_TYPE } from "../type-graph/constants";
 import { UnionType } from "../type-graph/types/union-type";
 import { addTypeVar } from "../utils/type-utils";
 import { $BottomType } from "../type-graph/types/bottom-type";
@@ -119,6 +120,10 @@ export function inferenceFunctionLiteralType(
       nameIndex++;
     } while (true);
   } catch {}
+  const self = parentScope.type === VariableScope.CLASS_TYPE || parentScope.type === VariableScope.OBJECT_TYPE 
+      // $FlowIssue
+    ? parentScope.body.get(THIS_TYPE).type
+    : null;
   const argumentsTypes = currentNode.params.map((param, index) => {
     if (param.optional && !isTypeDefinitions) {
       throw new HegelError(
@@ -141,7 +146,8 @@ export function inferenceFunctionLiteralType(
       localTypeScope,
       parentScope,
       false,
-      null,
+      // $FlowIssue
+      self,
       parentNode,
       typeGraph,
       pre,
@@ -208,7 +214,8 @@ export function inferenceFunctionLiteralType(
           localTypeScope,
           parentScope,
           false,
-          null,
+          // $FlowIssue
+          self,
           parentNode,
           typeGraph,
           pre,

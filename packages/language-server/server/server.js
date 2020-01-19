@@ -20,6 +20,7 @@ const {
 let types = {},
   errors = [],
   stdLibTypeGraph,
+  nodeJsGlobalTypeGraph,
   config;
 const documents = new TextDocuments();
 const connection = createConnection(
@@ -34,7 +35,7 @@ const dtsrc = {
 const babelrc = {
   sourceType: "module",
   plugins: [
-    "flow",
+    ["flow", { all: true }],
     "bigInt",
     "classProperties",
     "@babel/plugin-syntax-bigint",
@@ -49,6 +50,7 @@ const babelrc = {
 };
 
 connection.listen();
+
 documents.listen(connection);
 
 connection.onInitialize(() => ({
@@ -57,6 +59,7 @@ connection.onInitialize(() => ({
     hoverProvider: true
   }
 }));
+
 connection.onHover(meta => {
   const location = convertRangeToLoc(meta.position);
   if (types instanceof PositionedModuleScope) {
@@ -68,6 +71,7 @@ connection.onHover(meta => {
         };
   }
 });
+
 documents.onDidChangeContent(change => validateTextDocument(change.document));
 
 async function validateTextDocument(textDocument) {
@@ -97,23 +101,20 @@ async function getHegelTypings(source, path) {
       [Object.assign(ast.program, { path })],
       await getModuleAST(path),
       false,
-      mixTypeDefinitions,
+      mixTypeDefinitions(config),
       true
     );
     return [types, errors];
   } catch (e) {
     return [, [e]];
-  }
+  } 
 }
 
-async function getStandardTypeDefinitions(globalScope) {
-  const stdLibContent = await readFile(
-    path.join(__dirname, "../node_modules/@hegel/typings/standard/index.d.ts"),
-    "utf8"
-  );
+async function getTypeGraphFor(path, globalScope) {
+  const content = await readFile(path, "utf8");
   const errors = [];
-  stdLibTypeGraph = await createModuleScope(
-    babylon.parse(stdLibContent, dtsrc).program,
+  const graph = await createModuleScope(
+    babylon.parse(content, dtsrc).program,
     errors,
     () => {},
     globalScope,
@@ -121,8 +122,24 @@ async function getStandardTypeDefinitions(globalScope) {
   );
   if (errors.length > 0) {
     throw errors;
-  }
+  } 
+  return graph;
+}
+
+async function getStandardTypeDefinitions(globalScope) {
+  stdLibTypeGraph = await getTypeGraphFor(
+    path.join(__dirname, "../node_modules/@hegel/typings/standard/index.d.ts"),
+    globalScope
+  );
   return stdLibTypeGraph;
+}
+
+async function getNodeJSTypeDefinitions(globalScope) {
+  nodeJsGlobalTypeGraph =  await getTypeGraphFor(
+    path.join(__dirname, "../node_modules/@hegel/typings/nodejs/globals.d.ts"),
+    globalScope
+  );
+  return nodeJsGlobalTypeGraph;
 }
 
 async function getModuleAST(currentModulePath) {
@@ -130,23 +147,48 @@ async function getModuleAST(currentModulePath) {
     config = await getConfig(currentModulePath);
   }
   return importModule(config, async (path, isTypings) => {
-    const stdLibContent = await readFile(path, "utf8");
+    const moduleContent = await readFile(path, "utf8");
     const config = isTypings ? dtsrc : babelrc;
-    return babylon.parse(stdLibContent, config).program;
+    return babylon.parse(moduleContent, config).program;
   });
 }
 
-async function mixTypeDefinitions(globalScope) {
-  if (stdLibTypeGraph === undefined) {
-    stdLibTypeGraph = await getStandardTypeDefinitions(globalScope);
-  }
-  const body = new Map([...stdLibTypeGraph.body, ...globalScope.body]);
-  const typesBody = new Map([
-    ...stdLibTypeGraph.typeScope.body,
-    ...globalScope.typeScope.body
-  ]);
-  globalScope.body = body;
-  globalScope.typeScope.body = typesBody;
+function mixTypeDefinitions(config) {
+  return async globalScope => {
+    if (stdLibTypeGraph === undefined) {
+        stdLibTypeGraph = await getStandardTypeDefinitions(globalScope);
+    }
+    const body = new Map([...globalScope.body]);
+    for (const [name, variable] of stdLibTypeGraph.body.entries()) {
+      variable.parent = globalScope;
+      body.set(name, variable);
+    }
+    const typesBody = new Map([
+      ...globalScope.typeScope.body,
+    ]);
+    for (const [name, type] of stdLibTypeGraph.typeScope.body.entries()) {
+      type.parent = globalScope.typeScope;
+      typesBody.set(name, type);
+    }
+    globalScope.body = body;
+    globalScope.typeScope.body = typesBody;
+    if (!config.libs.includes("nodejs")) {
+      return;
+    }
+    if (nodeJsGlobalTypeGraph === undefined) {
+      nodeJsGlobalTypeGraph = await getNodeJSTypeDefinitions(globalScope);
+    }
+    for (const [name, variable] of nodeJsGlobalTypeGraph.body.entries()) {
+      variable.parent = globalScope;
+      body.set(name, variable);
+    }
+    for (const [name, type] of nodeJsGlobalTypeGraph.typeScope.body.entries()) {
+      type.parent = globalScope.typeScope;
+      typesBody.set(name, type);
+    }
+    globalScope.body = body;
+    globalScope.typeScope.body = typesBody;
+  };
 }
 
 function formatErrorRange(error) {

@@ -7,6 +7,7 @@ import { $Partial } from "../type-graph/types/partial-type";
 import { $ReturnType } from "../type-graph/types/return-type";
 import { $InstanceOf } from "../type-graph/types/instance-of-type";
 import { $PropertyType } from "../type-graph/types/property-type";
+import { $Intersection } from "../type-graph/types/intersection-type";
 
 const mixUtilityTypes = moduleScope => {
   const typeScope = moduleScope.typeScope;
@@ -22,7 +23,8 @@ const mixUtilityTypes = moduleScope => {
     ["$Pick", new $Pick($Pick.name, { parent: typeScope })],
     ["$Omit", new $Omit($Omit.name, { parent: typeScope })],
     ["$ReturnType", new $ReturnType($ReturnType.name, { parent: typeScope })],
-    ["$TypeOf", new $TypeOf($TypeOf.name, { parent: typeScope })]
+    ["$TypeOf", new $TypeOf($TypeOf.name, { parent: typeScope })],
+    ["$Intersection", new $Intersection($Intersection.name, { parent: typeScope })]
   ]);
 
   typeScope.body = new Map([...typeScope.body, ...utilityTypes]);

@@ -1,14 +1,11 @@
-// @flow
 import readdirp from "readdirp";
 import type { Config } from "./config";
 
-export function getSources(config: Config) {
-  const templateToBeIncluded = config.include || [];
-  const templateToBeExlude = config.exclude || [];
-  const dirFilter = templateToBeExlude.map(a => `!${a}`);
+export function getSources(config: Config) { 
+  const exclude = config.exclude.map(a => `!${a}`);
   return readdirp.promise(config.workingDirectory, {
-    fileFilter: [...templateToBeIncluded, ...dirFilter],
+    fileFilter: config.include.concat(exclude),//[...templateToBeIncluded, ...dirFilter],
     type: "files",
-    directoryFilter: ["!node_modules", ...dirFilter]
-  });
+    directoryFilter: exclude.concat(["!node_modules"])//["!node_modules", ...dirFilter]
+  }); 
 }

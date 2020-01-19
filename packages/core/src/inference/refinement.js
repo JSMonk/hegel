@@ -11,7 +11,7 @@ import { typeofRefinement } from "./typeof";
 import { variableRefinement } from "./variable-refinement";
 import { intersection, union } from "../utils/common";
 import { instanceofRefinement } from "./instanceof";
-import type { Node, BinaryExpression, LogicalExpression } from "@babel/parser";
+import type { Node, BinaryExpression, LogicalExpression, ConditionalExpression } from "@babel/parser";
 
 function getScopesForLogicalExpression(
   condition: LogicalExpression,
@@ -39,6 +39,32 @@ function getScopesForLogicalExpression(
   return condition.operator === "&&"
     ? [primaryScope, alternateScope]
     : [alternateScope, primaryScope];
+}
+
+function getScopesForConditionalExpression(
+  condition: ConditionalExpression,
+  currentScope: VariableScope | ModuleScope,
+  moduleScope: ModuleScope
+): [VariableScope, VariableScope] {
+  const primaryScopeName = VariableScope.getName({
+    loc: { start: condition.loc.start }
+  });
+  // $FlowIssue
+  let primaryScope: VariableScope = moduleScope.body.get(primaryScopeName);
+  if (!(primaryScope instanceof VariableScope)) {
+    primaryScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
+    moduleScope.body.set(primaryScopeName, primaryScope);
+  }
+  const alternateScopeName = VariableScope.getName({
+    loc: { start: condition.loc.end }
+  });
+  // $FlowIssue
+  let alternateScope: VariableScope = moduleScope.body.get(alternateScopeName);
+  if (!(alternateScope instanceof VariableScope)) {
+    alternateScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
+    moduleScope.body.set(alternateScopeName, alternateScope);
+  }
+  return [primaryScope, alternateScope];
 }
 
 function getPrimaryAndAlternativeScopes(
@@ -73,6 +99,14 @@ function getPrimaryAndAlternativeScopes(
         currentScope,
         moduleScope
       );
+      break;
+    case NODE.CONDITIONAL_EXPRESSION:
+      [primaryScope, alternateScope] = getScopesForConditionalExpression(
+        currentRefinementNode,
+        currentScope,
+        moduleScope
+      );
+      break;
   }
   if (
     !primaryScope ||
@@ -87,6 +121,7 @@ function getPrimaryAndAlternativeScopes(
 function getCondition(currentRefinementNode: Node) {
   switch (currentRefinementNode.type) {
     case NODE.IF_STATEMENT:
+    case NODE.CONDITIONAL_EXPRESSION:
     case NODE.WHILE_STATEMENT:
     case NODE.DO_WHILE_STATEMENT:
     case NODE.FOR_STATEMENT:

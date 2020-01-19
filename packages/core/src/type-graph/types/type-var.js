@@ -35,7 +35,7 @@ export class TypeVar extends Type {
     this._isUserDefined = isUserDefined;
   }
 
-  equalsTo(anotherType: Type, strict?: boolean = false) {
+  equalsTo(anotherType: Type, strict?: boolean = false, withoutRoot?: boolean = false) {
     const isDifferenceInDefinition =
       this.isUserDefined &&
       anotherType instanceof TypeVar &&
@@ -79,7 +79,8 @@ export class TypeVar extends Type {
     typeScope: TypeScope
   ): Type {
     const indexOfNewRootType = sourceTypes.findIndex(a =>
-      a.equalsTo(this.root != undefined ? this.root : this)
+      // $FlowIssue
+      a === this.root || a.equalsTo(this, true, true)
     );
     if (indexOfNewRootType !== -1) {
       return targetTypes[indexOfNewRootType];
@@ -103,6 +104,6 @@ export class TypeVar extends Type {
   }
 
   contains(type: Type) {
-    return this.equalsTo(type, true);
+    return this.equalsTo(type, true, true);
   }
 }

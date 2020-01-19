@@ -386,10 +386,11 @@ describe("Variable declrataion and assignment", () => {
       const a: number => number = (a: number) => a == 2 ? a : undefined; 
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
+    debugger;
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => number | undefined" is incompatible with type "(number) => number"'
+      'Type "(number) => 2 | undefined" is incompatible with type "(number) => number"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 71, line: 2 },
