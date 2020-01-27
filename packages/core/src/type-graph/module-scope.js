@@ -19,7 +19,6 @@ export type GraphElement =
   | ClassMethod
   | ObjectMethod
   | VariableInfo
-  | VariableScope
   | ClassProperty
   | ObjectProperty
   | FunctionDeclaration;
@@ -33,6 +32,7 @@ export class ModuleScope extends Scope {
   calls: Array<CallMeta> = [];
   exports: Map<string, VariableInfo>;
   exportsTypes: Map<string, Type>;
+  scopes: Map<string, VariableScope>;
 
   constructor(
     body?: TypeGraph = new Map(),
@@ -46,6 +46,7 @@ export class ModuleScope extends Scope {
     this.typeScope = typeScope;
     this.exports = new Map();
     this.exportsTypes = new Map();
+    this.scopes = new Map();
   }
 }
 

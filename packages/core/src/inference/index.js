@@ -58,10 +58,10 @@ export function inferenceTypeForNode(
       );
     case NODE.OBJECT_EXPRESSION:
     case NODE.CLASS_EXPRESSION:
-      const objectScope = typeGraph.body.get(
+      const objectScope = typeGraph.scopes.get(
         VariableScope.getName(currentNode)
       );
-      if (!(objectScope instanceof VariableScope)) {
+      if (objectScope === undefined) {
         throw new Error("Never!!!");
       }
       const self =

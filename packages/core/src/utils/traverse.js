@@ -12,7 +12,7 @@ type Tree =
     };
 
 export type TraverseMeta = {
-  kind?: ?string,
+  kind?: ?string
 };
 
 export const compose = (...fns: Array<Function>) => (...args: Array<any>) => {
@@ -241,7 +241,6 @@ const getBody = (currentNode: any) =>
     currentNode.handler,
     currentNode.test,
     currentNode.finalizer,
-    currentNode.consequent,
     currentNode.alternate,
     currentNode.value,
     currentNode.init && currentNode.init.callee,
@@ -253,9 +252,15 @@ const getBody = (currentNode: any) =>
     currentNode.argument,
     currentNode.expression && currentNode.expression.callee,
     currentNode.expression,
+    currentNode.discriminant,
     currentNode.callee,
     ...(currentNode.elements || []),
-    ...(currentNode.arguments || []).filter(a => !NODE.isFunction(a))
+    ...(currentNode.cases || []),
+    ...(currentNode.expressions || []),
+    ...(currentNode.arguments || []).filter(a => !NODE.isFunction(a)),
+    ...(Array.isArray(currentNode.consequent)
+      ? currentNode.consequent
+      : [currentNode.consequent])
   ].filter(Boolean);
 
 const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
@@ -291,7 +296,7 @@ function traverseTree(
   middle: Handler,
   post: Handler,
   parentNode: ?Tree = null,
-  meta?: TraverseMeta = {},
+  meta?: TraverseMeta = {}
 ) {
   const currentNode = getCurrentNode(node, parentNode, meta);
   const shouldContinueTraversing = pre(

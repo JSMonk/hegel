@@ -40,7 +40,7 @@ export function addFunctionScopeToTypeGraph(
     variableInfo
   );
   scope.throwable = [];
-  moduleScope.body.set(VariableScope.getName(currentNode), scope);
+  moduleScope.scopes.set(VariableScope.getName(currentNode), scope);
   if (currentNode.type === NODE.FUNCTION_EXPRESSION && currentNode.id) {
     scope.body.set(getDeclarationName(currentNode), variableInfo);
   }
@@ -180,7 +180,8 @@ export function functionWithReturnType(
     FunctionType.getName(
       newFunctionArguments,
       newReturnType,
-      newFunctionGenericArguments
+      newFunctionGenericArguments,
+      oldFunctionType.isAsync
     ),
     {},
     newFunctionArguments,

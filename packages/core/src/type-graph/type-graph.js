@@ -9,6 +9,7 @@ import mixImportedDependencies from "../utils/imports";
 import HegelError, { UnreachableError } from "../utils/errors";
 import { Type } from "./types/type";
 import { Meta } from "./meta/meta";
+import { TypeVar } from "./types/type-var";
 import { TypeScope } from "./type-scope";
 import { refinement } from "../inference/refinement";
 import { ObjectType } from "./types/object-type";
@@ -21,9 +22,8 @@ import { addVariableToGraph } from "../utils/variable-utils";
 import { inferenceErrorType } from "../inference/error-type";
 import { ModuleScope, PositionedModuleScope } from "./module-scope";
 import { addCallToTypeGraph, addPropertyToThis, addMethodToThis } from "./call";
-import { setupBaseHierarchy, setupFullHierarchy } from "../utils/hierarchy";
+import { setupBaseHierarchy, setupFullHierarchy, dropAllGlobals } from "../utils/hierarchy";
 import {
-  createSelf,
   addTypeNodeToTypeGraph,
   getTypeFromTypeAnnotation
 } from "../utils/type-utils";
@@ -81,7 +81,7 @@ const addTypeAlias = (
   const typeScope = typeGraph.typeScope;
   const localTypeScope = new TypeScope(typeScope);
   const typeName = node.id.name;
-  const self = createSelf(node, typeScope);
+  const self = TypeVar.createSelf(typeName, typeScope);
   typeScope.body.set(typeName, self);
   const genericArguments =
     node.typeParameters &&
@@ -116,6 +116,9 @@ const addTypeAlias = (
     postcompute,
     name
   );
+  if (type instanceof ObjectType) {
+    type.strict = node.type !== NODE.TS_INTERFACE_DECLARATION;
+  }
   const typeAlias = genericArguments
     ? GenericType.new(
         typeName,
@@ -271,12 +274,15 @@ const fillModuleScope = (
           typeGraph
         );
         tryBlock.throwable = [];
-        typeGraph.body.set(VariableScope.getName(currentNode.block), tryBlock);
+        typeGraph.scopes.set(
+          VariableScope.getName(currentNode.block),
+          tryBlock
+        );
         if (!currentNode.handler) {
           return true;
         }
         const handlerScopeKey = VariableScope.getName(currentNode.handler.body);
-        typeGraph.body.set(
+        typeGraph.scopes.set(
           handlerScopeKey,
           getScopeFromNode(currentNode.handler.body, parentNode, typeGraph)
         );
@@ -348,6 +354,11 @@ const middlefillModuleScope = (
         addFunctionNodeToTypeGraph(currentNode, parentNode, typeGraph);
         break;
       case NODE.TS_INTERFACE_DECLARATION:
+      case NODE.CLASS_DECLARATION:
+      case NODE.TS_TYPE_ALIAS:
+        if (currentNode.type === NODE.CLASS_DECLARATION && !isTypeDefinitions) {
+          return;
+        }
         addTypeNodeToTypeGraph(currentNode, typeGraph);
         break;
     }
@@ -371,7 +382,10 @@ const afterFillierActions = (
     const currentScope = getParentForNode(currentNode, parentNode, moduleScope);
     switch (currentNode.type) {
       case NODE.OBJECT_EXPRESSION:
-        addObjectToTypeGraph(currentNode, moduleScope);
+        const obj = addObjectToTypeGraph(currentNode, moduleScope);
+        if (currentNode.exportAs) {
+          moduleScope.exports.set(currentNode.exportAs, obj);
+        }
         break;
       case NODE.CLASS_PROPERTY:
       case NODE.OBJECT_PROPERTY:
@@ -387,7 +401,7 @@ const afterFillierActions = (
         break;
       case NODE.CLASS_DECLARATION:
       case NODE.CLASS_EXPRESSION:
-        addClassToTypeGraph(
+        const classConstructor = addClassToTypeGraph(
           currentNode,
           typeScope,
           moduleScope,
@@ -397,6 +411,14 @@ const afterFillierActions = (
           postcompute,
           isTypeDefinitions
         );
+        if (currentNode.exportAs) {
+          moduleScope.exports.set(currentNode.exportAs, classConstructor);
+          moduleScope.exportsTypes.set(
+            currentNode.exportAs,
+            // $FlowIssue
+            classConstructor.type.instanceType
+          );
+        }
         break;
       case NODE.TYPE_ALIAS:
       case NODE.TS_TYPE_ALIAS:
@@ -506,11 +528,11 @@ const afterFillierActions = (
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
       case NODE.FUNCTION_DECLARATION:
-        const functionScope = moduleScope.body.get(
+        const functionScope = moduleScope.scopes.get(
           VariableScope.getName(currentNode)
         );
-        if (!(functionScope instanceof VariableScope)) {
-          throw new Error("Never!");
+        if (functionScope === undefined) {
+          throw new Error("Never!!!");
         }
         if (functionScope.declaration instanceof VariableInfo) {
           const fnType = functionScope.declaration.type;
@@ -581,9 +603,9 @@ const afterFillierActions = (
           ).result;
           moduleScope.exports.set(
             currentNode.exportAs,
-            value instanceof VariableInfo ?
-              value
-              : new VariableInfo(value,currentScope, new Meta(currentNode.loc))
+            value instanceof VariableInfo
+              ? value
+              : new VariableInfo(value, currentScope, new Meta(currentNode.loc))
           );
         }
         break;
@@ -616,7 +638,8 @@ export async function createModuleScope(
     errors,
     module,
     typeScope,
-    getModuleTypeGraph
+    getModuleTypeGraph,
+    isTypeDefinitions
   );
   try {
     traverseTree(
@@ -636,11 +659,9 @@ export async function createModuleScope(
       errors.push(e);
     }
   }
-  module.body.forEach(scope => {
-    if (scope instanceof VariableScope) {
-      checkCalls(ast.path, scope, typeScope, errors);
-    }
-  });
+  module.scopes.forEach(scope =>
+    checkCalls(ast.path, scope, typeScope, errors)
+  );
   checkCalls(ast.path, module, typeScope, errors);
   return module;
 }
@@ -662,8 +683,8 @@ async function createGlobalScope(
   const errors: Array<HegelError> = [];
   const globalModule = new ModuleScope();
   Type.prettyMode = withPositions;
-  mixBaseGlobals(globalModule);
   setupBaseHierarchy(globalModule.typeScope);
+  mixBaseGlobals(globalModule);
   mixUtilityTypes(globalModule);
   await mixTypeDefinitions(globalModule);
   setupFullHierarchy(globalModule.typeScope);
@@ -696,6 +717,7 @@ async function createGlobalScope(
       )
     )
   );
+  dropAllGlobals();
   return [modules, errors, globalModule];
 }
 

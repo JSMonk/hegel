@@ -38,3 +38,9 @@ export function setupFullHierarchy(globalTypeScope) {
   );
   globalTypeScope.body.set("Array", TupleType.Array);
 }
+
+export function dropAllGlobals() {
+  ObjectType.Object.root = undefined;
+  FunctionType.Function.root = undefined;
+  TupleType.Array.root = undefined;
+}

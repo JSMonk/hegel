@@ -11,7 +11,12 @@ import { typeofRefinement } from "./typeof";
 import { variableRefinement } from "./variable-refinement";
 import { intersection, union } from "../utils/common";
 import { instanceofRefinement } from "./instanceof";
-import type { Node, BinaryExpression, LogicalExpression, ConditionalExpression } from "@babel/parser";
+import type {
+  Node,
+  BinaryExpression,
+  LogicalExpression,
+  ConditionalExpression
+} from "@babel/parser";
 
 function getScopesForLogicalExpression(
   condition: LogicalExpression,
@@ -22,19 +27,21 @@ function getScopesForLogicalExpression(
     loc: { start: condition.loc.end }
   });
   // $FlowIssue
-  let primaryScope: VariableScope = moduleScope.body.get(primaryScopeName);
+  let primaryScope: VariableScope = moduleScope.scopes.get(primaryScopeName);
   if (!(primaryScope instanceof VariableScope)) {
     primaryScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
-    moduleScope.body.set(primaryScopeName, primaryScope);
+    moduleScope.scopes.set(primaryScopeName, primaryScope);
   }
   const alternateScopeName = VariableScope.getName({
     loc: { start: condition.loc.start }
   });
   // $FlowIssue
-  let alternateScope: VariableScope = moduleScope.body.get(alternateScopeName);
+  let alternateScope: VariableScope = moduleScope.scopes.get(
+    alternateScopeName
+  );
   if (!(alternateScope instanceof VariableScope)) {
     alternateScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
-    moduleScope.body.set(alternateScopeName, alternateScope);
+    moduleScope.scopes.set(alternateScopeName, alternateScope);
   }
   return condition.operator === "&&"
     ? [primaryScope, alternateScope]
@@ -50,19 +57,21 @@ function getScopesForConditionalExpression(
     loc: { start: condition.loc.start }
   });
   // $FlowIssue
-  let primaryScope: VariableScope = moduleScope.body.get(primaryScopeName);
+  let primaryScope: VariableScope = moduleScope.scopes.get(primaryScopeName);
   if (!(primaryScope instanceof VariableScope)) {
     primaryScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
-    moduleScope.body.set(primaryScopeName, primaryScope);
+    moduleScope.scopes.set(primaryScopeName, primaryScope);
   }
   const alternateScopeName = VariableScope.getName({
     loc: { start: condition.loc.end }
   });
   // $FlowIssue
-  let alternateScope: VariableScope = moduleScope.body.get(alternateScopeName);
+  let alternateScope: VariableScope = moduleScope.scopes.get(
+    alternateScopeName
+  );
   if (!(alternateScope instanceof VariableScope)) {
     alternateScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
-    moduleScope.body.set(alternateScopeName, alternateScope);
+    moduleScope.scopes.set(alternateScopeName, alternateScope);
   }
   return [primaryScope, alternateScope];
 }
@@ -77,19 +86,19 @@ function getPrimaryAndAlternativeScopes(
   let alternateScope: Node | void;
   switch (currentRefinementNode.type) {
     case NODE.IF_STATEMENT:
-      primaryScope = moduleScope.body.get(
+      primaryScope = moduleScope.scopes.get(
         VariableScope.getName(currentRefinementNode.consequent)
       );
       alternateScope =
         currentRefinementNode.alternate &&
-        moduleScope.body.get(
+        moduleScope.scopes.get(
           VariableScope.getName(currentRefinementNode.alternate)
         );
       break;
     case NODE.WHILE_STATEMENT:
     case NODE.DO_WHILE_STATEMENT:
     case NODE.FOR_STATEMENT:
-      primaryScope = moduleScope.body.get(
+      primaryScope = moduleScope.scopes.get(
         VariableScope.getName(currentRefinementNode.body)
       );
       break;
@@ -156,7 +165,7 @@ function intersectionOfTypes(
     const isTypeExisting = unionType.variants.some(t => t.equalsTo(notUnion));
     return isTypeExisting ? notUnion : Type.Never;
   }
-  return Type.Never;
+  return type1;
 }
 
 function unionOfTypes(type1: Type, type2: Type, typeScope: TypeScope): Type {
@@ -253,6 +262,7 @@ function refinementByCondition(
       );
       return typeofResult && [typeofResult];
     case NODE.IDENTIFIER:
+    case NODE.MEMBER_EXPRESSION:
       const refinemented = variableRefinement(
         condition,
         currentScope,
@@ -261,20 +271,44 @@ function refinementByCondition(
       );
       return refinemented && [refinemented];
     case NODE.LOGICAL_EXPRESSION:
+      const [
+        additionalPrimaryScope,
+        additionalAlternateScope
+      ] = getScopesForLogicalExpression(condition, currentScope, moduleScope);
       const leftSideRefinement = refinementByCondition(
         condition.left.body || condition.left,
         currentScope,
         typeScope,
         moduleScope
       );
+      if (leftSideRefinement) {
+        leftSideRefinement.forEach(([key, refinement, alternate]) => {
+          if (refinement !== undefined) {
+            additionalPrimaryScope.body.set(
+              key,
+              new VariableInfo(refinement, additionalPrimaryScope)
+            );
+          }
+          if (alternate !== undefined) {
+            additionalAlternateScope.body.set(
+              key,
+              new VariableInfo(alternate, additionalAlternateScope)
+            );
+          }
+        });
+      }
       const rightSideRefinement = refinementByCondition(
         condition.right.body || condition.right,
-        currentScope,
+        condition.operator === "||"
+          ? additionalAlternateScope
+          : additionalPrimaryScope,
         typeScope,
         moduleScope
       );
       if (!leftSideRefinement || !rightSideRefinement) {
-        return leftSideRefinement || rightSideRefinement;
+        return condition.operator === "&&"
+          ? leftSideRefinement
+          : rightSideRefinement;
       }
       const [sameRefinement, other] = intersection(
         leftSideRefinement,
@@ -284,20 +318,12 @@ function refinementByCondition(
       if (sameRefinement.length === 0) {
         return other;
       }
-      const [
-        additionalPrimaryScope,
-        additionalAlternateScope
-      ] = getScopesForLogicalExpression(condition, currentScope, moduleScope);
       const sameRefinementVariants = sameRefinement.map(
         ([key, refinementedType, alternateType]) => {
           const sameRefinement: any = leftSideRefinement.find(
             a => a[0] === key
           );
           if (condition.operator === "||") {
-            additionalPrimaryScope.body.set(
-              key,
-              new VariableInfo(alternateType, additionalPrimaryScope)
-            );
             return [
               key,
               unionOfTypes(refinementedType, sameRefinement[1], typeScope),
@@ -305,10 +331,6 @@ function refinementByCondition(
             ];
           }
           if (condition.operator === "&&") {
-            additionalPrimaryScope.body.set(
-              key,
-              new VariableInfo(refinementedType, additionalPrimaryScope)
-            );
             return [
               key,
               intersectionOfTypes(

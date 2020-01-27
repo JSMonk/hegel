@@ -1,11 +1,13 @@
-import readdirp from "readdirp";
+import glob from "glob";
+import { join } from "path";
 import type { Config } from "./config";
 
-export function getSources(config: Config) { 
-  const exclude = config.exclude.map(a => `!${a}`);
-  return readdirp.promise(config.workingDirectory, {
-    fileFilter: config.include.concat(exclude),//[...templateToBeIncluded, ...dirFilter],
-    type: "files",
-    directoryFilter: exclude.concat(["!node_modules"])//["!node_modules", ...dirFilter]
-  }); 
+export function getSources(config: Config) {
+  const include: Array<string> = config.include || [];
+  const exclude: Array<string> = config.exclude || [];
+  return glob.sync(include.join(), {
+    cwd: config.workingDirectory,
+    dot: true,
+    ignore: exclude
+  });
 }

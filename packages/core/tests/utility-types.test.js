@@ -16,7 +16,7 @@ describe("Test $PropertyType", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A")).toBe(Type.Number);
+    expect(typeScope.body.get("A") === Type.Number).toBe(true);
   });
   test("Simple test of array property", async () => {
     const sourceAST = prepareAST(`
@@ -31,7 +31,7 @@ describe("Test $PropertyType", () => {
     );
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("B")).toBe(Type.find("number | undefined"));
+    expect(typeScope.body.get("B") === Type.find("number | undefined")).toBe(true);
   });
   test("Should throw error with non-object property", async () => {
     const sourceAST = prepareAST(`
@@ -62,7 +62,7 @@ describe("Test $Keys", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A")).toBe(Type.find("'a' | 'b' | 'c'"));
+    expect(typeScope.body.get("A") === Type.find("'a' | 'b' | 'c'")).toBe(true);
   });
   test("Should throw error with non-object target", async () => {
     const sourceAST = prepareAST(`
@@ -85,7 +85,7 @@ describe("Test $Values", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A")).toBe(Type.find("number | string"));
+    expect(typeScope.body.get("A") === Type.find("number | string")).toBe(true);
   });
   test("Should throw error with non-object target", async () => {
     const sourceAST = prepareAST(`
@@ -133,7 +133,7 @@ describe("Test $Pick", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A")).toBe(Type.find("{ a: 1, b: 2 }"));
+    expect(typeScope.body.get("A") === Type.find("{ a: 1, b: 2 }")).toBe(true);
   });
   test("Should throw error with non-object first argument", async () => {
     const sourceAST = prepareAST(`
@@ -171,7 +171,7 @@ describe("Test $Omit", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A")).toBe(Type.find("{ c: 3 }"));
+    expect(typeScope.body.get("A") === Type.find("{ c: 3 }")).toBe(true);
   });
   test("Should throw error with non-object first argument", async () => {
     const sourceAST = prepareAST(`
@@ -209,7 +209,7 @@ describe("Test $ReturnType", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A")).toBe(Type.Number);
+    expect(typeScope.body.get("A") === Type.Number).toBe(true);
   });
   test("Should throw error with non-object first argument", async () => {
     const sourceAST = prepareAST(`
@@ -232,7 +232,7 @@ describe("Test $TypeOf", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A")).toBe(Type.Number);
+    expect(typeScope.body.get("A") === Type.Number).toBe(true);
   });
   test("Should throw error with non-runtime first argument", async () => {
     const sourceAST = prepareAST(`
@@ -255,7 +255,7 @@ describe("Test $InstanceOf", () => {
     expect(errors.length).toEqual(0);
     const type = typeScope.body.get("A");
     expect(type).toBeInstanceOf(ObjectType);
-    expect(type).toBe(Type.find("User"));
+    expect(type === Type.find("User", { parent: actual.typeScope })).toBe(true);
   });
   test("Should throw error with non-runtime first argument", async () => {
     const sourceAST = prepareAST(`

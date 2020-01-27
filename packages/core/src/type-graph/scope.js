@@ -50,9 +50,9 @@ export class Scope {
       postcompute,
       parentNode,
     );
-    const scope = typeGraph.body.get(scopeName);
+    const scope = typeGraph.scopes.get(scopeName);
     // $FlowIssue
-    if (!(scope instanceof Scope) || scope.type !== "function") {
+    if (scope === undefined || scope.type !== "function") {
       return;
     }
     // $FlowIssue
@@ -123,5 +123,25 @@ export class Scope {
       parent = parent.parent;
     } while (parent);
     throw new HegelError(`Record "${name}" is not defined!`, loc);
+  }
+
+  isParentFor(scope: Scope) {
+    let parent = scope;
+    do {
+      if (parent === this) {
+        return true;
+      }
+      parent = parent.parent;
+    } while(parent != null);
+  }
+
+  getAllChildScopes(module: ModuleScope) {
+    const children = [];
+    for (const [_, scope] of module.scopes) {
+      if (this.isParentFor(scope)) {
+        children.push(scope);
+      }
+    }
+    return children;
   }
 }

@@ -33,9 +33,8 @@ export class ObjectType extends Type {
       if (property instanceof VariableInfo) {
         const propertyType = property.type;
         if (
-          !TypeVar.isSelf(propertyType) &&
-          (parent === undefined ||
-            parent.priority < propertyType.parent.priority)
+          parent === undefined ||
+          parent.priority < propertyType.parent.priority
         ) {
           parent = propertyType.parent;
         }
@@ -50,8 +49,12 @@ export class ObjectType extends Type {
       return undefined;
     }
     const filteredProperties = params ? unique(params, ([key]) => key) : [];
-    const properties = filteredProperties.sort(([name1], [name2]) => String(name1).localeCompare(String(name2)));
-    return this.prettyMode && filteredProperties.length > 3 ? this.multyLine(properties) : this.oneLine(properties);
+    const properties = filteredProperties.sort(([name1], [name2]) =>
+      String(name1).localeCompare(String(name2))
+    );
+    return this.prettyMode && filteredProperties.length > 3
+      ? this.multyLine(properties)
+      : this.oneLine(properties);
   }
 
   static oneLine(properties: Array<[string, Type]>) {
@@ -59,7 +62,8 @@ export class ObjectType extends Type {
       .map(
         ([name, type]) =>
           `${name}: ${String(
-            type instanceof VariableInfo ? type.type.name : type.name
+            Type.getTypeRoot(type instanceof VariableInfo ? type.type : type)
+              .name
           )}`
       )
       .join(", ")} }`;
@@ -70,7 +74,8 @@ export class ObjectType extends Type {
       .map(
         ([name, type]) =>
           `  ${name}: ${String(
-            type instanceof VariableInfo ? type.type.name : type.name
+            Type.getTypeRoot(type instanceof VariableInfo ? type.type : type)
+              .name
           )}`
       )
       .join(",\n")}\n}`;
@@ -78,23 +83,28 @@ export class ObjectType extends Type {
 
   isNominal: boolean;
   properties: Map<string, VariableInfo>;
-  onlyLiteral = true;
+  strict: boolean;
   instanceType: Type | null = null;
+  priority = 2;
 
   constructor(
     name: ?string,
     options: ExtendedTypeMeta = {},
-    properties: Array<[string, VariableInfo]>
+    properties: Array<[string, VariableInfo]>,
+    strict: boolean = true
   ) {
+    name = name == undefined ? ObjectType.getName(properties) : name;
     super(name, {
       isSubtypeOf: name === "Object" ? undefined : ObjectType.Object,
       ...options
     });
+    this.strict = strict;
     this.isNominal = Boolean(options.isNominal);
     const filteredProperties = properties
       ? unique(properties, ([key]) => key)
       : [];
     this.properties = new Map(filteredProperties);
+    this.onlyLiteral = true;
   }
 
   getPropertyType(
@@ -126,7 +136,10 @@ export class ObjectType extends Type {
     anotherType: ObjectType
   ): boolean {
     for (const [key, { type }] of this.properties) {
-      if (type === undefined || [CALLABLE, INDEXABLE, CONSTRUCTABLE].includes(key)) {
+      if (
+        type === undefined ||
+        [CALLABLE, INDEXABLE, CONSTRUCTABLE].includes(key)
+      ) {
         continue;
       }
       const anotherProperty = anotherType.properties.get(key) || {
@@ -145,35 +158,57 @@ export class ObjectType extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ): Type {
-    let isAnyPropertyChanged = false;
-    const newProperties: Array<[string, VariableInfo]> = [];
-    this.properties.forEach((vInfo, key) => {
-      if (!(vInfo instanceof VariableInfo)) {
-        return;
-      }
-      const newType = vInfo.type.changeAll(sourceTypes, targetTypes, typeScope);
-      if (vInfo.type === newType) {
-        return newProperties.push([key, vInfo]);
-      }
-      isAnyPropertyChanged = true;
-      newProperties.push([
-        key,
-        new VariableInfo(newType, vInfo.parent, vInfo.meta)
-      ]);
-    });
-    const isSubtypeOf =
-      this.isSubtypeOf === null || this.isSubtypeOf === ObjectType.Object
-        ? this.isSubtypeOf
-        : this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
-    if (!isAnyPropertyChanged && this.isSubtypeOf === isSubtypeOf) {
+    if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    return ObjectType.term(
-      ObjectType.getName(newProperties, this) ||
-        this.getChangedName(sourceTypes, targetTypes),
-      { isSubtypeOf },
-      newProperties
+    if (this._alreadyProcessedWith !== null) {
+      return this._alreadyProcessedWith;
+    }
+    this._alreadyProcessedWith = TypeVar.createSelf(
+      this.getChangedName(sourceTypes, targetTypes),
+      this.parent
     );
+    let isAnyPropertyChanged = false;
+    try {
+      const newProperties: Array<[string, VariableInfo]> = [];
+      this.properties.forEach((vInfo, key) => {
+        if (!(vInfo instanceof VariableInfo)) {
+          return;
+        }
+        const newType = vInfo.type.changeAll(
+          sourceTypes,
+          targetTypes,
+          typeScope
+        );
+        if (vInfo.type === newType) {
+          return newProperties.push([key, vInfo]);
+        }
+        isAnyPropertyChanged = true;
+        newProperties.push([
+          key,
+          new VariableInfo(newType, vInfo.parent, vInfo.meta)
+        ]);
+      });
+      const isSubtypeOf =
+        this.isSubtypeOf === null || this.isSubtypeOf === ObjectType.Object
+          ? this.isSubtypeOf
+          : this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
+      if (!isAnyPropertyChanged && this.isSubtypeOf === isSubtypeOf) {
+        this._alreadyProcessedWith = null;
+        return this;
+      }
+      const result = ObjectType.term(
+        ObjectType.getName(newProperties, this) ||
+          this.getChangedName(sourceTypes, targetTypes),
+        { isSubtypeOf },
+        newProperties
+      );
+      result.strict = this.strict;
+      return this.endChanges(result);
+    } catch (e) {
+      this._alreadyProcessedWith = null;
+      throw e;
+    }
   }
 
   equalsTo(anotherType: Type) {
@@ -184,11 +219,18 @@ export class ObjectType extends Type {
     if (
       !(anotherType instanceof ObjectType) ||
       anotherType.properties.size !== this.properties.size ||
-      !super.equalsTo(anotherType)
+      !super.equalsTo(anotherType) ||
+      !this.canContain(anotherType)
     ) {
       return false;
     }
-    return this.isAllProperties("equalsTo", anotherType);
+    if (this._alreadyProcessedWith === anotherType) {
+      return true;
+    }
+    this._alreadyProcessedWith = anotherType;
+    const result = this.isAllProperties("equalsTo", anotherType);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   isInHierarchyOf(anotherType: Type) {
@@ -210,20 +252,32 @@ export class ObjectType extends Type {
     ) {
       return true;
     }
+    if (this._alreadyProcessedWith === anotherType) {
+      return true;
+    }
+    this._alreadyProcessedWith = anotherType;
     const requiredProperties = [...this.properties.values()].filter(
       ({ type }) =>
         !(type instanceof UnionType) ||
         !type.variants.some(t => t.equalsTo(Type.Undefined))
     );
-    return anotherType instanceof ObjectType && !this.isNominal
-      ? anotherType.properties.size >= requiredProperties.length &&
-          anotherType.properties.size <= this.properties.size &&
+    const result =
+      anotherType instanceof ObjectType && !this.isNominal
+        ? anotherType.properties.size >= requiredProperties.length &&
+          (!this.strict ||
+            anotherType.properties.size <= this.properties.size) &&
           this.isAllProperties("isPrincipalTypeFor", anotherType)
-      : anotherType.isSubtypeOf != undefined &&
+        : anotherType.isSubtypeOf != undefined &&
           this.isPrincipalTypeFor(anotherType.isSubtypeOf);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   getDifference(type: Type) {
+    if (this._alreadyProcessedWith === type) {
+      return [];
+    }
+    this._alreadyProcessedWith = type;
     if (type instanceof ObjectType) {
       let differences = [];
       const { properties } = type;
@@ -234,30 +288,46 @@ export class ObjectType extends Type {
         }
         differences = differences.concat(type.getDifference(other.type));
       });
+      this._alreadyProcessedWith = null;
       return differences;
     }
     if (type instanceof FunctionType) {
       const callable = this.properties.get(CALLABLE);
       if (callable !== undefined) {
-        return callable.type.getDifference(type);
+        const result = callable.type.getDifference(type);
+        this._alreadyProcessedWith = null;
+        return result;
       }
     }
-    return super.getDifference(type);
+    const result = super.getDifference(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   contains(type: Type) {
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
     if (super.contains(type)) {
       return true;
     }
+    this._alreadyProcessedWith = type;
     for (const [_, property] of this.properties) {
       if (property instanceof VariableInfo && property.type.contains(type)) {
         return true;
       }
     }
+    this._alreadyProcessedWith = null;
     return false;
   }
 
   weakContains(type: Type) {
-    return super.contains(type) || this.equalsTo(type);
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result = super.contains(type) || this.equalsTo(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 }

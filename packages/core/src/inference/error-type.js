@@ -7,10 +7,8 @@ import { VariableScope } from "../type-graph/variable-scope";
 import type { Node } from "@babel/parser";
 
 export function inferenceErrorType(tryNode: Node, moduleScope: ModuleScope) {
-  const tryScope = moduleScope.body.get(VariableScope.getName(tryNode));
-  if (
-    !(tryScope instanceof VariableScope && tryScope.throwable !== undefined)
-  ) {
+  const tryScope = moduleScope.scopes.get(VariableScope.getName(tryNode));
+  if (tryScope === undefined || tryScope.throwable === undefined) {
     throw new Error("Never");
   }
   const variants = tryScope.throwable.map(
@@ -20,7 +18,7 @@ export function inferenceErrorType(tryNode: Node, moduleScope: ModuleScope) {
     return Type.Unknown;
   }
   if (variants.length === 1) {
-    return variants[0];
+    return UnionType.term(null, {}, [variants[0], Type.Unknown]);
   }
-  return UnionType.term(null, {}, variants);
+  return UnionType.term(null, {}, variants.concat([Type.Unknown]));
 }

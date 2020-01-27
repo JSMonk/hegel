@@ -71,7 +71,7 @@ function isValidTypes(
         isValidTypes(targetName, declaratedRootType, t, typeScope)
       );
     }
-    if ("onlyLiteral" in declaratedRootType && actual instanceof VariableInfo) {
+    if (declaratedRootType.onlyLiteral && actual instanceof VariableInfo) {
       return declaratedRootType.equalsTo(actualRootType);
     }
     if (targetName === "return" && declaratedRootType instanceof TypeVar) {
@@ -135,7 +135,7 @@ function checkSingleCall(call: CallMeta, typeScope: TypeScope): void {
         `Type "${actualTypeName}" is incompatible with type "${String(
           arg1.name
         )}"`,
-        call.loc
+        call.argumentsLocations[i] || call.loc
       );
     }
   }
@@ -174,20 +174,24 @@ function checkCalls(
       declaration.type instanceof GenericType
         ? declaration.type.subordinateType
         : declaration.type;
-    if (functionDeclaration.returnType === undefined) {
+    const returnType = functionDeclaration.returnType;
+    if (
+      returnType === undefined ||
+      (returnType instanceof TypeVar && !returnType.isUserDefined)
+    ) {
       return;
     }
     const functionShouldNotReturnSomething =
-      functionDeclaration.returnType === Type.Undefined ||
-      functionDeclaration.returnType === Type.Unknown ||
+      returnType === Type.Undefined ||
+      returnType === Type.Unknown ||
       (functionDeclaration.isAsync &&
-        (functionDeclaration.returnType.equalsTo(Type.Undefined.promisify()) ||
-          functionDeclaration.returnType.equalsTo(Type.Unknown.promisify())));
+        (returnType.equalsTo(Type.Undefined.promisify()) ||
+          returnType.equalsTo(Type.Unknown.promisify())));
     if (!functionShouldNotReturnSomething) {
       errors.push(
         new HegelError(
           `Function should return something with type "${String(
-            functionDeclaration.returnType.name
+            returnType.name
           )}"`,
           declaration.meta.loc,
           path

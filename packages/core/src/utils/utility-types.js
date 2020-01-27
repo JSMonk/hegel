@@ -2,6 +2,7 @@ import { $Keys } from "../type-graph/types/keys-type";
 import { $Pick } from "../type-graph/types/pick-type";
 import { $Omit } from "../type-graph/types/omit-type";
 import { $TypeOf } from "../type-graph/types/type-of-type";
+import { $Throws } from "../type-graph/types/throws-type";
 import { $Values } from "../type-graph/types/values-type";
 import { $Partial } from "../type-graph/types/partial-type";
 import { $ReturnType } from "../type-graph/types/return-type";
@@ -24,10 +25,16 @@ const mixUtilityTypes = moduleScope => {
     ["$Omit", new $Omit($Omit.name, { parent: typeScope })],
     ["$ReturnType", new $ReturnType($ReturnType.name, { parent: typeScope })],
     ["$TypeOf", new $TypeOf($TypeOf.name, { parent: typeScope })],
-    ["$Intersection", new $Intersection($Intersection.name, { parent: typeScope })]
+    [
+      "$Intersection",
+      new $Intersection($Intersection.name, { parent: typeScope })
+    ],
+    ["$Throws", new $Throws($Throws.name, { parent: typeScope })]
   ]);
-
-  typeScope.body = new Map([...typeScope.body, ...utilityTypes]);
+  for (const [name, type] of utilityTypes) {
+    typeScope.body.set(name, type);
+    type.parent = typeScope;
+  }
 };
 
 export default mixUtilityTypes;

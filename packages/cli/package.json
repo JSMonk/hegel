@@ -7,10 +7,11 @@
     "hegel": "./index.js"
   },
   "scripts": {
-    "build": "npm run build:check && npm run build:clean && npm run build:start",
+    "build": "npm run build:clean && npm run build:start && npm run build:copy",
     "build:check": "flow",
-    "build:start": "babel src -d build",
+    "build:start": "babel src -d build --config-file ./.babelrc",
     "build:clean": "rm -rf build && mkdir build",
+    "build:copy": "cp ./package.json ./build/package.json",
     "test": "jest"
   },
   "author": "Artem Kobzar",
@@ -22,19 +23,20 @@
   },
   "dependencies": {
     "@babel/code-frame": "^7.0.0",
+    "@babel/parser": "^7.8.3",
     "@babel/preset-env": "^7.7.6",
     "@hegel/core": "^0.0.9",
     "@hegel/typings": "^0.0.3",
     "chalk": "^2.4.2",
     "cosmiconfig": "^5.2.1",
-    "meow": "^6.0.0",
-    "readdirp": "^3.0.2"
+    "glob": "^7.1.6",
+    "meow": "^6.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.4.2",
-    "@babel/core": "^7.4.2",
+    "@babel/cli": "^7.8.3",
+    "@babel/core": "^7.8.3",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
-    "@babel/preset-flow": "^7.0.0",
+    "@babel/preset-flow": "^7.8.3",
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^23.6.0",
     "babel-plugin-syntax-flow": "^6.18.0",

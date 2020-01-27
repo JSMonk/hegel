@@ -15,6 +15,18 @@ export class $Keys extends GenericType {
     super("$Keys", meta, [TypeVar.term("target", { parent })], parent, null);
   }
 
+  isPrincipalTypeFor() {
+    return false;
+  }
+
+  equalsTo() {
+    return false;
+  }
+
+  isSuperTypeFor() {
+    return false;
+  }
+
   applyGeneric(
     parameters,
     loc,
@@ -41,7 +53,11 @@ export class $Keys extends GenericType {
     }
     const variants = [];
     for (const property of realTarget.properties.keys()) {
-      if (property !== CALLABLE && property !== CONSTRUCTABLE && property !== INDEXABLE) {
+      if (
+        property !== CALLABLE &&
+        property !== CONSTRUCTABLE &&
+        property !== INDEXABLE
+      ) {
         variants.push(Type.term(`'${property}'`, { isSubtypeOf: Type.String }));
       }
     }

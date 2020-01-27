@@ -386,7 +386,6 @@ describe("Variable declrataion and assignment", () => {
       const a: number => number = (a: number) => a == 2 ? a : undefined; 
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
-    debugger;
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
@@ -608,8 +607,8 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
       'Type "\'string\'" is incompatible with type "number"'
     );
     expect(errors[0].loc).toEqual({
-      end: { column: 19, line: 3 },
-      start: { column: 7, line: 3 }
+      end: { column: 18, line: 3 },
+      start: { column: 10, line: 3 }
     });
   });
   test("Function without return", async () => {
@@ -1003,8 +1002,8 @@ describe("Rest parameter typing", () => {
       'Type "[2]" is incompatible with type "...Array<string>"'
     );
     expect(errors[0].loc).toEqual({
-      end: { column: 10, line: 3 },
-      start: { column: 6, line: 3 }
+      end: { column: 9, line: 3 },
+      start: { column: 8, line: 3 }
     });
   });
   test("Required and full rest param", async () => {

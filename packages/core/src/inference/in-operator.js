@@ -1,6 +1,7 @@
 // @flow
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
+import { Type } from "../type-graph/types/type";
 import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -13,7 +14,6 @@ import {
   getTypesFromVariants,
   mergeRefinementsVariants
 } from "../utils/inference-utils";
-import type { Type } from "../type-graph/types/type";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
   Node,
@@ -33,31 +33,40 @@ function inIdentifier(
   typeScope: TypeScope,
   propertyName: string,
   refinementNode: Node
-): [string, ?Type, ?Type] {
+): ?[string, ?Type, ?Type] {
   const variable = currentScope.findVariable(targetNode);
   const type = variable.type;
-  if (!(type instanceof UnionType)) {
-    throw new HegelError(
-      'Property "${propertyName}" never or always exists in "${getNameForType(variable.type)}"',
-      targetNode.loc
-    );
+  if (type.equalsTo(ObjectType.Object)) {
+    return [
+      targetNode.name,
+      ObjectType.term(null, {}, [
+        [propertyName, new VariableInfo(Type.Unknown)]
+      ]),
+      type
+    ];
   }
-  const [refinementedVariants, alternateVariants] = type.variants.reduce(
-    ([refinementedVariants, alternateVariants], variant) => {
-      if (
-        variant instanceof ObjectType &&
-        variant.getPropertyType(propertyName)
-      ) {
-        return [refinementedVariants.concat([variant]), alternateVariants];
-      }
-      return [refinementedVariants, alternateVariants.concat([variant])];
-    },
-    [[], []]
-  );
-  return [
-    targetNode.name,
-    ...getTypesFromVariants(refinementedVariants, alternateVariants, typeScope)
-  ];
+  if (type instanceof UnionType) {
+    const [refinementedVariants, alternateVariants] = type.variants.reduce(
+      ([refinementedVariants, alternateVariants], variant) => {
+        if (
+          variant instanceof ObjectType &&
+          variant.getPropertyType(propertyName)
+        ) {
+          return [refinementedVariants.concat([variant]), alternateVariants];
+        }
+        return [refinementedVariants, alternateVariants.concat([variant])];
+      },
+      [[], []]
+    );
+    return [
+      targetNode.name,
+      ...getTypesFromVariants(
+        refinementedVariants,
+        alternateVariants,
+        typeScope
+      )
+    ];
+  }
 }
 
 function refinementProperty(
@@ -258,13 +267,17 @@ export function inRefinement(
   const propertyName = propertyNameNode.value;
   let refinementedType, alternateType, name;
   if (currentRefinementNode.right.type === NODE.IDENTIFIER) {
-    [name, refinementedType, alternateType] = inIdentifier(
+    const result = inIdentifier(
       currentRefinementNode.right,
       currentScope,
       typeScope,
       propertyName,
       currentRefinementNode
     );
+    if (!result) {
+      return;
+    }
+    [name, refinementedType, alternateType] = result;
   }
   if (currentRefinementNode.right.type === NODE.MEMBER_EXPRESSION) {
     const result = inProperty(

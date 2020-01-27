@@ -22,9 +22,10 @@ export class TupleType extends Type {
     for (let i = 0; i < length; i++) {
       const item = items[i];
       if (
-        !TypeVar.isSelf(item) &&
+        item instanceof Type &&
         (parent === undefined || parent.priority < item.parent.priority)
       ) {
+        // $FlowIssue
         parent = item.parent;
       }
     }
@@ -48,7 +49,7 @@ export class TupleType extends Type {
       return String(params.name);
     }
     return `[${params.reduce(
-      (res, t) => `${res}${res ? ", " : ""}${String(t.name)}`,
+      (res, t) => `${res}${res ? ", " : ""}${String(Type.getTypeRoot(t).name)}`,
       ""
     )}]`;
   }
@@ -73,32 +74,53 @@ export class TupleType extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ) {
-    let isItemsChanged = false;
-    const newItems = this.items.map(t => {
-      const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
-      if (newT === t) {
-        return t;
-      }
-      isItemsChanged = true;
-      return newT;
-    });
-    const isSubtypeOf =
-      this.isSubtypeOf &&
-      this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
-    if (!isItemsChanged && isSubtypeOf === this.isSubtypeOf) {
+    if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    return TupleType.term(null, { isSubtypeOf }, newItems);
+    if (this._alreadyProcessedWith !== null) {
+      return this._alreadyProcessedWith;
+    }
+    this._alreadyProcessedWith = TypeVar.createSelf(
+      this.getChangedName(sourceTypes, targetTypes),
+      this.parent
+    );
+    try {
+      let isItemsChanged = false;
+      const newItems = this.items.map(t => {
+        const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
+        if (newT === t) {
+          return t;
+        }
+        isItemsChanged = true;
+        return newT;
+      });
+      const isSubtypeOf =
+        this.isSubtypeOf &&
+        this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
+      if (!isItemsChanged && isSubtypeOf === this.isSubtypeOf) {
+        this._alreadyProcessedWith = null;
+        return this;
+      }
+      return this.endChanges(TupleType.term(null, { isSubtypeOf }, newItems));
+    } catch (e) {
+      this._alreadyProcessedWith = null;
+      throw e;
+    }
   }
 
   isSuperTypeFor(anotherType: Type) {
     anotherType = this.getOponentType(anotherType);
-    return (
+    if (this._alreadyProcessedWith === anotherType) {
+      return true;
+    }
+    this._alreadyProcessedWith = anotherType;
+    const result =
       anotherType instanceof TupleType &&
       anotherType.items.length === this.items.length &&
       //$FlowIssue - instanceof type refinement
-      this.items.every((t, i) => t.isPrincipalTypeFor(anotherType.items[i]))
-    );
+      this.items.every((t, i) => t.isPrincipalTypeFor(anotherType.items[i]));
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   equalsTo(anotherType: Type) {
@@ -106,14 +128,20 @@ export class TupleType extends Type {
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
+    if (this._alreadyProcessedWith === anotherType) {
+      return true;
+    }
+    this._alreadyProcessedWith = anotherType;
     const anotherVariants =
       anotherType instanceof TupleType ? anotherType.items : [];
-    return (
+    const result =
       anotherType instanceof TupleType &&
       super.equalsTo(anotherType) &&
+      this.canContain(anotherType) &&
       this.items.length === anotherVariants.length &&
-      this.items.every((type, index) => type.equalsTo(anotherVariants[index]))
-    );
+      this.items.every((type, index) => type.equalsTo(anotherVariants[index]));
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   getPropertyType(propertyIndex: mixed): ?Type {
@@ -134,6 +162,10 @@ export class TupleType extends Type {
   }
 
   getDifference(type: Type) {
+    if (this._alreadyProcessedWith === type) {
+      return [];
+    }
+    this._alreadyProcessedWith = type;
     if (type instanceof TupleType) {
       let differences = [];
       const { items } = type;
@@ -144,20 +176,39 @@ export class TupleType extends Type {
         }
         differences = differences.concat(type.getDifference(other));
       });
+      this._alreadyProcessedWith = null;
       return differences;
     }
     if (type instanceof CollectionType) {
       // $FlowIssue
-      return this.isSubtypeOf.getDifference(type);
+      const result = this.isSubtypeOf.getDifference(type);
+      this._alreadyProcessedWith = null;
+      return result;
     }
-    return super.getDifference(type);
+    const result = super.getDifference(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   contains(type: Type) {
-    return super.contains(type) || this.items.some(i => i.contains(type));
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
+      super.contains(type) || this.items.some(i => i.contains(type));
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   weakContains(type: Type) {
-    return super.contains(type) || this.items.some(i => i.weakContains(type));
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
+      super.contains(type) || this.items.some(i => i.weakContains(type));
+    this._alreadyProcessedWith = null;
+    return result;
   }
 }

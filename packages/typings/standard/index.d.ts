@@ -212,7 +212,7 @@ interface Array<T> {
   //       * Sorts an array.
   //       * @param compareFn The name of the function used to determine the order of the elements. If omitted, the elements are sorted in ascending, ASCII character order.
   //       */
-  sort(compareFn?: (a: T, b: T) => number): this;
+  sort(compareFn?: (a: T, b: T) => number): Array<T>;
   //     /**
   //       * Removes elements from an array and, if necessary, inserts new elements in their place, returning the deleted elements.
   //       * @param start The zero-based location in the array from which to start removing elements.
@@ -237,6 +237,9 @@ interface Array<T> {
   //       * @param fromIndex The array index at which to begin the search. If fromIndex is omitted, the search starts at index 0.
   //       */
   indexOf(searchElement: T, fromIndex?: number): number;
+  includes(searchElement: T): boolean;
+  find(fn: (el: T) => boolean): T | undefined;
+  findIndex(fn: (el: T) => boolean): number;
   //     /**
   //       * Returns the index of the last occurrence of a specified value in an array.
   //       * @param searchElement The value to locate in the array.
@@ -935,6 +938,8 @@ interface String {
   trimLeft(): string;
   /** Removes whitespace from the right end of a string. */
   trimRight(): string;
+
+  includes(substr: string): boolean;
   readonly [index: number]: string;
 }
 
@@ -1527,79 +1532,24 @@ interface DateConstructor {
 
 declare var Date: DateConstructor;
 
-interface Error {
+class Error {
   name: string;
   message: string;
   stack?: string;
+  constructor(message?: string);
 }
 
-interface ErrorConstructor {
-  new (message?: string): Error;
-  (message?: string): Error;
-  readonly prototype: Error;
-}
+class EvalError extends Error {}
 
-declare var Error: ErrorConstructor;
+class RangeError extends Error {}
 
-interface EvalError extends Error {}
+class ReferenceError extends Error {}
 
-interface EvalErrorConstructor {
-  new (message?: string): EvalError;
-  (message?: string): EvalError;
-  readonly prototype: EvalError;
-}
+class SyntaxError extends Error {}
 
-declare var EvalError: EvalErrorConstructor;
+class TypeError extends Error {}
 
-interface RangeError extends Error {}
-
-interface RangeErrorConstructor {
-  new (message?: string): RangeError;
-  (message?: string): RangeError;
-  readonly prototype: RangeError;
-}
-
-declare var RangeError: RangeErrorConstructor;
-
-interface ReferenceError extends Error {}
-
-interface ReferenceErrorConstructor {
-  new (message?: string): ReferenceError;
-  (message?: string): ReferenceError;
-  readonly prototype: ReferenceError;
-}
-
-declare var ReferenceError: ReferenceErrorConstructor;
-
-interface SyntaxError extends Error {}
-
-interface SyntaxErrorConstructor {
-  new (message?: string): SyntaxError;
-  (message?: string): SyntaxError;
-  readonly prototype: SyntaxError;
-}
-
-declare var SyntaxError: SyntaxErrorConstructor;
-
-interface TypeError extends Error {}
-
-interface TypeErrorConstructor {
-  new (message?: string): TypeError;
-  (message?: string): TypeError;
-  readonly prototype: TypeError;
-}
-
-declare var TypeError: TypeErrorConstructor;
-
-interface URIError extends Error {}
-
-interface URIErrorConstructor {
-  new (message?: string): URIError;
-  (message?: string): URIError;
-  readonly prototype: URIError;
-}
-
-declare var URIError: URIErrorConstructor;
+class URIError extends Error {}
 
 interface JSON {
   //     /**
@@ -1611,7 +1561,7 @@ interface JSON {
   parse(
     text: string,
     reviver?: (this: any, key: string, value: any) => any
-  ): any;
+  ): object;
   //     /**
   //       * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
   //       * @param value A JavaScript value, usually an object or array, to be converted.
@@ -1786,7 +1736,7 @@ interface PromiseConstructor {
      * @param values An array of Promises.
      * @returns A new Promise.
      */
-    all<T>(values: readonly (T | PromiseLike<T>)[]): Promise<T[]>;
+    all<T>(values: Array<T | PromiseLike<T>>): Promise<T[]>;
 
     /**
      * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
@@ -5026,28 +4976,28 @@ interface Map<K, V> {
     forEach(callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void;
     get(key: K): V | undefined;
     has(key: K): boolean;
-    set(key: K, value: V): this;
+    set(key: K, value: V): Map<K, V>;
     readonly size: number;
     /** Returns an iterable of entries in the map. */
     //[Symbol.iterator](): IterableIterator<[K, V]>;
     /**
      * Returns an iterable of key, value pairs for every entry in the map.
      */
-    entries(): IterableIterator<[K, V]>;
+    // FIXME: make entries return iterable
+    //entries(): IterableIterator<[K, V]>;
+    entries(): Array<[K, V]>;
     /**
      * Returns an iterable of keys in the map
      */
-    keys(): IterableIterator<K>;
+  //keys(): IterableIterator<K>;
     /**
      * Returns an iterable of values in the map
      */
-    values(): IterableIterator<V>;
+    // values(): IterableIterator<V>;
 }
 
 interface MapConstructor {
-    new(): Map<any, any>;
-    new<K, V>(entries?: readonly (readonly [K, V])[] | null): Map<K, V>;
-    readonly prototype: Map<any, any>;
+    new<K, V>(entries?: Array<[K, V]> | Map<K, V> | null): Map<K, V>;
 }
 
 declare var Map: MapConstructor;
@@ -5067,8 +5017,7 @@ interface WeakMap<K extends object, V> {
 }
 
 interface WeakMapConstructor {
-    new <K extends object = object, V = any>(entries?: readonly [K, V][] | null): WeakMap<K, V>;
-    readonly prototype: WeakMap<object, any>;
+    new<K extends object, V>(entries?: Array<[K, V]> | Map<K, V> | WeakMap<K, V> | null): WeakMap<K, V>;
 }
 declare var WeakMap: WeakMapConstructor;
 
@@ -5101,7 +5050,7 @@ interface ReadonlySet<T> {
 }
 
 interface SetConstructor {
-    new <T = any>(values?: readonly T[] | null): Set<T>;
+    new<T>(values?: T[] | Set<T> | null): Set<T>;
     readonly prototype: Set<any>;
 }
 declare var Set: SetConstructor;
@@ -5119,8 +5068,7 @@ interface WeakSet<T extends object> {
 }
 
 interface WeakSetConstructor {
-    new <T extends object = object>(values?: readonly T[] | null): WeakSet<T>;
-    readonly prototype: WeakSet<object>;
+    new <T extends object>(values?: readonly T[] | Set<T> | WeakSet<T> | null): WeakSet<T>;
 }
 declare var WeakSet: WeakSetConstructor;
 

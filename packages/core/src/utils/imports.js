@@ -29,13 +29,14 @@ export function importDependencies(
   importNode: ImportDeclaration,
   moduleTypeGraph: ModuleScope,
   currentModuleTypeGraph: ModuleScope | PositionedModuleScope,
-  currentModuleTypeScope: TypeScope
+  currentModuleTypeScope: TypeScope,
+  isTypeDefinitions: boolean
 ) {
   const { exports, exportsTypes } = moduleTypeGraph;
   const importSource =
-    importNode.importKind === "type" ? exportsTypes : exports;
+    importNode.importKind === "type" || isTypeDefinitions ? exportsTypes : exports;
   const importTarget =
-    importNode.importKind === "type"
+    importNode.importKind === "type" || isTypeDefinitions
       ? currentModuleTypeScope
       : currentModuleTypeGraph;
   const importEntries = [...importSource.entries()].map(([key, a]) => [
@@ -75,14 +76,14 @@ export function importDependencies(
       );
     }
     let finalImportVariable = importElement;
-    if (importNode.importKind !== "type" && importElement instanceof Type) {
+    if (importNode.importKind !== "type" && !isTypeDefinitions && importElement instanceof Type) {
       finalImportVariable = new VariableInfo(
         importElement,
         currentModuleTypeGraph
       );
     }
     if (
-      importNode.importKind === "type" &&
+      (importNode.importKind === "type" || isTypeDefinitions) &&
       importElement instanceof VariableInfo
     ) {
       finalImportVariable = importElement.type;
@@ -101,7 +102,8 @@ export default async function mixImportedDependencies(
   errors: Array<HegelError>,
   currentModuleScope: ModuleScope,
   currentTypeScope: TypeScope,
-  getModuleTypeGraph: (string, string, SourceLocation) => Promise<ModuleScope>
+  getModuleTypeGraph: (string, string, SourceLocation) => Promise<ModuleScope>,
+  isTypeDefinitions: boolean
 ): Promise<void> {
   const importRequests = [];
   for (let i = 0; i < ast.body.length; i++) {
@@ -123,7 +125,8 @@ export default async function mixImportedDependencies(
         importNode,
         moduleTypeGraph,
         currentModuleScope,
-        currentTypeScope
+        currentTypeScope,
+        isTypeDefinitions
       );
     } catch (e) {
       if (!(e instanceof HegelError)) {

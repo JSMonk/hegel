@@ -11,9 +11,15 @@ export class TypeVar extends Type {
     return type.isSubtypeOf === this.Self;
   }
 
+  static createSelf(name: mixed, parent: TypeScope) {
+    // $FlowIssue
+    return new this(name, { parent, isSubtypeOf: TypeVar.Self });
+  }
+
   constraint: Type | void;
   root: Type | void;
   _isUserDefined: ?boolean;
+  priority = 0;
 
   get isUserDefined() {
     return this._isUserDefined;
@@ -35,7 +41,11 @@ export class TypeVar extends Type {
     this._isUserDefined = isUserDefined;
   }
 
-  equalsTo(anotherType: Type, strict?: boolean = false, withoutRoot?: boolean = false) {
+  equalsTo(
+    anotherType: Type,
+    strict?: boolean = false,
+    withoutRoot?: boolean = false
+  ) {
     const isDifferenceInDefinition =
       this.isUserDefined &&
       anotherType instanceof TypeVar &&
@@ -70,7 +80,7 @@ export class TypeVar extends Type {
     if (this.constraint === undefined) {
       return true;
     }
-    return this.constraint.isSuperTypeFor(type);
+    return this.constraint.isPrincipalTypeFor(type);
   }
 
   changeAll(
@@ -78,12 +88,15 @@ export class TypeVar extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ): Type {
-    const indexOfNewRootType = sourceTypes.findIndex(a =>
+    const indexOfNewRootType = sourceTypes.findIndex(
       // $FlowIssue
-      a === this.root || a.equalsTo(this, true, true)
+      a => a === this.root || a.equalsTo(this, true, true)
     );
     if (indexOfNewRootType !== -1) {
       return targetTypes[indexOfNewRootType];
+    }
+    if (this.root !== undefined) {
+      return this.root.changeAll(sourceTypes, targetTypes, typeScope);
     }
     return this;
   }
@@ -93,14 +106,20 @@ export class TypeVar extends Type {
   }
 
   getDifference(type: Type) {
-    if (type instanceof TypeVar && this !== type) {
-      return [{ root: this, variable: type }];
+    if (this._alreadyProcessedWith === type) {
+      return [];
     }
-    if ("variants" in type) {
-      // $FlowIssue
-      return type.variants.flatMap(a => this.getDifference(a));
+    this._alreadyProcessedWith = type;
+    let result = [];
+    if (this.root !== undefined) {
+      result = this.root.getDifference(type);
+    } else if (type instanceof TypeVar && this !== type) {
+      result = [{ root: this, variable: type }];
+    } else if ("variants" in type) {
+      result = super.getDifference(type);
     }
-    return [];
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   contains(type: Type) {

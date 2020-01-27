@@ -1,7 +1,7 @@
 interface CosmicConfig<T> {
-  config: T,
-  filepath: string
-};
+  config: T;
+  filepath: string;
+}
 
 interface Cosmic {
   search<T>(workingDirectory: string): Promise<CosmicConfig<T>>;

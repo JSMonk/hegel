@@ -1,39 +1,72 @@
-//import { parse } from "@babel/parser";
-//import { promises as fs } from "fs";
-//import type { Config } from "./config";
-//import type { SourceLocation } from "@babel/parser";
-//
-export type AST = {
+import { parse } from "@babel/parser";
+import { extname } from "path";
+import { promises as fs } from "fs";
+import type { Config } from "./config";
+import type { ParserPlugin, Program } from "@babel/parser";
+
+export type File = {
   content: string,
   path: string
 };
-//
-//export function createASTGenerator(config: Config) {
-//  const cache = new Map();
-//  return async (path: string, isDefinition: ?boolean = false): Promise<AST> => {
-//    const cached = cache.get(path);
-//    if (cached !== undefined) {
-//      return cached;
-//    }
-//    try {
-//      const content = await fs.readFile(path, "utf8");
-//      let result = { path, content };
-//      cache.set(path, result);
-//      const ast = parse(content, {
-//        strictMode: !isDefinition,
-//        ...config.babel,
-//        plugins: isDefinition
-//          ? [
-//              "typescript",
-//              ...config.babel.plugins.filter(plugin => plugin !== "flow")
-//            ]
-//          : config.babel.plugins
-//      });
-//      Object.assign(result, ast.program);
-//      return result;
-//    } catch (e) {
-//      e.source = e.source || path;
-//      throw e;
-//    }
-//  };
-//}
+
+export type AST = {
+  ...Program,
+  ...File
+};
+
+const cache = new Map<string, File | AST>();
+
+export async function getFileContent(path) {
+  const cached = cache.get(path);
+  if (cached !== undefined) {
+    return cached.content;
+  }
+  let content = await fs.readFile(path, "utf8");
+  content = extname(path) === ".json" ? wrapJSON(content) : content;
+  let result = { path, content };
+  cache.set(path, result);
+  return content;
+}
+
+export function createASTGenerator(config: Config) {
+  return async (path, isDefinition = false) => {
+    const cached = cache.get(path);
+    if (cached !== undefined && "body" in cached) {
+      return cached;
+    }
+    try {
+      const content = await getFileContent(path);
+      const declaredPlugins =
+        config.babel.plugins !== undefined
+          ? config.babel.plugins
+          : new Array<ParserPlugin>(0);
+      const plugins = isDefinition
+        ? declaredPlugins
+            .filter(
+              plugin =>
+                typeof plugin === "string"
+                  ? plugin !== "flow"
+                  : plugin[0] !== "flow"
+            )
+            .concat(["typescript"])
+        : declaredPlugins;
+      const configCopy = Object.assign({}, config.babel);
+      const ast = parse(
+        content,
+        Object.assign(configCopy, { strictMode: !isDefinition, plugins })
+      );
+      const result = Object.assign(ast.program, { path, content });
+      cache.set(path, result);
+      return result;
+    } catch (e) {
+      if (e instanceof Error) {
+        e.source = path;
+      }
+      throw e;
+    }
+  };
+}
+
+function wrapJSON(content) {
+  return `export default ${content}`;
+}

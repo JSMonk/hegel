@@ -15,8 +15,14 @@ const mixBaseGlobals = moduleScope => {
     ["symbol", Type.Symbol]
   ];
   const globals = [["undefined", new VariableInfo(Type.Undefined)]];
-  typeScope.body = new Map(globalTypes.concat([...typeScope.body]));
-  moduleScope.body = new Map(globals.concat([...moduleScope.body]));
+  for (const [name, type] of globalTypes) {
+    typeScope.body.set(name, type);
+    type.parent = typeScope;
+  }
+  for (const [name, variable] of globals) {
+    moduleScope.body.set(name, variable);
+    variable.parent = moduleScope;
+  }
 };
 
 export default mixBaseGlobals;

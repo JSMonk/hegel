@@ -36,6 +36,18 @@ export class $PropertyType extends GenericType {
     return obj;
   }
 
+  isPrincipalTypeFor() {
+    return false;
+  }
+
+  equalsTo() {
+    return false;
+  }
+
+  isSuperTypeFor() {
+    return false;
+  }
+
   applyGeneric(
     parameters,
     loc,

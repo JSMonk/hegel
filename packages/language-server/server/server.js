@@ -72,7 +72,13 @@ connection.onHover(meta => {
   }
 });
 
-documents.onDidChangeContent(change => validateTextDocument(change.document));
+let timeout;
+documents.onDidChangeContent(change => {
+  clearTimeout(timeout);
+  timeout = setTimeout(() => validateTextDocument(change.document), 200);
+});
+connection.onDidChangeWatchedFiles(change => validateTextDocument(change.document));
+
 
 async function validateTextDocument(textDocument) {
   const text = textDocument.getText();
@@ -106,7 +112,7 @@ async function getHegelTypings(source, path) {
     );
     return [types, errors];
   } catch (e) {
-    return [, [e]];
+     return [, [e]];
   } 
 }
 
@@ -146,11 +152,16 @@ async function getModuleAST(currentModulePath) {
   if (!config) {
     config = await getConfig(currentModulePath);
   }
-  return importModule(config, async (path, isTypings) => {
-    const moduleContent = await readFile(path, "utf8");
+  return importModule(config, async (modulePath, isTypings) => {
+    let moduleContent = await readFile(modulePath, "utf8");
+    moduleContent = path.extname(modulePath) === ".json" ? wrapJSON(moduleContent) : moduleContent;
     const config = isTypings ? dtsrc : babelrc;
     return babylon.parse(moduleContent, config).program;
   });
+}
+
+function wrapJSON(content) {
+  return `export default ${content}`;
 }
 
 function mixTypeDefinitions(config) {
@@ -220,5 +231,5 @@ function convertLocToRange(loc) {
 function getTypeName(type) {
   return type.constraint !== undefined
     ? `${type.name}: ${type.constraint.name}`
-    : type.name;
+    : String(type.name);
 }

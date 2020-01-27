@@ -21,7 +21,7 @@ describe("TypeScript type defitions", () => {
         true
       );
       expect(errors.length).toBe(0);
-      expect(actual.body.get("NaN").type).toEqual(new Type("number"));
+      expect(actual.body.get("NaN").type === Type.Number).toBe(true);
     });
     test("Define simple interface without error", async () => {
       const sourceAST = prepareAST(
@@ -37,9 +37,7 @@ describe("TypeScript type defitions", () => {
       );
       const actualType = actual.body.get("Two").type;
       expect(errors.length).toBe(0);
-      expect(actualType).toEqual(
-        new Type(2, { isSubtypeOf: new Type("number") })
-      );
+      expect(actualType === Type.find(2)).toBe(true);
     });
     test("Define simple function without error", async () => {
       const sourceAST = prepareAST(
@@ -100,7 +98,7 @@ describe("TypeScript type defitions", () => {
       expect(errors.length).toBe(0);
       expect(actualType).toBeInstanceOf(ObjectType);
       expect(actualType.name).toBe("DateConstructor");
-      expect(actualType.properties.get("test").type.name).toBe("string");
+      expect(actualType.properties.get("test").type === Type.String).toBe(true);
     });
     test("Define simple indexable interface without error", async () => {
       const sourceAST = prepareAST(
@@ -124,8 +122,8 @@ describe("TypeScript type defitions", () => {
       expect(actualType.subordinateType).toBeInstanceOf(CollectionType);
       expect(actualType.name).toBe("Array");
       expect(
-        actualType.subordinateType.isSubtypeOf.properties.get("test").type.name
-      ).toBe("string");
+        actualType.subordinateType.isSubtypeOf.properties.get("test").type === Type.String
+      ).toBe(true);
     });
   });
 });

@@ -1,41 +1,44 @@
-// @flow
-import HegelError from "@hegel/core/utils/errors";
+import { HegelError } from "@hegel/core";
 import { existsSync, promises } from "fs";
-import { join, extname, dirname, isAbsolute } from "path";
-import type { AST } from "./parser";
+import { join, extname, dirname, isAbsolute, resolve } from "path";
+import type { ExtendedProgram } from "@hegel/core";
 import type { Config } from "./config";
-import type { ModuleScope } from "@hegel/core/type-graph/module-scope";
+import type { ModuleScope } from "@hegel/core";
 import type { Program, SourceLocation } from "@babel/parser";
 
-const CWD = process.cwd();
 const typings = dirname(require.resolve("@hegel/typings"));
 
 const isRelative = (path: string) => path[0] === ".";
-const isNotNull = (a: mixed) => a !== null;
+const isNotNull = a => a !== null;
 
-async function resolveModule(importPath: string) {
+async function resolveModule(importPath, config: Config) {
   try {
-    // $FlowIssue
-    return require.resolve(importPath, { paths: [CWD] });
+    return require.resolve(importPath, { paths: [config.workingDirectory] });
   } catch {}
   return null;
 }
 
-async function findTypingsInsideNodeModules(
-  importPath: string,
-  config: Config
-): Promise<string | null> {
-  let path = await resolveModule(importPath);
+async function findTypingsInsideNodeModules(importPath, config: Config) {
+  let path = await resolveModule(importPath, config);
   if (path === null) {
     return null;
   }
   if (isAbsolute(path)) {
-    const pathToPackage = await resolveModule(join(importPath, "package.json"));
+    const pathToPackage = await resolveModule(
+      join(importPath, "package.json"),
+      config
+    );
     let typingsPath = `${path.slice(0, -extname(path).length)}.d.ts`;
     if (pathToPackage !== null) {
-      const packageJSON = JSON.parse(await promises.readFile(pathToPackage, "utf8")); 
-      typingsPath = packageJSON.types !== undefined ? join(dirname(pathToPackage), packageJSON.types): typingsPath;
-      typingsPath = typingsPath.includes("d.ts") ? typingsPath : `${typingsPath}.d.ts`;
+      const packageJSON = JSON.parse(
+        await promises.readFile(pathToPackage, "utf8")
+      );
+      if ("types" in packageJSON && typeof packageJSON.types === "string") {
+        typingsPath = join(dirname(pathToPackage), packageJSON.types);
+      }
+      typingsPath = typingsPath.includes("d.ts")
+        ? typingsPath
+        : `${typingsPath}.d.ts`;
     }
     return existsSync(typingsPath) ? typingsPath : path;
   }
@@ -48,26 +51,38 @@ async function findTypingsInsideNodeModules(
 async function findInsideTypingsDirectories(
   importPath: string,
   config: Config
-): Promise<string | null> {
+) {
   const paths = await Promise.all(
     config.typings.map(typingPath =>
-      resolveModule(join(typingPath, `${importPath.replace(/\.js$/, "")}.d.ts`))
+      resolveModule(
+        join(typingPath, `${importPath.replace(/\.js$/, "")}.d.ts`),
+        config
+      )
     )
   );
   return paths.find(isNotNull) || null;
 }
 
+type ModuleAttributes = {
+  isLibrary: boolean,
+  isTypings: boolean,
+  isUserDefined: boolean,
+  resolvedPath: string
+};
+
 async function getModuleTypingsPath(
-  importPath: string,
-  currentPath: string,
-  loc: SourceLocation,
-  config: Config
+  importPath,
+  currentPath,
+  loc,
+  config
 ) {
+  currentPath = resolve(currentPath);
   let resolvedPath: string | null = null;
-  let isLibrary: boolean = false;
-  let isUserDefined: boolean = false;
+  let isLibrary = false;
+  let isUserDefined = false;
   if (isRelative(importPath)) {
-    resolvedPath = await resolveModule(join(dirname(currentPath), importPath));
+    importPath = join(dirname(currentPath), importPath);
+    resolvedPath = await resolveModule(importPath, config);
     isUserDefined = true;
   } else {
     isLibrary = true;
@@ -75,7 +90,9 @@ async function getModuleTypingsPath(
     isUserDefined =
       resolvedPath !== null && resolvedPath.includes("node_modules");
     if (resolvedPath === null || extname(resolvedPath) !== ".ts") {
-      resolvedPath = await findTypingsInsideNodeModules(importPath, config) || resolvedPath; 
+      resolvedPath =
+        (await findTypingsInsideNodeModules(importPath, config)) ||
+        resolvedPath;
     }
   }
   if (resolvedPath === null) {
@@ -85,33 +102,27 @@ async function getModuleTypingsPath(
   return { resolvedPath, isTypings, isLibrary, isUserDefined };
 }
 
-export function importModule(
-  config: Config,
-  getAST: (string, ?boolean) => Promise<AST>,
-  cacheEveryModule: boolean = false
+async function parseAndAnalyze(
+  module: ModuleAttributes,
+  getAST: (string, ?boolean) => Promise<ExtendedProgram>,
+  getModuleScope: (ExtendedProgram, boolean) => Promise<ModuleScope>
 ) {
-  const cache: Map<string, ModuleScope> = new Map();
-  return async (
-    path: string,
-    currentPath: string,
-    loc: SourceLocation,
-    getModuleScope: (Program, boolean) => Promise<ModuleScope>
-  ) => {
-    const {
-      resolvedPath,
-      isTypings,
-      isLibrary,
-      isUserDefined
-    } = await getModuleTypingsPath(path, currentPath, loc, config);
-    const existed = cache.get(resolvedPath);
+  const ast = await getAST(module.resolvedPath, module.isTypings);
+  ast.path = module.resolvedPath;
+  return getModuleScope(ast, module.isTypings);
+}
+
+export function importModule(config, getAST, cacheEveryModule = false) {
+  const cache = new Map<string, Promise<ModuleScope>>();
+  return async (path, currentPath, loc, getModuleScope) => {
+    const module = await getModuleTypingsPath(path, currentPath, loc, config);
+    const existed = cache.get(module.resolvedPath);
     if (existed !== undefined) {
       return existed;
     }
-    const ast = await getAST(resolvedPath, isTypings);
-    const astWithPath = Object.assign(ast, { path: resolvedPath });
-    const moduleScope = await getModuleScope(astWithPath, isTypings);
-    if (cacheEveryModule || (isLibrary && !isUserDefined)) {
-      cache.set(resolvedPath, moduleScope);
+    const moduleScope = parseAndAnalyze(module, getAST, getModuleScope);
+    if (cacheEveryModule || (module.isLibrary && !module.isUserDefined)) {
+      cache.set(module.resolvedPath, moduleScope);
     }
     return moduleScope;
   };

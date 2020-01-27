@@ -1,6 +1,7 @@
 // @flow
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
+import { Type } from "../type-graph/types/type";
 import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -11,7 +12,6 @@ import {
   getTypesFromVariants
 } from "../utils/inference-utils";
 import { createObjectWith, mergeObjectsTypes } from "../utils/type-utils";
-import type { Type } from "../type-graph/types/type";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
   Node,
@@ -29,7 +29,7 @@ function instanceofIdentifier(
 ): [string, ?Type, ?Type] {
   const variable = currentScope.findVariable(targetNode);
   const type = variable.type;
-  if (!(type instanceof UnionType)) {
+  if (!(type instanceof UnionType) && type !== Type.Unknown) {
     throw new HegelError(
       `Type "${String(type.name)}" never or always instance of "${String(
         constructor.name
@@ -37,13 +37,14 @@ function instanceofIdentifier(
       targetNode.loc
     );
   }
+  if (type === Type.Unknown) {
+    return [targetNode.name, constructor, type];
+  }
+  // $FlowIssue
   const [refinementedVariants, alternateVariants] = type.variants.reduce(
-    ([refinementedVariants, alternateVariants], variant) => {
-      if (constructor.isPrincipalTypeFor(variant)) {
-        return [refinementedVariants.concat([variant]), alternateVariants];
-      }
-      return [refinementedVariants, alternateVariants.concat([variant])];
-    },
+    ([refinementedVariants, alternateVariants], variant) => constructor.isPrincipalTypeFor(variant)
+      ? [refinementedVariants.concat([variant]), alternateVariants]
+      : [refinementedVariants, alternateVariants.concat([variant])],
     [[], []]
   );
   return [

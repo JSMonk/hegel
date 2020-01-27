@@ -8,6 +8,7 @@ import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
+import { CollectionType } from "../type-graph/types/collection-type";
 import { getMemberExressionTarget } from "../utils/common";
 import {
   getPropertyChaining,
@@ -132,10 +133,7 @@ function refinementVariants(
   refinementType: Type
 ): [Array<Type>, Array<Type>] {
   if (refinementType.isPrincipalTypeFor(variant)) {
-    return [
-      refinementedVariants.concat([variant]),
-      alternateVariants
-    ];
+    return [refinementedVariants.concat([variant]), alternateVariants];
   }
   if (variant.isSuperTypeFor(refinementType)) {
     return [
@@ -227,7 +225,8 @@ export function refinementProperty(
   refinementNode: Node,
   currentPropertyNameIndex: number,
   chainingProperties: Array<string>,
-  typeScope: TypeScope
+  typeScope: TypeScope,
+  destructUnion: boolean = false
 ): ?[?Type, ?Type] {
   const currentPropertyName = chainingProperties[currentPropertyNameIndex];
   const isLast = currentPropertyNameIndex === chainingProperties.length - 1;
@@ -241,6 +240,9 @@ export function refinementProperty(
       );
     }
     variableType = variableType.constraint;
+  }
+  if (isLast && variableType instanceof CollectionType) {
+    return;
   }
   if (variableType instanceof ObjectType) {
     const property = variableType.getPropertyType(currentPropertyName);
@@ -276,11 +278,25 @@ export function refinementProperty(
       if (refinementType.isPrincipalTypeFor(property)) {
         return [variableType, undefined];
       }
-      if (property.isSuperTypeFor(refinementType)) {
+      if (property.isPrincipalTypeFor(refinementType)) {
         return [
           propertyWith(
             currentPropertyName,
             refinementType,
+            variableType,
+            typeScope
+          ),
+          variableType
+        ];
+      }
+      if (destructUnion && refinementType instanceof UnionType) {
+        const pickedVariants = refinementType.variants.filter(variant =>
+          property.isPrincipalTypeFor(variant)
+        );
+        return [
+          propertyWith(
+            currentPropertyName,
+            UnionType.term(null, {}, pickedVariants),
             variableType,
             typeScope
           ),
@@ -395,10 +411,12 @@ function equalsProperty(
     propertiesChaining,
     typeScope
   );
+  if (refinmentedAndAlternate == undefined) {
+    return;
+  }
   if (
-    !refinmentedAndAlternate ||
-    !refinmentedAndAlternate[0] ||
-    !refinmentedAndAlternate[1]
+    refinmentedAndAlternate[0] == undefined ||
+    refinmentedAndAlternate[1] == undefined
   ) {
     const typeName = String(refinementType.name);
     throw new HegelError(

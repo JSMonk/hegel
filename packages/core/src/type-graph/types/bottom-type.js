@@ -16,7 +16,7 @@ export class $BottomType extends Type {
       return String(name);
     }
     return `${String(name)}<${parameters.reduce(
-      (res, t) => `${res}${res ? ", " : ""}${String(t.name)}`,
+      (res, t) => `${res}${res ? ", " : ""}${String(Type.getTypeRoot(t).name)}`,
       ""
     )}>`;
   }
@@ -29,9 +29,16 @@ export class $BottomType extends Type {
     this.subordinateMagicType = subordinateMagicType;
     this.genericArguments = genericArguments;
     this.loc = loc;
+    this.priority = subordinateMagicType.priority + 1;
   }
 
   changeAll(sourceTypes, targetTypes, typeScope) {
+    if (sourceTypes.every(type => !this.canContain(type))) {
+      return this;
+    }
+    if (this._alreadyProcessedWith !== null) {
+      return this._alreadyProcessedWith;
+    }
     let includedUndefined = false;
     let includedBottom = false;
     const includedSelfIndex = sourceTypes.findIndex(t => this.equalsTo(t));
@@ -48,7 +55,9 @@ export class $BottomType extends Type {
       if (argument instanceof TypeVar) {
         const argumentIndex = sourceTypes.findIndex(
           a =>
-            argument instanceof $BottomType ? argument.subordinateType === a : a.equalsTo(argument)
+            argument instanceof $BottomType
+              ? argument.subordinateType === a
+              : a.equalsTo(argument)
         );
         const result =
           argumentIndex === -1 ? undefined : targetTypes[argumentIndex];
@@ -59,36 +68,50 @@ export class $BottomType extends Type {
       }
       return argument;
     };
-    const appliedParameters = this.genericArguments.map(argument => 
-      argument instanceof UnionType ?
-        argument.variants.map(mapper).find(a => a !== undefined)
-        : mapper(argument)
+    this._alreadyProcessedWith = TypeVar.createSelf(
+      this.getChangedName(sourceTypes, targetTypes),
+      this.parent
     );
-    if (appliedParameters.every(a => a === undefined)) {
-      return this;
-    }
-    if (includedUndefined) {
-      const type = this.subordinateMagicType.changeAll(
-        sourceTypes,
-        targetTypes,
-        typeScope
+    try {
+      const appliedParameters = this.genericArguments.map(
+        argument =>
+          argument instanceof UnionType
+            ? argument.variants.map(mapper).find(a => a !== undefined)
+            : mapper(argument)
       );
-      return new $BottomType({}, type, type.genericArguments, this.loc);
+      if (appliedParameters.every(a => a === undefined)) {
+        return this.endChanges(this);
+      }
+      if (includedUndefined) {
+        const type = this.subordinateMagicType.changeAll(
+          sourceTypes,
+          targetTypes,
+          typeScope
+        );
+        return this.endChanges(
+          new $BottomType({}, type, type.genericArguments, this.loc)
+        );
+      }
+      if (includedBottom) {
+        return this.endChanges(
+          new $BottomType(
+            {},
+            this.subordinateMagicType,
+            appliedParameters,
+            this.loc
+          )
+        );
+      }
+      const target =
+        this.subordinateMagicType instanceof TypeVar &&
+        this.subordinateMagicType.root != undefined
+          ? this.subordinateMagicType.root
+          : this.subordinateMagicType;
+      return this.endChanges(target.applyGeneric(appliedParameters, this.loc));
+    } catch (e) {
+      this._alreadyProcessedWith = null;
+      throw e;
     }
-    if (includedBottom) {
-      return new $BottomType(
-        {},
-        this.subordinateMagicType,
-        appliedParameters,
-        this.loc
-      );
-    }
-    const target =
-      this.subordinateMagicType instanceof TypeVar &&
-      this.subordinateMagicType.root != undefined
-        ? this.subordinateMagicType.root
-        : this.subordinateMagicType;
-    return target.applyGeneric(appliedParameters, this.loc);
   }
 
   unpack() {
@@ -111,6 +134,9 @@ export class $BottomType extends Type {
   }
 
   isPrincipalTypeFor(other: Type): boolean {
+    if (this.referenceEqualsTo(other)) {
+      return true;
+    }
     const self = this.unpack();
     return self.isPrincipalTypeFor(other);
   }
@@ -136,10 +162,25 @@ export class $BottomType extends Type {
   }
 
   getDifference(type: Type) {
+    if (this._alreadyProcessedWith === type) {
+      return [];
+    }
     if (type instanceof $BottomType) {
       type = type.subordinateMagicType;
     }
-    return this.subordinateMagicType.getDifference(type);
+    const subordinate = this.getOponentType(this.subordinateMagicType);
+    this._alreadyProcessedWith = type;
+    const diff = subordinate.getDifference(type);
+    this._alreadyProcessedWith = null;
+    return "genericArguments" in subordinate
+      ? diff.map(diff => {
+          const index = subordinate.genericArguments.indexOf(diff.variable);
+          if (index === -1) {
+            return diff;
+          }
+          return { variable: this.genericArguments[index], root: diff.root };
+        })
+      : diff;
   }
 
   getRootedSubordinateType() {
@@ -162,29 +203,48 @@ export class $BottomType extends Type {
   }
 
   equalsTo(type: Type) {
-    return (
+    if (this.referenceEqualsTo(type)) {
+      return true;
+    }
+    if (this._alreadyProcessedWith === type) {
+      return true;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
       type instanceof $BottomType &&
+      this.canContain(type) &&
       this.genericArguments.length === type.genericArguments.length &&
       this.genericArguments.every((arg, i) =>
         arg.equalsTo(type.genericArguments[i])
       ) &&
       Type.getTypeRoot(this.subordinateMagicType) ===
-        Type.getTypeRoot(type.subordinateMagicType)
-    );
+        Type.getTypeRoot(type.subordinateMagicType);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   contains(type: Type) {
-    return (
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
       this.genericArguments.some(a => a.contains(type)) ||
-      this.subordinateMagicType.contains(type)
-    );
+      this.subordinateMagicType.contains(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   weakContains(type: Type) {
-    return (
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
       this.genericArguments.some(a => a.weakContains(type)) ||
-      this.subordinateMagicType.weakContains(type)
-    );
+      this.subordinateMagicType.weakContains(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   makeNominal() {

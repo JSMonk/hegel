@@ -1,15 +1,18 @@
 // @flow
 import HegelError from "../../utils/errors";
+import { THIS_TYPE } from "../constants";
 import type { TypeVar } from "./type-var";
 import type { TypeScope } from "../type-scope";
 import type { SourceLocation } from "@babel/parser";
 
 export type TypeMeta = {
   loc?: SourceLocation,
-  parent?: TypeScope,
+  parent?: TypeScope | void,
   isSubtypeOf?: Type | null,
   shouldBeUsedAsGeneric?: boolean
 };
+
+const BOUNDARY = "[\\(\\)\\[\\]\\{\\}\\<\\>\\s\\n,]";
 
 export class Type {
   static GlobalTypeScope: TypeScope;
@@ -35,8 +38,17 @@ export class Type {
   }
 
   static new(name: mixed, meta?: TypeMeta = {}, ...args: Array<any>) {
-    const scope = meta.parent || Type.GlobalTypeScope;
-    const newType = new this(name, meta, ...args);
+    let scope = meta.parent || Type.GlobalTypeScope;
+    const suptypeParent = meta.isSubtypeOf && meta.isSubtypeOf.parent;
+    if (
+      suptypeParent &&
+      // $FlowIssue
+      meta.isSubtypeOf.name !== THIS_TYPE &&
+      suptypeParent.priority > scope.priority
+    ) {
+      scope = suptypeParent;
+    }
+    const newType = new this(name, { ...meta, parent: scope }, ...args);
     scope.body.set(name, newType);
     return newType;
   }
@@ -56,7 +68,9 @@ export class Type {
     meta: TypeMeta,
     ...args: Array<any>
   ) {
-    return type === undefined || !(type instanceof this);
+    return (
+      type === undefined || !(type instanceof this || this.name === "TypeVar")
+    );
   }
 
   static getTypeRoot(type: Type) {
@@ -76,6 +90,9 @@ export class Type {
   parent: TypeScope;
   shouldBeUsedAsGeneric: boolean;
   isSubtypeOf: Type | null;
+  _alreadyProcessedWith: Type | null = null;
+  onlyLiteral: boolean = false;
+  priority = 1;
 
   constructor(name: mixed, meta: TypeMeta = {}) {
     const {
@@ -93,14 +110,17 @@ export class Type {
     let pattern = "";
     const map = sourceTypes.reduce((map, type, index) => {
       const name = String(type.name);
-      map[name] = targetTypes[index].name;
+      map.set(name, String(targetTypes[index].name));
       pattern += (pattern && "|") + name.replace(/\|/g, "\\|");
       return map;
-    }, {});
-    const template = new RegExp(`\\b(${pattern})\\b`, "gm");
+    }, new Map());
+    const template = new RegExp(
+      `(?<=^|${BOUNDARY})(${pattern})(?=$|${BOUNDARY})`,
+      "gm"
+    );
     return String(this.name).replace(
       template,
-      typeName => map[typeName] || ""
+      typeName => map.get(typeName) || ""
     );
   }
 
@@ -114,7 +134,8 @@ export class Type {
   }
 
   save() {
-    if (!this.parent.body.has(this.name)) {
+    const existed = this.parent.body.get(this.name);
+    if (existed === undefined || !(existed instanceof this.constructor)) {
       this.parent.body.set(this.name, this);
     }
     return this;
@@ -131,10 +152,16 @@ export class Type {
   }
 
   isSuperTypeFor(type: Type): boolean {
-    if (type.isSubtypeOf === null) {
+    if (this._alreadyProcessedWith === type) {
+      return true;
+    }
+    if (type.isSubtypeOf === null || !this.canContain(type.isSubtypeOf)) {
       return false;
     }
-    return this.isPrincipalTypeFor(type.isSubtypeOf);
+    this._alreadyProcessedWith = type;
+    const result = this.isPrincipalTypeFor(type.isSubtypeOf);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   getPropertyType(propertyName: mixed): ?Type {
@@ -155,10 +182,23 @@ export class Type {
   getDifference(type: Type) {
     if ("variants" in type) {
       // $FlowIssue
-      return type.variants.flatMap(a => this.getDifference(a));
+      const variants = [...type.variants].sort(
+        (t1, t2) => t2.priority - t1.priority
+      );
+      for (const variant of variants) {
+        const diff = this.getDifference(variant);
+        if (diff.length !== 0) {
+          return diff;
+        }
+      }
+      return [];
     }
-    if ("root" in type) {
+    if ("root" in type && type.isSubtypeOf === null) {
       return [{ root: this, variable: type }];
+    }
+    if ("subordinateMagicType" in type) {
+      // $FlowIssue
+      return this.getDifference(type.unpack());
     }
     return [];
   }
@@ -207,5 +247,25 @@ export class Type {
   promisify() {
     const Promise = Type.find("Promise");
     return Promise.applyGeneric([this]);
+  }
+
+  isPromise() {
+    const name = String(this.name);
+    return /^Promise/.test(name);
+  }
+
+  canContain(type: Type) {
+    return this.parent.priority >= type.parent.priority;
+  }
+
+  endChanges(result: Type) {
+    if (this._alreadyProcessedWith === null) {
+      return result;
+    }
+    // $FlowIssue
+    this._alreadyProcessedWith.root = result;
+    this._alreadyProcessedWith.name = result.name;
+    this._alreadyProcessedWith = null;
+    return result;
   }
 }

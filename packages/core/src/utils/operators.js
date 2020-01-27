@@ -856,11 +856,12 @@ const mixBaseOperators = moduleScope => {
         l => l.body.get("T")
       )
     ]
-  ].map(([name, type]) => [
-    name,
-    new VariableInfo(type, typeScope, zeroMetaLocation)
-  ]);
-  moduleScope.body = new Map(operators.concat([...moduleScope.body]));
+  ].forEach(([name, type]) =>
+    moduleScope.body.set(
+      name,
+      new VariableInfo(type, moduleScope, zeroMetaLocation)
+    )
+  );
 };
 
 export default mixBaseOperators;

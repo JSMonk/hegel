@@ -13,6 +13,18 @@ export class $Partial extends GenericType {
     super("$Partial", meta, [TypeVar.term("target", { parent })], parent, null);
   }
 
+  isPrincipalTypeFor() {
+    return false;
+  }
+
+  equalsTo() {
+    return false;
+  }
+
+  isSuperTypeFor() {
+    return false;
+  }
+
   applyGeneric(
     parameters,
     loc,

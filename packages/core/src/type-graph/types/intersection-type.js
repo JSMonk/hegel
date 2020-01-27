@@ -20,6 +20,18 @@ export class $Intersection extends GenericType {
     );
   }
 
+  isPrincipalTypeFor() {
+    return false;
+  }
+
+  equalsTo() {
+    return false;
+  }
+
+  isSuperTypeFor() {
+    return false;
+  }
+
   applyGeneric(
     parameters,
     loc,
@@ -45,7 +57,10 @@ export class $Intersection extends GenericType {
     if (!(secondObject instanceof ObjectType)) {
       throw new HegelError("Second parameter should be an object type", loc);
     }
-    const newProperties = [...firstObject.properties, ...secondObject.properties];
+    const newProperties = [
+      ...firstObject.properties,
+      ...secondObject.properties
+    ];
     return ObjectType.term(
       ObjectType.getName(newProperties),
       {},
@@ -53,4 +68,3 @@ export class $Intersection extends GenericType {
     );
   }
 }
-

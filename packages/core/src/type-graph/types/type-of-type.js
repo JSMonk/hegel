@@ -15,6 +15,18 @@ export class $TypeOf extends GenericType {
     );
   }
 
+  isPrincipalTypeFor() {
+    return false;
+  }
+
+  equalsTo() {
+    return false;
+  }
+
+  isSuperTypeFor() {
+    return false;
+  }
+
   applyGeneric(parameters, loc) {
     super.assertParameters(parameters, loc);
     const [target] = parameters;

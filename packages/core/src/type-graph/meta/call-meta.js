@@ -20,6 +20,7 @@ export class CallMeta extends Meta {
   target: ?CallableTarget;
   targetName: string;
   arguments: Array<CallableArguments>;
+  argumentsLocations: Array<SourceLocation>;
   inferenced: boolean;
 
   constructor(
@@ -27,12 +28,14 @@ export class CallMeta extends Meta {
     args: Array<CallableArguments>,
     loc: SourceLocation,
     targetName: string,
-    inferenced?: boolean = false
+    inferenced?: boolean = false,
+    argumentsLocations?: Array<SourceLocation> = []
   ) {
     super(loc);
     this.target = target;
     this.targetName = targetName;
     this.arguments = args;
     this.inferenced = inferenced;
+    this.argumentsLocations = argumentsLocations;
   }
 }

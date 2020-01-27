@@ -24,7 +24,7 @@ export class UnionType extends Type {
     for (let i = 0; i < length; i++) {
       const variant = variants[i];
       if (
-        !TypeVar.isSelf(variant) &&
+        variant instanceof Type &&
         (parent === undefined || parent.priority < variant.parent.priority)
       ) {
         parent = variant.parent;
@@ -45,7 +45,7 @@ export class UnionType extends Type {
   }
 
   static getName(params: Array<Type>) {
-    return `${unique(params, a => String(a.name))
+    return `${unique(params.map(Type.getTypeRoot), a => String(a.name))
       .sort((t1, t2) => String(t1.name).localeCompare(String(t2.name)))
       .reduce((res, t) => {
         const isFunction =
@@ -88,19 +88,35 @@ export class UnionType extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ) {
-    let isVariantsChanged = false;
-    const newVariants = this.variants.map(t => {
-      const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
-      if (newT === t) {
-        return t;
-      }
-      isVariantsChanged = true;
-      return newT;
-    });
-    if (!isVariantsChanged) {
+    if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    return UnionType.term(null, {}, newVariants);
+    if (this._alreadyProcessedWith !== null) {
+      return this._alreadyProcessedWith;
+    }
+    this._alreadyProcessedWith = TypeVar.createSelf(
+      this.getChangedName(sourceTypes, targetTypes),
+      this.parent
+    );
+    try {
+      let isVariantsChanged = false;
+      const newVariants = this.variants.map(t => {
+        const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
+        if (newT === t) {
+          return t;
+        }
+        isVariantsChanged = true;
+        return newT;
+      });
+      if (!isVariantsChanged) {
+        this._alreadyProcessedWith = null;
+        return this;
+      }
+      return this.endChanges(UnionType.term(null, {}, newVariants));
+    } catch (e) {
+      this._alreadyProcessedWith = null;
+      throw e;
+    }
   }
 
   equalsTo(anotherType: Type) {
@@ -108,32 +124,45 @@ export class UnionType extends Type {
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
+    if (this._alreadyProcessedWith === anotherType) {
+      return true;
+    }
+    this._alreadyProcessedWith = anotherType;
     const anotherVariants =
       anotherType instanceof UnionType ? anotherType.variants : [];
-    return (
+    const result =
       anotherType instanceof UnionType &&
       super.equalsTo(anotherType) &&
+      this.canContain(anotherType) &&
       this.variants.length === anotherVariants.length &&
       this.variants.every((type, index) =>
         type.equalsTo(anotherVariants[index])
-      )
-    );
+      );
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   isSuperTypeFor(anotherType: Type): boolean {
     anotherType = this.getOponentType(anotherType);
+    if (this._alreadyProcessedWith === anotherType) {
+      return true;
+    }
+    this._alreadyProcessedWith = anotherType;
     if (anotherType instanceof UnionType) {
-      if (anotherType.variants.length > this.variants.length) {
-        return false;
-      }
       for (const variantType of anotherType.variants) {
         if (!this.variants.some(type => type.isPrincipalTypeFor(variantType))) {
+          this._alreadyProcessedWith = null;
           return false;
         }
       }
+      this._alreadyProcessedWith = null;
       return true;
     }
-    return this.variants.some(type => type.isPrincipalTypeFor(anotherType));
+    const result = this.variants.some(type =>
+      type.isPrincipalTypeFor(anotherType)
+    );
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   getPropertyType(propertyName: mixed): ?Type {
@@ -141,26 +170,59 @@ export class UnionType extends Type {
   }
 
   contains(type: Type) {
-    return super.contains(type) || this.variants.some(v => v.contains(type));
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
+      super.contains(type) || this.variants.some(v => v.contains(type));
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   getDifference(type: Type) {
+    if (this._alreadyProcessedWith === type) {
+      return [];
+    }
+    this._alreadyProcessedWith = type;
     if (type instanceof UnionType) {
       // $FlowIssue
-      return this.variants
-        .flatMap(
-          variant =>
-            // $FlowIssue
-            type.variants.flatMap(a => variant.getDifference(a))
-        );
+      const diff = this.variants.flatMap(variant =>
+        variant.getDifference(type)
+      );
+      const reducer = new Map();
+      for (const { root, variable } of diff) {
+        const existed = reducer.get(variable) || [];
+        existed.push(root);
+        reducer.set(variable, existed);
+      }
+      const aggregatedDiff = [];
+      for (const [variable, variants] of reducer) {
+        aggregatedDiff.push({
+          variable,
+          root:
+            variants.length === 1
+              ? variants[0]
+              : UnionType.term(null, {}, variants)
+        });
+      }
+      this._alreadyProcessedWith = null;
+      return aggregatedDiff;
     }
-    return super.getDifference(type);
+    const result = super.getDifference(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   weakContains(type: Type) {
-    return (
-      super.contains(type) || this.variants.some(v => v.weakContains(type))
-    );
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
+      super.contains(type) || this.variants.some(v => v.weakContains(type));
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   generalize(types: Array<TypeVar>, typeScope: TypeScope) {

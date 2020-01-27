@@ -21,6 +21,18 @@ export class $Omit extends GenericType {
     );
   }
 
+  isPrincipalTypeFor() {
+    return false;
+  }
+
+  equalsTo() {
+    return false;
+  }
+
+  isSuperTypeFor() {
+    return false;
+  }
+
   applyGeneric(
     parameters,
     loc,

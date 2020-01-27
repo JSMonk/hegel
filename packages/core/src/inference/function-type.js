@@ -13,6 +13,7 @@ import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
+import { $ThrowsResult } from "../type-graph/types/throws-type";
 import { VariableScope } from "../type-graph/variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { getVariableType } from "../utils/variable-utils";
@@ -90,7 +91,7 @@ export function inferenceFunctionLiteralType(
   );
   const functionScope = isTypeDefinitions
     ? new VariableScope(VariableScope.FUNCTION_TYPE, parentScope)
-    : typeGraph.body.get(VariableScope.getName(currentNode));
+    : typeGraph.scopes.get(VariableScope.getName(currentNode));
   if (!(functionScope instanceof VariableScope)) {
     throw new Error("Function scope should be created before inference");
   }
@@ -120,10 +121,12 @@ export function inferenceFunctionLiteralType(
       nameIndex++;
     } while (true);
   } catch {}
-  const self = parentScope.type === VariableScope.CLASS_TYPE || parentScope.type === VariableScope.OBJECT_TYPE 
-      // $FlowIssue
-    ? parentScope.body.get(THIS_TYPE).type
-    : null;
+  const self =
+    parentScope.type === VariableScope.CLASS_TYPE ||
+    parentScope.type === VariableScope.OBJECT_TYPE
+      ? // $FlowIssue
+        parentScope.body.get(THIS_TYPE).type
+      : null;
   const argumentsTypes = currentNode.params.map((param, index) => {
     if (param.optional && !isTypeDefinitions) {
       throw new HegelError(
@@ -207,6 +210,7 @@ export function inferenceFunctionLiteralType(
     }
     return paramType;
   });
+  let throwableType;
   let returnType =
     currentNode.returnType != undefined
       ? (getTypeFromTypeAnnotation(
@@ -238,15 +242,20 @@ export function inferenceFunctionLiteralType(
         currentNode.returnType.loc
       );
     }
+  } else if (returnType instanceof $ThrowsResult) {
+    throwableType = returnType;
+    returnType = returnType.resultType;
   }
   const genericArgumentsTypes = [...genericArguments];
   const typeName = FunctionType.getName(
     argumentsTypes,
-    returnType,
-    genericArgumentsTypes
+    throwableType || returnType,
+    genericArgumentsTypes,
+    currentNode.async
   );
   const type = FunctionType.term(typeName, {}, argumentsTypes, returnType);
   type.isAsync = currentNode.async === true;
+  type.throwable = throwableType && throwableType.errorType;
   return genericArgumentsTypes.length > 0
     ? GenericType.new(typeName, {}, genericArgumentsTypes, localTypeScope, type)
     : type;
@@ -308,6 +317,7 @@ function resolveOuterTypeVarsFromCall(
     }
     const callTargetType = callTarget.argumentsTypes[i];
     if (
+      callTargetType === undefined ||
       !(callArgumentType instanceof TypeVar) ||
       (callArgumentType.isUserDefined &&
         genericArguments.includes(callArgumentType)) ||
@@ -365,6 +375,9 @@ export function implicitApplyGeneric(
     const difference = givenArgumentType.getDifference(declaratedArgument);
     for (let j = 0; j < difference.length; j++) {
       let { root, variable } = difference[j];
+      if (TypeVar.isSelf(root)) {
+        continue;
+      }
       root = Type.getTypeRoot(root);
       variable = Type.getTypeRoot(variable);
       // $FlowIssue
@@ -378,7 +391,8 @@ export function implicitApplyGeneric(
         variable !== root &&
         (existed === undefined ||
           existed instanceof TypeVar ||
-          (dropUnknown && existed === Type.Unknown));
+          (dropUnknown && existed === Type.Unknown) ||
+          root.isSuperTypeFor(existed));
       if (!shouldSetNewRoot) {
         continue;
       }
@@ -456,7 +470,7 @@ export function getRawFunctionType(
     const argTypes = args.map(a => (a instanceof VariableInfo ? a.type : a));
     const returnTypeName = invocationTypeNames[iterator];
     const returnType = TypeVar.new(returnTypeName, { parent: localTypeScope });
-    const newFunctionTypeName = FunctionType.getName(argTypes, returnType);
+    const newFunctionTypeName = FunctionType.getName(argTypes, returnType, []);
     const result = FunctionType.term(
       newFunctionTypeName,
       { parent: localTypeScope },
@@ -544,18 +558,22 @@ export function inferenceFunctionTypeByScope(
   const {
     genericArguments: oldGenericArguments,
     localTypeScope,
-    subordinateType: { argumentsTypes, returnType, isAsync }
+    subordinateType: { argumentsTypes, returnType, isAsync, throwable }
   } = functionScope.declaration.type;
   const genericArguments = [...oldGenericArguments];
   let returnWasCalled = false;
-  for (let i = 0; i < calls.length; i++) {
-    resolveOuterTypeVarsFromCall(
-      calls[i],
-      genericArguments,
-      oldGenericArguments,
-      localTypeScope,
-      typeGraph
-    );
+  // $FlowIssue
+  const nestedScopes = functionScope.getAllChildScopes(typeGraph);
+  for (const { calls } of nestedScopes) {
+    for (let i = 0; i < calls.length; i++) {
+      resolveOuterTypeVarsFromCall(
+        calls[i],
+        genericArguments,
+        oldGenericArguments,
+        localTypeScope,
+        typeGraph
+      );
+    }
   }
   for (let i = 0; i < calls.length; i++) {
     if (
@@ -563,6 +581,7 @@ export function inferenceFunctionTypeByScope(
       returnType instanceof TypeVar &&
       !returnType.isUserDefined
     ) {
+      returnWasCalled = true;
       const {
         arguments: [returnArgument],
         inferenced
@@ -582,16 +601,16 @@ export function inferenceFunctionTypeByScope(
       if (newOneRoot === returnType) {
         continue;
       }
-      const variants: any = (returnType.root instanceof UnionType
-        ? returnType.root.items
-        : [returnType.root]
-      ).concat([newOneRoot]);
-      returnType.root =
-        returnType.root != undefined &&
-        !returnType.root.isPrincipalTypeFor(newOneRoot)
-          ? UnionType.term(null, { parent: localTypeScope }, variants)
-          : newOneRoot;
-      returnWasCalled = true;
+      const oldRoot = Type.getTypeRoot(returnType);
+      if (returnType.root === undefined) {
+        returnType.root = newOneRoot;
+      } else if (!oldRoot.isPrincipalTypeFor(newOneRoot)) {
+        const variants: any = (oldRoot instanceof UnionType
+          ? oldRoot.variants
+          : [oldRoot]
+        ).concat([newOneRoot]);
+        returnType.root = UnionType.term(null, {}, variants);
+      }
     }
   }
   if (
@@ -599,7 +618,7 @@ export function inferenceFunctionTypeByScope(
     returnType instanceof TypeVar &&
     !returnType.isUserDefined
   ) {
-    returnType.root = Type.Undefined;
+    returnType.root = isAsync ? Type.Undefined.promisify() : Type.Undefined;
   }
   const created: Map<TypeVar, TypeVar> = new Map();
   for (let i = 0; i < genericArguments.length; i++) {
@@ -620,12 +639,14 @@ export function inferenceFunctionTypeByScope(
     }
   }
   const allRoots = genericArguments.map(Type.getTypeRoot);
-  for (const [_, v] of functionScope.body) {
-    if (v.type instanceof TypeVar && v.type.root != undefined) {
-      v.type = Type.getTypeRoot(v.type);
-    } else {
-      // $FlowIssue
-      v.type = v.type.changeAll(genericArguments, allRoots);
+  for (const scope of nestedScopes) {
+    for (const [_, v] of scope.body) {
+      if (v.type instanceof TypeVar && v.type.root != undefined) {
+        v.type = Type.getTypeRoot(v.type);
+      } else {
+        // $FlowIssue
+        v.type = v.type.changeAll(genericArguments, allRoots);
+      }
     }
   }
   let newGenericArguments: Set<TypeVar> = new Set();
@@ -633,7 +654,7 @@ export function inferenceFunctionTypeByScope(
     let result =
       t instanceof TypeVar && t.root != undefined ? Type.getTypeRoot(t) : t;
     // $FlowIssue
-    result = result.changeAll(genericArguments, allRoots);
+    result = result.changeAll(genericArguments, allRoots, typeScope);
     if (
       result instanceof TypeVar &&
       // $FlowIssue
@@ -647,53 +668,60 @@ export function inferenceFunctionTypeByScope(
     returnType instanceof TypeVar && returnType.root != undefined
       ? Type.getTypeRoot(returnType)
       : returnType;
+  newReturnType = newReturnType.changeAll(
+    genericArguments,
+    allRoots,
+    typeScope
+  );
   if (newReturnType instanceof TypeVar) {
     newGenericArguments.add(newReturnType);
   }
-  if (isAsync) {
-    const Promise = Type.find("Promise");
-    const unknownPromise = Type.Unknown.promisify();
-    if (!unknownPromise.isPrincipalTypeFor(newReturnType)) {
-      newReturnType = newReturnType.promisify();
-    }
-  }
   const shouldBeCleaned = [];
-  for (let i = 0; i < calls.length; i++) {
-    const call = calls[i];
-    const args = call.arguments;
-    const target = call.target;
-    const targetType = target instanceof VariableInfo ? target.type : target;
-    for (let j = 0; j < args.length; j++) {
-      const argument = args[j];
-      const argumentType =
-        argument instanceof VariableInfo ? argument.type : argument;
-      if (!(argumentType instanceof TypeVar)) {
-        continue;
-      }
-      const copy = created.get(argumentType);
-      if (argumentType.root !== undefined) {
-        args[j] = Type.getTypeRoot(argumentType);
-        if (
-          oldGenericArguments.includes(argumentType) &&
-          argumentType.isUserDefined
-        ) {
-          shouldBeCleaned.push(argumentType);
+  for (const { calls } of nestedScopes) {
+    for (let i = 0; i < calls.length; i++) {
+      const call = calls[i];
+      const args = call.arguments;
+      const target = call.target;
+      const targetType = target instanceof VariableInfo ? target.type : target;
+      for (let j = 0; j < args.length; j++) {
+        const argument = args[j];
+        const argumentType =
+          argument instanceof VariableInfo ? argument.type : argument;
+        if (!(argumentType instanceof TypeVar)) {
+          if (argument instanceof Type) {
+            args[j] = argument.changeAll(genericArguments, allRoots, typeScope);
+          }
+          continue;
         }
-      } else if (copy !== undefined) {
-        args[j] = copy;
-        if (
-          call.targetName === "return" &&
-          call.target instanceof FunctionType
-        ) {
-          // $FlowIssue
-          call.target = targetType.changeAll([argumentType], [copy], typeScope);
+        const copy = created.get(argumentType);
+        if (argumentType.root !== undefined) {
+          args[j] = Type.getTypeRoot(argumentType);
+          if (
+            oldGenericArguments.includes(argumentType) &&
+            argumentType.isUserDefined
+          ) {
+            shouldBeCleaned.push(argumentType);
+          }
+        } else if (copy !== undefined) {
+          args[j] = copy;
+          if (
+            call.targetName === "return" &&
+            call.target instanceof FunctionType
+          ) {
+            // $FlowIssue
+            call.target = targetType.changeAll(
+              [argumentType],
+              [copy],
+              typeScope
+            );
+          }
         }
       }
-    }
-    if (targetType instanceof GenericType) {
-      targetType.genericArguments.forEach(
-        a => a.isUserDefined && shouldBeCleaned.push(a)
-      );
+      if (targetType instanceof GenericType) {
+        targetType.genericArguments.forEach(
+          a => a.isUserDefined && shouldBeCleaned.push(a)
+        );
+      }
     }
   }
   for (let i = 0; i < oldGenericArguments.length; i++) {
@@ -719,7 +747,8 @@ export function inferenceFunctionTypeByScope(
   const newFunctionTypeName = FunctionType.getName(
     newArgumentsTypes,
     newReturnType,
-    newGenericArgumentsTypes
+    newGenericArgumentsTypes,
+    isAsync
   );
   let newFunctionType = FunctionType.term(
     newFunctionTypeName,
@@ -728,6 +757,7 @@ export function inferenceFunctionTypeByScope(
     newReturnType,
     isAsync
   );
+  newFunctionType.throwable = throwable;
   if (newGenericArgumentsTypes.length > 0) {
     newFunctionType = GenericType.new(
       newFunctionTypeName,

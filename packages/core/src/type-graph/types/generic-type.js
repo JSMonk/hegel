@@ -19,7 +19,8 @@ export class GenericType<T: Type> extends Type {
   ) {
     const newMeta = {
       ...meta,
-      parent: type.parent.priority >= typeScope.priority ? undefined : type.parent
+      parent:
+        type.parent.priority >= typeScope.priority ? meta.parent : type.parent
     };
     return super.term(
       name,
@@ -32,7 +33,7 @@ export class GenericType<T: Type> extends Type {
   }
 
   static getNameWithoutApplying(name: mixed) {
-    return String(name).replace(/<.+>/g, "");
+    return String(name).replace(/<[\w\W]+>/g, "");
   }
 
   static getName<T: Type>(name: mixed, parameters: Array<T>) {
@@ -63,11 +64,17 @@ export class GenericType<T: Type> extends Type {
   }
 
   isSuperTypeFor(anotherType: Type) {
+    if (this._alreadyProcessedWith === anotherType) {
+      return true;
+    }
+    this._alreadyProcessedWith = anotherType;
     const otherType =
       anotherType instanceof GenericType
         ? anotherType.subordinateType
         : anotherType;
-    return this.subordinateType.isSuperTypeFor(otherType);
+    const result = this.subordinateType.isSuperTypeFor(otherType);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   assertParameters(
@@ -121,35 +128,61 @@ export class GenericType<T: Type> extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ): Type {
-    const newSubordinateType = this.subordinateType.changeAll(
-      sourceTypes,
-      targetTypes,
-      typeScope
-    );
-    if (newSubordinateType === this.subordinateType) {
+    if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    const newGenericArguments = this.genericArguments.filter(arg =>
-      newSubordinateType.contains(arg)
-    );
-    if (newGenericArguments.length === 0) {
-      return newSubordinateType;
+    if (this._alreadyProcessedWith !== null) {
+      return this._alreadyProcessedWith;
     }
-    const newName =
-      "argumentsTypes" in newSubordinateType
-        ? newSubordinateType.constructor.getName(
-            newSubordinateType.argumentsTypes,
-            newSubordinateType.returnType,
-            newGenericArguments
-          )
-        : GenericType.getName(newSubordinateType.name, newGenericArguments);
-    return GenericType.term(
-      newName,
-      {},
-      newGenericArguments,
-      this.localTypeScope,
-      newSubordinateType
+    this._alreadyProcessedWith = TypeVar.createSelf(
+      this.getChangedName(sourceTypes, targetTypes),
+      this.parent
     );
+    try {
+      const newSubordinateType = this.subordinateType.changeAll(
+        sourceTypes,
+        targetTypes,
+        typeScope
+      );
+      if (newSubordinateType === this.subordinateType) {
+        this._alreadyProcessedWith = null;
+        return this;
+      }
+      const newGenericArguments = this.genericArguments.filter(arg =>
+        newSubordinateType.contains(arg)
+      );
+      if (newGenericArguments.length === 0) {
+        return this.endChanges(newSubordinateType);
+      }
+      const newName =
+        "argumentsTypes" in newSubordinateType
+          ? newSubordinateType.constructor.getName(
+              newSubordinateType.argumentsTypes,
+              newSubordinateType.returnType,
+              newGenericArguments
+            )
+          : GenericType.getName(newSubordinateType.name, newGenericArguments);
+      const theMostCloseParent: TypeScope | void = targetTypes.reduce(
+        (parent: TypeScope | void, type) =>
+          newSubordinateType.contains(type) &&
+          (parent === undefined || parent.priority <= type.parent.priority)
+            ? type.parent
+            : parent,
+        undefined
+      );
+      return this.endChanges(
+        GenericType.term(
+          newName,
+          { parent: theMostCloseParent },
+          newGenericArguments,
+          this.localTypeScope,
+          newSubordinateType
+        )
+      );
+    } catch (e) {
+      this._alreadyProcessedWith = null;
+      throw e;
+    }
   }
 
   applyGeneric(
@@ -192,10 +225,16 @@ export class GenericType<T: Type> extends Type {
     });
     const appliedTypeName = GenericType.getName(this.name, parameters);
     const oldAppliedSelf = new $BottomType({}, this, this.genericArguments);
-    const localTypeScope = new TypeScope(this.localTypeScope);
+    const theMostPriorityParent = parameters.reduce(
+      (parent, type) =>
+        parent === undefined || parent.priority < type.parent.priority
+          ? type.parent
+          : parent,
+      Type.GlobalTypeScope
+    );
     const appliedSelf = TypeVar.term(
       appliedTypeName,
-      { parent: localTypeScope, isSubtypeOf: TypeVar.Self },
+      { parent: theMostPriorityParent, isSubtypeOf: TypeVar.Self },
       null,
       true
     );
@@ -205,10 +244,11 @@ export class GenericType<T: Type> extends Type {
     const result = this.subordinateType.changeAll(
       [...this.genericArguments, oldAppliedSelf],
       [...parameters, appliedSelf],
-      localTypeScope
+      theMostPriorityParent
     );
     result.name = result.name === undefined ? appliedTypeName : result.name;
     appliedSelf.root = result;
+    result.priority = this.subordinateType.priority + 1;
     return result.save();
   }
 
@@ -221,21 +261,49 @@ export class GenericType<T: Type> extends Type {
   }
 
   getDifference(type: Type) {
+    if (this._alreadyProcessedWith === type) {
+      return [];
+    }
+    this._alreadyProcessedWith = type;
     if (type instanceof GenericType) {
-      return this.subordinateType.getDifference(type.subordinateType);
+      const result = this.subordinateType
+        .getDifference(type.subordinateType)
+        // $FlowIssue
+        .filter(a => !type.genericArguments.includes(a.variable));
+      this._alreadyProcessedWith = null;
+      return result;
     }
     if (type instanceof TypeVar) {
-      return super.getDifference(type);
+      const result = super.getDifference(type);
+      this._alreadyProcessedWith = null;
+      return result;
     }
-    return this.subordinateType.getDifference(type);
+    const result = this.subordinateType
+      .getDifference(type)
+      .filter(a => !this.genericArguments.includes(a.variable));
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   contains(type: Type) {
-    return super.contains(type) || this.subordinateType.contains(type);
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result = super.contains(type) || this.subordinateType.contains(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   weakContains(type: Type) {
-    return super.contains(type) || this.subordinateType.weakContains(type);
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
+      super.contains(type) || this.subordinateType.weakContains(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   makeNominal() {

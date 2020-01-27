@@ -15,7 +15,7 @@ export class RestArgument extends Type {
   ) {
     const newMeta = {
       ...meta,
-      parent: TypeVar.isSelf(type) ? meta.parent : type.parent
+      parent: meta.parent || type.parent
     };
     return super.term(name, newMeta, type, ...args);
   }
@@ -32,11 +32,24 @@ export class RestArgument extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ) {
-    const newType = this.type.changeAll(sourceTypes, targetTypes, typeScope);
-    if (this.type === newType) {
+    if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    return new RestArgument(newType);
+    if (this._alreadyProcessedWith !== null) {
+      return this._alreadyProcessedWith;
+    }
+    this._alreadyProcessedWith = TypeVar.createSelf(this.name, this.parent);
+    try {
+      const newType = this.type.changeAll(sourceTypes, targetTypes, typeScope);
+      if (this.type === newType) {
+        this._alreadyProcessedWith = null;
+        return this;
+      }
+      return this.endChanges(new RestArgument(newType));
+    } catch (e) {
+      this._alreadyProcessedWith = null;
+      throw e;
+    }
   }
 
   isType(
@@ -62,6 +75,14 @@ export class RestArgument extends Type {
   isSuperTypeFor(anotherType: Type | RestArgument) {
     return this.isType("isSuperTypeFor", anotherType);
   }
+
+  contains(type: Type) {
+    return this.type.contains(type);
+  }
+
+  weakContains(type: Type) {
+    return this.type.weakContains(type);
+  }
 }
 
 export class FunctionType extends Type {
@@ -81,7 +102,6 @@ export class FunctionType extends Type {
       const item = searchingItems[i];
       if (
         item instanceof Type &&
-        !TypeVar.isSelf(item) &&
         (parent === undefined || parent.priority < item.parent.priority)
       ) {
         parent = item.parent;
@@ -94,7 +114,8 @@ export class FunctionType extends Type {
   static getName(
     params: Array<Type | RestArgument>,
     returnType: Type,
-    genericParams: Array<TypeVar> = []
+    genericParams: Array<TypeVar> = [],
+    isAsync: boolean = false
   ) {
     const genericPart = genericParams.length
       ? `<${genericParams.reduce(
@@ -109,17 +130,21 @@ export class FunctionType extends Type {
       .map(param => {
         const isRest = param instanceof RestArgument;
         // $FlowIssue
-        const t = String(isRest ? param.type.name : param.name);
+        param = Type.getTypeRoot(isRest ? param.type : param);
+        const t = String(param.name);
         return isRest ? `...${t} ` : t;
       })
       .join(", ");
-    return `${genericPart}(${args}) => ${String(returnType.name)}`;
+    return `${isAsync ? "async " : ""}${genericPart}(${args}) => ${String(
+      returnType.name
+    )}`;
   }
 
   argumentsTypes: Array<Type | RestArgument>;
   returnType: Type;
   throwable: ?Type;
   isAsync: boolean;
+  priority = 2;
 
   constructor(
     name: string,
@@ -139,30 +164,47 @@ export class FunctionType extends Type {
     targetTypes: Array<Type | RestArgument>,
     typeScope: TypeScope
   ): Type {
-    let isArgumentsChanged = false;
-    const newArguments = this.argumentsTypes.map(t => {
-      const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
-      if (newT === t) {
-        return t;
-      }
-      isArgumentsChanged = true;
-      return newT;
-    });
-    const newReturn = this.returnType.changeAll(
-      sourceTypes,
-      targetTypes,
-      typeScope
-    );
-    if (newReturn === this.returnType && !isArgumentsChanged) {
+    if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-
-    return FunctionType.term(
-      FunctionType.getName(newArguments, newReturn),
-      {},
-      newArguments,
-      newReturn
+    if (this._alreadyProcessedWith !== null) {
+      return this._alreadyProcessedWith;
+    }
+    this._alreadyProcessedWith = TypeVar.createSelf(
+      this.getChangedName(sourceTypes, targetTypes),
+      this.parent
     );
+    let isArgumentsChanged = false;
+    try {
+      const newArguments = this.argumentsTypes.map(t => {
+        const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
+        if (newT === t) {
+          return t;
+        }
+        isArgumentsChanged = true;
+        return newT;
+      });
+      const newReturn = this.returnType.changeAll(
+        sourceTypes,
+        targetTypes,
+        typeScope
+      );
+      if (newReturn === this.returnType && !isArgumentsChanged) {
+        this._alreadyProcessedWith = null;
+        return this;
+      }
+      const result = FunctionType.term(
+        FunctionType.getName(newArguments, newReturn, undefined, this.isAsync),
+        {},
+        newArguments,
+        newReturn
+      );
+      result.isAsync = this.isAsync;
+      return this.endChanges(result);
+    } catch (e) {
+      this._alreadyProcessedWith = null;
+      throw e;
+    }
   }
 
   equalsTo(anotherType: Type) {
@@ -170,38 +212,52 @@ export class FunctionType extends Type {
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
-    if (!(anotherType instanceof FunctionType)) {
-      return false;
+    if (this._alreadyProcessedWith === anotherType) {
+      return true;
     }
-    return (
+    this._alreadyProcessedWith = anotherType;
+    const result =
+      anotherType instanceof FunctionType &&
       super.equalsTo(anotherType) &&
+      this.canContain(anotherType) &&
       this.returnType.equalsTo(anotherType.returnType) &&
       this.argumentsTypes.length === anotherType.argumentsTypes.length &&
       this.argumentsTypes.every((arg, i) =>
         // $FlowIssue
         arg.equalsTo(anotherType.argumentsTypes[i])
-      )
-    );
+      );
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   isSuperTypeFor(anotherType: Type) {
     anotherType = this.getOponentType(anotherType);
+    if (this._alreadyProcessedWith === anotherType) {
+      return true;
+    }
+    this._alreadyProcessedWith = anotherType;
     if (!(anotherType instanceof FunctionType)) {
       anotherType = anotherType.getPropertyType(CALLABLE);
       if (anotherType === null) {
+        this._alreadyProcessedWith = null;
         return false;
       }
     }
-    return (
+    const result =
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
       this.argumentsTypes.length >= anotherType.argumentsTypes.length &&
       anotherType.argumentsTypes.every((arg, i) =>
         arg.isPrincipalTypeFor(this.argumentsTypes[i] || Type.Undefined)
-      )
-    );
+      );
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   getDifference(type: Type) {
+    if (this._alreadyProcessedWith === type) {
+      return [];
+    }
+    this._alreadyProcessedWith = type;
     if (
       "subordinateType" in type &&
       // $FlowIssue
@@ -216,25 +272,38 @@ export class FunctionType extends Type {
         arg.getDifference(argumentsTypes[i])
       );
       const returnDiff = this.returnType.getDifference(returnType);
+      this._alreadyProcessedWith = null;
       return argumentsDiff.concat(returnDiff);
     }
-    return super.getDifference(type);
+    const result = super.getDifference(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   contains(type: Type) {
-    return (
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
       super.contains(type) ||
       this.argumentsTypes.some(a => a.contains(type)) ||
-      this.returnType.contains(type)
-    );
+      this.returnType.contains(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   weakContains(type: Type) {
-    return (
+    if (this._alreadyProcessedWith === type || !this.canContain(type)) {
+      return false;
+    }
+    this._alreadyProcessedWith = type;
+    const result =
       super.weakContains(type) ||
       this.argumentsTypes.some(a => a.weakContains(type)) ||
-      this.returnType.weakContains(type)
-    );
+      this.returnType.weakContains(type);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   generalize(types: Array<TypeVar>, typeScope: TypeScope) {

@@ -187,7 +187,10 @@ export function getTypeFromTypeAnnotation(
         middlecompute,
         postcompute
       );
-      return (new $Intersection()).applyGeneric([firstObject, secondObject], typeNode.loc);
+      return Type.find("$Intersection").applyGeneric(
+        [firstObject, secondObject],
+        typeNode.loc
+      );
     case NODE.NULLABLE_TYPE_ANNOTATION:
       const resultType = getTypeFromTypeAnnotation(
         typeNode.typeAnnotation,
@@ -277,34 +280,41 @@ export function getTypeFromTypeAnnotation(
         true
       );
     case NODE.TS_INDEX_PROPERTY:
+      const key = getTypeFromTypeAnnotation(
+        typeNode.typeAnnotation.parameters[0].typeAnnotation,
+        typeScope,
+        currentScope,
+        rewritable,
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      );
+      const value = getTypeFromTypeAnnotation(
+        // Ohhh, TS is beautiful ❤️
+        typeNode.typeAnnotation.typeAnnotation,
+        typeScope,
+        currentScope,
+        rewritable,
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      );
       return new CollectionType(
         "",
-        {},
-        getTypeFromTypeAnnotation(
-          typeNode.typeAnnotation.parameters[0].typeAnnotation,
-          typeScope,
-          currentScope,
-          rewritable,
-          self,
-          parentNode,
-          typeGraph,
-          precompute,
-          middlecompute,
-          postcompute
-        ),
-        getTypeFromTypeAnnotation(
-          // Ohhh, TS is beautiful ❤️
-          typeNode.typeAnnotation.typeAnnotation,
-          typeScope,
-          currentScope,
-          rewritable,
-          self,
-          parentNode,
-          typeGraph,
-          precompute,
-          middlecompute,
-          postcompute
-        )
+        {
+          parent:
+            key.parent.priority > value.parent.priority
+              ? key.parent
+              : value.parent
+        },
+        key,
+        value
       );
     case NODE.OBJECT_TYPE_ANNOTATION:
     case NODE.TS_OBJECT_TYPE_ANNOTATION:
@@ -495,7 +505,7 @@ export function getTypeFromTypeAnnotation(
         return genericParams.some(t => t instanceof TypeVar && t !== self) ||
           TypeVar.isSelf(existedGenericType)
           ? new $BottomType(
-              {},
+              { parent: existedGenericType.parent },
               existedGenericType,
               genericParams,
               typeNode.typeAnnotation.loc
@@ -751,12 +761,51 @@ export function getFalsy() {
     FALSY = [
       Type.term(false, { isSubtypeOf: Type.Boolean }),
       Type.term(0, { isSubtypeOf: Type.Number }),
+      Type.term("0n", { isSubtypeOf: Type.BigInt }),
       Type.term("''", { isSubtypeOf: Type.String }),
       Type.Null,
       Type.Undefined
     ];
   }
   return FALSY;
+}
+
+export function pickFalsy(type: Type) {
+  if (type instanceof UnionType) {
+    const variants = type.variants.map(pickFalsy).filter(Boolean);
+    return UnionType.term(null, {}, variants);
+  }
+  if (type === Type.Boolean) {
+    return Type.term(false, { isSubtypeOf: Type.Boolean });
+  }
+  if (type === Type.String) {
+    return Type.term("''", { isSubtypeOf: Type.String });
+  }
+  if (type === Type.Number) {
+    return Type.term(0, { isSubtypeOf: Type.Number });
+  }
+  if (type === Type.BigInt) {
+    return Type.term("0n", { isSubtypeOf: Type.BigInt });
+  }
+  if (type === Type.Undefined || type === Type.Null) {
+    return type;
+  }
+  if (isFalsy(type)) {
+    return type;
+  }
+}
+
+export function pickTruthy(type: Type) {
+  if (type instanceof UnionType) {
+    const variants = type.variants.map(pickTruthy).filter(Boolean);
+    return UnionType.term(null, {}, variants);
+  }
+  if (type === Type.Boolean) {
+    return Type.term(true, { isSubtypeOf: Type.Boolean });
+  }
+  if (!isFalsy(type)) {
+    return type;
+  }
 }
 
 export function isFalsy(type: Type) {

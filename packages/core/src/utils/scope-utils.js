@@ -77,8 +77,8 @@ export function getParentForNode(
     return typeGraph;
   }
   const name = VariableScope.getName(parentNode);
-  const scope = typeGraph.body.get(name);
-  if (!(scope instanceof VariableScope)) {
+  const scope = typeGraph.scopes.get(name);
+  if (scope === undefined) {
     return typeGraph;
   }
   if (NODE.isUnscopableDeclaration(currentNode)) {
@@ -112,10 +112,10 @@ export function addScopeToTypeGraph(
   typeGraph: ModuleScope
 ) {
   const scopeName = VariableScope.getName(currentNode);
-  if (typeGraph.body.has(scopeName)) {
+  if (typeGraph.scopes.has(scopeName)) {
     return;
   }
-  typeGraph.body.set(
+  typeGraph.scopes.set(
     scopeName,
     getScopeFromNode(currentNode, parentNode, typeGraph)
   );
