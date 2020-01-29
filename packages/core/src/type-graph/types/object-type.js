@@ -26,6 +26,7 @@ export class ObjectType extends Type {
     properties: Array<[string, VariableInfo]>,
     ...args: Array<any>
   ) {
+    name = name == undefined ? ObjectType.getName(properties) : name;
     let parent: TypeScope | void = meta.parent || Type.GlobalTypeScope;
     const length = properties.length;
     for (let i = 0; i < length; i++) {
@@ -83,22 +84,19 @@ export class ObjectType extends Type {
 
   isNominal: boolean;
   properties: Map<string, VariableInfo>;
-  strict: boolean;
   instanceType: Type | null = null;
   priority = 2;
 
   constructor(
     name: ?string,
     options: ExtendedTypeMeta = {},
-    properties: Array<[string, VariableInfo]>,
-    strict: boolean = true
+    properties: Array<[string, VariableInfo]>
   ) {
     name = name == undefined ? ObjectType.getName(properties) : name;
     super(name, {
       isSubtypeOf: name === "Object" ? undefined : ObjectType.Object,
       ...options
     });
-    this.strict = strict;
     this.isNominal = Boolean(options.isNominal);
     const filteredProperties = properties
       ? unique(properties, ([key]) => key)
@@ -203,7 +201,6 @@ export class ObjectType extends Type {
         { isSubtypeOf },
         newProperties
       );
-      result.strict = this.strict;
       return this.endChanges(result);
     } catch (e) {
       this._alreadyProcessedWith = null;
@@ -264,8 +261,6 @@ export class ObjectType extends Type {
     const result =
       anotherType instanceof ObjectType && !this.isNominal
         ? anotherType.properties.size >= requiredProperties.length &&
-          (!this.strict ||
-            anotherType.properties.size <= this.properties.size) &&
           this.isAllProperties("isPrincipalTypeFor", anotherType)
         : anotherType.isSubtypeOf != undefined &&
           this.isPrincipalTypeFor(anotherType.isSubtypeOf);

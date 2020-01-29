@@ -115,7 +115,8 @@ export class FunctionType extends Type {
     params: Array<Type | RestArgument>,
     returnType: Type,
     genericParams: Array<TypeVar> = [],
-    isAsync: boolean = false
+    isAsync: boolean = false,
+    throws?: Type | void
   ) {
     const genericPart = genericParams.length
       ? `<${genericParams.reduce(
@@ -135,14 +136,16 @@ export class FunctionType extends Type {
         return isRest ? `...${t} ` : t;
       })
       .join(", ");
-    return `${isAsync ? "async " : ""}${genericPart}(${args}) => ${String(
-      returnType.name
-    )}`;
+    const throwsPart =
+      throws !== undefined ? ` throws ${String(throws.name)}\n\t` : "";
+    return `${
+      isAsync ? "async " : ""
+    }${genericPart}(${args})${throwsPart} => ${String(returnType.name)}`;
   }
 
   argumentsTypes: Array<Type | RestArgument>;
   returnType: Type;
-  throwable: ?Type;
+  throwable: Type | void;
   isAsync: boolean;
   priority = 2;
 

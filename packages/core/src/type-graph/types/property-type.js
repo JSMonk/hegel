@@ -8,6 +8,7 @@ import { TypeScope } from "../type-scope";
 import { ObjectType } from "./object-type";
 import { $BottomType } from "./bottom-type";
 import { GenericType } from "./generic-type";
+import { VariableInfo } from "../variable-info";
 import { CollectionType } from "./collection-type";
 
 export class $PropertyType extends GenericType {
@@ -64,10 +65,40 @@ export class $PropertyType extends GenericType {
         : property.name;
 
     const isTargetVariable = realTarget instanceof TypeVar;
-    if (isTargetVariable && !realTarget.isUserDefined) {
-      realTarget.constraint = ObjectType.Object;
-    }
     const isPropertyVariable = property instanceof TypeVar;
+    if (isTargetVariable && !realTarget.isUserDefined) {
+      if (isPropertyVariable) {
+        realTarget.constraint = ObjectType.Object;
+      } else if (realTarget.constraint === undefined) {
+        const props = [
+          [
+            propertyName,
+            new VariableInfo(
+              TypeVar.term(`${realTarget.name[0]}0'`, {
+                parent: realTarget.parent
+              })
+            )
+          ]
+        ];
+        realTarget.constraint = ObjectType.term(null, {}, props);
+      } else if (!realTarget.constraint.properties.has(propertyName)) {
+        const props = [
+          ...realTarget.constraint.properties,
+          [
+            propertyName,
+            new VariableInfo(
+              TypeVar.term(
+                `${realTarget.name[0]}${
+                  realTarget.constraint.properties.size
+                }'`,
+                { parent: realTarget.parent }
+              )
+            )
+          ]
+        ];
+        realTarget.constraint = ObjectType.term(null, {}, props);
+      }
+    }
     if (isPropertyVariable && !property.isUserDefined) {
       let constraint = undefined;
       if (realTarget instanceof CollectionType) {
@@ -89,7 +120,10 @@ export class $PropertyType extends GenericType {
       }
       property.constraint = constraint;
     }
-    if (isTargetVariable || isPropertyVariable) {
+    if (isTargetVariable && !isPropertyVariable) {
+      return realTarget.constraint.properties.get(propertyName).type;
+    }
+    if (isPropertyVariable) {
       return new $BottomType({}, this, [realTarget, property], loc);
     }
     if (realTarget instanceof UnionType) {

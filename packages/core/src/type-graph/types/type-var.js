@@ -55,7 +55,8 @@ export class TypeVar extends Type {
       return true;
     }
     if (this.root != undefined) {
-      return this.root.equalsTo(anotherType);
+        // $FlowIssue
+        return this.root.equalsTo(anotherType, strict, withoutRoot);
     }
     if (
       anotherType instanceof TypeVar &&
@@ -90,13 +91,27 @@ export class TypeVar extends Type {
   ): Type {
     const indexOfNewRootType = sourceTypes.findIndex(
       // $FlowIssue
-      a => a === this.root || a.equalsTo(this, true, true)
+      a => a.equalsTo(this, true, true)
     );
     if (indexOfNewRootType !== -1) {
       return targetTypes[indexOfNewRootType];
     }
     if (this.root !== undefined) {
       return this.root.changeAll(sourceTypes, targetTypes, typeScope);
+    }
+    if (this.constraint !== undefined) {
+      const newConstraint = this.constraint.changeAll(
+        sourceTypes,
+        targetTypes,
+        typeScope
+      );
+      if (newConstraint !== this.constraint) {
+        return new TypeVar(
+          String(this.name),
+          { parent: this.parent },
+          newConstraint
+        );
+      }
     }
     return this;
   }

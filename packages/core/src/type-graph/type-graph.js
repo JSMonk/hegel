@@ -12,6 +12,7 @@ import { Meta } from "./meta/meta";
 import { TypeVar } from "./types/type-var";
 import { TypeScope } from "./type-scope";
 import { refinement } from "../inference/refinement";
+import { UnionType } from "./types/union-type";
 import { ObjectType } from "./types/object-type";
 import { GenericType } from "./types/generic-type";
 import { FunctionType } from "./types/function-type";
@@ -116,9 +117,6 @@ const addTypeAlias = (
     postcompute,
     name
   );
-  if (type instanceof ObjectType) {
-    type.strict = node.type !== NODE.TS_INTERFACE_DECLARATION;
-  }
   const typeAlias = genericArguments
     ? GenericType.new(
         typeName,
@@ -494,6 +492,7 @@ const afterFillierActions = (
           postcompute
         );
         errorVariable.type = inferenceErrorType(currentNode, moduleScope);
+        errorVariable.type = UnionType.term(null, {}, [Type.Unknown, errorVariable.type]);
         if (moduleScope instanceof PositionedModuleScope) {
           moduleScope.addPosition(currentNode.catchBlock.param, errorVariable);
         }
@@ -534,6 +533,17 @@ const afterFillierActions = (
         if (functionScope === undefined) {
           throw new Error("Never!!!");
         }
+        const { declaration } = functionScope;
+        if (declaration === undefined) {
+            throw new Error("Never!!!");
+        }
+        const declarationType: any =
+              declaration.type instanceof GenericType
+              ? declaration.type.subordinateType
+              : declaration.type;
+        declarationType.throwable = (functionScope.throwable || []).length
+            ? inferenceErrorType(currentNode, moduleScope)
+            : undefined;
         if (functionScope.declaration instanceof VariableInfo) {
           const fnType = functionScope.declaration.type;
           if (
@@ -552,17 +562,9 @@ const afterFillierActions = (
               );
             }
           }
-          const { declaration } = functionScope;
           if (currentNode.exportAs) {
             moduleScope.exports.set(currentNode.exportAs, declaration);
           }
-          const declarationType: any =
-            declaration.type instanceof GenericType
-              ? declaration.type.subordinateType
-              : declaration.type;
-          declarationType.throwable = (functionScope.throwable || []).length
-            ? inferenceErrorType(currentNode, moduleScope)
-            : undefined;
         }
         break;
       case NODE.TS_EXPORT_ASSIGNMENT:

@@ -14,11 +14,5 @@ export function inferenceErrorType(tryNode: Node, moduleScope: ModuleScope) {
   const variants = tryScope.throwable.map(
     t => (t instanceof VariableInfo ? t.type : t)
   );
-  if (variants.length === 0) {
-    return Type.Unknown;
-  }
-  if (variants.length === 1) {
-    return UnionType.term(null, {}, [variants[0], Type.Unknown]);
-  }
-  return UnionType.term(null, {}, variants.concat([Type.Unknown]));
+  return UnionType.term(null, {}, variants);
 }
