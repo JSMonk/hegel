@@ -59,13 +59,14 @@ export class $PropertyType extends GenericType {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;
     const realTarget = Type.getTypeRoot(currentTarget);
+      const realProperty = Type.getTypeRoot(property);
     const propertyName =
-      property.isSubtypeOf && property.isSubtypeOf.name === "string"
-        ? property.name.slice(1, -1)
-        : property.name;
+      realProperty.isSubtypeOf && realProperty.isSubtypeOf.name === "string"
+        ? realProperty.name.slice(1, -1)
+        : realProperty.name;
 
     const isTargetVariable = realTarget instanceof TypeVar;
-    const isPropertyVariable = property instanceof TypeVar;
+    const isPropertyVariable = realProperty instanceof TypeVar;
     if (isTargetVariable && !realTarget.isUserDefined) {
       if (realTarget.constraint === undefined) {
         if (isPropertyVariable) {
@@ -85,6 +86,7 @@ export class $PropertyType extends GenericType {
         }
       } else if (
         realTarget.constraint instanceof ObjectType &&
+        !isPropertyVariable &&
         !realTarget.constraint.properties.has(propertyName)
       ) {
         const props = [
@@ -106,8 +108,8 @@ export class $PropertyType extends GenericType {
     }
     if (
       isPropertyVariable &&
-      !property.isUserDefined &&
-      property.constraint === undefined
+      !realProperty.isUserDefined &&
+      realProperty.constraint === undefined
     ) {
       let constraint = undefined;
       if (realTarget instanceof CollectionType) {
@@ -127,19 +129,19 @@ export class $PropertyType extends GenericType {
       } else if (isTargetVariable) {
         constraint = new $BottomType({}, new $Keys(), [realTarget]);
       }
-      property.constraint = constraint;
+      realProperty.constraint = constraint;
     }
     if (isTargetVariable && !isPropertyVariable) {
       return realTarget.constraint.properties.get(propertyName).type;
     }
     if (isPropertyVariable) {
-      return new $BottomType({}, this, [realTarget, property], loc);
+      return new $BottomType({}, this, [realTarget, realProperty], loc);
     }
     if (realTarget instanceof UnionType) {
       try {
         const variants = realTarget.variants.map(v =>
           this.applyGeneric(
-            [v, property],
+            [v, realProperty],
             loc,
             shouldBeMemoize,
             isCalledAsBottom
@@ -156,7 +158,7 @@ export class $PropertyType extends GenericType {
       }
     }
     const fieldType = realTarget.getPropertyType(propertyName, initializing);
-    if (!property.isSubtypeOf && !isCalledAsBottom) {
+    if (!realProperty.isSubtypeOf && !isCalledAsBottom) {
       throw new HegelError("Second parameter should be an literal", loc);
     }
     if (fieldType !== null) {
