@@ -752,16 +752,15 @@ export function inferenceFunctionTypeByScope(
     }
   }
   for (let i = 0; i < genericArguments.length; i++) {
-    const genericArgument = genericArguments[i].changeAll(
-      allVars,
-      allRoots,
-      localTypeScope
+    const genericArgument = genericArguments[i];
+    const root = Type.getTypeRoot(
+      genericArgument.changeAll(allVars, allRoots, localTypeScope)
     );
-    const root = Type.getTypeRoot(genericArgument);
     if (
       !(root instanceof TypeVar) ||
-      root !== genericArgument ||
-      oldGenericArguments.some(a => a.equalsTo(root, true))
+      oldGenericArguments.some(
+        a => root.equalsTo(a, true) || genericArgument.equalsTo(a, true)
+      )
     ) {
       continue;
     }
