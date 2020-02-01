@@ -45,6 +45,7 @@ export class UnionType extends Type {
   }
 
   static getName(params: Array<Type>) {
+    const isMultyLine = this.prettyMode && params.length >= 4;
     return `${unique(params.map(a => Type.getTypeRoot(a)), a => String(a.name))
       .sort((t1, t2) => String(t1.name).localeCompare(String(t2.name)))
       .reduce((res, t) => {
@@ -52,10 +53,22 @@ export class UnionType extends Type {
           "argumentsTypes" in t ||
           // $FlowIssue
           ("subordinateType" in t && "argumentsTypes" in t.subordinateType);
-        return `${res}${res ? " | " : ""}${isFunction ? "(" : ""}${String(
-          t.name
-        )}${isFunction ? ")" : ""}`;
+        let typeName = String(t.name);
+        if (isFunction) {
+          typeName = `(${typeName})`;
+        }
+        return isMultyLine
+          ? this.multyLine(res, typeName)
+          : this.oneLine(res, typeName);
       }, "")}`;
+  }
+
+  static oneLine(res: string, typeName: string) {
+    return `${res}${res ? " | " : ""}${typeName}`;
+  }
+
+  static multyLine(res: string, typeName: string) {
+    return `${res}${res ? "\n| " : "  "}${typeName}`;
   }
 
   static flatten(variants: Array<Type>) {

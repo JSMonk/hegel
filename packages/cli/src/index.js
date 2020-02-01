@@ -44,7 +44,7 @@ switch (COMMAND) {
     logger.error(`Unsupported command "${COMMAND}"!`);
 }
 
-async function main() { 
+async function main() {
   try {
     const config = await getConfig();
     const getFileAST = createASTGenerator(config);

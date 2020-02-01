@@ -54,7 +54,7 @@ export class ObjectType extends Type {
     const properties = filteredProperties.sort(([name1], [name2]) =>
       String(name1).localeCompare(String(name2))
     );
-    return this.prettyMode && filteredProperties.length > 3
+    return this.prettyMode && filteredProperties.length > 2
       ? this.multyLine(properties)
       : this.oneLine(properties);
   }
@@ -75,10 +75,10 @@ export class ObjectType extends Type {
     return `{\n${properties
       .map(
         ([name, type]) =>
-          `  ${name}: ${String(
+          `\t${name}: ${String(
             Type.getTypeRoot(type instanceof VariableInfo ? type.type : type)
               .name
-          )}`
+          ).replace(/\n/g, "\n\t")}`
       )
       .join(",\n")}\n}`;
   }

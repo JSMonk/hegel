@@ -124,16 +124,69 @@ export class FunctionType extends Type {
     isAsync: boolean = false,
     throws?: Type | void
   ) {
-    const genericPart = genericParams.length
-      ? `<${genericParams.reduce(
+    const asyncPart = this.getAsyncPart(isAsync);
+    const genericPart = this.getGenericPart(
+      genericParams,
+      this.prettyMode && genericParams.length >= 4
+    );
+    const argsPart = this.getArgumentsPart(
+      params,
+      this.prettyMode && params.length >= 4
+    );
+    const throwsPart = this.getThrowsPart(throws, this.prettyMode);
+    const returnPart = this.getReturnPart(returnType);
+    return this.prettyMode
+      ? this.multyLine(asyncPart, genericPart, argsPart, throwsPart, returnPart)
+      : this.oneLine(asyncPart, genericPart, argsPart, throwsPart, returnPart);
+  }
+
+  static oneLine(
+    asyncPart: string,
+    genericPart: string,
+    argsPart: string,
+    throwsPart: string,
+    returnPart: string
+  ) {
+    return `${asyncPart}${genericPart}${argsPart} ${throwsPart}=> ${returnPart}`;
+  }
+
+  static multyLine(
+    asyncPart: string,
+    genericPart: string,
+    argsPart: string,
+    throwsPart: string,
+    returnPart: string
+  ) {
+    return `${asyncPart}${genericPart}${argsPart} ${throwsPart}=> ${returnPart.replace(
+      /\n/g,
+      "\n\t"
+    )}`;
+  }
+
+  static getAsyncPart(isAsync: boolean) {
+    return isAsync ? "async " : "";
+  }
+
+  static getGenericPart(
+    genericParams: Array<TypeVar> = [],
+    isMultyLine: boolean = false
+  ) {
+    return genericParams.length === 0
+      ? ""
+      : `<${genericParams.reduce(
           (res, t) =>
-            `${res}${res ? ", " : ""}${String(t.name)}${
-              t.constraint ? `: ${String(t.constraint.name)}` : ""
-            }`,
+            `${res}${res ? `,${isMultyLine ? "\n\t" : " "}` : ""}${String(
+              t.name
+            )}${t.constraint ? `: ${String(t.constraint.name)}` : ""}`,
           ""
-        )}>`
-      : "";
-    const args = params
+        )}>`;
+  }
+
+  static getArgumentsPart(
+    args: Array<Type> = [],
+    isMultyLine: boolean = false
+  ) {
+    return `(${args
       .map(param => {
         const isRest = param instanceof RestArgument;
         // $FlowIssue
@@ -141,12 +194,17 @@ export class FunctionType extends Type {
         const t = String(param.name);
         return isRest ? `...${t} ` : t;
       })
-      .join(", ");
-    const throwsPart =
-      throws !== undefined ? ` throws ${String(throws.name)}\n\t` : "";
-    return `${
-      isAsync ? "async " : ""
-    }${genericPart}(${args})${throwsPart} => ${String(returnType.name)}`;
+      .join(isMultyLine ? ",\n\t" : ", ")})`;
+  }
+
+  static getThrowsPart(throws: Type | void, isMultyLine: boolean = false) {
+    return throws !== undefined
+      ? `throws ${String(throws.name)}${isMultyLine ? "\n\t" : " "}`
+      : "";
+  }
+
+  static getReturnPart(returnType: Type) {
+    return String(returnType.name);
   }
 
   argumentsTypes: Array<Type | RestArgument>;

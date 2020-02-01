@@ -48,10 +48,14 @@ export class TupleType extends Type {
     if (params instanceof Type) {
       return String(params.name);
     }
-    return `[${params.reduce(
-      (res, t) => `${res}${res ? ", " : ""}${String(Type.getTypeRoot(t).name)}`,
+    const isMultyLine = this.prettyMode && params.length >= 4;
+    return `[${isMultyLine ? "\n\t" : ""}${params.reduce(
+      (res, t) =>
+        `${res}${res ? `,${isMultyLine ? "\n\t" : " "}` : ""}${String(
+          Type.getTypeRoot(t).name
+        ).replace(/\n/g, "\n\t")}`,
       ""
-    )}]`;
+    )}${isMultyLine ? "\n" : ""}]`;
   }
 
   items: Array<Type>;

@@ -41,10 +41,28 @@ export class GenericType<T: Type> extends Type {
     if (parameters.length === 0) {
       return String(name);
     }
-    return `${String(name)}<${parameters.reduce(
-      (res, t) => `${res}${res ? ", " : ""}${String(t.name)}`,
+    const isMultyLine = this.prettyMode && parameters.length >= 4;
+    const isSplitterPresented =
+      isMultyLine ||
+      parameters.some(a => a instanceof UnionType && a.variants.length >= 4);
+    return `${String(name)}<${
+      isSplitterPresented ? "\n\t" : ""
+    }${this.getParametersPart(parameters, isMultyLine)}${
+      isSplitterPresented ? "\n" : ""
+    }>`;
+  }
+
+  static getParametersPart<T: Type>(
+    parameters: Array<T>,
+    isMultyLine: boolean = false
+  ) {
+    return parameters.reduce(
+      (res, t) =>
+        `${res}${res ? `,${isMultyLine ? "\n\t" : " "}` : ""}${String(
+          t.name
+        ).replace(/\n/g, "\n\t")}`,
       ""
-    )}>`;
+    );
   }
 
   genericArguments: Array<TypeVar>;
