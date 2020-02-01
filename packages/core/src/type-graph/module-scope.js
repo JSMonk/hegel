@@ -33,8 +33,10 @@ export class ModuleScope extends Scope {
   exports: Map<string, VariableInfo>;
   exportsTypes: Map<string, Type>;
   scopes: Map<string, VariableScope>;
+  path: string;
 
   constructor(
+    path: string,
     body?: TypeGraph = new Map(),
     parent?: ModuleScope | null = null,
     typeScope?: TypeScope = new TypeScope()
@@ -42,6 +44,7 @@ export class ModuleScope extends Scope {
     // $FlowIssue
     super(parent);
     this.parent = parent;
+    this.path = path;
     this.body = body;
     this.typeScope = typeScope;
     this.exports = new Map();
@@ -54,11 +57,12 @@ export class PositionedModuleScope extends ModuleScope {
   positions: Map<string, Map<string, VariableInfo | Type>>;
 
   constructor(
+    path: string,
     body?: TypeGraph = new Map(),
     parent?: ModuleScope,
     typeScope?: TypeScope = new TypeScope()
   ) {
-    super(body, parent, typeScope);
+    super(path, body, parent, typeScope);
     this.positions = new Map();
   }
 

@@ -82,11 +82,12 @@ connection.onDidChangeWatchedFiles(change => validateTextDocument(change.documen
 
 async function validateTextDocument(textDocument) {
   const text = textDocument.getText();
-  [types, errors] = await getHegelTypings(text, textDocument.uri);
+  const path = textDocument.uri.replace("file://", "");
+  [types, errors, ast] = await getHegelTypings(text, path);
   const diagnostics = [];
   for (let i = 0; i < errors.length; i++) {
     const error = errors[i];
-    if (!error || !("loc" in error)) {
+    if (!error || !("loc" in error) || error.source !== path) {
       continue;
     }
     diagnostics.push({
@@ -100,7 +101,6 @@ async function validateTextDocument(textDocument) {
 }
 
 async function getHegelTypings(source, path) {
-  path = path.replace("file://", "");
   try {
     const ast = babylon.parse(source, babelrc);
     const [[types], errors] = await createTypeGraph(
@@ -156,7 +156,7 @@ async function getModuleAST(currentModulePath) {
     let moduleContent = await readFile(modulePath, "utf8");
     moduleContent = path.extname(modulePath) === ".json" ? wrapJSON(moduleContent) : moduleContent;
     const config = isTypings ? dtsrc : babelrc;
-    return babylon.parse(moduleContent, config).program;
+  return babylon.parse(moduleContent, config).program;
   });
 }
 

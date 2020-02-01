@@ -638,6 +638,7 @@ export async function createModuleScope(
 ): Promise<ModuleScope> {
   const typeScope = new TypeScope(globalModule.typeScope);
   const module = new (withPositions ? PositionedModuleScope : ModuleScope)(
+    ast.path,
     new Map(),
     globalModule,
     typeScope
@@ -690,7 +691,7 @@ async function createGlobalScope(
   [Array<ModuleScope | PositionedModuleScope>, Array<HegelError>, ModuleScope]
 > {
   const errors: Array<HegelError> = [];
-  const globalModule = new ModuleScope();
+  const globalModule = new ModuleScope("#global");
   Type.prettyMode = withPositions;
   setupBaseHierarchy(globalModule.typeScope);
   mixBaseGlobals(globalModule);

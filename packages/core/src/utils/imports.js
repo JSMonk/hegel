@@ -34,7 +34,9 @@ export function importDependencies(
 ) {
   const { exports, exportsTypes } = moduleTypeGraph;
   const importSource =
-    importNode.importKind === "type" || isTypeDefinitions ? exportsTypes : exports;
+    importNode.importKind === "type" || isTypeDefinitions
+      ? exportsTypes
+      : exports;
   const importTarget =
     importNode.importKind === "type" || isTypeDefinitions
       ? currentModuleTypeScope
@@ -76,7 +78,11 @@ export function importDependencies(
       );
     }
     let finalImportVariable = importElement;
-    if (importNode.importKind !== "type" && !isTypeDefinitions && importElement instanceof Type) {
+    if (
+      importNode.importKind !== "type" &&
+      !isTypeDefinitions &&
+      importElement instanceof Type
+    ) {
       finalImportVariable = new VariableInfo(
         importElement,
         currentModuleTypeGraph
@@ -112,7 +118,23 @@ export default async function mixImportedDependencies(
       importRequests.push(
         Promise.all([
           node,
-          getModuleTypeGraph(node.source.value, ast.path, node.loc)
+          getModuleTypeGraph(node.source.value, ast.path, node.loc).then(
+            module => {
+              if (
+                errors.some(error => error.source === module.path) &&
+                currentModuleScope instanceof PositionedModuleScope
+              ) {
+                errors.push(
+                  new HegelError(
+                    `There are problems inside "${node.source.value}"`,
+                    node.loc,
+                    currentModuleScope.path
+                  )
+                );
+              }
+              return module;
+            }
+          )
         ])
       );
     }

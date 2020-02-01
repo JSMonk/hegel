@@ -9,7 +9,7 @@ import { mixTypeDefinitions } from "./lib/typings";
 import { getConfig, createConfig } from "./lib/config";
 import { getErrorsPrint, getVerdictPrint } from "./lib/printer";
 import type { ErrorWithLocation } from "./lib/printer";
-import type { ExtendedProgram, HegelError } from "@hegel/core";
+import type { ExtendedProgram, HegelError } from "@hegel/core"; 
 
 const logger = getLogger();
 

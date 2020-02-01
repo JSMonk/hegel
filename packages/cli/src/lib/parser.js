@@ -14,7 +14,7 @@ export type AST = {
   ...File
 };
 
-const cache = new Map<string, File | AST>();
+const cache = new Map<string, number>();
 
 export async function getFileContent(path) {
   const cached = cache.get(path);
