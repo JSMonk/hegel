@@ -83,6 +83,12 @@ export class RestArgument extends Type {
   weakContains(type: Type) {
     return this.type.weakContains(type);
   }
+
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    const selfType = this.getOponentType(this.type);
+    // $FlowIssue
+    return selfType.valueType.getDifference(type, withReverseUnion);
+  }
 }
 
 export class FunctionType extends Type {
@@ -256,8 +262,8 @@ export class FunctionType extends Type {
     return result;
   }
 
-  getDifference(type: Type) {
-    if (this._alreadyProcessedWith === type) {
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    if (this._alreadyProcessedWith === type || this.referenceEqualsTo(type)) {
       return [];
     }
     this._alreadyProcessedWith = type;
@@ -271,14 +277,20 @@ export class FunctionType extends Type {
     if (type instanceof FunctionType) {
       const { argumentsTypes, returnType } = type;
       // $FlowIssue
-      const argumentsDiff = this.argumentsTypes.flatMap((arg, i) =>
-        arg.getDifference(argumentsTypes[i])
+      const argumentsDiff = this.argumentsTypes.flatMap(
+        (arg, i) =>
+          argumentsTypes[i]
+            ? arg.getDifference(argumentsTypes[i], withReverseUnion)
+            : []
       );
-      const returnDiff = this.returnType.getDifference(returnType);
+      const returnDiff = this.returnType.getDifference(
+        returnType,
+        withReverseUnion
+      );
       this._alreadyProcessedWith = null;
       return argumentsDiff.concat(returnDiff);
     }
-    const result = super.getDifference(type);
+    const result = super.getDifference(type, withReverseUnion);
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -349,5 +361,24 @@ export class FunctionType extends Type {
       localTypeScope,
       newFnType
     );
+  }
+
+  getNextParent(typeScope: TypeScope) {
+    if (this._alreadyProcessedWith !== null) {
+      return Type.GlobalTypeScope;
+    }
+    this._alreadyProcessedWith = this;
+    const sortedParents = this.argumentsTypes
+      .concat([this.returnType])
+      .map(a => a.getNextParent(typeScope))
+      .sort((a, b) => b.priority - a.priority);
+    for (const parent of sortedParents) {
+      if (parent.priority <= typeScope.priority && parent !== typeScope) {
+        this._alreadyProcessedWith = null;
+        return parent;
+      }
+    }
+    this._alreadyProcessedWith = null;
+    return Type.GlobalTypeScope;
   }
 }

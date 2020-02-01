@@ -45,6 +45,7 @@ export const STATEMENTS_TYPES = {
 export const EXPRESSIONS_TYPES = {
   SUPER: "Super",
   ARRAY_EXPRESSION: "ArrayExpression",
+  SEQUENCE_EXPRESSION: "SequenceExpression",
   FUNCTION_EXPRESSION: "FunctionExpression",
   ARROW_FUNCTION_EXPRESSION: "ArrowFunctionExpression",
   OBJECT_EXPRESSION: "ObjectExpression",

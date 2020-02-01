@@ -15,6 +15,10 @@ export class TypeScope {
     this.priority = parent === undefined ? 0 : parent.priority + 1;
   }
 
+  makeCustom() {
+    this.priority += 100;
+  }
+
   findTypeWithName(
     name: mixed,
     ...rest: [] | [Node, ModuleScope, Handler, Handler, Handler]

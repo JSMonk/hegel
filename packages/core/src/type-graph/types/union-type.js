@@ -45,7 +45,7 @@ export class UnionType extends Type {
   }
 
   static getName(params: Array<Type>) {
-    return `${unique(params.map(Type.getTypeRoot), a => String(a.name))
+    return `${unique(params.map(a => Type.getTypeRoot(a)), a => String(a.name))
       .sort((t1, t2) => String(t1.name).localeCompare(String(t2.name)))
       .reduce((res, t) => {
         const isFunction =
@@ -180,15 +180,15 @@ export class UnionType extends Type {
     return result;
   }
 
-  getDifference(type: Type) {
-    if (this._alreadyProcessedWith === type) {
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    if (this._alreadyProcessedWith === type || this.referenceEqualsTo(type)) {
       return [];
     }
     this._alreadyProcessedWith = type;
-    if (type instanceof UnionType) {
+    if (type instanceof UnionType || withReverseUnion) {
       // $FlowIssue
       const diff = this.variants.flatMap(variant =>
-        variant.getDifference(type)
+        variant.getDifference(type, withReverseUnion)
       );
       const reducer = new Map();
       for (const { root, variable } of diff) {
@@ -209,7 +209,7 @@ export class UnionType extends Type {
       this._alreadyProcessedWith = null;
       return aggregatedDiff;
     }
-    const result = super.getDifference(type);
+    const result = super.getDifference(type, withReverseUnion);
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -235,5 +235,23 @@ export class UnionType extends Type {
 
   containsAsGeneric(type: Type) {
     return this.variants.some(v => v.containsAsGeneric(type));
+  }
+
+  getNextParent(typeScope: TypeScope) {
+    if (this._alreadyProcessedWith !== null) {
+      return Type.GlobalTypeScope;
+    }
+    this._alreadyProcessedWith = this;
+    const sortedParents = [...this.variants]
+      .map(a => a.getNextParent(typeScope))
+      .sort((a, b) => b.priority - a.priority);
+    for (const parent of sortedParents) {
+      if (parent.priority <= typeScope.priority && parent !== typeScope) {
+        this._alreadyProcessedWith = null;
+        return parent;
+      }
+    }
+    this._alreadyProcessedWith = null;
+    return Type.GlobalTypeScope;
   }
 }

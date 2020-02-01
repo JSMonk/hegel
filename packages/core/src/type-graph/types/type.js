@@ -73,13 +73,15 @@ export class Type {
     );
   }
 
-  static getTypeRoot(type: Type) {
-    // $FlowIssue
-    if (!("root" in type) || type.root == undefined) {
-      return type;
-    }
-    let potentialRoot = type.root;
-    while ("root" in potentialRoot && potentialRoot.root != undefined) {
+  static getTypeRoot(type: Type, stepBeforeNonVariableRoot?: boolean = false) {
+    let potentialRoot = type;
+    while (
+      "root" in potentialRoot &&
+      // $FlowIssue
+      potentialRoot.root != undefined &&
+      // $FlowIssue
+      (!stepBeforeNonVariableRoot || "root" in potentialRoot.root)
+    ) {
       // $FlowIssue
       potentialRoot = potentialRoot.root;
     }
@@ -179,14 +181,17 @@ export class Type {
     );
   }
 
-  getDifference(type: Type) {
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    if (this.referenceEqualsTo(type)) {
+      return [];
+    }
     if ("variants" in type) {
       // $FlowIssue
       const variants = [...type.variants].sort(
         (t1, t2) => t2.priority - t1.priority
       );
       for (const variant of variants) {
-        const diff = this.getDifference(variant);
+        const diff = this.getDifference(variant, withReverseUnion);
         if (diff.length !== 0) {
           return diff;
         }
@@ -198,7 +203,7 @@ export class Type {
     }
     if ("subordinateMagicType" in type) {
       // $FlowIssue
-      return this.getDifference(type.unpack());
+      return this.getDifference(type.unpack(), withReverseUnion);
     }
     return [];
   }
@@ -211,7 +216,11 @@ export class Type {
     return this.contains(type);
   }
 
-  getOponentType(type: Type, withUnpack?: boolean = true) {
+  getOponentType(
+    type: Type,
+    withUnpack?: boolean = true,
+    withReadonly?: boolean = true
+  ) {
     if ("root" in type) {
       type = Type.getTypeRoot(type);
     }
@@ -222,12 +231,17 @@ export class Type {
     if ("root" in type) {
       type = Type.getTypeRoot(type);
     }
-    if ("subordinateType" in type) {
+    // $FlowIssue
+    if ("subordinateType" in type && type.subordinateType !== null) {
       // $FlowIssue
       type = type.subordinateType;
     }
     if ("root" in type) {
       type = Type.getTypeRoot(type);
+    }
+    if (withReadonly && "readonly" in type) {
+      // $FlowIssue
+      type = type.readonly;
     }
     return type;
   }
@@ -267,5 +281,9 @@ export class Type {
     this._alreadyProcessedWith.name = result.name;
     this._alreadyProcessedWith = null;
     return result;
+  }
+
+  getNextParent(typeScope: TypeScope) {
+    return Type.GlobalTypeScope;
   }
 }

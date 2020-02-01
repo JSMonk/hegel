@@ -161,8 +161,8 @@ export class TupleType extends Type {
     return super.getPropertyType(propertyIndex);
   }
 
-  getDifference(type: Type) {
-    if (this._alreadyProcessedWith === type) {
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    if (this._alreadyProcessedWith === type || this.referenceEqualsTo(type)) {
       return [];
     }
     this._alreadyProcessedWith = type;
@@ -174,18 +174,20 @@ export class TupleType extends Type {
         if (other === undefined) {
           return;
         }
-        differences = differences.concat(type.getDifference(other));
+        differences = differences.concat(
+          type.getDifference(other, withReverseUnion)
+        );
       });
       this._alreadyProcessedWith = null;
       return differences;
     }
     if (type instanceof CollectionType) {
       // $FlowIssue
-      const result = this.isSubtypeOf.getDifference(type);
+      const result = this.isSubtypeOf.getDifference(type, withReverseUnion);
       this._alreadyProcessedWith = null;
       return result;
     }
-    const result = super.getDifference(type);
+    const result = super.getDifference(type, withReverseUnion);
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -210,5 +212,23 @@ export class TupleType extends Type {
       super.contains(type) || this.items.some(i => i.weakContains(type));
     this._alreadyProcessedWith = null;
     return result;
+  }
+
+  getNextParent(typeScope: TypeScope) {
+    if (this._alreadyProcessedWith !== null) {
+      return Type.GlobalTypeScope;
+    }
+    this._alreadyProcessedWith = this;
+    const sortedParents = [...this.items]
+      .map(a => a.getNextParent(typeScope))
+      .sort((a, b) => b.priority - a.priority);
+    for (const parent of sortedParents) {
+      if (parent.priority <= typeScope.priority && parent !== typeScope) {
+        this._alreadyProcessedWith = null;
+        return parent;
+      }
+    }
+    this._alreadyProcessedWith = null;
+    return Type.GlobalTypeScope;
   }
 }

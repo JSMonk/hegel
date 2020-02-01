@@ -187,13 +187,17 @@ export function functionWithReturnType(
     newFunctionArguments,
     newReturnType
   );
-  return functionType instanceof GenericType
-    ? GenericType.new(
-        newFunctionType.name,
-        {},
-        newFunctionGenericArguments,
-        functionType.localTypeScope,
-        newFunctionType
-      )
-    : newFunctionType;
+  if (
+    !(functionType instanceof GenericType) ||
+    newFunctionType instanceof GenericType
+  ) {
+    return newFunctionType;
+  }
+  return GenericType.new(
+    newFunctionType.name,
+    {},
+    newFunctionGenericArguments,
+    functionType.localTypeScope,
+    newFunctionType
+  );
 }

@@ -67,21 +67,26 @@ export class $PropertyType extends GenericType {
     const isTargetVariable = realTarget instanceof TypeVar;
     const isPropertyVariable = property instanceof TypeVar;
     if (isTargetVariable && !realTarget.isUserDefined) {
-      if (isPropertyVariable) {
-        realTarget.constraint = ObjectType.Object;
-      } else if (realTarget.constraint === undefined) {
-        const props = [
-          [
-            propertyName,
-            new VariableInfo(
-              TypeVar.term(`${realTarget.name[0]}0'`, {
-                parent: realTarget.parent
-              })
-            )
-          ]
-        ];
-        realTarget.constraint = ObjectType.term(null, {}, props);
-      } else if (!realTarget.constraint.properties.has(propertyName)) {
+      if (realTarget.constraint === undefined) {
+        if (isPropertyVariable) {
+          realTarget.constraint = ObjectType.Object.root;
+        } else {
+          const props = [
+            [
+              propertyName,
+              new VariableInfo(
+                TypeVar.term(`${realTarget.name[0]}0'`, {
+                  parent: realTarget.parent
+                })
+              )
+            ]
+          ];
+          realTarget.constraint = ObjectType.term(null, {}, props);
+        }
+      } else if (
+        realTarget.constraint instanceof ObjectType &&
+        !realTarget.constraint.properties.has(propertyName)
+      ) {
         const props = [
           ...realTarget.constraint.properties,
           [
@@ -99,7 +104,11 @@ export class $PropertyType extends GenericType {
         realTarget.constraint = ObjectType.term(null, {}, props);
       }
     }
-    if (isPropertyVariable && !property.isUserDefined) {
+    if (
+      isPropertyVariable &&
+      !property.isUserDefined &&
+      property.constraint === undefined
+    ) {
       let constraint = undefined;
       if (realTarget instanceof CollectionType) {
         constraint = realTarget.keyType;

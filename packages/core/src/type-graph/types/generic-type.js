@@ -9,27 +9,28 @@ import type { TypeMeta } from "./type";
 import type { SourceLocation } from "@babel/parser";
 
 export class GenericType<T: Type> extends Type {
-  static term(
-    name: mixed,
-    meta?: TypeMeta = {},
-    genericArguments: Array<TypeVar>,
-    typeScope: TypeScope,
-    type: T,
-    ...args: Array<any>
-  ) {
-    const newMeta = {
-      ...meta,
-      parent:
-        type.parent.priority >= typeScope.priority ? meta.parent : type.parent
-    };
-    return super.term(
-      name,
-      newMeta,
-      genericArguments,
-      typeScope,
-      type,
-      ...args
+  static new(name: mixed, meta?: TypeMeta = {}, ...args: Array<any>) {
+    const [, localTypeScope, subordinateType] = args;
+    const declaratedParent = meta.parent || Type.GlobalTypeScope;
+    const subordinateParent = subordinateType.getNextParent(localTypeScope);
+    const parent =
+      declaratedParent.priority > subordinateParent.priority
+        ? declaratedParent
+        : subordinateParent;
+    return super.new(name, { ...meta, parent }, ...args);
+  }
+
+  static term(name: mixed, meta?: TypeMeta = {}, ...args: Array<any>) {
+    const [, localTypeScope, subordinateType] = args;
+    const declaratedParent = meta.parent || Type.GlobalTypeScope;
+    const subordinateParent = subordinateType.getNextParent(
+      localTypeScope.priority
     );
+    const parent =
+      declaratedParent.priority > subordinateParent.priority
+        ? declaratedParent
+        : subordinateParent;
+    return super.term(name, { ...meta, parent }, ...args);
   }
 
   static getNameWithoutApplying(name: mixed) {
@@ -224,7 +225,11 @@ export class GenericType<T: Type> extends Type {
       return variant;
     });
     const appliedTypeName = GenericType.getName(this.name, parameters);
-    const oldAppliedSelf = new $BottomType({}, this, this.genericArguments);
+    const oldAppliedSelf = new $BottomType(
+      { parent: this.subordinateType.parent },
+      this,
+      this.genericArguments
+    );
     const theMostPriorityParent = parameters.reduce(
       (parent, type) =>
         parent === undefined || parent.priority < type.parent.priority
@@ -235,7 +240,7 @@ export class GenericType<T: Type> extends Type {
     const appliedSelf = TypeVar.term(
       appliedTypeName,
       { parent: theMostPriorityParent, isSubtypeOf: TypeVar.Self },
-      null,
+      undefined,
       true
     );
     if (!(appliedSelf instanceof TypeVar)) {
@@ -260,26 +265,29 @@ export class GenericType<T: Type> extends Type {
     return result;
   }
 
-  getDifference(type: Type) {
-    if (this._alreadyProcessedWith === type) {
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    if (this._alreadyProcessedWith === type || this.referenceEqualsTo(type)) {
       return [];
+    }
+    if (this.subordinateType === null) {
+      return type instanceof TypeVar ? [{ root: this, variable: type }] : [];
     }
     this._alreadyProcessedWith = type;
     if (type instanceof GenericType) {
       const result = this.subordinateType
-        .getDifference(type.subordinateType)
+        .getDifference(type.subordinateType, withReverseUnion)
         // $FlowIssue
         .filter(a => !type.genericArguments.includes(a.variable));
       this._alreadyProcessedWith = null;
       return result;
     }
     if (type instanceof TypeVar) {
-      const result = super.getDifference(type);
+      const result = super.getDifference(type, withReverseUnion);
       this._alreadyProcessedWith = null;
       return result;
     }
     const result = this.subordinateType
-      .getDifference(type)
+      .getDifference(type, withReverseUnion)
       .filter(a => !this.genericArguments.includes(a.variable));
     this._alreadyProcessedWith = null;
     return result;
@@ -312,5 +320,15 @@ export class GenericType<T: Type> extends Type {
 
   containsAsGeneric(type: Type) {
     return this.genericArguments.includes(type);
+  }
+
+  getNextParent(typeScope: TypeScope) {
+    if (this._alreadyProcessedWith !== null || this.subordinateType == null) {
+      return Type.GlobalTypeScope;
+    }
+    this._alreadyProcessedWith = this;
+    const result = this.subordinateType.getNextParent(typeScope);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 }

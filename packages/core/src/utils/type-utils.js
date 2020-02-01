@@ -607,9 +607,10 @@ export function getTypeFromTypeAnnotation(
       );
       const typeName = FunctionType.getName(args, returnType, genericParams);
       const type = FunctionType.term(typeName, {}, args, returnType);
-      return genericParams.length
-        ? GenericType.new(typeName, {}, genericParams, localTypeScope, type)
-        : type;
+      if (genericParams.length === 0 || !(type instanceof FunctionType)) {
+        return type;
+      }
+      return GenericType.new(typeName, {}, genericParams, localTypeScope, type);
   }
   return Type.Unknown;
 }
@@ -696,7 +697,9 @@ function getResultObjectType(object: ObjectType) {
     object.properties.delete(INDEXABLE);
     indexable.type.isSubtypeOf = object;
     indexable.type.name = object.name;
+    object.parent.body.set(object.name, indexable.type);
     object.name = `${String(object.name)}.prototype`;
+    object.parent.body.set(object.name, object);
     return indexable.type;
   }
   return object;

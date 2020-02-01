@@ -6,19 +6,22 @@ import type { Config } from "./config";
 import type { ModuleScope } from "@hegel/core";
 import type { Program, SourceLocation } from "@babel/parser";
 
-const typings = dirname(require.resolve("@hegel/typings"));
+const typings = dirname(require.resolve("@hegel/typings")); 
 
 const isRelative = (path: string) => path[0] === ".";
 const isNotNull = a => a !== null;
 
-async function resolveModule(importPath, config: Config) {
+async function resolveModule(importPath, config) { 
+  if (existsSync(importPath)) {
+    return importPath;
+  } 
   try {
     return require.resolve(importPath, { paths: [config.workingDirectory] });
   } catch {}
   return null;
 }
 
-async function findTypingsInsideNodeModules(importPath, config: Config) {
+async function findTypingsInsideNodeModules(importPath, config: Config) { 
   let path = await resolveModule(importPath, config);
   if (path === null) {
     return null;
@@ -42,12 +45,12 @@ async function findTypingsInsideNodeModules(importPath, config: Config) {
     }
     return existsSync(typingsPath) ? typingsPath : path;
   }
-  if (config.libs.includes("nodejs")) {
+  if (config.libs.includes("nodejs")) { 
     return join(typings, "nodejs", `${path}.d.ts`);
   }
-  return null;
+  return null; 
 }
-
+ 
 async function findInsideTypingsDirectories(
   importPath: string,
   config: Config
@@ -72,7 +75,7 @@ type ModuleAttributes = {
 
 async function getModuleTypingsPath(
   importPath,
-  currentPath,
+  currentPath, 
   loc,
   config
 ) {
@@ -103,10 +106,10 @@ async function getModuleTypingsPath(
 }
 
 async function parseAndAnalyze(
-  module: ModuleAttributes,
+  module,
   getAST: (string, ?boolean) => Promise<ExtendedProgram>,
   getModuleScope: (ExtendedProgram, boolean) => Promise<ModuleScope>
-) {
+) { 
   const ast = await getAST(module.resolvedPath, module.isTypings);
   ast.path = module.resolvedPath;
   return getModuleScope(ast, module.isTypings);
@@ -116,7 +119,7 @@ export function importModule(config, getAST, cacheEveryModule = false) {
   const cache = new Map<string, Promise<ModuleScope>>();
   return async (path, currentPath, loc, getModuleScope) => {
     const module = await getModuleTypingsPath(path, currentPath, loc, config);
-    const existed = cache.get(module.resolvedPath);
+    const existed = cache.get(module.resolvedPath); 
     if (existed !== undefined) {
       return existed;
     }

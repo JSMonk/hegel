@@ -55,8 +55,8 @@ export class TypeVar extends Type {
       return true;
     }
     if (this.root != undefined) {
-        // $FlowIssue
-        return this.root.equalsTo(anotherType, strict, withoutRoot);
+      // $FlowIssue
+      return this.root.equalsTo(anotherType, strict, withoutRoot);
     }
     if (
       anotherType instanceof TypeVar &&
@@ -71,7 +71,11 @@ export class TypeVar extends Type {
         this.constraint.equalsTo(anotherType)
       );
     }
-    return super.equalsTo(anotherType);
+    return (
+      anotherType instanceof TypeVar &&
+      this.constraint === anotherType.constraint &&
+      super.equalsTo(anotherType)
+    );
   }
 
   isSuperTypeFor(type: Type): boolean {
@@ -120,24 +124,46 @@ export class TypeVar extends Type {
     return this;
   }
 
-  getDifference(type: Type) {
-    if (this._alreadyProcessedWith === type) {
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    if (this._alreadyProcessedWith === type || this.referenceEqualsTo(type)) {
       return [];
     }
     this._alreadyProcessedWith = type;
     let result = [];
     if (this.root !== undefined) {
-      result = this.root.getDifference(type);
+      result = this.root.getDifference(type, withReverseUnion);
     } else if (type instanceof TypeVar && this !== type) {
       result = [{ root: this, variable: type }];
     } else if ("variants" in type) {
-      result = super.getDifference(type);
+      result = super.getDifference(type, withReverseUnion);
     }
     this._alreadyProcessedWith = null;
     return result;
   }
 
   contains(type: Type) {
-    return this.equalsTo(type, true, true);
+    return (
+      (this.constraint != undefined && this.constraint.contains(type)) ||
+      this.equalsTo(type, true, true)
+    );
+  }
+
+  getNextParent(typeScope: TypeScope) {
+    if (this._alreadyProcessedWith !== null) {
+      return Type.GlobalTypeScope;
+    }
+    this._alreadyProcessedWith = this;
+    if (this.root !== undefined || this.constraint !== undefined) {
+      const target = this.root || this.constraint;
+      // $FlowIssue
+      const result = target.getNextParent(typeScope);
+      this._alreadyProcessedWith = null;
+      return result;
+    }
+    this._alreadyProcessedWith = null;
+    if (this.parent.priority <= typeScope.priority && this.parent !== typeScope) {
+      return this.parent;
+    }
+    return Type.GlobalTypeScope;
   }
 }

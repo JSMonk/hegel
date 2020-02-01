@@ -36,15 +36,15 @@ export function createASTGenerator(config: Config) {
     }
     try {
       const content = await getFileContent(path);
-      const declaredPlugins =
+      const declaredPlugins: Array<ParserPlugin> =
         config.babel.plugins !== undefined
           ? config.babel.plugins
-          : new Array<ParserPlugin>(0);
+          : [];
       const plugins = isDefinition
         ? declaredPlugins
             .filter(
               plugin =>
-                typeof plugin === "string"
+                typeof plugin === "string" 
                   ? plugin !== "flow"
                   : plugin[0] !== "flow"
             )

@@ -11,6 +11,7 @@ import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
+import { $AppliedImmutable } from "../type-graph/types/immutable-type";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import {
   getCallTarget,
@@ -37,10 +38,11 @@ function getActualType(
   if (actual instanceof TypeVar && actual.root != undefined) {
     return actual.root;
   }
-  if (actual instanceof $BottomType) {
-    return actual.subordinateMagicType;
-  }
   return actual;
+}
+
+function isAssign(call: CallMeta) {
+  return call.targetName.includes("=") && !call.targetName.includes("==");
 }
 
 function isValidTypes(
@@ -114,6 +116,15 @@ function checkSingleCall(call: CallMeta, typeScope: TypeScope): void {
       }.`,
       call.loc
     );
+  }
+
+  let firstArgumentType = call.arguments[0];
+  firstArgumentType =
+    firstArgumentType instanceof VariableInfo
+      ? firstArgumentType.type
+      : firstArgumentType;
+  if (isAssign(call) && firstArgumentType instanceof $AppliedImmutable) {
+    throw new HegelError(`Attempt to mutate immutable type`, call.loc);
   }
   for (let i = 0; i < targetArguments.length; i++) {
     const arg1 = targetArguments[i];

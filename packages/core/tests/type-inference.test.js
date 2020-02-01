@@ -617,6 +617,7 @@ describe("Simple inference for module functions", () => {
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const a = actual.body.get("a");
+      debugger;
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(FunctionType);
     expect(a.type === Type.find("(number) => () => number")).toBe(true);

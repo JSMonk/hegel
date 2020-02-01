@@ -91,33 +91,33 @@ declare function escape(string: string): string;
 //   */
 declare function unescape(string: string): string;
 
-
 interface IteratorYieldResult<TYield> {
-    done?: false;
-    value: TYield;
+  done?: false;
+  value: TYield;
 }
 
 interface IteratorReturnResult<TReturn> {
-    done: true;
-    value: TReturn;
+  done: true;
+  value: TReturn;
 }
 
-type IteratorResult<T, TReturn> = IteratorYieldResult<T> | IteratorReturnResult<TReturn>;
-
+type IteratorResult<T, TReturn> =
+  | IteratorYieldResult<T>
+  | IteratorReturnResult<TReturn>;
 
 interface Iterator<T, TReturn, TNext> {
-    // NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
-    next(...args: [] | [TNext]): IteratorResult<T, TReturn>;
-    return?(value?: TReturn): IteratorResult<T, TReturn>;
-    throw?(e?: any): IteratorResult<T, TReturn>;
+  // NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
+  next(...args: [] | [TNext]): IteratorResult<T, TReturn>;
+  return?(value?: TReturn): IteratorResult<T, TReturn>;
+  throw?(e?: any): IteratorResult<T, TReturn>;
 }
 
 interface Iterable<T> {
-    //[Symbol.iterator](): Iterator<T>;
+  //[Symbol.iterator](): Iterator<T>;
 }
 
 interface IterableIterator<T> extends Iterator<T, any, any> {
-    //[Symbol.iterator](): IterableIterator<T>;
+  //[Symbol.iterator](): IterableIterator<T>;
 }
 
 interface Symbol {
@@ -933,7 +933,7 @@ interface String {
   valueOf(): string;
 
   //[Symbol.iterator](): IterableIterator<string>;
-  
+
   /** Removes whitespace from the left end of a string. */
   trimLeft(): string;
   /** Removes whitespace from the right end of a string. */
@@ -1630,8 +1630,8 @@ interface Promise<T> {
   //      * @returns A Promise for the completion of which ever callback is executed.
   //      */
   then<TResult1, TResult2>(
-      onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
-      onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
+    onfulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
+    onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
   ): Promise<TResult1 | TResult2>;
 
   //     /**
@@ -1645,137 +1645,142 @@ interface Promise<T> {
 }
 
 interface PromiseConstructor {
-    /**
-     * A reference to the prototype.
-     */
-    prototype: Promise<any>;
+  /**
+   * A reference to the prototype.
+   */
+  prototype: Promise<any>;
 
-    /**
-     * Creates a new Promise.
-     * @param executor A callback used to initialize the promise. This callback is passed two arguments:
-     * a resolve callback used to resolve the promise with a value or the result of another promise,
-     * and a reject callback used to reject the promise with a provided reason or error.
-     */
-    <T>(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
+  /**
+   * Creates a new Promise.
+   * @param executor A callback used to initialize the promise. This callback is passed two arguments:
+   * a resolve callback used to resolve the promise with a value or the result of another promise,
+   * and a reject callback used to reject the promise with a provided reason or error.
+   */
+  <T>(
+    executor: (
+      resolve: (value?: T | PromiseLike<T>) => void,
+      reject: (reason?: any) => void
+    ) => void
+  ): Promise<T>;
 
-    // /**
-    //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
-    //  * resolve, or rejected when any Promise is rejected.
-    //  * @param values An array of Promises.
-    //  * @returns A new Promise.
-    //  */
-    // all<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>, T8 | PromiseLike<T8>, T9 | PromiseLike<T9>, T10 | PromiseLike<T10>]): Promise<[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]>;
+  // /**
+  //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
+  //  * resolve, or rejected when any Promise is rejected.
+  //  * @param values An array of Promises.
+  //  * @returns A new Promise.
+  //  */
+  // all<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>, T8 | PromiseLike<T8>, T9 | PromiseLike<T9>, T10 | PromiseLike<T10>]): Promise<[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]>;
 
-    // /**
-    //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
-    //  * resolve, or rejected when any Promise is rejected.
-    //  * @param values An array of Promises.
-    //  * @returns A new Promise.
-    //  */
-    // all<T1, T2, T3, T4, T5, T6, T7, T8, T9>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>, T8 | PromiseLike<T8>, T9 | PromiseLike<T9>]): Promise<[T1, T2, T3, T4, T5, T6, T7, T8, T9]>;
+  // /**
+  //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
+  //  * resolve, or rejected when any Promise is rejected.
+  //  * @param values An array of Promises.
+  //  * @returns A new Promise.
+  //  */
+  // all<T1, T2, T3, T4, T5, T6, T7, T8, T9>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>, T8 | PromiseLike<T8>, T9 | PromiseLike<T9>]): Promise<[T1, T2, T3, T4, T5, T6, T7, T8, T9]>;
 
-    // /**
-    //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
-    //  * resolve, or rejected when any Promise is rejected.
-    //  * @param values An array of Promises.
-    //  * @returns A new Promise.
-    //  */
-    // all<T1, T2, T3, T4, T5, T6, T7, T8>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>, T8 | PromiseLike<T8>]): Promise<[T1, T2, T3, T4, T5, T6, T7, T8]>;
+  // /**
+  //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
+  //  * resolve, or rejected when any Promise is rejected.
+  //  * @param values An array of Promises.
+  //  * @returns A new Promise.
+  //  */
+  // all<T1, T2, T3, T4, T5, T6, T7, T8>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>, T8 | PromiseLike<T8>]): Promise<[T1, T2, T3, T4, T5, T6, T7, T8]>;
 
-    // /**
-    //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
-    //  * resolve, or rejected when any Promise is rejected.
-    //  * @param values An array of Promises.
-    //  * @returns A new Promise.
-    //  */
-    // all<T1, T2, T3, T4, T5, T6, T7>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>]): Promise<[T1, T2, T3, T4, T5, T6, T7]>;
+  // /**
+  //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
+  //  * resolve, or rejected when any Promise is rejected.
+  //  * @param values An array of Promises.
+  //  * @returns A new Promise.
+  //  */
+  // all<T1, T2, T3, T4, T5, T6, T7>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>, T7 | PromiseLike<T7>]): Promise<[T1, T2, T3, T4, T5, T6, T7]>;
 
-    // /**
-    //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
-    //  * resolve, or rejected when any Promise is rejected.
-    //  * @param values An array of Promises.
-    //  * @returns A new Promise.
-    //  */
-    // all<T1, T2, T3, T4, T5, T6>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>]): Promise<[T1, T2, T3, T4, T5, T6]>;
+  // /**
+  //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
+  //  * resolve, or rejected when any Promise is rejected.
+  //  * @param values An array of Promises.
+  //  * @returns A new Promise.
+  //  */
+  // all<T1, T2, T3, T4, T5, T6>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>, T6 | PromiseLike<T6>]): Promise<[T1, T2, T3, T4, T5, T6]>;
 
-    // /**
-    //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
-    //  * resolve, or rejected when any Promise is rejected.
-    //  * @param values An array of Promises.
-    //  * @returns A new Promise.
-    //  */
-    // all<T1, T2, T3, T4, T5>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>]): Promise<[T1, T2, T3, T4, T5]>;
+  // /**
+  //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
+  //  * resolve, or rejected when any Promise is rejected.
+  //  * @param values An array of Promises.
+  //  * @returns A new Promise.
+  //  */
+  // all<T1, T2, T3, T4, T5>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>, T5 | PromiseLike<T5>]): Promise<[T1, T2, T3, T4, T5]>;
 
-    // /**
-    //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
-    //  * resolve, or rejected when any Promise is rejected.
-    //  * @param values An array of Promises.
-    //  * @returns A new Promise.
-    //  */
-    // all<T1, T2, T3, T4>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>]): Promise<[T1, T2, T3, T4]>;
+  // /**
+  //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
+  //  * resolve, or rejected when any Promise is rejected.
+  //  * @param values An array of Promises.
+  //  * @returns A new Promise.
+  //  */
+  // all<T1, T2, T3, T4>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>, T4 | PromiseLike <T4>]): Promise<[T1, T2, T3, T4]>;
 
-    // /**
-    //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
-    //  * resolve, or rejected when any Promise is rejected.
-    //  * @param values An array of Promises.
-    //  * @returns A new Promise.
-    //  */
-    // all<T1, T2, T3>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>]): Promise<[T1, T2, T3]>;
+  // /**
+  //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
+  //  * resolve, or rejected when any Promise is rejected.
+  //  * @param values An array of Promises.
+  //  * @returns A new Promise.
+  //  */
+  // all<T1, T2, T3>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>, T3 | PromiseLike<T3>]): Promise<[T1, T2, T3]>;
 
-    // /**
-    //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
-    //  * resolve, or rejected when any Promise is rejected.
-    //  * @param values An array of Promises.
-    //  * @returns A new Promise.
-    //  */
-    // all<T1, T2>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>]): Promise<[T1, T2]>;
+  // /**
+  //  * Creates a Promise that is resolved with an array of results when all of the provided Promises
+  //  * resolve, or rejected when any Promise is rejected.
+  //  * @param values An array of Promises.
+  //  * @returns A new Promise.
+  //  */
+  // all<T1, T2>(values: readonly [T1 | PromiseLike<T1>, T2 | PromiseLike<T2>]): Promise<[T1, T2]>;
 
-    /**
-     * Creates a Promise that is resolved with an array of results when all of the provided Promises
-     * resolve, or rejected when any Promise is rejected.
-     * @param values An array of Promises.
-     * @returns A new Promise.
-     */
-    all<T>(values: Array<T | PromiseLike<T>>): Promise<T[]>;
+  /**
+   * Creates a Promise that is resolved with an array of results when all of the provided Promises
+   * resolve, or rejected when any Promise is rejected.
+   * @param values An array of Promises.
+   * @returns A new Promise.
+   */
+  all<T>(values: Array<T | PromiseLike<T>>): Promise<T[]>;
 
-    /**
-     * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
-     * or rejected.
-     * @param values An array of Promises.
-     * @returns A new Promise.
-     */
-    race<T>(values: Array<PromiseLike<T> | T>): Promise<T>;
+  /**
+   * Creates a Promise that is resolved or rejected when any of the provided Promises are resolved
+   * or rejected.
+   * @param values An array of Promises.
+   * @returns A new Promise.
+   */
+  race<T>(values: Array<PromiseLike<T> | T>): Promise<T>;
 
-    /**
-     * Creates a new rejected promise for the provided reason.
-     * @param reason The reason the promise was rejected.
-     * @returns A new rejected Promise.
-     */
-    reject(reason?: any): Promise<any>;
+  /**
+   * Creates a new rejected promise for the provided reason.
+   * @param reason The reason the promise was rejected.
+   * @returns A new rejected Promise.
+   */
+  reject(reason?: any): Promise<any>;
 
-    /**
-     * Creates a new resolved promise for the provided value.
-     * @param value A promise.
-     * @returns A promise whose internal state matches the provided promise.
-     */
-    resolve<T>(value: T | PromiseLike<T> | undefined): Promise<T>;
+  /**
+   * Creates a new resolved promise for the provided value.
+   * @param value A promise.
+   * @returns A promise whose internal state matches the provided promise.
+   */
+  resolve<T>(value: T | PromiseLike<T> | undefined): Promise<T>;
 }
 
 declare var Promise: PromiseConstructor;
 
 //interface AsyncIterator<T, TReturn = any, TNext = undefined> {
-    // NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
+// NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
 //    next(...args: [] | [TNext]): Promise<IteratorResult<T, TReturn>>;
 //    return?(value?: TReturn | PromiseLike<TReturn>): Promise<IteratorResult<T, TReturn>>;
 //    throw?(e?: any): Promise<IteratorResult<T, TReturn>>;
 //}
 
 // interface AsyncIterable<T> {
-    // [Symbol.asyncIterator](): AsyncIterator<T>;
+// [Symbol.asyncIterator](): AsyncIterator<T>;
 // }
 
 // interface AsyncIterableIterator<T> extends AsyncIterator<T, any, any> {
-    // [Symbol.asyncIterator](): AsyncIterableIterator<T>;
+// [Symbol.asyncIterator](): AsyncIterableIterator<T>;
 // }
 
 interface ArrayLike<T> {
@@ -2267,7 +2272,11 @@ interface Int8ArrayConstructor {
   readonly prototype: Int8Array;
   // new (length: number): Int8Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    arrayOrArrayBuffer:
+      | ArrayLike<number>
+      | ArrayBufferLike
+      | number
+      | Iterable<number>,
     bufferOffset?: number,
     length?: number
   ): Int8Array;
@@ -2599,7 +2608,11 @@ interface Uint8ArrayConstructor {
   readonly prototype: Uint8Array;
   // new (length: number): Uint8Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    arrayOrArrayBuffer:
+      | ArrayLike<number>
+      | ArrayBufferLike
+      | number
+      | Iterable<number>,
     byteOffset: number,
     length?: number
   ): Uint8Array;
@@ -2954,7 +2967,11 @@ interface Uint8ClampedArrayConstructor {
   readonly prototype: Uint8ClampedArray;
   // new (length: number): Uint8ClampedArray;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    arrayOrArrayBuffer:
+      | ArrayLike<number>
+      | ArrayBufferLike
+      | number
+      | Iterable<number>,
     byteOffset?: number,
     length?: number
   ): Uint8ClampedArray;
@@ -3288,7 +3305,11 @@ interface Int16ArrayConstructor {
   readonly prototype: Int16Array;
   // new (length: number): Int16Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    arrayOrArrayBuffer:
+      | ArrayLike<number>
+      | ArrayBufferLike
+      | number
+      | Iterable<number>,
     byteOffset?: number,
     length?: number
   ): Int16Array;
@@ -3614,7 +3635,11 @@ interface Uint16ArrayConstructor {
   readonly prototype: Uint16Array;
   // new (length: number): Uint16Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    arrayOrArrayBuffer:
+      | ArrayLike<number>
+      | ArrayBufferLike
+      | number
+      | Iterable<number>,
     byteOffset?: number,
     length?: number
   ): Uint16Array;
@@ -3936,7 +3961,11 @@ interface Int32ArrayConstructor {
   readonly prototype: Int32Array;
   // new (length: number): Int32Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>
+    arrayOrArrayBuffer:
+      | ArrayLike<number>
+      | ArrayBufferLike
+      | number
+      | Iterable<number>
   ): Int32Array;
   // new (
   //   buffer: ArrayBufferLike,
@@ -4583,7 +4612,11 @@ interface Float32ArrayConstructor {
   readonly prototype: Float32Array;
   // new (length: number): Float32Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    arrayOrArrayBuffer:
+      | ArrayLike<number>
+      | ArrayBufferLike
+      | number
+      | Iterable<number>,
     byteOffset?: number,
     length?: number
   ): Float32Array;
@@ -4914,7 +4947,11 @@ interface Float64ArrayConstructor {
   readonly prototype: Float64Array;
   // new (length: number): Float64Array;
   new (
-    arrayOrArrayBuffer: ArrayLike<number> | ArrayBufferLike | number | Iterable<number>,
+    arrayOrArrayBuffer:
+      | ArrayLike<number>
+      | ArrayBufferLike
+      | number
+      | Iterable<number>,
     byteOffset?: number,
     length?: number
   ): Float64Array;
@@ -4946,7 +4983,7 @@ interface Float64ArrayConstructor {
 declare var Float64Array: Float64ArrayConstructor;
 
 interface ArrayConstructor {
-  new <T>(arrayLength: number): T[];
+  new <T>(arrayLength: number): (T | undefined)[];
   <T>(...items: T[]): T[];
   isArray(arg: any): arg is Array<any>;
   readonly prototype: Array<any>;
@@ -4971,229 +5008,348 @@ interface ArrayConstructor {
 declare var Array: ArrayConstructor;
 
 interface Map<K, V> {
-    clear(): void;
-    delete(key: K): boolean;
-    forEach(callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void;
-    get(key: K): V | undefined;
-    has(key: K): boolean;
-    set(key: K, value: V): Map<K, V>;
-    readonly size: number;
-    /** Returns an iterable of entries in the map. */
-    //[Symbol.iterator](): IterableIterator<[K, V]>;
-    /**
-     * Returns an iterable of key, value pairs for every entry in the map.
-     */
-    // FIXME: make entries return iterable
-    //entries(): IterableIterator<[K, V]>;
-    entries(): Array<[K, V]>;
-    /**
-     * Returns an iterable of keys in the map
-     */
+  clear(): void;
+  delete(key: K): boolean;
+  forEach(
+    callbackfn: (value: V, key: K, map: Map<K, V>) => void,
+    thisArg?: any
+  ): void;
+  get(key: K): V | undefined;
+  has(key: K): boolean;
+  set(key: K, value: V): Map<K, V>;
+  readonly size: number;
+  /** Returns an iterable of entries in the map. */
+  //[Symbol.iterator](): IterableIterator<[K, V]>;
+  /**
+   * Returns an iterable of key, value pairs for every entry in the map.
+   */
+  // FIXME: make entries return iterable
+  //entries(): IterableIterator<[K, V]>;
+  entries(): Array<[K, V]>;
+  /**
+   * Returns an iterable of keys in the map
+   */
   //keys(): IterableIterator<K>;
-    /**
-     * Returns an iterable of values in the map
-     */
-    // values(): IterableIterator<V>;
+  /**
+   * Returns an iterable of values in the map
+   */
+  // values(): IterableIterator<V>;
 }
 
 interface MapConstructor {
-    new<K, V>(entries?: Array<[K, V]> | Map<K, V> | null): Map<K, V>;
+  new <K, V>(entries?: Array<[K, V]> | Map<K, V> | null): Map<K, V>;
 }
 
 declare var Map: MapConstructor;
 
 interface ReadonlyMap<K, V> {
-    forEach(callbackfn: (value: V, key: K, map: ReadonlyMap<K, V>) => void, thisArg?: any): void;
-    get(key: K): V | undefined;
-    has(key: K): boolean;
-    readonly size: number;
+  forEach(
+    callbackfn: (value: V, key: K, map: ReadonlyMap<K, V>) => void,
+    thisArg?: any
+  ): void;
+  get(key: K): V | undefined;
+  has(key: K): boolean;
+  readonly size: number;
 }
 
 interface WeakMap<K extends object, V> {
-    delete(key: K): boolean;
-    get(key: K): V | undefined;
-    has(key: K): boolean;
-    set(key: K, value: V): this;
+  delete(key: K): boolean;
+  get(key: K): V | undefined;
+  has(key: K): boolean;
+  set(key: K, value: V): this;
 }
 
 interface WeakMapConstructor {
-    new<K extends object, V>(entries?: Array<[K, V]> | Map<K, V> | WeakMap<K, V> | null): WeakMap<K, V>;
+  new <K extends object, V>(
+    entries?: Array<[K, V]> | Map<K, V> | WeakMap<K, V> | null
+  ): WeakMap<K, V>;
 }
 declare var WeakMap: WeakMapConstructor;
 
 interface Set<T> {
-    add(value: T): this;
-    clear(): void;
-    delete(value: T): boolean;
-    forEach(callbackfn: (value: T, value2: T, set: Set<T>) => void, thisArg?: any): void;
-    has(value: T): boolean;
-    readonly size: number;
-    /** Iterates over values in the set. */
-    //[Symbol.iterator](): IterableIterator<T>;
-    /**
-     * Returns an iterable of [v,v] pairs for every value `v` in the set.
-     */
-    entries(): IterableIterator<[T, T]>;
-    /**
-     * Despite its name, returns an iterable of the values in the set,
-     */
-    keys(): IterableIterator<T>;
-    /**
-     * Returns an iterable of values in the set.
-     */
-    values(): IterableIterator<T>;
+  add(value: T): this;
+  clear(): void;
+  delete(value: T): boolean;
+  forEach(
+    callbackfn: (value: T, value2: T, set: Set<T>) => void,
+    thisArg?: any
+  ): void;
+  has(value: T): boolean;
+  readonly size: number;
+  /** Iterates over values in the set. */
+  //[Symbol.iterator](): IterableIterator<T>;
+  /**
+   * Returns an iterable of [v,v] pairs for every value `v` in the set.
+   */
+  entries(): IterableIterator<[T, T]>;
+  /**
+   * Despite its name, returns an iterable of the values in the set,
+   */
+  keys(): IterableIterator<T>;
+  /**
+   * Returns an iterable of values in the set.
+   */
+  values(): IterableIterator<T>;
 }
 
 interface ReadonlySet<T> {
-    /** Iterates over values in the set. */
-//    [Symbol.iterator](): IterableIterator<T>;
+  /** Iterates over values in the set. */
+  //    [Symbol.iterator](): IterableIterator<T>;
 }
 
 interface SetConstructor {
-    new<T>(values?: T[] | Set<T> | null): Set<T>;
-    readonly prototype: Set<any>;
+  new <T>(values?: T[] | Set<T> | null): Set<T>;
+  readonly prototype: Set<any>;
 }
 declare var Set: SetConstructor;
 
 interface ReadonlySet<T> {
-    forEach(callbackfn: (value: T, value2: T, set: ReadonlySet<T>) => void, thisArg?: any): void;
-    has(value: T): boolean;
-    readonly size: number;
+  forEach(
+    callbackfn: (value: T, value2: T, set: ReadonlySet<T>) => void,
+    thisArg?: any
+  ): void;
+  has(value: T): boolean;
+  readonly size: number;
 }
 
 interface WeakSet<T extends object> {
-    add(value: T): this;
-    delete(value: T): boolean;
-    has(value: T): boolean;
+  add(value: T): this;
+  delete(value: T): boolean;
+  has(value: T): boolean;
 }
 
 interface WeakSetConstructor {
-    new <T extends object>(values?: readonly T[] | Set<T> | WeakSet<T> | null): WeakSet<T>;
+  new <T extends object>(values?: T[] | Set<T> | WeakSet<T> | null): WeakSet<T>;
 }
 declare var WeakSet: WeakSetConstructor;
 
 interface SharedArrayBuffer {
-    /**
-     * Read-only. The length of the ArrayBuffer (in bytes).
-     */
-    readonly byteLength: number;
-    /*
+  /**
+   * Read-only. The length of the ArrayBuffer (in bytes).
+   */
+  readonly byteLength: number;
+  /*
      * The SharedArrayBuffer constructor's length property whose value is 1.
      */
-    length: number;
-    /**
-     * Returns a section of an SharedArrayBuffer.
-     */
-    slice(begin: number, end?: number): SharedArrayBuffer;
-    //readonly [Symbol.species]: SharedArrayBuffer;
-    //readonly [Symbol.toStringTag]: "SharedArrayBuffer";
+  length: number;
+  /**
+   * Returns a section of an SharedArrayBuffer.
+   */
+  slice(begin: number, end?: number): SharedArrayBuffer;
+  //readonly [Symbol.species]: SharedArrayBuffer;
+  //readonly [Symbol.toStringTag]: "SharedArrayBuffer";
 }
 
-
 interface SharedArrayBufferConstructor {
-    readonly prototype: SharedArrayBuffer;
-    new (byteLength: number): SharedArrayBuffer;
+  readonly prototype: SharedArrayBuffer;
+  new (byteLength: number): SharedArrayBuffer;
 }
 
 declare var SharedArrayBuffer: SharedArrayBufferConstructor;
 
 interface ArrayBufferTypes {
-    SharedArrayBuffer: SharedArrayBuffer;
+  SharedArrayBuffer: SharedArrayBuffer;
 }
 
 interface Atomics {
-    /**
-     * Adds a value to the value at the given position in the array, returning the original value.
-     * Until this atomic operation completes, any other read or write operation against the array
-     * will block.
-     */
-    add(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
-    /**
-     * Stores the bitwise AND of a value with the value at the given position in the array,
-     * returning the original value. Until this atomic operation completes, any other read or
-     * write operation against the array will block.
-     */
-    and(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
-    /**
-     * Replaces the value at the given position in the array if the original value equals the given
-     * expected value, returning the original value. Until this atomic operation completes, any
-     * other read or write operation against the array will block.
-     */
-    compareExchange(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, expectedValue: number, replacementValue: number): number;
-    /**
-     * Replaces the value at the given position in the array, returning the original value. Until
-     * this atomic operation completes, any other read or write operation against the array will
-     * block.
-     */
-    exchange(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
-    /**
-     * Returns a value indicating whether high-performance algorithms can use atomic operations
-     * (`true`) or must use locks (`false`) for the given number of bytes-per-element of a typed
-     * array.
-     */
-    isLockFree(size: number): boolean;
-    /**
-     * Returns the value at the given position in the array. Until this atomic operation completes,
-     * any other read or write operation against the array will block.
-     */
-    load(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number): number;
-    /**
-     * Stores the bitwise OR of a value with the value at the given position in the array,
-     * returning the original value. Until this atomic operation completes, any other read or write
-     * operation against the array will block.
-     */
-    or(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
-    /**
-     * Stores a value at the given position in the array, returning the new value. Until this
-     * atomic operation completes, any other read or write operation against the array will block.
-     */
-    store(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
-    /**
-     * Subtracts a value from the value at the given position in the array, returning the original
-     * value. Until this atomic operation completes, any other read or write operation against the
-     * array will block.
-     */
-    sub(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
-    /**
-     * If the value at the given position in the array is equal to the provided value, the current
-     * agent is put to sleep causing execution to suspend until the timeout expires (returning
-     * `"timed-out"`) or until the agent is awoken (returning `"ok"`); otherwise, returns
-     * `"not-equal"`.
-     */
-    wait(typedArray: Int32Array, index: number, value: number, timeout?: number): "ok" | "not-equal" | "timed-out";
-    /**
-     * Wakes up sleeping agents that are waiting on the given index of the array, returning the
-     * number of agents that were awoken.
-     */
-    notify(typedArray: Int32Array, index: number, count: number): number;
-    /**
-     * Stores the bitwise XOR of a value with the value at the given position in the array,
-     * returning the original value. Until this atomic operation completes, any other read or write
-     * operation against the array will block.
-     */
-    xor(typedArray: Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array, index: number, value: number): number;
-    //readonly [Symbol.toStringTag]: "Atomics";
+  /**
+   * Adds a value to the value at the given position in the array, returning the original value.
+   * Until this atomic operation completes, any other read or write operation against the array
+   * will block.
+   */
+  add(
+    typedArray:
+      | Int8Array
+      | Uint8Array
+      | Int16Array
+      | Uint16Array
+      | Int32Array
+      | Uint32Array,
+    index: number,
+    value: number
+  ): number;
+  /**
+   * Stores the bitwise AND of a value with the value at the given position in the array,
+   * returning the original value. Until this atomic operation completes, any other read or
+   * write operation against the array will block.
+   */
+  and(
+    typedArray:
+      | Int8Array
+      | Uint8Array
+      | Int16Array
+      | Uint16Array
+      | Int32Array
+      | Uint32Array,
+    index: number,
+    value: number
+  ): number;
+  /**
+   * Replaces the value at the given position in the array if the original value equals the given
+   * expected value, returning the original value. Until this atomic operation completes, any
+   * other read or write operation against the array will block.
+   */
+  compareExchange(
+    typedArray:
+      | Int8Array
+      | Uint8Array
+      | Int16Array
+      | Uint16Array
+      | Int32Array
+      | Uint32Array,
+    index: number,
+    expectedValue: number,
+    replacementValue: number
+  ): number;
+  /**
+   * Replaces the value at the given position in the array, returning the original value. Until
+   * this atomic operation completes, any other read or write operation against the array will
+   * block.
+   */
+  exchange(
+    typedArray:
+      | Int8Array
+      | Uint8Array
+      | Int16Array
+      | Uint16Array
+      | Int32Array
+      | Uint32Array,
+    index: number,
+    value: number
+  ): number;
+  /**
+   * Returns a value indicating whether high-performance algorithms can use atomic operations
+   * (`true`) or must use locks (`false`) for the given number of bytes-per-element of a typed
+   * array.
+   */
+  isLockFree(size: number): boolean;
+  /**
+   * Returns the value at the given position in the array. Until this atomic operation completes,
+   * any other read or write operation against the array will block.
+   */
+  load(
+    typedArray:
+      | Int8Array
+      | Uint8Array
+      | Int16Array
+      | Uint16Array
+      | Int32Array
+      | Uint32Array,
+    index: number
+  ): number;
+  /**
+   * Stores the bitwise OR of a value with the value at the given position in the array,
+   * returning the original value. Until this atomic operation completes, any other read or write
+   * operation against the array will block.
+   */
+  or(
+    typedArray:
+      | Int8Array
+      | Uint8Array
+      | Int16Array
+      | Uint16Array
+      | Int32Array
+      | Uint32Array,
+    index: number,
+    value: number
+  ): number;
+  /**
+   * Stores a value at the given position in the array, returning the new value. Until this
+   * atomic operation completes, any other read or write operation against the array will block.
+   */
+  store(
+    typedArray:
+      | Int8Array
+      | Uint8Array
+      | Int16Array
+      | Uint16Array
+      | Int32Array
+      | Uint32Array,
+    index: number,
+    value: number
+  ): number;
+  /**
+   * Subtracts a value from the value at the given position in the array, returning the original
+   * value. Until this atomic operation completes, any other read or write operation against the
+   * array will block.
+   */
+  sub(
+    typedArray:
+      | Int8Array
+      | Uint8Array
+      | Int16Array
+      | Uint16Array
+      | Int32Array
+      | Uint32Array,
+    index: number,
+    value: number
+  ): number;
+  /**
+   * If the value at the given position in the array is equal to the provided value, the current
+   * agent is put to sleep causing execution to suspend until the timeout expires (returning
+   * `"timed-out"`) or until the agent is awoken (returning `"ok"`); otherwise, returns
+   * `"not-equal"`.
+   */
+  wait(
+    typedArray: Int32Array,
+    index: number,
+    value: number,
+    timeout?: number
+  ): "ok" | "not-equal" | "timed-out";
+  /**
+   * Wakes up sleeping agents that are waiting on the given index of the array, returning the
+   * number of agents that were awoken.
+   */
+  notify(typedArray: Int32Array, index: number, count: number): number;
+  /**
+   * Stores the bitwise XOR of a value with the value at the given position in the array,
+   * returning the original value. Until this atomic operation completes, any other read or write
+   * operation against the array will block.
+   */
+  xor(
+    typedArray:
+      | Int8Array
+      | Uint8Array
+      | Int16Array
+      | Uint16Array
+      | Int32Array
+      | Uint32Array,
+    index: number,
+    value: number
+  ): number;
+  //readonly [Symbol.toStringTag]: "Atomics";
 }
 
 declare var Atomics: Atomics;
 
-type DateTimeFormatPartTypes = "day" | "dayPeriod" | "era" | "hour" | "literal" | "minute" | "month" | "second" | "timeZoneName" | "weekday" | "year";
+type DateTimeFormatPartTypes =
+  | "day"
+  | "dayPeriod"
+  | "era"
+  | "hour"
+  | "literal"
+  | "minute"
+  | "month"
+  | "second"
+  | "timeZoneName"
+  | "weekday"
+  | "year";
 
 interface DateTimeFormatPart {
-    type: DateTimeFormatPartTypes;
-    value: string;
+  type: DateTimeFormatPartTypes;
+  value: string;
 }
 
 interface DateTimeFormat {
-    formatToParts(date?: Date | number): DateTimeFormatPart[];
+  formatToParts(date?: Date | number): DateTimeFormatPart[];
 }
 
 interface Intl {
-    DateTimeFormat: DateTimeFormat;
+  DateTimeFormat: DateTimeFormat;
 }
 
 declare var Intl: Intl;
 
 interface TemplateStringsArray extends ReadonlyArray<string> {
-    readonly raw: string[];
+  readonly raw: string[];
 }

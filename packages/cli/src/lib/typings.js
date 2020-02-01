@@ -15,7 +15,7 @@ const nodejs = join(typings, "nodejs/globals.d.ts");
 const standard = join(typings, "standard/index.d.ts");
 
 async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
-  const errors = new Array<HegelError>(0);
+  const errors: Array<HegelError> = [];
   const typingsScope = await createModuleScope(
     ast,
     errors,

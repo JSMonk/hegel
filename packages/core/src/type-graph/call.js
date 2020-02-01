@@ -19,6 +19,7 @@ import { addToThrowable } from "../utils/throwable";
 import { isCallableType } from "../utils/function-utils";
 import { getAnonymousKey } from "../utils/common";
 import { getVariableType } from "../utils/variable-utils";
+import { $AppliedImmutable } from "./types/immutable-type";
 import { inferenceTypeForNode } from "../inference";
 import { pickFalsy, pickTruthy } from "../utils/type-utils";
 import { addFunctionToTypeGraph } from "../utils/function-utils";
@@ -53,7 +54,8 @@ type CallResult = {
 
 type CallableMeta = {
   isForAssign?: boolean,
-  isTypeDefinitions?: boolean
+  isTypeDefinitions?: boolean,
+  isImmutable?: boolean
 };
 
 export function addCallToTypeGraph(
@@ -248,13 +250,15 @@ export function addCallToTypeGraph(
               pre,
               middle,
               post,
-              meta
+              {
+                ...meta,
+                isImmutable: variableType.type instanceof $AppliedImmutable
+              }
             );
       inferenced = init.inferenced;
-      targetName = "=";
+      targetName = "init";
       args = [variableType, init.result];
-      target = currentScope.findVariable({ name: targetName, loc: node.loc })
-        .type;
+      target = currentScope.findVariable({ name: "=", loc: node.loc }).type;
       target =
         target instanceof GenericType && node.id.typeAnnotation != undefined
           ? target.applyGeneric([variableType.type])
@@ -653,6 +657,12 @@ export function addCallToTypeGraph(
           post,
           meta
         ).result: any);
+        if (target instanceof TypeVar) {
+          throw new HegelError(
+            "Inferencing of functions inside inferenced object is not safe, if you want to use functions as property of your variable - add a type to this variable.",
+            node.loc
+          );
+        }
       }
       let targetType = target instanceof VariableInfo ? target.type : target;
       if (
@@ -708,10 +718,11 @@ export function addCallToTypeGraph(
       }
       args = node.arguments.map((n, i) => {
         argsLocations.push(n.loc);
+        // $FlowIssue
+        const defaultArg = (fnType.argumentsTypes || [])[i];
         return n.type === NODE.FUNCTION_EXPRESSION ||
           n.type === NODE.ARROW_FUNCTION_EXPRESSION
-          ? // $FlowIssue
-            (fnType.argumentsTypes || [])[i]
+          ? defaultArg
           : addCallToTypeGraph(
               n,
               moduleScope,
@@ -720,7 +731,7 @@ export function addCallToTypeGraph(
               pre,
               middle,
               post,
-              meta
+              { ...meta, isImmutable: defaultArg instanceof $AppliedImmutable }
             ).result;
       });
       genericArguments =
@@ -792,6 +803,17 @@ export function addCallToTypeGraph(
         new CallMeta(undefined, [], node.loc, "this")
       );
       return { result: selfVar.type, inferenced: false };
+    case NODE.SEQUENCE_EXPRESSION:
+      return addCallToTypeGraph(
+        node.expressions[node.expressions.length - 1],
+        moduleScope,
+        currentScope,
+        parentNode,
+        pre,
+        middle,
+        post,
+        meta
+      );
     default:
       return {
         result: inferenceTypeForNode(
@@ -803,8 +825,10 @@ export function addCallToTypeGraph(
           pre,
           middle,
           post,
-          meta.isTypeDefinitions
+          meta.isTypeDefinitions,
+          meta.isImmutable
         ),
+        isLiteral: true,
         inferenced: true
       };
   }
@@ -824,7 +848,7 @@ export function addCallToTypeGraph(
     typeScope,
     targetType,
     parentNode,
-    dropUnknown: targetName === "=",
+    dropUnknown: targetName === "=" || targetName === "init",
     genericArguments:
       genericArguments &&
       genericArguments.map(a => (a instanceof Type ? a : a.type))

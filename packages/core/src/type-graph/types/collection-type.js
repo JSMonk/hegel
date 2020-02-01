@@ -68,7 +68,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
   }
 
   equalsTo(anotherType: Type) {
-    anotherType = this.getOponentType(anotherType);
+    anotherType = this.getOponentType(anotherType, true, false);
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
@@ -155,19 +155,29 @@ export class CollectionType<K: Type, V: Type> extends Type {
     }
   }
 
-  getDifference(type: Type) {
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
     type = this.getOponentType(type);
-    if (this._alreadyProcessedWith === type) {
+    if (this._alreadyProcessedWith === type || this.referenceEqualsTo(type)) {
       return [];
     }
     this._alreadyProcessedWith = type;
+    if (type instanceof TupleType) {
+      // $FlowIssue
+      type = type.isSubtypeOf;
+    }
     if (type instanceof CollectionType) {
-      const keyDiff = this.keyType.getDifference(type.keyType);
-      const valueDiff = this.valueType.getDifference(type.valueType);
+      const keyDiff = this.keyType.getDifference(
+        type.keyType,
+        withReverseUnion
+      );
+      const valueDiff = this.valueType.getDifference(
+        type.valueType,
+        withReverseUnion
+      );
       this._alreadyProcessedWith = null;
       return keyDiff.concat(valueDiff);
     }
-    const result = super.getDifference(type);
+    const result = super.getDifference(type, withReverseUnion);
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -201,5 +211,23 @@ export class CollectionType<K: Type, V: Type> extends Type {
   makeNominal() {
     // $FlowIssue
     this.isSubtypeOf.makeNominal();
+  }
+
+  getNextParent(typeScope: TypeScope) {
+    if (this._alreadyProcessedWith !== null) {
+      return Type.GlobalTypeScope;
+    }
+    this._alreadyProcessedWith = this;
+    const sortedParents = [this.keyType, this.valueType]
+      .map(a => a.getNextParent(typeScope))
+      .sort((a, b) => b.priority - a.priority);
+    for (const parent of sortedParents) {
+      if (parent.priority <= typeScope.priority && parent !== typeScope) {
+        this._alreadyProcessedWith = null;
+        return parent;
+      }
+    }
+    this._alreadyProcessedWith = null;
+    return Type.GlobalTypeScope;
   }
 }

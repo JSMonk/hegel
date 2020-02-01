@@ -113,6 +113,8 @@ export function inferenceFunctionLiteralType(
         ): any)
       )
     );
+  } else {
+    localTypeScope.makeCustom();
   }
   let nameIndex = 0;
   try {
@@ -257,9 +259,16 @@ export function inferenceFunctionLiteralType(
   const type = FunctionType.term(typeName, {}, argumentsTypes, returnType);
   type.isAsync = currentNode.async === true;
   type.throwable = throwableType && throwableType.errorType;
-  return genericArgumentsTypes.length > 0
-    ? GenericType.new(typeName, {}, genericArgumentsTypes, localTypeScope, type)
-    : type;
+  if (genericArgumentsTypes.length === 0 || !(type instanceof FunctionType)) {
+    return type;
+  }
+  return GenericType.new(
+    typeName,
+    {},
+    genericArgumentsTypes,
+    localTypeScope,
+    type
+  );
 }
 
 export function getCallTarget(
@@ -297,52 +306,47 @@ function resolveOuterTypeVarsFromCall(
   typeScope: TypeScope,
   typeGraph: ModuleScope
 ) {
-  if (!call.arguments.some(isArgumentVariable)) {
-    return;
-  }
   const callTarget: FunctionType = getCallTarget(call, false);
   if (callTarget === undefined) {
     return;
   }
-
+  // $FlowIssue
+  const level = oldGenericArguments[0];
+  const roots: Map<Type, Type> = new Map();
   for (let i = 0; i < call.arguments.length; i++) {
     const callArgument = call.arguments[i];
-    const callArgumentType =
+    let actualType =
       callArgument instanceof VariableInfo ? callArgument.type : callArgument;
-    if (
-      callArgumentType instanceof TypeVar &&
-      !callArgumentType.isUserDefined &&
-      !genericArguments.includes(callArgumentType)
-    ) {
-      genericArguments.push(callArgumentType);
-    }
-    const callTargetType = callTarget.argumentsTypes[i];
-    if (
-      callTargetType === undefined ||
-      !(callArgumentType instanceof TypeVar) ||
-      (callArgumentType.isUserDefined &&
-        genericArguments.includes(callArgumentType)) ||
-      callArgumentType === callTargetType
-    ) {
+    let declaratedType = callTarget.argumentsTypes[i];
+    if (actualType === undefined || declaratedType === undefined) {
       continue;
     }
-    if (callTargetType instanceof TypeVar && !callTargetType.isUserDefined) {
-      continue;
-    }
-    const potentialRoot =
-      callTargetType instanceof RestArgument
-        ? // $FlowIssue
-          callTargetType.type.valueType
-        : callTargetType;
-    if (
-      callArgumentType.root !== undefined &&
-      !(callArgumentType.root instanceof TypeVar) &&
-      !callArgumentType.root.isSuperTypeFor(potentialRoot)
-    ) {
-      continue;
-    }
-    if (!potentialRoot.contains(callArgumentType)) {
-      callArgumentType.root = potentialRoot;
+    actualType = Type.getTypeRoot(actualType, true);
+    declaratedType = Type.getTypeRoot(declaratedType);
+    // $FlowIssue
+    const difference = declaratedType.getDifference(actualType, true);
+    for (let j = 0; j < difference.length; j++) {
+      let { root, variable } = difference[j];
+      if (TypeVar.isSelf(root)) {
+        continue;
+      }
+      root = Type.getTypeRoot(root);
+      variable = Type.getTypeRoot(variable, true);
+      if (!genericArguments.some(arg => arg.contains(variable))) {
+        continue;
+      }
+      const shouldSetNewRoot =
+        variable instanceof TypeVar &&
+        !root.contains(variable) &&
+        (variable.root === undefined ||
+          variable.root.isSuperTypeFor(variable.root));
+      if (!shouldSetNewRoot) {
+        continue;
+      }
+      variable.root = root;
+      if (!genericArguments.includes(variable)) {
+        genericArguments.push(variable);
+      }
     }
   }
 }
@@ -747,7 +751,10 @@ export function inferenceFunctionTypeByScope(
     }
   }
   shouldBeCleaned.forEach(clearRoot);
-  const newGenericArgumentsTypes = [...newGenericArguments];
+  const newGenericArgumentsTypes = [...newGenericArguments].map(t => {
+    t.isUserDefined = true;
+    return t;
+  });
   const newFunctionTypeName = FunctionType.getName(
     newArgumentsTypes,
     newReturnType,
@@ -762,7 +769,12 @@ export function inferenceFunctionTypeByScope(
     newReturnType,
     isAsync
   );
-  newFunctionType.throwable = throwable;
+  if (
+    newFunctionType instanceof FunctionType &&
+    newFunctionType.throwble === undefined
+  ) {
+    newFunctionType.throwable = throwable;
+  }
   if (newGenericArgumentsTypes.length > 0) {
     newFunctionType = GenericType.new(
       newFunctionTypeName,

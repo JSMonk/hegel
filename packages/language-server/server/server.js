@@ -75,7 +75,7 @@ connection.onHover(meta => {
 let timeout;
 documents.onDidChangeContent(change => {
   clearTimeout(timeout);
-  timeout = setTimeout(() => validateTextDocument(change.document), 200);
+  timeout = setTimeout(() =>validateTextDocument(change.document), 200);
 });
 connection.onDidChangeWatchedFiles(change => validateTextDocument(change.document));
 

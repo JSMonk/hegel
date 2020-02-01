@@ -4,10 +4,19 @@ import { UnionType } from "./union-type";
 import { FunctionType } from "./function-type";
 
 export class $BottomType extends Type {
+  static getParent(meta, _, genericArguments = []) {
+    return genericArguments.reduce(
+      (parent, type) =>
+        parent.priority < type.parent.priority ? type.parent : parent,
+      meta.parent || Type.GlobalTypeScope
+    );
+  }
+
   static new(name, meta = {}, ...args) {
-    const scope = meta.parent || Type.GlobalTypeScope;
-    const newType = new this(meta, ...args);
-    scope.body.set(name, newType);
+    const parent = this.getParent(meta, ...args);
+    const newMeta = { ...meta, parent };
+    const newType = new this(newMeta, ...args);
+    parent.body.set(name, newType);
     return newType;
   }
 
@@ -22,6 +31,14 @@ export class $BottomType extends Type {
   }
 
   constructor(meta, subordinateMagicType, genericArguments = [], loc) {
+    meta = {
+      ...meta,
+      parent: $BottomType.getParent(
+        meta,
+        subordinateMagicType,
+        genericArguments
+      )
+    };
     super(
       $BottomType.getName(subordinateMagicType.name, genericArguments),
       meta
@@ -134,11 +151,14 @@ export class $BottomType extends Type {
   }
 
   isPrincipalTypeFor(other: Type): boolean {
-    if (this.referenceEqualsTo(other)) {
+    if (this._alreadyProcessedWith === other || this.equalsTo(other)) {
       return true;
     }
+    this._alreadyProcessedWith = other;
     const self = this.unpack();
-    return self.isPrincipalTypeFor(other);
+    const result = self.isPrincipalTypeFor(other);
+    this._alreadyProcessedWith = null;
+    return result;
   }
 
   applyGeneric(parameters, loc, shouldBeMemoize, isCalledAsBottom, ...args) {
@@ -161,16 +181,19 @@ export class $BottomType extends Type {
     );
   }
 
-  getDifference(type: Type) {
-    if (this._alreadyProcessedWith === type) {
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    if (this._alreadyProcessedWith === type || this.referenceEqualsTo(type)) {
       return [];
+    }
+    if (type instanceof TypeVar) {
+      return [{ root: this, variable: type }];
     }
     if (type instanceof $BottomType) {
       type = type.subordinateMagicType;
     }
     const subordinate = this.getOponentType(this.subordinateMagicType);
     this._alreadyProcessedWith = type;
-    const diff = subordinate.getDifference(type);
+    const diff = subordinate.getDifference(type, withReverseUnion);
     this._alreadyProcessedWith = null;
     return "genericArguments" in subordinate
       ? diff.map(diff => {
@@ -249,5 +272,23 @@ export class $BottomType extends Type {
 
   makeNominal() {
     this.subordinateMagicType.makeNominal();
+  }
+
+  getNextParent(typeScope: TypeScope) {
+    if (this._alreadyProcessedWith !== null) {
+      return Type.GlobalTypeScope;
+    }
+    this._alreadyProcessedWith = this;
+    const sortedParents = [...this.genericArguments]
+      .map(a => a.getNextParent(typeScope))
+      .sort((a, b) => b.priority - a.priority);
+    for (const parent of sortedParents) {
+      if (parent.priority <= typeScope.priority && parent !== typeScope) {
+        this._alreadyProcessedWith = null;
+        return parent;
+      }
+    }
+    this._alreadyProcessedWith = null;
+    return Type.GlobalTypeScope;
   }
 }

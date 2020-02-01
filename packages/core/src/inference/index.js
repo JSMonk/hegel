@@ -6,6 +6,7 @@ import { THIS_TYPE } from "../type-graph/constants";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
+import { $AppliedImmutable } from "../type-graph/types/immutable-type";
 import { inferenceTupleType } from "./tuple-type";
 import { inferenceFunctionLiteralType } from "./function-type";
 import type { Node } from "@babel/parser";
@@ -20,33 +21,42 @@ export function inferenceTypeForNode(
   pre: Handler,
   middle: Handler,
   post: Handler,
-  isTypeDefinitions: boolean = false
+  isTypeDefinitions: boolean = false,
+  isImmutable: boolean = false
 ): Type {
+  let result = null;
   switch (currentNode.type) {
     case NODE.NUMERIC_LITERAL:
-      return Type.term(currentNode.value, {
+      result = Type.term(currentNode.value, {
         isSubtypeOf: Type.Number
       });
+      break;
     case NODE.BIGINT_LITERAL:
-      return Type.term(`${currentNode.value}n`, {
+      result = Type.term(`${currentNode.value}n`, {
         isSubtypeOf: Type.BigInt
       });
+      break;
     case NODE.TEMPLATE_LITERAL:
-      return Type.String;
+      result = Type.String;
+      break;
     case NODE.STRING_LITERAL:
-      return Type.term(`'${currentNode.value}'`, {
+      result = Type.term(`'${currentNode.value}'`, {
         isSubtypeOf: Type.String
       });
+      break;
     case NODE.BOOLEAN_LITERAL:
-      return Type.term(currentNode.value, {
+      result = Type.term(currentNode.value, {
         isSubtypeOf: Type.Boolean
       });
+      break;
     case NODE.NULL_LITERAL:
-      return Type.Null;
+      result = Type.Null;
+      break;
     case NODE.REG_EXP_LITERAL:
-      return Type.find("RegExp");
+      result = Type.find("RegExp");
+      break;
     case NODE.ARRAY_EXPRESSION:
-      return inferenceTupleType(
+      result = inferenceTupleType(
         currentNode,
         typeScope,
         parentScope,
@@ -56,6 +66,7 @@ export function inferenceTypeForNode(
         middle,
         post
       );
+      break;
     case NODE.OBJECT_EXPRESSION:
     case NODE.CLASS_EXPRESSION:
       const objectScope = typeGraph.scopes.get(
@@ -71,7 +82,8 @@ export function inferenceTypeForNode(
       if (!(self instanceof VariableInfo)) {
         throw new Error("Never!!!");
       }
-      return self.type;
+      result = self.type;
+      break;
     case NODE.OBJECT_METHOD:
     case NODE.CLASS_METHOD:
     case NODE.FUNCTION_DECLARATION:
@@ -79,7 +91,7 @@ export function inferenceTypeForNode(
     case NODE.FUNCTION_EXPRESSION:
     case NODE.ARROW_FUNCTION_EXPRESSION:
     case NODE.TS_FUNCTION_DECLARATION:
-      return inferenceFunctionLiteralType(
+      result = inferenceFunctionLiteralType(
         currentNode,
         typeScope,
         parentScope,
@@ -90,11 +102,24 @@ export function inferenceTypeForNode(
         middle,
         post
       );
+      break;
     case NODE.IDENTIFIER:
     case NODE.THIS_EXPRESSION:
       const query = { ...currentNode, name: currentNode.name || THIS_TYPE };
       const variableInfo = parentScope.findVariable(query);
-      return variableInfo.type;
+      result = variableInfo.type;
+      break;
+  }
+  if (
+    isImmutable &&
+    result !== null &&
+    currentNode.type !== NODE.IDENTIFIER &&
+    currentNode.type !== NODE.THIS_EXPRESSION
+  ) {
+    result = $AppliedImmutable.term(null, {}, result);
+  }
+  if (result) {
+    return result;
   }
   throw new Error(currentNode.type);
 }

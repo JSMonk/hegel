@@ -23,7 +23,11 @@ import { addVariableToGraph } from "../utils/variable-utils";
 import { inferenceErrorType } from "../inference/error-type";
 import { ModuleScope, PositionedModuleScope } from "./module-scope";
 import { addCallToTypeGraph, addPropertyToThis, addMethodToThis } from "./call";
-import { setupBaseHierarchy, setupFullHierarchy, dropAllGlobals } from "../utils/hierarchy";
+import {
+  setupBaseHierarchy,
+  setupFullHierarchy,
+  dropAllGlobals
+} from "../utils/hierarchy";
 import {
   addTypeNodeToTypeGraph,
   getTypeFromTypeAnnotation
@@ -492,7 +496,10 @@ const afterFillierActions = (
           postcompute
         );
         errorVariable.type = inferenceErrorType(currentNode, moduleScope);
-        errorVariable.type = UnionType.term(null, {}, [Type.Unknown, errorVariable.type]);
+        errorVariable.type = UnionType.term(null, {}, [
+          Type.Unknown,
+          errorVariable.type
+        ]);
         if (moduleScope instanceof PositionedModuleScope) {
           moduleScope.addPosition(currentNode.catchBlock.param, errorVariable);
         }
@@ -535,15 +542,15 @@ const afterFillierActions = (
         }
         const { declaration } = functionScope;
         if (declaration === undefined) {
-            throw new Error("Never!!!");
+          throw new Error("Never!!!");
         }
         const declarationType: any =
-              declaration.type instanceof GenericType
-              ? declaration.type.subordinateType
-              : declaration.type;
+          declaration.type instanceof GenericType
+            ? declaration.type.subordinateType
+            : declaration.type;
         declarationType.throwable = (functionScope.throwable || []).length
-            ? inferenceErrorType(currentNode, moduleScope)
-            : undefined;
+          ? inferenceErrorType(currentNode, moduleScope)
+          : undefined;
         if (functionScope.declaration instanceof VariableInfo) {
           const fnType = functionScope.declaration.type;
           if (

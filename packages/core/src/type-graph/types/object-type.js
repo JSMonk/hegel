@@ -5,6 +5,7 @@ import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
 import { FunctionType } from "./function-type";
 import { VariableInfo } from "../variable-info";
+import { $AppliedImmutable } from "./immutable-type";
 import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../constants";
 import type { TypeMeta } from "./type";
 import type { TypeScope } from "../type-scope";
@@ -209,7 +210,7 @@ export class ObjectType extends Type {
   }
 
   equalsTo(anotherType: Type) {
-    anotherType = this.getOponentType(anotherType);
+    anotherType = this.getOponentType(anotherType, true, false);
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
@@ -268,8 +269,8 @@ export class ObjectType extends Type {
     return result;
   }
 
-  getDifference(type: Type) {
-    if (this._alreadyProcessedWith === type) {
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    if (this._alreadyProcessedWith === type || this.referenceEqualsTo(type)) {
       return [];
     }
     this._alreadyProcessedWith = type;
@@ -281,7 +282,9 @@ export class ObjectType extends Type {
         if (other === undefined) {
           return;
         }
-        differences = differences.concat(type.getDifference(other.type));
+        differences = differences.concat(
+          type.getDifference(other.type, withReverseUnion)
+        );
       });
       this._alreadyProcessedWith = null;
       return differences;
@@ -289,12 +292,12 @@ export class ObjectType extends Type {
     if (type instanceof FunctionType) {
       const callable = this.properties.get(CALLABLE);
       if (callable !== undefined) {
-        const result = callable.type.getDifference(type);
+        const result = callable.type.getDifference(type, withReverseUnion);
         this._alreadyProcessedWith = null;
         return result;
       }
     }
-    const result = super.getDifference(type);
+    const result = super.getDifference(type, withReverseUnion);
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -309,6 +312,7 @@ export class ObjectType extends Type {
     this._alreadyProcessedWith = type;
     for (const [_, property] of this.properties) {
       if (property instanceof VariableInfo && property.type.contains(type)) {
+        this._alreadyProcessedWith = null;
         return true;
       }
     }
@@ -324,5 +328,24 @@ export class ObjectType extends Type {
     const result = super.contains(type) || this.equalsTo(type);
     this._alreadyProcessedWith = null;
     return result;
+  }
+
+  getNextParent(typeScope: TypeScope) {
+    if (this._alreadyProcessedWith !== null) {
+      return Type.GlobalTypeScope;
+    }
+    this._alreadyProcessedWith = this;
+    const sortedParents = [...this.properties]
+      .filter(([_, v]) => v instanceof VariableInfo)
+      .map(([_, { type }]) => type.getNextParent(typeScope))
+      .sort((a, b) => b.priority - a.priority);
+    for (const parent of sortedParents) {
+      if (parent.priority <= typeScope.priority && parent !== typeScope) {
+        this._alreadyProcessedWith = null;
+        return parent;
+      }
+    }
+    this._alreadyProcessedWith = null;
+    return Type.GlobalTypeScope;
   }
 }
