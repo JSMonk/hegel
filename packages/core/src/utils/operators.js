@@ -828,7 +828,6 @@ const mixBaseOperators = moduleScope => {
         Type.Undefined
       )
     ],
-    [".", $BottomType.term(".", {}, typeScope.body.get("$PropertyType"))],
     [
       "return",
       genericFunction(

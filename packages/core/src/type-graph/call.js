@@ -7,12 +7,14 @@ import { $Keys } from "./types/keys-type";
 import { $Values } from "./types/values-type";
 import { TypeVar } from "./types/type-var";
 import { CallMeta } from "./meta/call-meta";
+import { TypeScope } from "./type-scope";
 import { UnionType } from "./types/union-type";
 import { ObjectType } from "./types/object-type";
 import { GenericType } from "./types/generic-type";
 import { $BottomType } from "./types/bottom-type";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
+import { $PropertyType } from "./types/property-type";
 import { VariableScope } from "./variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { addToThrowable } from "../utils/throwable";
@@ -36,7 +38,6 @@ import {
   findNearestScopeByType
 } from "../utils/scope-utils";
 import type { Handler } from "../utils/traverse";
-import type { TypeScope } from "./type-scope";
 import type { CallableArguments } from "./meta/call-meta";
 import type {
   Node,
@@ -547,9 +548,27 @@ export function addCallToTypeGraph(
               meta
             ).result
       ];
-      genericArguments = args;
       targetName = ".";
-      target = currentScope.findVariable({ name: targetName, loc: node.loc });
+      genericArguments = args.map(
+        t => (t instanceof VariableInfo ? t.type : t)
+      );
+      const lts = new TypeScope(typeScope);
+      const argsTypes = [
+          TypeVar.new("A", { parent: lts }, undefined, true),
+          TypeVar.new("B", { parent: lts }, undefined, true)
+      ];
+      const property = new $BottomType(
+        { isForAssign: meta.isForAssign },
+        new $PropertyType(),
+        genericArguments
+      );
+      target = GenericType.term(
+        `<A, B>(A, B) => ${String(property.name)}`,
+        {},
+        argsTypes,
+        lts,
+        new FunctionType("", {}, argsTypes, property)
+      );
       break;
     case NODE.CONDITIONAL_EXPRESSION:
       args = [
@@ -865,21 +884,19 @@ export function addCallToTypeGraph(
     targetType instanceof UnionType
       ? UnionType.term(null, {}, targetType.variants.map(getResult))
       : getResult(targetType);
-  if (!(targetType instanceof $BottomType)) {
-    const callMeta = new CallMeta(
-      (target: any),
-      args,
-      node.loc,
-      targetName,
-      inferenced,
-      argsLocations
-    );
-    while (currentScope.skipCalls !== false && currentScope !== moduleScope) {
-      // $FlowIssue
-      currentScope = currentScope.parent;
-    }
-    currentScope.calls.push(callMeta);
+  const callMeta = new CallMeta(
+    (target: any),
+    args,
+    node.loc,
+    targetName,
+    inferenced,
+    argsLocations
+  );
+  while (currentScope.skipCalls !== false && currentScope !== moduleScope) {
+    // $FlowIssue
+    currentScope = currentScope.parent;
   }
+  currentScope.calls.push(callMeta);
   return { result: invocationType, inferenced };
 }
 

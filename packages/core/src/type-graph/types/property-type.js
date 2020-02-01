@@ -59,7 +59,7 @@ export class $PropertyType extends GenericType {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;
     const realTarget = Type.getTypeRoot(currentTarget);
-      const realProperty = Type.getTypeRoot(property);
+    const realProperty = Type.getTypeRoot(property);
     const propertyName =
       realProperty.isSubtypeOf && realProperty.isSubtypeOf.name === "string"
         ? realProperty.name.slice(1, -1)
@@ -76,9 +76,12 @@ export class $PropertyType extends GenericType {
             [
               propertyName,
               new VariableInfo(
-                TypeVar.term(`${realTarget.name[0]}0'`, {
-                  parent: realTarget.parent
-                })
+                TypeVar.term(
+                  `${realTarget.name.slice(0, realTarget.name.indexOf("'"))}0'`,
+                  {
+                    parent: realTarget.parent
+                  }
+                )
               )
             ]
           ];
@@ -95,7 +98,7 @@ export class $PropertyType extends GenericType {
             propertyName,
             new VariableInfo(
               TypeVar.term(
-                `${realTarget.name[0]}${
+                `${realTarget.name.slice(0, realTarget.name.indexOf("'"))}${
                   realTarget.constraint.properties.size
                 }'`,
                 { parent: realTarget.parent }

@@ -338,15 +338,16 @@ function resolveOuterTypeVarsFromCall(
       const shouldSetNewRoot =
         variable instanceof TypeVar &&
         !root.contains(variable) &&
+        (variable.isUserDefined || variable.constraint === undefined) &&
         (variable.root === undefined ||
           variable.root.isSuperTypeFor(variable.root));
+      if (!genericArguments.includes(variable)) {
+        genericArguments.push(variable);
+      }
       if (!shouldSetNewRoot) {
         continue;
       }
       variable.root = root;
-      if (!genericArguments.includes(variable)) {
-        genericArguments.push(variable);
-      }
     }
   }
 }
@@ -749,6 +750,22 @@ export function inferenceFunctionTypeByScope(
     ) {
       genericArgument.root = oldRoot;
     }
+  }
+  for (let i = 0; i < genericArguments.length; i++) {
+    const genericArgument = genericArguments[i].changeAll(
+      allVars,
+      allRoots,
+      localTypeScope
+    );
+    const root = Type.getTypeRoot(genericArgument);
+    if (
+      !(root instanceof TypeVar) ||
+      root !== genericArgument ||
+      oldGenericArguments.some(a => a.equalsTo(root, true))
+    ) {
+      continue;
+    }
+    newGenericArguments.add(root);
   }
   shouldBeCleaned.forEach(clearRoot);
   const newGenericArgumentsTypes = [...newGenericArguments].map(t => {

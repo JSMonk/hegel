@@ -47,6 +47,7 @@ export class $BottomType extends Type {
     this.genericArguments = genericArguments;
     this.loc = loc;
     this.priority = subordinateMagicType.priority + 1;
+    this.isForAssign = meta.isForAssign;
   }
 
   changeAll(sourceTypes, targetTypes, typeScope) {
@@ -124,7 +125,15 @@ export class $BottomType extends Type {
         this.subordinateMagicType.root != undefined
           ? this.subordinateMagicType.root
           : this.subordinateMagicType;
-      return this.endChanges(target.applyGeneric(appliedParameters, this.loc));
+      return this.endChanges(
+        target.applyGeneric(
+          appliedParameters,
+          this.loc,
+          false,
+          false,
+          this.isForASsign
+        )
+      );
     } catch (e) {
       this._alreadyProcessedWith = null;
       throw e;
@@ -144,7 +153,8 @@ export class $BottomType extends Type {
         ),
         this.loc,
         true,
-        true
+        true,
+        this.isForAssign
       );
     }
     throw new Error(`Never!!! ${target.constructor.name}`);
@@ -171,7 +181,7 @@ export class $BottomType extends Type {
           loc,
           shouldBeMemoize,
           true,
-          ...args
+          this.isForAssign
         );
     return FunctionType.term(
       FunctionType.getName(parameters, returnType),
