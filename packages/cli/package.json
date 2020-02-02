@@ -1,6 +1,6 @@
 {
   "name": "@hegel/cli",
-  "version": "0.0.13",
+  "version": "0.0.15",
   "description": "",
   "main": "index.js",
   "bin": {

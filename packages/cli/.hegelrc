@@ -1,9 +1,0 @@
-include:
-  - ./**/*.js
-exclude:
-  - ./node_modules/**
-typings:
-  - ./@types
-libs: 
-  - nodejs
-  - browser

@@ -21,8 +21,9 @@ const DEFAULT_CONFIG = {
     workingDirectory: CWD,
     babel: BABELRC,
     typings: ["./@types", "./node_modules/@types"],
-    libs: []
-  }
+    libs: ["browser", "nodejs"]
+  },
+  filepath: join(CWD, CONFIG_NAME)
 };
 
 const DEFAULT_CONFIG_CONTENT = `include:
@@ -48,7 +49,7 @@ export type Config = {
 };
 
 export async function getConfig(workingDirectory = CWD) {
-  const hegelConfig = await getMainConfigs(workingDirectory) || { config: {} };
+  const hegelConfig = await getMainConfigs(workingDirectory) || DEFAULT_CONFIG;
   const hegel = Object.assign(DEFAULT_CONFIG.config, hegelConfig.config);
   const projectRoot = dirname(hegelConfig.filepath);
   const typings = hegel.typings.map(
