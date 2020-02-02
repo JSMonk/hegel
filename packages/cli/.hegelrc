@@ -2,10 +2,8 @@ include:
   - ./**/*.js
 exclude:
   - ./node_modules/**
-  - ./build/**
 typings:
   - ./@types
-  - ./node_modules/@types
-libs:
+libs: 
   - nodejs
   - browser

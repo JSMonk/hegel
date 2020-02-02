@@ -8,7 +8,7 @@ const BABELRC: ParserOptions = {
   plugins: [["flow", { all: true }], "bigInt"]
 };
 
-const CWD = process.cwd();
+const CWD = process.cwd(); 
 const babelExplorer = cosmic("babel");
 const hegelExplorer = cosmic("hegel");
 
@@ -20,15 +20,18 @@ const DEFAULT_CONFIG = {
     exclude: ["./node_modules/**"],
     workingDirectory: CWD,
     babel: BABELRC,
-    typings: ["./node_modules/@types"],
+    typings: ["./@types", "./node_modules/@types"],
     libs: []
   }
 };
 
 const DEFAULT_CONFIG_CONTENT = `include:
-  - **/*.js
+  - ./**/*.js
 exclude:
   - ./node_modules/**
+types:
+  - ./@types
+  - ./node_modules/@types
 libs: 
   - nodejs
   - browser`;
@@ -45,7 +48,7 @@ export type Config = {
 };
 
 export async function getConfig(workingDirectory = CWD) {
-  const hegelConfig = await getMainConfigs(workingDirectory);
+  const hegelConfig = await getMainConfigs(workingDirectory) || { config: {} };
   const hegel = Object.assign(DEFAULT_CONFIG.config, hegelConfig.config);
   const projectRoot = dirname(hegelConfig.filepath);
   const typings = hegel.typings.map(

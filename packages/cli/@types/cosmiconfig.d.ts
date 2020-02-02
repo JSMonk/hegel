@@ -4,7 +4,7 @@ interface CosmicConfig<T> {
 }
 
 interface Cosmic {
-  search<T>(workingDirectory: string): Promise<CosmicConfig<T>>;
+  search<T>(workingDirectory: string): Promise<CosmicConfig<T> | null>;
 }
 
 export default function cosmic(configName: string): Cosmic;
