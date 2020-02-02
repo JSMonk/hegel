@@ -45,8 +45,9 @@ export class UnionType extends Type {
   }
 
   static getName(params: Array<Type>) {
+    params = unique(params.map(a => Type.getTypeRoot(a)), a => String(a.name));
     const isMultyLine = this.prettyMode && params.length >= 4;
-    return `${unique(params.map(a => Type.getTypeRoot(a)), a => String(a.name))
+    return `${params
       .sort((t1, t2) => String(t1.name).localeCompare(String(t2.name)))
       .reduce((res, t) => {
         const isFunction =

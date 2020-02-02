@@ -131,9 +131,12 @@ export class FunctionType extends Type {
     );
     const argsPart = this.getArgumentsPart(
       params,
-      this.prettyMode && params.length >= 4
+      this.prettyMode &&
+        (params.length >= 4 ||
+          (params.some(param => String(param.name).includes("\n")) &&
+            params.length !== 1))
     );
-    const throwsPart = this.getThrowsPart(throws, this.prettyMode);
+    const throwsPart = this.getThrowsPart(throws);
     const returnPart = this.getReturnPart(returnType);
     return this.prettyMode
       ? this.multyLine(asyncPart, genericPart, argsPart, throwsPart, returnPart)
@@ -147,7 +150,7 @@ export class FunctionType extends Type {
     throwsPart: string,
     returnPart: string
   ) {
-    return `${asyncPart}${genericPart}${argsPart} ${throwsPart}=> ${returnPart}`;
+    return `${asyncPart}${genericPart}${argsPart} => ${returnPart}${throwsPart}`;
   }
 
   static multyLine(
@@ -157,10 +160,10 @@ export class FunctionType extends Type {
     throwsPart: string,
     returnPart: string
   ) {
-    return `${asyncPart}${genericPart}${argsPart} ${throwsPart}=> ${returnPart.replace(
+    return `${asyncPart}${genericPart}${argsPart} => ${returnPart.replace(
       /\n/g,
       "\n\t"
-    )}`;
+    )}${throwsPart}`;
   }
 
   static getAsyncPart(isAsync: boolean) {
@@ -186,21 +189,20 @@ export class FunctionType extends Type {
     args: Array<Type> = [],
     isMultyLine: boolean = false
   ) {
-    return `(${args
+    return `(${isMultyLine ? "\n\t" : ""}${args
       .map(param => {
         const isRest = param instanceof RestArgument;
         // $FlowIssue
         param = Type.getTypeRoot(isRest ? param.type : param);
         const t = String(param.name);
-        return isRest ? `...${t} ` : t;
+        const name = isRest ? `...${t} ` : t;
+        return isMultyLine ? name.replace(/\n/g, "\n\t") : name;
       })
-      .join(isMultyLine ? ",\n\t" : ", ")})`;
+      .join(isMultyLine ? ",\n\t" : ", ")}${isMultyLine ? "\n" : ""})`;
   }
 
-  static getThrowsPart(throws: Type | void, isMultyLine: boolean = false) {
-    return throws !== undefined
-      ? `throws ${String(throws.name)}${isMultyLine ? "\n\t" : " "}`
-      : "";
+  static getThrowsPart(throws: Type | void) {
+    return throws !== undefined ? ` throws ${String(throws.name)}` : "";
   }
 
   static getReturnPart(returnType: Type) {

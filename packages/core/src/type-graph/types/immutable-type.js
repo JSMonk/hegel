@@ -27,7 +27,7 @@ export class $AppliedImmutable extends Type {
   readonly: Type;
 
   constructor(name, meta = {}, type) {
-    name = name || this.getName(readonly);
+    name = name || this.getName(type);
     super(name, meta);
     this.readonly = type;
   }

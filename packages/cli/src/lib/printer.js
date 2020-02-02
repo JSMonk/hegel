@@ -37,7 +37,7 @@ export async function getErrorsPrint(errors: Array<ErrorWithLocation>) {
   return result;
 }
 
-export function getVerdictPrint<T>(errors: Array<T>) {
+export function getVerdictPrint(errors) {
   return errors.length > 0
     ? `Found ${errors.length} error${errors.length > 1 ? "s" : ""}`
     : "No errors!";

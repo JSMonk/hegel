@@ -1,21 +1,16 @@
+import * as LZString from "lz-string";
 import DARK_THEME from "./dark-theme.js";
 import LIGHT_THEME from "./light-theme.js";
 import { LanguageFeatureRegistry } from "monaco-editor/esm/vs/editor/common/modes/languageFeatureRegistry.js";
-import {
-  prepeareSTD,
-  getDiagnostics,
-  getTypeByLocation,
-  mixTypeDefinitions
-} from "./hegel";
+import { getDiagnostics, getTypeByLocation } from "./hegel";
 
 const PLAYGROUND = "Playground";
+const STORAGE_KEY = "playgroundLastSource";
 
 export async function buildAndMountEditor(setEditor, currentTheme, id) {
-  const [monaco, [[stdLib]]] = await Promise.all([
-    import("monaco-editor"),
-    prepeareSTD()
-  ]);
+  const monaco = await import("monaco-editor");
   setEditor(monaco.editor);
+  const content = restoreContent();
   monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: true,
     noSyntaxValidation: true
@@ -25,16 +20,33 @@ export async function buildAndMountEditor(setEditor, currentTheme, id) {
   monaco.editor.defineTheme("light", LIGHT_THEME);
   const editorContainer = document.getElementById(id);
   const editor = monaco.editor.create(editorContainer, {
-    value: ``,
+    value: content,
     theme: currentTheme,
     language: "javascript",
     minimap: { enabled: false }
   });
   const model = editor.getModel();
-  const mixing = mixTypeDefinitions(stdLib);
-  const handler = createLogicHandler(monaco, model, mixing);
+  const handler = createLogicHandler(monaco, model);
   model.onDidChangeContent(handler);
   handler();
+}
+
+function restoreContent() {
+  const hash = window.location.hash || localStorage.getItem(STORAGE_KEY) || "";
+  if (hash[0] !== "#" || hash.length < 2) return "";
+  const encoded = hash.slice(1);
+  if (encoded.match(/^[a-zA-Z0-9+/=_-]+$/)) {
+    return LZString.decompressFromEncodedURIComponent(encoded);
+  }
+  return "";
+}
+
+function saveContent(content) {
+  setTimeout(() => {
+    const encoded = LZString.compressToEncodedURIComponent(content);
+    window.history.replaceState(undefined, undefined, `#${encoded}`);
+    localStorage.setItem(STORAGE_KEY, window.location.hash);
+  }, 0);
 }
 
 function provideHover(_, position) {
@@ -45,25 +57,31 @@ function provideHover(_, position) {
   return type && { contents: [{ value: js(getTypeTooltip(type)) }] };
 }
 
-function createLogicHandler(monaco, model, mixing) {
-  return async () => {
-    const value = model.getValue();
-    try {
-      const errors = await getDiagnostics(value, mixing);
-      monaco.editor.setModelMarkers(
-        model,
-        PLAYGROUND,
-        errors.map(({ loc, message }) => formatDiagnostic(loc, message))
-      );
-    } catch (error) {
-      if ("loc" in error) {
-        monaco.editor.setModelMarkers(model, PLAYGROUND, [
-          formatDiagnostic(formatLoc(error.loc), formatMessage(error.message))
-        ]);
-        return;
+let timeout = undefined;
+
+function createLogicHandler(monaco, model) {
+  return () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(async () => {
+      const value = model.getValue();
+      saveContent(value);
+      try {
+        const errors = await getDiagnostics(value);
+        monaco.editor.setModelMarkers(
+          model,
+          PLAYGROUND,
+          errors.map(({ loc, message }) => formatDiagnostic(loc, message))
+        );
+      } catch (error) {
+        if ("loc" in error) {
+          monaco.editor.setModelMarkers(model, PLAYGROUND, [
+            formatDiagnostic(formatLoc(error.loc), formatMessage(error.message))
+          ]);
+          return;
+        }
+        throw error;
       }
-      throw error;
-    }
+    }, 300);
   };
 }
 

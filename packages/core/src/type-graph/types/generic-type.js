@@ -349,4 +349,10 @@ export class GenericType<T: Type> extends Type {
     this._alreadyProcessedWith = null;
     return result;
   }
+
+  canContain(type: Type) {
+    return (
+      this.subordinateType !== null && this.subordinateType.canContain(type)
+    );
+  }
 }

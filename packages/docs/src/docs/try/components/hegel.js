@@ -1,8 +1,7 @@
-import createTypeGraph from "@hegel/core/type-graph/type-graph";
 import { parse } from "@babel/parser";
-import { getVarAtPosition } from "@hegel/core/utils/position-utils";
+import { createModuleScope, createGlobalScope } from "@hegel/core";
 
-let globalScope = null;
+let module = undefined;
 
 const STANDARD_LIB_OPTIONS = { plugins: ["typescript"] };
 const DEFAULT_OPTIONS = { plugins: ["flow"] };
@@ -10,44 +9,57 @@ const DEFAULT_OPTIONS = { plugins: ["flow"] };
 const STANDARD_AST = parse(STD_LIB_CONTENT, STANDARD_LIB_OPTIONS).program;
 
 export function getTypeByLocation(location) {
-  if (globalScope === null) {
+  if (module === undefined) {
     return;
   }
-  const varInfo = getVarAtPosition(location, globalScope);
+  const varInfo = module.getVarAtPosition(location);
   return varInfo && varInfo.type;
 }
 
-export function mixTypeDefinitions(globalScope) {
-  return scope => {
-    const body = new Map([...globalScope.body, ...scope.body]);
-    const globalTypeScope = globalScope.body.get("[[TypeScope]]");
-    const localTypeScope = scope.body.get("[[TypeScope]]");
-    if (globalTypeScope === undefined || localTypeScope === undefined) {
-      throw new Error(
-        "@hegel/core is broken. Please, sent issue at ${repository}!"
-      );
-    }
-    const typesBody = new Map([
-      ...globalTypeScope.body,
-      ...localTypeScope.body
-    ]);
-    scope.body = body;
-    localTypeScope.body = typesBody;
-  };
+let stdLibTypeGraph = undefined;
+
+export async function mixTypeDefinitions(globalScope) {
+  if (stdLibTypeGraph === undefined) {
+    stdLibTypeGraph = await getStandardTypeDefinitions(globalScope);
+  }
+  const body = new Map(globalScope.body);
+  for (const [name, variable] of stdLibTypeGraph.body.entries()) {
+    variable.parent = globalScope;
+    body.set(name, variable);
+  }
+  const typesBody = new Map(globalScope.typeScope.body);
+  for (const [name, type] of stdLibTypeGraph.typeScope.body.entries()) {
+    type.parent = globalScope.typeScope;
+    typesBody.set(name, type);
+  }
+  globalScope.body = body;
+  globalScope.typeScope.body = typesBody;
 }
 
-export function prepeareSTD() {
-  return createTypeGraph([STANDARD_AST], () => {}, true);
+export async function getStandardTypeDefinitions(globalScope) {
+  const errors = [];
+  const graph = await createModuleScope(
+    STANDARD_AST,
+    errors,
+    () => {},
+    globalScope,
+    true
+  );
+  if (errors.length > 0) {
+    throw errors;
+  }
+  return graph;
 }
 
-export async function getDiagnostics(sourceCode, mixing) {
+export async function getDiagnostics(sourceCode) {
   const ast = parse(sourceCode, DEFAULT_OPTIONS).program;
-  const [[scope], errors] = await createTypeGraph(
+  const [[scope], errors] = await createGlobalScope(
     [ast],
     () => {},
     false,
-    mixing
+    mixTypeDefinitions,
+    true
   );
-  globalScope = scope;
+  module = scope;
   return errors;
 }

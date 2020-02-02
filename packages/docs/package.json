@@ -18,6 +18,7 @@
     "docz-theme-default": "^1.2.0",
     "facepaint": "^1.2.1",
     "keyboardjs": "^2.5.1",
+    "lz-string": "^1.4.4",
     "monaco-editor": "^0.19.0",
     "monaco-editor-webpack-plugin": "^1.7.0",
     "prismjs": "^1.15.0",
