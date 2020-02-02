@@ -2,7 +2,7 @@
   "name": "@hegel/language-server",
   "displayName": "Hegel",
   "description": "Language server for Hegel Type Checker",
-  "version": "0.0.3",
+  "version": "0.0.10",
   "engines": {
     "vscode": "^1.31.0"
   },
@@ -66,9 +66,9 @@
     "@babel/plugin-proposal-private-methods": "^7.7.4",
     "@babel/plugin-syntax-bigint": "^7.7.4",
     "@babel/plugin-syntax-dynamic-import": "^7.7.4",
-    "@hegel/cli": "0.0.9",
-    "@hegel/core": "^0.0.8",
-    "@hegel/typings": "^0.0.4",
+    "@hegel/cli": "0.0.11",
+    "@hegel/core": "^0.0.10",
+    "@hegel/typings": "^0.0.10",
     "vscode-languageclient": "^5.3.0-next.1",
     "vscode-languageserver": "^5.3.0-next.1"
   }
