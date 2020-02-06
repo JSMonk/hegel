@@ -271,9 +271,14 @@ export class ObjectType extends Type {
     }
     this._alreadyProcessedWith = anotherType;
     const requiredProperties = [...this.properties.values()].filter(
-      ({ type }) =>
-        !(type instanceof UnionType) ||
-        !type.variants.some(t => t.equalsTo(Type.Undefined))
+      ({ type }) => {
+        // $FlowIssue
+        type = "readonly" in type ? type.readonly : type;
+        return (
+          !(type instanceof UnionType) ||
+          !type.variants.some(t => t.equalsTo(Type.Undefined))
+        );
+      }
     );
     const result =
       anotherType instanceof ObjectType && !this.isNominal

@@ -5,7 +5,7 @@
 //                 Avi Vahl <https://github.com/AviVahl>
 // TypeScript Version: 2.9
 
-export interface SourceLocation {
+export type SourceLocation = {
   start: {
     line: number;
     column: number;

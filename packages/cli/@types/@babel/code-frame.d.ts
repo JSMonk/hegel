@@ -8,6 +8,7 @@ type SourceLocation = {
   start: { line: number; column: number };
   end: { line: number; column: number };
 };
+
 export function codeFrameColumns(
   rawLines: string,
   location: SourceLocation,

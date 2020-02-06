@@ -327,6 +327,15 @@ const middlefillModuleScope = (
       currentNode = currentNode.declaration;
     }
     switch (currentNode.type) {
+      case NODE.IMPORT_DECLARATION:
+        errors.push(
+          new HegelError(
+            "All imports should be placed at the top of text document without any statements between.",
+            currentNode.loc,
+            typeGraph.path
+          )
+        );
+        break;
       case NODE.THIS_TYPE_DEFINITION:
         addThisToClassScope(
           currentNode,

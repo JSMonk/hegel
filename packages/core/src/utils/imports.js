@@ -112,32 +112,38 @@ export default async function mixImportedDependencies(
   isTypeDefinitions: boolean
 ): Promise<void> {
   const importRequests = [];
+  let importCount = 0;
   for (let i = 0; i < ast.body.length; i++) {
     const node = ast.body[i];
-    if (node.type === NODE.IMPORT_DECLARATION) {
-      importRequests.push(
-        Promise.all([
-          node,
-          getModuleTypeGraph(node.source.value, ast.path, node.loc).then(
-            module => {
-              if (
-                errors.some(error => error.source === module.path) &&
-                currentModuleScope instanceof PositionedModuleScope
-              ) {
-                errors.push(
-                  new HegelError(
-                    `There are problems inside "${node.source.value}"`,
-                    node.loc,
-                    currentModuleScope.path
-                  )
-                );
-              }
-              return module;
-            }
-          )
-        ])
-      );
+    if (!NODE.isImport(node)) {
+      importCount = i;
+      break;
     }
+    importRequests.push(
+      Promise.all([
+        node,
+        getModuleTypeGraph(node.source.value, ast.path, node.loc).then(
+          module => {
+            if (
+              errors.some(error => error.source === module.path) &&
+              currentModuleScope instanceof PositionedModuleScope
+            ) {
+              errors.push(
+                new HegelError(
+                  `There are problems inside "${node.source.value}"`,
+                  node.loc,
+                  currentModuleScope.path
+                )
+              );
+            }
+            return module;
+          }
+        )
+      ])
+    );
+  }
+  if (importCount !== 0) {
+    ast.body.splice(0, importCount);
   }
   const importedTypeGraphs = await Promise.all(importRequests);
   for (let i = 0; i < importedTypeGraphs.length; i++) {

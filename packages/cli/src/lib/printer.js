@@ -17,7 +17,7 @@ export function printSingleError(
           start: error.loc,
           end: Object.assign(error.loc, { column: error.loc.column + 1 })
         };
-  const line = chalk.dim.underline(`${error.source}:${loc.start.line}`);
+  const line = chalk.dim.underline(`${error.source}:${String(loc.start.line)}`);
   const codeFrame = codeFrameColumns(fileContent, loc, {
     highlightCode: true,
     message: error.message.replace(/\([\d:]+\)/gi, "")
@@ -39,6 +39,6 @@ export async function getErrorsPrint(errors: Array<ErrorWithLocation>) {
 
 export function getVerdictPrint(errors) {
   return errors.length > 0
-    ? `Found ${errors.length} error${errors.length > 1 ? "s" : ""}`
+    ? `Found ${String(errors.length)} error${errors.length > 1 ? "s" : ""}`
     : "No errors!";
 }

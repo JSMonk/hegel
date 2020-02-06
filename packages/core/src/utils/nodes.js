@@ -193,7 +193,11 @@ export const isFunction = (node: Node) =>
     CLASS_PROPERTIES.CLASS_METHOD
   ].includes(node.type);
 
+export const isImport = (node: Node) =>
+  node.type === DECLARATION_TYPES.IMPORT_DECLARATION;
+
 export default {
+  isImport,
   isObject,
   isFunction,
   isScopeCreator,

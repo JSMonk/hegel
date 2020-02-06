@@ -1,0 +1,9 @@
+include:
+  - ./**/*.js
+exclude:
+  - ./node_modules/**
+types:
+  - ./@types
+  - ./node_modules/@types
+libs:
+  - nodejs

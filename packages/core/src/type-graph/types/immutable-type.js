@@ -28,18 +28,31 @@ export class $AppliedImmutable extends Type {
 
   constructor(name, meta = {}, type) {
     name = name || this.getName(type);
+    if (!type.onlyLiteral) {
+      meta.isSubtypeOf = type;
+    }
     super(name, meta);
     this.readonly = type;
   }
 
   equalsTo(type) {
-    return type instanceof $AppliedImmutable && this.readonly.equalsTo(type.readonly);
+    if (type.onlyLiteral || type instanceof $AppliedImmutable) {
+      return (
+        type instanceof $AppliedImmutable &&
+        this.readonly.equalsTo(type.readonly)
+      );
+    }
+    return this.readonly.equalsTo(type);
   }
 
   isSuperTypeFor(type) {
-    return (
-      type instanceof $AppliedImmutable && this.readonly.isSuperTypeFor(type.readonly)
-    );
+    if (type.onlyLiteral || type instanceof $AppliedImmutable) {
+      return (
+        type instanceof $AppliedImmutable &&
+        this.readonly.isSuperTypeFor(type.readonly)
+      );
+    }
+    return this.readonly.isSuperTypeFor(type);
   }
 
   contains(type) {

@@ -41,7 +41,7 @@ switch (COMMAND) {
     main();
     break;
   default:
-    logger.error(`Unsupported command "${COMMAND}"!`);
+    logger.error(`Unsupported command "${String(COMMAND)}"!`);
 }
 
 async function main() {

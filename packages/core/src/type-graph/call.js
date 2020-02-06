@@ -91,18 +91,20 @@ export function addCallToTypeGraph(
   }
   switch (node.type) {
     case NODE.TEMPLATE_LITERAL:
-      args = node.expressions.map(expression =>
-        addCallToTypeGraph(
-          expression,
-          moduleScope,
-          currentScope,
-          parentNode,
-          pre,
-          middle,
-          post,
-          meta
-        ).result
+      args = node.expressions.map(
+        expression =>
+          addCallToTypeGraph(
+            expression,
+            moduleScope,
+            currentScope,
+            parentNode,
+            pre,
+            middle,
+            post,
+            meta
+          ).result
       );
+      argsLocations = node.expressions.map(node => node.loc);
       targetName = "tamplate literal";
       target = new FunctionType(
         targetName,
@@ -691,6 +693,8 @@ export function addCallToTypeGraph(
         }
       }
       let targetType = target instanceof VariableInfo ? target.type : target;
+      targetType =
+        targetType instanceof $AppliedImmutable ? targetType.readonly : targetType;
       if (
         !(targetType instanceof FunctionType) &&
         !(

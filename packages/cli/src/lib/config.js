@@ -21,7 +21,7 @@ const DEFAULT_CONFIG = {
     workingDirectory: CWD,
     babel: BABELRC,
     typings: ["./@types", "./node_modules/@types"],
-    libs: ["browser", "nodejs"]
+    libs: []
   },
   filepath: join(CWD, CONFIG_NAME)
 };
@@ -32,10 +32,7 @@ exclude:
   - ./node_modules/**
 types:
   - ./@types
-  - ./node_modules/@types
-libs: 
-  - nodejs
-  - browser`;
+  - ./node_modules/@types`;
 
 export type Lib = "browser" | "nodejs";
 

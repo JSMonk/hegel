@@ -148,6 +148,14 @@ export class TypeVar extends Type {
     );
   }
 
+  getPropertyType(propertyName: mixed) {
+    const target = this.root || this.constraint;
+    if (target !== undefined) {
+      return target.getPropertyType(propertyName);
+    }
+    return super.getPropertyType(propertyName);
+  }
+
   getNextParent(typeScope: TypeScope) {
     if (this._alreadyProcessedWith !== null) {
       return Type.GlobalTypeScope;
@@ -161,7 +169,10 @@ export class TypeVar extends Type {
       return result;
     }
     this._alreadyProcessedWith = null;
-    if (this.parent.priority <= typeScope.priority && this.parent !== typeScope) {
+    if (
+      this.parent.priority <= typeScope.priority &&
+      this.parent !== typeScope
+    ) {
       return this.parent;
     }
     return Type.GlobalTypeScope;
