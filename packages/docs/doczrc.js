@@ -10,7 +10,7 @@ export default {
   menu: [
     {
       name: "Intro",
-      menu: ["What and Why?"]
+      menu: ["What & Why"]
     },
     {
       name: "Setup",
@@ -19,8 +19,8 @@ export default {
     {
       name: "Type Annotations",
       menu: [
+        "Type Annotations",
         "Primitive Types",
-        "Literal Types",
         "Unknown Type",
         "Optional Types",
         "Variable Types",
@@ -40,8 +40,7 @@ export default {
         "No Any",
         "Type Compatibility",
         "Type Inference",
-        "Type Refinements",
-        "Type Refinements"
+        "Type Refinement",
       ]
     },
     {

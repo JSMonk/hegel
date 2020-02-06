@@ -1,0 +1,195 @@
+---
+name: Primitive Types
+route: /docs/primitive-types
+menu: Type Annotations
+---
+
+# Primitive Types
+---------------------
+
+Imagine type as a Set of different values. Some of them is finitie and some is not. In nowdays JavaScript has 7 primitive types:
+- [Null](#null-and-undefined)
+- [Undefined](#null-and-undefined)
+- [Boolean](#boolean)
+- [Number](#number)
+- [BigInt](#number)
+- [String](#string)
+- [Symbol](#symbol)
+
+Hegel has not only the same types, but also adds several new types. Let's discover each of them:
+
+## Null and Undefined
+
+The most primitive types in JavaScript are `null` and `undefined`, because each of them contains only one value. 
+You can define an variable with this datatype in Hegel:
+
+```typescript
+let emptyValue: null = null;
+let undefinedValue: undefined = undefined;
+```
+
+As you can see `null` and `undefined` types have the same name as their literals, but some datatypes do not. In Hegel you can annotate your variables/object properties with both literal value and datatype name.
+
+## Boolean
+
+The second primitive type is `boolean`, because it contains only two values: `true` and `false`. 
+
+```typescript
+// Using literal as a datatype
+let canIContain4Values: false = false;
+let canIUseLiteralAsTypeAnnotation: true = true;
+
+// Using expressions
+let canIUseWithExpressions: boolean = !canIContain4Values;
+```
+
+## Number
+
+JavaScript Number datatype presents any signed 64-bit number. JavaScript has not different datatypes for floating or unsigned numbers. -1, 2.7182 and 0xff will have the same datatype - number. Also, JavaScript has "special" identifiers: Infinity and NaN which also included in number datatype (And in JavaScript is existed `-0`, but this is a long story).
+In Hegel you can annotate your variable/object property with `number` datatype name or with literal in different format (hexademical, binary, exponential and etc.)
+
+```typescript
+let decimal: 6 = 6;
+let hex: 0xf00d = 0xf00d;
+let binary: 0b1010 = 0b1010;
+let octal: 0o744 = 0o744;
+let anyNumber: number = decimal + hex + binary + octal;
+```
+
+## BigInt
+
+`BigInt` was added in ES2019 and presents any integer number without bits limitations. 
+
+```typescript
+let realyBigNumber: bigint = 2n**255n;
+```
+
+**Warning**: `BigInt` is not subtype or super type for `Number` data type. Hegel will show you an error if you will try to use bigint as number or number as bigint. Also, in JavaScript you can't mix number and bigint in math operators, so, Hegel will show you an error too.
+```typescript
+// Error: Type "bigint" is incompatible with type "number"
+const usageBigIntAsNumber: number = 4n + 2n;
+
+// Error: Type "number" is incompatible with type "bigint"
+const usageNumberAsBigInt: bigint = 4 + 2;
+
+
+// Error: Type "4n" is incompatible with type "number"
+4 * 4n
+
+// Error: Type "255" is incompatible with type "bigint"
+2n**255
+```
+
+## String
+
+Unlinke String in other programming languages, JavaScript String has an value (not reference) behaivour. So, any characters set wrapped in single quote ('), double quote (") or backtick/backquote (`) will be a valid JavaScript string literal. In Hegel you can annotate variable/object property with both literal or string datatype name, the same as with other datatypes.
+
+```typescript
+const fullName: string = "Robert Paulson";
+const sentence: string = `His name is ${fullName}.`;
+```
+
+JavaScript implicitly converts other types of values into strings by concatenating them.
+
+```typescript
+44 + "6" // 446
+```
+
+Hegel implements an strong type system, so it will accept only strings when concatenating them or when template literal are used.
+
+```typescript
+const world = { toString() { return "World" } };
+
+"Hello " + "World"; // 👌!
+
+// Error: Type "42" is incompatible with type "string"
+"Hello " + 42;
+
+// Error: Type "{ toString: () => string }" is incompatible with type "string"
+"Hello " + world;
+
+// Error: Type "{ toString: () => string }" is incompatible with type "string"
+`Hello, ${world}`;
+```
+
+To prevent error you need explicity convert value to string:
+
+```typescript
+const world = { toString() { return "World" } };
+
+"Hello " + "World";        // 👌!
+"Hello " + String(42);     // 👌!
+"Hello " + String(world);  // 👌!
+`Hello, ${String(world)}`; // 👌!
+```
+
+## Symbol
+
+Symbol is another "new" datatype which was included in language starting from ECMAScript 2015.  Symbols are created by `Symbol` function invokation in JavaScript. Hegel provide `symbol` datatype which can be used as type annotation. 
+
+```typescript
+const unique: symbol = Symbol("unique");
+```
+
+**Warning**: Symbol datatype has not any literal, so you can not use symbol values as datatype.
+
+```typescript
+// Error: Unexpected token
+const unique: Symbol("unique") = Symbol("unique");
+```
+
+Symbols are unique, so any symbol value are equal only itself.
+```typescript
+const unique: symbol = Symbol("unique");
+
+unique === unique           // true
+unique === Symbol("unique") // false
+```
+
+## Optional
+
+Sometimes you need to include undefined to defined variable/object property. Optional type is solution. It is not some separated type. It's special syntax for type which add to any type additional value - undefined. You can create them by adding a question mark in front of the type name.
+
+```typescript
+const givenAge = -5;
+const userAge: ?number = givenAge > 0 ? givenAge : undefined;
+```
+
+**Warning**: Unlinke Flow.js, Hegel will throw an error if you will try to assign `null` as value of an optional type
+```typescript
+// Error: Type "null" is incompatible with type "number | undefined"
+const someValue: ?number = null;
+```
+
+Optional type is not only about undefinedable variables or object properties.
+You can use it inside function argument definition to annotate optional argument.
+
+```typescript
+function doSomething(optionalArg: ?number) {}
+
+doSomething();            // 👌!
+doSomething(42);          // 👌!
+doSomething(undefined);   // 👌!
+
+// Error: Type "null" is incompatible with type "number | undefined"
+doSomething(null); 
+```
+
+Also you can use it inside object type definition to annotate optional property.
+
+```typescript
+let user: { name: ?string } = { name: "Arya Stark" };
+
+user.name = undefined;    // 👌!
+user.name = "Arya Stark"; // 👌!
+
+// Error: Type "null" is incompatible with type "number | undefined"
+user.name = null;
+
+user = {};                     // 👌!
+user = { name: "Arya Stark" }; // 👌!
+user = { name: undefined };    // 👌!
+
+// Error: Type "{ name: null }" is incompatible with type "{ name: string | undefined }"
+user = { name: null };
+```

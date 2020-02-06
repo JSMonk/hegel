@@ -4,7 +4,7 @@ import { createModuleScope, createGlobalScope } from "@hegel/core";
 let module = undefined;
 
 const STANDARD_LIB_OPTIONS = { plugins: ["typescript"] };
-const DEFAULT_OPTIONS = { plugins: ["flow"] };
+const DEFAULT_OPTIONS = { plugins: ["bigInt", ["flow", { all: true }]] };
 // eslint-disable-next-line
 const STANDARD_AST = parse(STD_LIB_CONTENT, STANDARD_LIB_OPTIONS).program;
 
@@ -16,7 +16,7 @@ export function getTypeByLocation(location) {
   return varInfo && varInfo.type;
 }
 
-let stdLibTypeGraph = undefined;
+let stdLibTypeGraph;
 
 export async function mixTypeDefinitions(globalScope) {
   if (stdLibTypeGraph === undefined) {

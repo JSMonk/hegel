@@ -4,8 +4,13 @@ const babylon = require("@babel/parser");
 const HegelError = require("@hegel/core/utils/errors").default;
 const { getConfig } = require("@hegel/cli/lib/config");
 const { importModule } = require("@hegel/cli/lib/module");
-const { PositionedModuleScope } = require("@hegel/core/type-graph/module-scope");
-const { default: createTypeGraph, createModuleScope }  = require("@hegel/core/type-graph/type-graph");
+const {
+  PositionedModuleScope
+} = require("@hegel/core/type-graph/module-scope");
+const {
+  default: createTypeGraph,
+  createModuleScope
+} = require("@hegel/core/type-graph/type-graph");
 const {
   promises: { readFile }
 } = require("fs");
@@ -21,6 +26,7 @@ let types = {},
   errors = [],
   stdLibTypeGraph,
   nodeJsGlobalTypeGraph,
+  browserGlobalTypeGraph,
   config;
 const documents = new TextDocuments();
 const connection = createConnection(
@@ -67,7 +73,9 @@ connection.onHover(meta => {
     return varInfo === undefined || varInfo.type === undefined
       ? undefined
       : {
-          contents: [{ language: "typescript", value: getTypeName(varInfo.type) }]
+          contents: [
+            { language: "typescript", value: getTypeName(varInfo.type) }
+          ]
         };
   }
 });
@@ -75,10 +83,11 @@ connection.onHover(meta => {
 let timeout;
 documents.onDidChangeContent(change => {
   clearTimeout(timeout);
-  timeout = setTimeout(() =>validateTextDocument(change.document), 200);
+  timeout = setTimeout(() => validateTextDocument(change.document), 200);
 });
-connection.onDidChangeWatchedFiles(change => validateTextDocument(change.document));
-
+connection.onDidChangeWatchedFiles(change =>
+  validateTextDocument(change.document)
+);
 
 async function validateTextDocument(textDocument) {
   const text = textDocument.getText();
@@ -112,8 +121,8 @@ async function getHegelTypings(source, path) {
     );
     return [types, errors];
   } catch (e) {
-     return [, [e]];
-  } 
+    return [, [e]];
+  }
 }
 
 async function getTypeGraphFor(path, globalScope) {
@@ -128,7 +137,7 @@ async function getTypeGraphFor(path, globalScope) {
   );
   if (errors.length > 0) {
     throw errors;
-  } 
+  }
   return graph;
 }
 
@@ -141,11 +150,19 @@ async function getStandardTypeDefinitions(globalScope) {
 }
 
 async function getNodeJSTypeDefinitions(globalScope) {
-  nodeJsGlobalTypeGraph =  await getTypeGraphFor(
+  nodeJsGlobalTypeGraph = await getTypeGraphFor(
     path.join(__dirname, "../node_modules/@hegel/typings/nodejs/globals.d.ts"),
     globalScope
   );
   return nodeJsGlobalTypeGraph;
+}
+
+async function getBrowserTypeDefinitions(globalScope) {
+  browserGlobalTypeGraph = await getTypeGraphFor(
+    path.join(__dirname, "../node_modules/@hegel/typings/browser/index.d.ts"),
+    globalScope
+  );
+  return browserGlobalTypeGraph;
 }
 
 async function getModuleAST(currentModulePath) {
@@ -154,9 +171,12 @@ async function getModuleAST(currentModulePath) {
   }
   return importModule(config, async (modulePath, isTypings) => {
     let moduleContent = await readFile(modulePath, "utf8");
-    moduleContent = path.extname(modulePath) === ".json" ? wrapJSON(moduleContent) : moduleContent;
+    moduleContent =
+      path.extname(modulePath) === ".json"
+        ? wrapJSON(moduleContent)
+        : moduleContent;
     const config = isTypings ? dtsrc : babelrc;
-  return babylon.parse(moduleContent, config).program;
+    return babylon.parse(moduleContent, config).program;
   });
 }
 
@@ -167,39 +187,47 @@ function wrapJSON(content) {
 function mixTypeDefinitions(config) {
   return async globalScope => {
     if (stdLibTypeGraph === undefined) {
-        stdLibTypeGraph = await getStandardTypeDefinitions(globalScope);
+      stdLibTypeGraph = await getStandardTypeDefinitions(globalScope);
     }
-    const body = new Map([...globalScope.body]);
-    for (const [name, variable] of stdLibTypeGraph.body.entries()) {
-      variable.parent = globalScope;
-      body.set(name, variable);
+    mixSomeTypeDefinitions(globalScope, stdLibTypeGraph);
+    const waitingTypes = [];
+    const shouldIncludeNodeJS = config.libs.includes("nodejs");
+    const shouldIncludeBrowser = config.libs.includes("browser");
+    if (shouldIncludeNodeJS) {
+      waitingTypes.push(
+        nodeJsGlobalTypeGraph === undefined
+          ? getNodeJSTypeDefinitions(globalScope)
+          : nodeJsGlobalTypeGraph
+      );
     }
-    const typesBody = new Map([
-      ...globalScope.typeScope.body,
-    ]);
-    for (const [name, type] of stdLibTypeGraph.typeScope.body.entries()) {
-      type.parent = globalScope.typeScope;
-      typesBody.set(name, type);
+    if (shouldIncludeBrowser) {
+      waitingTypes.push(
+        browserGlobalTypeGraph === undefined
+          ? getBrowserTypeDefinitions(globalScope)
+          : browserGlobalTypeGraph
+      );
     }
-    globalScope.body = body;
-    globalScope.typeScope.body = typesBody;
-    if (!config.libs.includes("nodejs")) {
-      return;
+    const [nodeJsGlobalScope, browserGlobalScope] = await Promise.all(
+      waitingTypes
+    );
+    if (shouldIncludeNodeJS) {
+      mixSomeTypeDefinitions(globalScope, nodeJsGlobalScope);
     }
-    if (nodeJsGlobalTypeGraph === undefined) {
-      nodeJsGlobalTypeGraph = await getNodeJSTypeDefinitions(globalScope);
+    if (shouldIncludeBrowser) {
+      mixSomeTypeDefinitions(globalScope, browserGlobalScope);
     }
-    for (const [name, variable] of nodeJsGlobalTypeGraph.body.entries()) {
-      variable.parent = globalScope;
-      body.set(name, variable);
-    }
-    for (const [name, type] of nodeJsGlobalTypeGraph.typeScope.body.entries()) {
-      type.parent = globalScope.typeScope;
-      typesBody.set(name, type);
-    }
-    globalScope.body = body;
-    globalScope.typeScope.body = typesBody;
   };
+}
+
+function mixSomeTypeDefinitions(globalScope, additionalTypeGraph) {
+  for (const [name, variable] of additionalTypeGraph.body.entries()) {
+    variable.parent = globalScope;
+    globalScope.body.set(name, variable);
+  }
+  for (const [name, type] of additionalTypeGraph.typeScope.body.entries()) {
+    type.parent = globalScope.typeScope;
+    globalScope.typeScope.body.set(name, type);
+  }
 }
 
 function formatErrorRange(error) {

@@ -4,7 +4,8 @@ route: /docs/install
 menu: Setup
 ---
 
-## Installation
+# Installation
+---------------------
 
 You can install Hegel CLI using npm or yarn:
 
@@ -41,7 +42,7 @@ After that you need to create a .babelrc file at the root of your project with n
 
 ```json
 {
-  "presets": ["@babel/preset-flow"]
+  "presets": [["@babel/preset-flow", { "all": true }]]
 }
 ```
 

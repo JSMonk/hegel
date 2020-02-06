@@ -227,11 +227,11 @@ export default {
   ],
   colors: {
     "editor.foreground": "#dcdfe4",
-    "editor.background": "#1D2330",
+    "editor.background": "#13161f",
     "editor.selectionBackground": "#474e5d",
-    "editor.lineHighlightBackground": "#1D2330",
+    "editor.lineHighlightBackground": "#13161f",
     "editorCursor.foreground": "#a3b3cc",
-    "editorWhitespace.foreground": "#1D2330",
+    "editorWhitespace.foreground": "#13161f",
     "editor.selectionHighlightBorder": "#474e5d"
   }
 };

@@ -2,10 +2,11 @@
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { TupleType } from "./tuple-type";
+import { TypeScope } from "../type-scope";
 import { UnionType } from "./union-type";
 import { GenericType } from "./generic-type";
 import type { TypeMeta } from "./type";
-import type { TypeScope } from "../type-scope";
+import type { SourceLocation } from "@babel/parser";
 
 export class CollectionType<K: Type, V: Type> extends Type {
   static term(
@@ -229,5 +230,47 @@ export class CollectionType<K: Type, V: Type> extends Type {
     }
     this._alreadyProcessedWith = null;
     return Type.GlobalTypeScope;
+  }
+}
+
+export class $Collection extends GenericType<Type> {
+  constructor(_: mixed, meta: TypeMeta = {}) {
+    const parent = new TypeScope(meta.parent);
+    super(
+      "$Collection",
+      meta,
+      [TypeVar.term("key", { parent }), TypeVar.term("value", { parent })],
+      parent,
+      // $FlowIssue
+      null
+    );
+  }
+
+  isPrincipalTypeFor() {
+    return false;
+  }
+
+  equalsTo() {
+    return false;
+  }
+
+  isSuperTypeFor() {
+    return false;
+  }
+
+  applyGeneric(
+    parameters: Array<Type>,
+    loc: SourceLocation,
+    shouldBeMemoize?: boolean = true,
+    isCalledAsBottom?: boolean = false
+  ) {
+    super.assertParameters(parameters, loc);
+    const [key, value] = parameters;
+    return CollectionType.term(
+      `$Collection<${String(key.name)}, ${String(value.name)}>`,
+      {},
+      key,
+      value
+    );
   }
 }

@@ -132,7 +132,7 @@ export function inferenceFunctionLiteralType(
   const argumentsTypes = currentNode.params.map((param, index) => {
     if (param.optional && !isTypeDefinitions) {
       throw new HegelError(
-        "The optional argument syntax is not allowed. Please use maybe type syntax.",
+        "The optional argument syntax is not allowed. Use optional type instead.",
         param.loc
       );
     }

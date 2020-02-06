@@ -101,9 +101,16 @@ export function addCallToTypeGraph(
           middle,
           post,
           meta
-        )
+        ).result
       );
-      return { result: Type.String, inferened: false };
+      targetName = "tamplate literal";
+      target = new FunctionType(
+        targetName,
+        {},
+        args.map(() => Type.String),
+        Type.String
+      );
+      break;
     case NODE.IF_STATEMENT:
       target = currentScope.findVariable({ name: "if", loc: node.loc });
       args = [
@@ -554,8 +561,8 @@ export function addCallToTypeGraph(
       );
       const lts = new TypeScope(typeScope);
       const argsTypes = [
-          TypeVar.new("A", { parent: lts }, undefined, true),
-          TypeVar.new("B", { parent: lts }, undefined, true)
+        TypeVar.new("A", { parent: lts }, undefined, true),
+        TypeVar.new("B", { parent: lts }, undefined, true)
       ];
       const property = new $BottomType(
         { isForAssign: meta.isForAssign },

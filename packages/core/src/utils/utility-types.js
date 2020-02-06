@@ -7,6 +7,7 @@ import { $Values } from "../type-graph/types/values-type";
 import { $Partial } from "../type-graph/types/partial-type";
 import { $Immutable } from "../type-graph/types/immutable-type";
 import { $ReturnType } from "../type-graph/types/return-type";
+import { $Collection } from "../type-graph/types/collection-type";
 import { $InstanceOf } from "../type-graph/types/instance-of-type";
 import { $PropertyType } from "../type-graph/types/property-type";
 import { $Intersection } from "../type-graph/types/intersection-type";
@@ -31,7 +32,8 @@ const mixUtilityTypes = moduleScope => {
       new $Intersection($Intersection.name, { parent: typeScope })
     ],
     ["$Throws", new $Throws($Throws.name, { parent: typeScope })],
-    ["$Immutable", new $Immutable($Immutable.name, { parent: typeScope })]
+    ["$Immutable", new $Immutable($Immutable.name, { parent: typeScope })],
+    ["$Collection", new $Collection($Collection.name, { parent: typeScope })]
   ]);
   for (const [name, type] of utilityTypes) {
     typeScope.body.set(name, type);

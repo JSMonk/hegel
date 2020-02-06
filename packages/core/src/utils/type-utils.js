@@ -8,6 +8,7 @@ import { TypeVar } from "../type-graph/types/type-var";
 import { TypeScope } from "../type-graph/type-scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
+import { $Immutable } from "../type-graph/types/immutable-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
@@ -79,11 +80,7 @@ export function getTypeFromTypeAnnotation(
   if (!typeNode || !typeNode.typeAnnotation) {
     return Type.Unknown;
   }
-  // TODO: ADd $Readonly instead ignoring
-  if (
-    typeNode.typeAnnotation.type === NODE.TS_PARENTHESIZED_TYPE ||
-    typeNode.typeAnnotation.type === NODE.TS_TYPE_OPERATOR
-  ) {
+  if (typeNode.typeAnnotation.type === NODE.TS_PARENTHESIZED_TYPE) {
     typeNode.typeAnnotation = typeNode.typeAnnotation.typeAnnotation;
   }
   switch (typeNode.typeAnnotation.type) {
@@ -96,6 +93,25 @@ export function getTypeFromTypeAnnotation(
         );
       }
       return self;
+    case NODE.TS_TYPE_OPERATOR:
+      const res = getTypeFromTypeAnnotation(
+        { typeAnnotation: typeNode.typeAnnotation.typeAnnotation },
+        typeScope,
+        currentScope,
+        rewritable,
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      );
+      return typeNode.typeAnnotation.operator === "readonly"
+        ? Type.find($Immutable.name).applyGeneric(
+            [res],
+            typeNode.typeAnnotation.loc
+          )
+        : res;
     case NODE.TS_LITERAL_TYPE:
       return getTypeFromTypeAnnotation(
         { typeAnnotation: typeNode.typeAnnotation.literal },
@@ -206,7 +222,7 @@ export function getTypeFromTypeAnnotation(
       );
       return UnionType.term(null, {}, [resultType, Type.Undefined]);
     case NODE.TS_OBJECT_PROPERTY:
-      return getTypeFromTypeAnnotation(
+      const result = getTypeFromTypeAnnotation(
         // Ohhh, TS is beautiful ❤️
         nullable(typeNode.typeAnnotation),
         typeScope,
@@ -219,6 +235,12 @@ export function getTypeFromTypeAnnotation(
         middlecompute,
         postcompute
       );
+      return typeNode.typeAnnotation.readonly
+        ? Type.find($Immutable.name).applyGeneric(
+            [result],
+            typeNode.typeAnnotation.loc
+          )
+        : result;
     case NODE.UNION_TYPE_ANNOTATION:
     case NODE.TS_UNION_TYPE_ANNOTATION:
       const unionVariants = typeNode.typeAnnotation.types.map(typeAnnotation =>
@@ -337,6 +359,7 @@ export function getTypeFromTypeAnnotation(
           postcompute
         )
       );
+      const isNotTypeDefinition = annotation.type === NODE.OBJECT_TYPE_ANNOTATION;
       const params = properties.flatMap(property => {
         if (property.type === NODE.OBJECT_TYPE_SPREAD_PROPERTY) {
           const spreadType = getTypeFromTypeAnnotation(
@@ -355,6 +378,12 @@ export function getTypeFromTypeAnnotation(
             throw new HegelError("Cannot spread non-object type", property.loc);
           }
           return [...spreadType.properties];
+        }
+        if (isNotTypeDefinition && property.optional) {
+          throw new HegelError(
+            "Hegel has not optional property syntax. Use optional type instead.",
+            property.loc
+          );
         }
         return [
           [
