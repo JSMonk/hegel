@@ -85,7 +85,11 @@ export class $PropertyType extends GenericType {
               )
             ]
           ];
-          realTarget.constraint = ObjectType.term(null, {}, props);
+          realTarget.constraint = ObjectType.term(
+            null,
+            { isSoft: true },
+            props
+          );
         }
       } else if (
         realTarget.constraint instanceof ObjectType &&
@@ -106,7 +110,7 @@ export class $PropertyType extends GenericType {
             )
           ]
         ];
-        realTarget.constraint = ObjectType.term(null, {}, props);
+        realTarget.constraint = ObjectType.term(null, { isSoft: true }, props);
       }
     }
     if (

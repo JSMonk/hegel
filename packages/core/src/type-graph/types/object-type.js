@@ -16,7 +16,7 @@ import type {
   ObjectMethod
 } from "@babel/core";
 
-type ExtendedTypeMeta = { ...TypeMeta, isNominal?: boolean };
+type ExtendedTypeMeta = { ...TypeMeta, isNominal?: boolean, isSoft?: boolean };
 
 export class ObjectType extends Type {
   static Object = new TypeVar("Object");
@@ -27,7 +27,11 @@ export class ObjectType extends Type {
     properties: Array<[string, VariableInfo]>,
     ...args: Array<any>
   ) {
-    name = name == undefined ? ObjectType.getName(properties) : name;
+    name =
+      name == undefined
+        ? // $FlowIssue
+          ObjectType.getName(properties, undefined, meta.isSoft)
+        : name;
     let parent: TypeScope | void = meta.parent || Type.GlobalTypeScope;
     const length = properties.length;
     for (let i = 0; i < length; i++) {
@@ -46,7 +50,11 @@ export class ObjectType extends Type {
     return super.term(name, newMeta, properties, ...args);
   }
 
-  static getName(params: Array<[string, any]>, type?: ObjectType) {
+  static getName(
+    params: Array<[string, any]>,
+    type?: ObjectType,
+    isSoft?: boolean = false
+  ) {
     if (type !== undefined && String(type.name)[0] !== "{") {
       return undefined;
     }
@@ -55,11 +63,11 @@ export class ObjectType extends Type {
       String(name1).localeCompare(String(name2))
     );
     return this.prettyMode && filteredProperties.length > 2
-      ? this.multyLine(properties)
-      : this.oneLine(properties);
+      ? this.multyLine(properties, isSoft)
+      : this.oneLine(properties, isSoft);
   }
 
-  static oneLine(properties: Array<[string, Type]>) {
+  static oneLine(properties: Array<[string, Type]>, isSoft: boolean) {
     return `{ ${properties
       .map(
         ([name, type]) =>
@@ -68,10 +76,10 @@ export class ObjectType extends Type {
               .name
           )}`
       )
-      .join(", ")} }`;
+      .join(", ")}${isSoft ? ", ..." : ""} }`;
   }
 
-  static multyLine(properties: Array<[string, Type]>) {
+  static multyLine(properties: Array<[string, Type]>, isSoft: boolean) {
     return `{\n${properties
       .map(
         ([name, type]) =>
@@ -80,12 +88,13 @@ export class ObjectType extends Type {
               .name
           ).replace(/\n/g, "\n\t")}`
       )
-      .join(",\n")}\n}`;
+      .join(",\n")}\n${isSoft ? "\t...\n" : ""}}`;
   }
 
   isNominal: boolean;
   properties: Map<string, VariableInfo>;
   instanceType: Type | null = null;
+  isStrict: boolean = true;
   priority = 2;
 
   constructor(
@@ -93,7 +102,11 @@ export class ObjectType extends Type {
     options: ExtendedTypeMeta = {},
     properties: Array<[string, VariableInfo]>
   ) {
-    name = name == undefined ? ObjectType.getName(properties) : name;
+    name =
+      name == undefined
+        ? // $FlowIssue
+          ObjectType.getName(properties, undefined, options.isSoft)
+        : name;
     super(name, {
       isSubtypeOf: name === "Object" ? undefined : ObjectType.Object,
       ...options
@@ -104,6 +117,7 @@ export class ObjectType extends Type {
       : [];
     this.properties = new Map(filteredProperties);
     this.onlyLiteral = true;
+    this.isStrict = !options.isSoft;
   }
 
   getPropertyType(
@@ -196,10 +210,11 @@ export class ObjectType extends Type {
         this._alreadyProcessedWith = null;
         return this;
       }
+      const isSoft = !this.isStrict;
       const result = ObjectType.term(
-        ObjectType.getName(newProperties, this) ||
+        ObjectType.getName(newProperties, this, isSoft) ||
           this.getChangedName(sourceTypes, targetTypes),
-        { isSubtypeOf },
+        { isSubtypeOf, isSoft },
         newProperties
       );
       return this.endChanges(result);
@@ -216,8 +231,9 @@ export class ObjectType extends Type {
     }
     if (
       !(anotherType instanceof ObjectType) ||
-      anotherType.properties.size !== this.properties.size ||
-      !super.equalsTo(anotherType) ||
+      (this.isStrict &&
+        (anotherType.properties.size !== this.properties.size ||
+          !super.equalsTo(anotherType))) ||
       !this.canContain(anotherType)
     ) {
       return false;
@@ -262,6 +278,8 @@ export class ObjectType extends Type {
     const result =
       anotherType instanceof ObjectType && !this.isNominal
         ? anotherType.properties.size >= requiredProperties.length &&
+          (!this.isStrict ||
+            anotherType.properties.size <= this.properties.size) &&
           this.isAllProperties("isPrincipalTypeFor", anotherType)
         : anotherType.isSubtypeOf != undefined &&
           this.isPrincipalTypeFor(anotherType.isSubtypeOf);

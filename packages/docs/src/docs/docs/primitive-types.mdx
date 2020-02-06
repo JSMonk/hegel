@@ -138,14 +138,6 @@ const unique: symbol = Symbol("unique");
 const unique: Symbol("unique") = Symbol("unique");
 ```
 
-Symbols are unique, so any symbol value are equal only itself.
-```typescript
-const unique: symbol = Symbol("unique");
-
-unique === unique           // true
-unique === Symbol("unique") // false
-```
-
 ## Optional
 
 Sometimes you need to include undefined to defined variable/object property. Optional type is solution. It is not some separated type. It's special syntax for type which add to any type additional value - undefined. You can create them by adding a question mark in front of the type name.

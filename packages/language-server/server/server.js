@@ -121,6 +121,7 @@ async function getHegelTypings(source, path) {
     );
     return [types, errors];
   } catch (e) {
+    e.source = e.source || path;
     return [, [e]];
   }
 }
@@ -190,23 +191,16 @@ function mixTypeDefinitions(config) {
       stdLibTypeGraph = await getStandardTypeDefinitions(globalScope);
     }
     mixSomeTypeDefinitions(globalScope, stdLibTypeGraph);
-    const waitingTypes = [];
     const shouldIncludeNodeJS = config.libs.includes("nodejs");
     const shouldIncludeBrowser = config.libs.includes("browser");
-    if (shouldIncludeNodeJS) {
-      waitingTypes.push(
-        nodeJsGlobalTypeGraph === undefined
-          ? getNodeJSTypeDefinitions(globalScope)
-          : nodeJsGlobalTypeGraph
-      );
-    }
-    if (shouldIncludeBrowser) {
-      waitingTypes.push(
-        browserGlobalTypeGraph === undefined
-          ? getBrowserTypeDefinitions(globalScope)
-          : browserGlobalTypeGraph
-      );
-    }
+    const waitingTypes = [
+      shouldIncludeNodeJS && nodeJsGlobalTypeGraph === undefined
+        ? getNodeJSTypeDefinitions(globalScope)
+        : nodeJsGlobalTypeGraph,
+      shouldIncludeBrowser && browserGlobalTypeGraph === undefined
+        ? getBrowserTypeDefinitions(globalScope)
+        : browserGlobalTypeGraph
+    ];
     const [nodeJsGlobalScope, browserGlobalScope] = await Promise.all(
       waitingTypes
     );

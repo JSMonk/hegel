@@ -587,7 +587,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      "The optional argument syntax is not allowed. Please use maybe type syntax."
+      "The optional argument syntax is not allowed. Use optional type instead."
     );
     expect(errors[0].loc).toEqual({
       end: { column: 29, line: 2 },

@@ -343,6 +343,8 @@ export function getTypeFromTypeAnnotation(
     case NODE.TS_INTERFACE_DECLARATION:
       const { typeAnnotation: annotation } = typeNode;
       const objectBody = annotation.body || annotation;
+      const isSoft =
+        annotation.type === NODE.TS_INTERFACE_DECLARATION || annotation.inexact;
       const properties =
         objectBody.properties || objectBody.body || objectBody.members;
       const superTypes = (annotation.extends || []).map(node =>
@@ -359,7 +361,8 @@ export function getTypeFromTypeAnnotation(
           postcompute
         )
       );
-      const isNotTypeDefinition = annotation.type === NODE.OBJECT_TYPE_ANNOTATION;
+      const isNotTypeDefinition =
+        annotation.type === NODE.OBJECT_TYPE_ANNOTATION;
       const params = properties.flatMap(property => {
         if (property.type === NODE.OBJECT_TYPE_SPREAD_PROPERTY) {
           const spreadType = getTypeFromTypeAnnotation(
@@ -407,11 +410,11 @@ export function getTypeFromTypeAnnotation(
         customName =
           annotation.id != undefined
             ? annotation.id.name
-            : ObjectType.getName(params);
+            : ObjectType.getName(params, undefined, isSoft);
       }
       const resultObj = ObjectType.term(
         customName,
-        {},
+        { isSoft },
         params
           .map(([name, type]) => [
             name,
