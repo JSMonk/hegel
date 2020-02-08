@@ -52,14 +52,39 @@ export async function getStandardTypeDefinitions(globalScope) {
 }
 
 export async function getDiagnostics(sourceCode) {
-  const ast = parse(sourceCode, DEFAULT_OPTIONS).program;
-  const [[scope], errors] = await createGlobalScope(
-    [ast],
-    () => {},
-    false,
-    mixTypeDefinitions,
-    true
-  );
-  module = scope;
-  return errors;
+  let errors = [];
+  try {
+    const ast = parse(sourceCode, DEFAULT_OPTIONS).program;
+    [[module], errors] = await createGlobalScope(
+      [ast],
+      () => {},
+      false,
+      mixTypeDefinitions,
+      true
+    );
+  } catch (e) {
+    errors = [e];
+  }
+  return errors.map(toTransferableObject);
+}
+
+function toTransferableObject(error) {
+  const loc = error.loc;
+  return {
+    message: error.message,
+    source: error.source,
+    loc: loc && formatLoc(loc)
+  };
+}
+
+function formatLoc(loc) {
+  return loc.start
+    ? {
+        start: { line: loc.start.line, column: loc.start.column },
+        end: { line: loc.end.line, column: loc.end.column }
+      }
+    : {
+        start: { line: loc.line, column: loc.column },
+        end: { line: loc.line, column: loc.column + 1 }
+      };
 }

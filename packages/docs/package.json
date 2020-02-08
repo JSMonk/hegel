@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "css-loader": "^3.4.0",
+    "gatsby-plugin-workerize-loader": "^1.1.0",
     "style-loader": "^1.1.1",
     "webpack-merge": "^4.2.2"
   }

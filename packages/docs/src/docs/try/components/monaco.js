@@ -1,11 +1,13 @@
 import * as LZString from "lz-string";
 import DARK_THEME from "./dark-theme.js";
 import LIGHT_THEME from "./light-theme.js";
+import HegelWorker from "workerize-loader!./hegel";
 import { LanguageFeatureRegistry } from "monaco-editor/esm/vs/editor/common/modes/languageFeatureRegistry.js";
-import { getDiagnostics, getTypeByLocation } from "./hegel";
 
 const PLAYGROUND = "Playground";
 const STORAGE_KEY = "playgroundLastSource";
+
+let hegel = typeof window === "object" ? new HegelWorker() : undefined;
 
 export async function buildAndMountEditor(setEditor, currentTheme, id) {
   const monaco = await import("monaco-editor");
@@ -49,8 +51,11 @@ function saveContent(content) {
   }, 0);
 }
 
-function provideHover(_, position) {
-  const type = getTypeByLocation({
+async function provideHover(_, position) {
+  if (hegel === undefined) {
+    hegel = new HegelWorker();
+  }
+  const type = await hegel.getTypeByLocation({
     line: position.lineNumber,
     column: position.column
   });
@@ -60,27 +65,22 @@ function provideHover(_, position) {
 let timeout = undefined;
 
 function createLogicHandler(monaco, model) {
+  if (hegel === undefined) {
+    hegel = new HegelWorker();
+  }
   return () => {
     clearTimeout(timeout);
     timeout = setTimeout(async () => {
       const value = model.getValue();
       saveContent(value);
-      try {
-        const errors = await getDiagnostics(value);
-        monaco.editor.setModelMarkers(
-          model,
-          PLAYGROUND,
-          errors.map(({ loc, message }) => formatDiagnostic(loc, message))
-        );
-      } catch (error) {
-        if ("loc" in error) {
-          monaco.editor.setModelMarkers(model, PLAYGROUND, [
-            formatDiagnostic(formatLoc(error.loc), formatMessage(error.message))
-          ]);
-          return;
-        }
-        throw error;
-      }
+      const errors = await hegel.getDiagnostics(value);
+      monaco.editor.setModelMarkers(
+        model,
+        PLAYGROUND,
+        errors
+          .filter(error => "loc" in error)
+          .map(({ loc, message }) => formatDiagnostic(loc, message))
+      );
     }, 300);
   };
 }
@@ -102,15 +102,6 @@ function getTypeTooltip(type) {
   return type.constraint !== undefined
     ? `${type.name}: ${type.constraint.name}`
     : type.name;
-}
-
-function formatLoc(loc) {
-  return loc.start
-    ? loc
-    : {
-        start: loc,
-        end: { ...loc, column: loc.column + 1 }
-      };
 }
 
 function formatDiagnostic(loc = { start: {}, end: {} }, message) {
