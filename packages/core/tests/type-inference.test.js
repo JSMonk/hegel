@@ -359,6 +359,7 @@ describe("Simple inference for module variables by function return", () => {
   test("Inference global module variable with unknown type", async () => {
     const sourceAST = prepareAST(`
       function getA(): unknown {
+        return 2;
       }
       const a = getA();
     `);
@@ -617,7 +618,6 @@ describe("Simple inference for module functions", () => {
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const a = actual.body.get("a");
-      debugger;
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(FunctionType);
     expect(a.type === Type.find("(number) => () => number")).toBe(true);
@@ -1391,20 +1391,11 @@ describe("Simple inference for module functions", () => {
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const fn = actual.body.get("fn");
-    expect(errors.length).toBe(0);
-    expect(fn.type).toBeInstanceOf(FunctionType);
-    expect(
-      fn.type === Type.find("(number | undefined) => number | undefined")
-    ).toBe(true);
-    expect(fn.type.argumentsTypes.length).toBe(1);
-    expect(fn.type.argumentsTypes[0]).toBeInstanceOf(UnionType);
-    expect(fn.type.argumentsTypes[0].variants.length).toBe(2);
-    expect(fn.type.argumentsTypes[0].variants[0] === Type.Number).toBe(true);
-    expect(fn.type.argumentsTypes[0].variants[1] === Type.Undefined).toBe(true);
-    expect(fn.type.argumentsTypes[0] === Type.find("number | undefined")).toBe(
-      true
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      "Argument cannot be optional and has initializer."
     );
-    expect(fn.type.returnType).toBe(fn.type.argumentsTypes[0]);
   });
   test("Inference function with default paramter and inner call", async () => {
     const sourceAST = prepareAST(`

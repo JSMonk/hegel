@@ -29,7 +29,7 @@ export class TypeScope {
       existedType = currentTypeScope.body.get(name);
       if (existedType !== undefined) {
         if (existedType instanceof Type) {
-          return existedType;
+          return Type.getTypeRoot(existedType);
         }
         if (Scope.canTraverseFunction(rest)) {
           // $FlowIssue
@@ -39,7 +39,9 @@ export class TypeScope {
             existedType,
             ...rest
           );
-          return result === undefined ? this.findTypeWithName(name) : result;
+          return Type.getTypeRoot(
+            result === undefined ? this.findTypeWithName(name) : result
+          );
         }
       }
       currentTypeScope = currentTypeScope.parent;

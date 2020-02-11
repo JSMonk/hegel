@@ -6,6 +6,7 @@ import type { TypeScope } from "../type-scope";
 
 export class TypeVar extends Type {
   static Self = new TypeVar(THIS_TYPE);
+  static strictEquality = false;
 
   static isSelf(type: Type) {
     return type.isSubtypeOf === this.Self;
@@ -18,6 +19,7 @@ export class TypeVar extends Type {
 
   constraint: Type | void;
   root: Type | void;
+  defaultType: Type | void;
   _isUserDefined: ?boolean;
   priority = 0;
 
@@ -33,11 +35,13 @@ export class TypeVar extends Type {
     name: string,
     meta?: TypeMeta = {},
     constraint: Type | void,
+    defaultType: Type | void,
     isUserDefined?: boolean = false
   ) {
     super(name, meta);
     this.name = name;
     this.constraint = constraint;
+    this.defaultType = defaultType;
     this._isUserDefined = isUserDefined;
   }
 
@@ -78,12 +82,29 @@ export class TypeVar extends Type {
     );
   }
 
+  isPrincipalTypeFor(type: Type) {
+    if (type === this) {
+      return true;
+    }
+    if (
+      TypeVar.strictEquality &&
+      (!(type instanceof TypeVar) ||
+        this.parent.findTypeWithName(type.name) === type)
+    ) {
+      return false;
+    }
+    return super.isPrincipalTypeFor(type);
+  }
+
   isSuperTypeFor(type: Type): boolean {
     if (this.root !== undefined) {
       return this.root.isSuperTypeFor(type);
     }
     if (this.constraint === undefined) {
       return true;
+    }
+    if (type instanceof TypeVar && type.constraint !== undefined) {
+      return this.constraint.isPrincipalTypeFor(type.constraint);
     }
     return this.constraint.isPrincipalTypeFor(type);
   }
@@ -103,19 +124,22 @@ export class TypeVar extends Type {
     if (this.root !== undefined) {
       return this.root.changeAll(sourceTypes, targetTypes, typeScope);
     }
-    if (this.constraint !== undefined) {
-      const newConstraint = this.constraint.changeAll(
-        sourceTypes,
-        targetTypes,
-        typeScope
+    let defaultType = this.defaultType;
+    let constraint = this.constraint;
+    if (defaultType !== undefined) {
+      defaultType = defaultType.changeAll(sourceTypes, targetTypes, typeScope);
+    }
+    if (constraint !== undefined) {
+      constraint = constraint.changeAll(sourceTypes, targetTypes, typeScope);
+    }
+    if (this.constraint !== constraint || this.defaultType !== defaultType) {
+      return new TypeVar(
+        String(this.name),
+        { parent: this.parent },
+        constraint,
+        defaultType,
+        this.isUserDefined
       );
-      if (newConstraint !== this.constraint) {
-        return new TypeVar(
-          String(this.name),
-          { parent: this.parent },
-          newConstraint
-        );
-      }
     }
     return this;
   }
@@ -176,5 +200,12 @@ export class TypeVar extends Type {
       return this.parent;
     }
     return Type.GlobalTypeScope;
+  }
+
+  applyGeneric(...args: Array<any>) {
+    if (this.root !== undefined) {
+      return this.root.applyGeneric(...args);
+    }
+    return this;
   }
 }

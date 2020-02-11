@@ -21,6 +21,7 @@ import { VariableScope } from "./variable-scope";
 import { getVariableType } from "../utils/variable-utils";
 import { addVariableToGraph } from "../utils/variable-utils";
 import { inferenceErrorType } from "../inference/error-type";
+import { findNearestTypeScope } from "../utils/scope-utils";
 import { ModuleScope, PositionedModuleScope } from "./module-scope";
 import { addCallToTypeGraph, addPropertyToThis, addMethodToThis } from "./call";
 import {
@@ -134,6 +135,7 @@ const addTypeAlias = (
   self.name = typeAlias.name;
   if (genericArguments != null) {
     typeAlias.shouldBeUsedAsGeneric = true;
+    self.shouldBeUsedAsGeneric = true;
   }
   typeScope.body.set(typeName, typeAlias);
   if (node.exportAs) {
@@ -198,6 +200,7 @@ const fillModuleScope = (
         break;
       case NODE.LOGICAL_EXPRESSION:
       case NODE.CONDITIONAL_EXPRESSION:
+      case NODE.SWITCH_CASE:
         refinement(
           currentNode,
           getParentForNode(currentNode, parentNode, typeGraph),
@@ -209,17 +212,31 @@ const fillModuleScope = (
       case NODE.WHILE_STATEMENT:
       case NODE.DO_WHILE_STATEMENT:
       case NODE.FOR_STATEMENT:
+      case NODE.FOR_OF_STATEMENT:
+      case NODE.FOR_IN_STATEMENT:
+      case NODE.FOR_IN_STATEMENT:
         const block = currentNode.body || currentNode.consequent;
-        addScopeToTypeGraph(block, parentNode, typeGraph);
+        addScopeToTypeGraph(block, parentNode, typeGraph, currentNode);
         if (currentNode.alternate) {
-          addScopeToTypeGraph(currentNode.alternate, parentNode, typeGraph);
+          addScopeToTypeGraph(
+            currentNode.alternate,
+            parentNode,
+            typeGraph,
+            currentNode.alternate
+          );
         }
-        refinement(
-          currentNode,
-          getParentForNode(block, parentNode, typeGraph),
-          typeScope,
-          typeGraph
-        );
+        if (
+          ![NODE.FOR_OF_STATEMENT, NODE.FOR_IN_STATEMENT].includes(
+            currentNode.type
+          )
+        ) {
+          refinement(
+            currentNode,
+            getParentForNode(block, parentNode, typeGraph),
+            typeScope,
+            typeGraph
+          );
+        }
         if (currentNode.test != undefined) {
           currentNode.test.isRefinemented = true;
         }
@@ -253,7 +270,7 @@ const fillModuleScope = (
         if (NODE.isFunction(parentNode) && parentNode.body === currentNode) {
           break;
         }
-        addScopeToTypeGraph(currentNode, parentNode, typeGraph);
+        addScopeToTypeGraph(currentNode, parentNode, typeGraph, currentNode);
         break;
       case NODE.OBJECT_METHOD:
       case NODE.CLASS_METHOD:
@@ -273,7 +290,9 @@ const fillModuleScope = (
         const tryBlock = getScopeFromNode(
           currentNode.block,
           parentNode,
-          typeGraph
+          typeGraph,
+          undefined,
+          "try"
         );
         tryBlock.throwable = [];
         typeGraph.scopes.set(
@@ -286,7 +305,13 @@ const fillModuleScope = (
         const handlerScopeKey = VariableScope.getName(currentNode.handler.body);
         typeGraph.scopes.set(
           handlerScopeKey,
-          getScopeFromNode(currentNode.handler.body, parentNode, typeGraph)
+          getScopeFromNode(
+            currentNode.handler.body,
+            parentNode,
+            typeGraph,
+            undefined,
+            "catch"
+          )
         );
         if (!currentNode.handler.param) {
           return true;
@@ -331,6 +356,18 @@ const middlefillModuleScope = (
         errors.push(
           new HegelError(
             "All imports should be placed at the top of text document without any statements between.",
+            currentNode.loc,
+            typeGraph.path
+          )
+        );
+        break;
+      case NODE.INTERFACE_DECLARATION:
+        if (isTypeDefinitions) {
+          return;
+        }
+        errors.push(
+          new HegelError(
+            "Interfaces are not existed in Hegel. Use 'type' instead.",
             currentNode.loc,
             typeGraph.path
           )
@@ -381,7 +418,6 @@ const afterFillierActions = (
   errors: Array<HegelError>,
   isTypeDefinitions: boolean
 ) => {
-  const typeScope = moduleScope.typeScope;
   return (
     currentNode: Node,
     parentNode: Node,
@@ -391,6 +427,7 @@ const afterFillierActions = (
     meta?: Object = {}
   ) => {
     const currentScope = getParentForNode(currentNode, parentNode, moduleScope);
+    const typeScope = findNearestTypeScope(currentScope, moduleScope);
     switch (currentNode.type) {
       case NODE.OBJECT_EXPRESSION:
         const obj = addObjectToTypeGraph(currentNode, moduleScope);

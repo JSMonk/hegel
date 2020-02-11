@@ -15,6 +15,7 @@ export const DECLARATION_TYPES = {
   TS_TYPE_ALIAS: "TSTypeAliasDeclaration",
   TS_DECLARE_METHOD: "TSDeclareMethod",
   TS_INTERFACE_DECLARATION: "TSInterfaceDeclaration",
+  INTERFACE_DECLARATION: "InterfaceDeclaration",
   TYPE_PARAMETER: "TypeParameter",
   TYPE_PARAMETER_DECLARATION: "TypeParameterDeclaration",
   TS_TYPE_PARAMETER_DECLARATION: "TSTypeParameterDeclaration",
@@ -27,6 +28,7 @@ export const DECLARATION_TYPES = {
 export const STATEMENTS_TYPES = {
   PURE_KEY: "PureKeyStatement",
   PURE_VALUE: "PureValueStatement",
+  VALUE: "WeakValueStatement",
   BLOCK_STATEMENT: "BlockStatement",
   IF_STATEMENT: "IfStatement",
   WHILE_STATEMENT: "WhileStatement",
@@ -39,7 +41,10 @@ export const STATEMENTS_TYPES = {
   EMPTY_STATEMENT: "EmptyStatement",
   TRY_STATEMENT: "TryStatement",
   THROW_STATEMENT: "ThrowStatement",
-  CATCH_CLAUSE: "CatchClause"
+  BREAK_STATEMENT: "BreakStatement",
+  CATCH_CLAUSE: "CatchClause",
+  SWITCH_STATEMENT: "SwitchStatement",
+  SWITCH_CASE: "SwitchCase"
 };
 
 export const EXPRESSIONS_TYPES = {
@@ -138,7 +143,10 @@ export const ANNOTATION_TYPES = {
   TS_THIS_TYPE_ANNOTATION: "TSThisType",
   TS_UNDEFINED_TYPE_ANNOTATION: "TSUndefinedKeyword",
   TS_ARRAY_TYPE_ANNOTATION: "TSArrayType",
-  TS_INTERSECTION_TYPE: "TSIntersectionType"
+  ARRAY_TYPE_ANNOTATION: "ArrayTypeAnnotation",
+  TS_INTERSECTION_TYPE: "TSIntersectionType",
+  TYPEOF_TYPE_ANNOTATION: "TypeofTypeAnnotation",
+  TYPE_CAST: "TypeCastExpression"
 };
 
 export const INITIALIZATION_TYPES = {

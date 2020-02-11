@@ -1,0 +1,54 @@
+---
+name: Type Aliases
+route: /docs/type-aliases
+menu: Type Annotations
+---
+
+# Type Aliases
+----------------
+
+Sometimes your type annotations become realy long, so you need some mechanisms which help you to don't repeat yourself. And prevent "copy-paste" errors.
+
+```typescript
+const user: {
+  email: string,
+  password: string
+} = { email: "test.email@gmail.com", password: "qwerty" };
+
+const copyOfOriginalUser: {
+  email: string,
+  password: string
+} = user;
+
+//-------------------
+
+function createResponse(status: "Success" | "Failed"): { status: "Success" | "Failed" } {
+  return { status }
+}
+```
+
+
+One of them is type alisases. Type aliases create a new name for a type which.
+Type aliases can be created using the keyword `type` followed by its name, an equals sign `=`, and a type definition. You can place any valid type definition after equals sign `=`.
+
+```typescript
+// Type alias for object type
+type User = {
+  email: string,
+  password: string
+};
+
+const user: User = { email: "test.email@gmail.com", password: "qwerty" };
+const copyOfOriginalUser: User = user;
+
+//-------------------
+
+// Type alias for union type
+type Status = "Success" | "Failed";
+
+function createResponse(status: Status): { status: Status } {
+  return { status }
+}
+```
+
+Aliasing doesn’t create a new type - it creates a new name to refer to source type.

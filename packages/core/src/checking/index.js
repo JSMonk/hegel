@@ -6,6 +6,7 @@ import { CallMeta } from "../type-graph/meta/call-meta";
 import { TypeScope } from "../type-graph/type-scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
+import { ObjectType } from "../type-graph/types/object-type";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
@@ -73,11 +74,26 @@ function isValidTypes(
         isValidTypes(targetName, declaratedRootType, t, typeScope)
       );
     }
-    if (declaratedRootType.onlyLiteral && actual instanceof VariableInfo) {
+    if (
+      declaratedRootType.onlyLiteral &&
+      !declaratedRootType.isNominal &&
+      declaratedRootType !== ObjectType.Object &&
+      declaratedRootType !== ObjectType.Object.root &&
+      declaratedRootType !== FunctionType.Function &&
+      declaratedRootType !== FunctionType.Function.root &&
+      actual instanceof VariableInfo
+    ) {
       return declaratedRootType.equalsTo(actualRootType);
     }
-    if (targetName === "return" && declaratedRootType instanceof TypeVar) {
-      return declaratedRootType.equalsTo(actualRootType);
+    if (
+      targetName === "return" ||
+      targetName === "init" ||
+      targetName === "="
+    ) {
+      TypeVar.strictEquality = true;
+      const result = declaratedRootType.isPrincipalTypeFor(actualRootType);
+      TypeVar.strictEquality = false;
+      return result;
     }
     return declaratedRootType.isPrincipalTypeFor(actualRootType);
   }
@@ -146,7 +162,9 @@ function checkSingleCall(call: CallMeta, typeScope: TypeScope): void {
         `Type "${actualTypeName}" is incompatible with type "${String(
           arg1.name
         )}"`,
-        call.argumentsLocations[i] || call.loc
+        arg1 instanceof RestArgument
+          ? call.loc
+          : call.argumentsLocations[i] || call.loc
       );
     }
   }
@@ -164,7 +182,7 @@ function checkCalls(
     if (call.target === undefined) {
       continue;
     }
-    if (call.targetName === "return") {
+    if (call.targetName === "return" && call.isFinal) {
       returnWasCalled = true;
     }
     try {
@@ -181,24 +199,14 @@ function checkCalls(
     !returnWasCalled
   ) {
     const { declaration } = scope;
-    const functionDeclaration: any =
+    const { returnType, isAsync }: any =
       declaration.type instanceof GenericType
         ? declaration.type.subordinateType
         : declaration.type;
-    const returnType = functionDeclaration.returnType;
     if (
-      returnType === undefined ||
-      (returnType instanceof TypeVar && !returnType.isUserDefined)
+      !declaration.isInferenced &&
+      !isFunctionShouldNotCallReturn(returnType, isAsync)
     ) {
-      return;
-    }
-    const functionShouldNotReturnSomething =
-      returnType === Type.Undefined ||
-      returnType === Type.Unknown ||
-      (functionDeclaration.isAsync &&
-        (returnType.equalsTo(Type.Undefined.promisify()) ||
-          returnType.equalsTo(Type.Unknown.promisify())));
-    if (!functionShouldNotReturnSomething) {
       errors.push(
         new HegelError(
           `Function should return something with type "${String(
@@ -210,6 +218,24 @@ function checkCalls(
       );
     }
   }
+}
+
+function isFunctionShouldNotCallReturn(returnType: Type, isAsync: boolean) {
+  if (
+    returnType === undefined ||
+    (returnType instanceof TypeVar && !returnType.isUserDefined)
+  ) {
+    return true;
+  }
+  if (returnType instanceof UnionType) {
+    return returnType.variants.some(returnType =>
+      isFunctionShouldNotCallReturn(returnType, isAsync)
+    );
+  }
+  return (
+    returnType === Type.Undefined ||
+    (isAsync && returnType.equalsTo(Type.Undefined.promisify()))
+  );
 }
 
 export default checkCalls;

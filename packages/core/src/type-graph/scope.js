@@ -48,7 +48,7 @@ export class Scope {
       precompute,
       middlecompute,
       postcompute,
-      parentNode,
+      parentNode
     );
     const scope = typeGraph.scopes.get(scopeName);
     // $FlowIssue
@@ -79,10 +79,6 @@ export class Scope {
       const variableInfo = parent.body.get(name);
       if (variableInfo) {
         if (variableInfo instanceof VariableInfo) {
-          if ("subordinateMagicType" in variableInfo.type && name !== ".") {
-            const newType = (variableInfo.type: any).unpack();
-            variableInfo.type = newType;
-          }
           return variableInfo;
         }
         if (
@@ -132,7 +128,17 @@ export class Scope {
         return true;
       }
       parent = parent.parent;
-    } while(parent != null);
+    } while (parent != null);
+  }
+
+  getParentsUntil(parent?: Scope) {
+    const parents = [];
+    let currentScope = this;
+    do {
+      parents.push(currentScope);
+      currentScope = currentScope.parent;
+    } while (currentScope !== null && currentScope !== parent);
+    return parents;
   }
 
   getAllChildScopes(module: ModuleScope) {

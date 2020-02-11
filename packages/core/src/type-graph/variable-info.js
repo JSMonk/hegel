@@ -9,17 +9,20 @@ export class VariableInfo {
   parent: VariableScope | ModuleScope | void;
   isConstant: boolean = false;
   hasInitializer: boolean = false;
+  isInferenced: boolean = false;
   meta: Meta;
 
   constructor(
     type: Type,
     parent: VariableScope | ModuleScope | void,
     meta?: Meta = new Meta(),
-    isConstant: boolean = false
+    isConstant: boolean = false,
+    isInferenced: boolean = false
   ) {
     this.type = type;
     this.parent = parent;
     this.meta = meta;
     this.isConstant = isConstant;
+    this.isInferenced = isInferenced;
   }
 }

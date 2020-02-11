@@ -101,12 +101,15 @@ export class GenericType<T: Type> extends Type {
     loc?: SourceLocation,
     ignoreLength?: boolean = false
   ) {
-    if (parameters.length !== this.genericArguments.length) {
+    const requiredParams = this.genericArguments.filter(
+      t => t.defaultType === undefined
+    );
+    if (parameters.length < requiredParams.length) {
       throw new HegelError(
         `Generic "${String(
           this.name
         )}" called with wrong number of arguments. Expect: ${
-          this.genericArguments.length
+          requiredParams.length
         }, Actual: ${parameters.length}`,
         loc
       );
@@ -119,13 +122,17 @@ export class GenericType<T: Type> extends Type {
               { isSubtypeOf: a.isSubtypeOf, parent: a.parent },
               // $FlowIssue
               a.constraint.changeAll(this.genericArguments, parameters),
+              a.defaultType,
               a.isUserDefined
             )
           : a
     );
-    const wrongArgumentIndex = genericArguments.findIndex(
-      (arg, i) => !arg.isPrincipalTypeFor(parameters[i])
-    );
+    const wrongArgumentIndex = genericArguments.findIndex((arg, i) => {
+      const parameter = parameters[i];
+      return parameter === undefined
+        ? arg.defaultType === undefined
+        : !arg.isPrincipalTypeFor(parameter);
+    });
     if (wrongArgumentIndex !== -1) {
       const parameter = parameters[wrongArgumentIndex];
       const typeVar = genericArguments[wrongArgumentIndex];
@@ -212,6 +219,12 @@ export class GenericType<T: Type> extends Type {
     this.assertParameters(appliedParameters, loc);
     const parameters: Array<Type> = this.genericArguments.map((t, i) => {
       const appliedType = appliedParameters[i];
+      if (appliedType === undefined) {
+        if (t.defaultType === undefined) {
+          throw new Error("Never!");
+        }
+        return t.defaultType;
+      }
       // Needed for type inferencing
       if (
         appliedType instanceof TypeVar &&
@@ -222,25 +235,20 @@ export class GenericType<T: Type> extends Type {
         return t;
       }
       if (
-        t.constraint === undefined ||
-        !(t.constraint instanceof UnionType) ||
-        appliedType.equalsTo(t)
-      ) {
-        return appliedType;
-      }
-      if (
         t.constraint instanceof UnionType &&
         appliedType instanceof UnionType
       ) {
         return appliedType;
       }
-      const variant = t.constraint.variants.find(v =>
-        v.isPrincipalTypeFor(appliedType)
-      );
-      if (variant === undefined) {
-        throw new Error("Never!");
+      if (t.constraint instanceof UnionType) {
+        const variant = t.constraint.variants.find(v =>
+          v.isPrincipalTypeFor(appliedType)
+        );
+        if (variant !== undefined) {
+          return variant;
+        }
       }
-      return variant;
+      return appliedType;
     });
     const appliedTypeName = GenericType.getName(this.name, parameters);
     const oldAppliedSelf = new $BottomType(
@@ -258,6 +266,7 @@ export class GenericType<T: Type> extends Type {
     const appliedSelf = TypeVar.term(
       appliedTypeName,
       { parent: theMostPriorityParent, isSubtypeOf: TypeVar.Self },
+      undefined,
       undefined,
       true
     );

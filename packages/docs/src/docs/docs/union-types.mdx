@@ -1,0 +1,101 @@
+---
+name: Union Types
+route: /docs/union-types
+menu: Type Annotations
+---
+
+# Union Types
+---------------------
+
+Sometimes you need more than one type or need to concrete values from any of existed type. A simple example when you need values from two different types is `repeat` function, which waiting as argument `number` or `string` and reapeat givven argument `n` times:
+
+```typescript
+function repeat(target, times) {
+  if (typeof target === "number") {
+    return target ** times;
+  }
+  return target.repeat(times);
+}
+```
+
+You can define types like this:
+
+```typescript
+function repeat(target: unknown, times: number): unknown {
+  if (typeof target === "number") {
+    return target ** times;
+  }
+  // Error: Property "repeat" are not exists in "unknown"
+  return target.repeat(times); 
+}
+```
+
+But you will have an Error, because you trying to get property from `unknown` type.
+You can try to add one more `if` statement like this:
+
+```typescript
+function repeat(target, times) {
+  if (typeof target === "number") {
+    return target ** times;
+  }
+  if (typeof target === "string") {
+    return target.repeat(times);
+  }
+  throw new TypeError(`Expected string or number, got '${typeof target}'.`);
+} 
+
+repeat(false, 4);
+```
+
+But, if you put a wrong type (not number or string) you will find an error in runtime.
+
+So, the solution is union types. Actualy, union types is union of all possible values for types which will be provided to union operator `|`. You can define it by declarating sequence of needed types separated by '|':
+
+```typescript
+let iCanBeAStringOrNumber: string | number = 2;
+iCanBeAStringOrNumber = "Hello";
+
+// Error: Type "false" is incompatible with type "number | string"
+iCanBeAStringOrNumber = false;
+```
+
+**Info**: When you defined union type you lost ability to use this type as concret type.
+```typescript
+const iCanBeAStringOrNumber: string | number = 2;
+
+// Error: Type "number | string" is incompatible with type "number"
+const value: number = iCanBeAStringOrNumber;
+
+// Error: Parameter "number | string" is incompatible with restriction "bigint | number"
+iCanBeAStringOrNumber * 4;
+```
+
+With union types `repeat` function will look like this:
+
+```typescript
+function repeat(target: string | number, times: number): string | number {
+  if (typeof target === "number") {
+    return target ** times;
+  }
+  return target.repeat(times);
+} 
+
+// Error: Type "false" is incompatible with type "number | string"
+repeat(false, 4);
+```
+
+And you will see wrong execution in static time (while you are writing code in editor).
+
+Also, union types are usefull when you want pick only concrete values from some type.
+
+```typescript
+function createResponse(status: "Success" | "Failed") {
+  return { status }
+}
+
+createResponse("Success");
+createResponse("Failed");
+
+// Error: Type "'Custom String'" is incompatible with type "'Failed' | 'Success'"
+createResponse("Custom String");
+```

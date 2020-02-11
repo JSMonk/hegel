@@ -24,11 +24,13 @@ export class VariableScope extends Scope {
   skipCalls: boolean;
   isProcessed: boolean = false;
   body: Map<string, VariableInfo>;
+  creator: string | void;
 
   constructor(
     type: VariableScopeType,
     parent: ModuleScope | VariableScope,
     declaration?: VariableInfo,
+    creator?: string,
     skipCalls?: boolean = false
   ) {
     super(parent);
@@ -36,6 +38,7 @@ export class VariableScope extends Scope {
     this.type = type;
     this.declaration = declaration;
     this.skipCalls = skipCalls;
+    this.creator = creator;
     this.body = new Map();
   }
 }

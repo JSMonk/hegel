@@ -6,7 +6,7 @@
   "main": "./index.js",
   "files": "./build",
   "scripts": {
-    "build": "npm run build:check && npm run build:clean && npm run build:start && npm run build:copy",
+    "build": " npm run build:clean && npm run build:start && npm run build:copy",
     "build:check": "flow",
     "build:start": "babel src -d build",
     "build:copy": "cp ./package.json ./build/package.json && cp ./src/index.d.ts ./build/index.d.ts",

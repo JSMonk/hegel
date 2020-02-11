@@ -1,0 +1,99 @@
+---
+name: Object Types
+route: /docs/object-types
+menu: Type Annotations
+---
+
+# Object Types
+----------------
+
+Object is another fundamental part of JavaScript language. With object you can represent any composed data types as sequence of properties and values.
+You can create object type in Hegel by using curly braces {} and name-value pairs using a colon `:` split by commas `,` (the same as in JavaScript).
+
+```typescript
+const user: { email: string, password: string } = {
+  name: "any.user@gmail.com",
+  password: "qwerty"
+};
+```
+
+## Strict and Soft object types
+
+Defined object type is strict by default, it means that you cannot define additional property in object literal if it was not defined inside object type.
+
+```typescript
+/* Error: Type "{
+  name: 'any.user@gmail.com',
+  password: 'qwerty',
+  status: 'offline'
+}" is incompatible with type "{ email: string, password: string }" */
+const strictUser: { email: string, password: string } = {
+  name: "any.user@gmail.com",
+  password: "qwerty",
+  status: "offline"
+};
+```
+
+To make defined object type as soft you can add special statement `...` (three dots). This statement will give to Hegel information that you want includes additional properties inside object type.
+```typescript
+const softUser: { email: string, password: string, ... } = { // 👌!
+  name: "any.user@gmail.com",
+  password: "qwerty",
+  status: "offline"
+};
+```
+
+**Info** If you are familiar with Flow.js, in Flow.js this two examples (strict and soft object types) will be look like this:
+
+```typescript
+const strictUser: {| email: string, password: string |} = { // 👌!
+  name: "any.user@gmail.com",
+  password: "qwerty"
+};
+```
+
+```typescript
+const softUser: { email: string, password: string } = { // 👌!
+  name: "any.user@gmail.com",
+  password: "qwerty",
+  status: "offline"
+};
+```
+
+## Optional object type properties
+
+As was mentioned in [Optional Types](/docs/optional-types), you can define object properties as optional by adding `?`(question mark) behind the type name.
+
+```typescript
+const user: { email: string, password: ?string } = { name: "any.user@gmail.com" }; // 👌!
+```
+
+The logic is next - if you will try to access to property which is not existed in object then value of this property will be undefined. Optional Types annotate that type of argument/variable/property can have annotated type value or undefined, so, undefined will be a valid value for this property.
+
+
+**Info**: If you are familiar with Flow.js or TypeScript, you may know about similar optional property syntax inside this two "analyzers", which looks like this:
+```typescript
+const user: { email: string, password?: string } = { name: "any.user@gmail.com" }; // 👌!
+```
+But Hegel doesn't have this syntax and define the same syntax for two situations (when your property are optional and when you property can contains undefined.
+
+## Object
+
+Also, Hegel supports `Object` type which represent any possible object in JavaScript:
+
+```typescript
+function json(obj: Object) {
+  return JSON.stringify(obj); 
+}
+
+json({ baz: 3.14, bar: "hello" }); // 👌!
+json({});                          // 👌!
+json(new Object);                  // 👌!
+// Because Array is an object in JavaScript
+json([]);                          // 👌!
+// Because Function is an object in JavaScript
+json(() => 2);                     // 👌!
+
+// Error: Type "2" is incompatible with type "Object"
+json(2);
+```

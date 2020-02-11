@@ -1,0 +1,286 @@
+---
+name: Generic Types
+route: /docs/generic-types
+menu: Type Annotations
+---
+
+# Generic Types
+----------------
+
+Sometimes you can have a different types for the same logic. The most easy example of this case is `identity` function:
+
+```typescript
+function identity(value) {
+  return value;
+}
+```
+
+If you will try to annotate only types with which you currently use this function you will have multiple declaration of the same function:
+
+```typescript
+function identityString(value: string): string {
+  return value;
+}
+
+function identityNumber(value: number): number {
+  return value;
+}
+
+function identityBoolean(value: boolean): boolean {
+  return value;
+}
+
+// Type of num is "number"
+let num = identityNumber(2);
+// Type of str is "string"
+let str = identityString("2");
+// Type of bool is "boolean"
+let bool = identityBoolean(false);
+```
+
+As you can see, you need to define function only for type safity. This functions do not add a new business value to your code. You can try to solve this problem with [Unknown Type](/docs/unknown-type), but you will lose needed types.
+```typescript
+function identity(value: unknown): unknown {
+  return value;
+}
+
+// Type of num is "unknown"
+let num = identity(2);
+// Type of str is "unknown"
+let str = identity("2");
+// Type of bool is "unknown"
+let bool = identity(false);
+```
+And then Generic Types appear.
+
+Generic Types is the way to create something like "type function". You can define "type arguments" which can be applied to this "type function" and new type will be returned.
+
+```typescript
+// "T" is type variable
+function identity<T>(value: T): T {
+  return value;
+}
+
+// T will be replaced by "number".
+// Type of num is "number"
+let num = identity<number>(2);
+
+// T will be replaced by "string".
+// Type of str is "string"
+let str = identity<string>("2");
+
+// T will be replaced by "boolean".
+// Type of bool is "boolean"
+let bool = identity<boolean>(false);
+```
+
+And also, you can drop this "type application", because Hegel will infer which type you want to use.
+```typescript
+// "T" is type variable
+function identity<T>(value: T): T {
+  return value;
+}
+
+// T will be replaced by type of 2.
+// Type of num is "number"
+let num = identity(2);
+
+// T will be replaced by type of "2"
+// Type of str is "string"
+let str = identity("2");
+
+// T will be replaced by type of false
+// Type of bool is "boolean"
+let bool = identity(false);
+```
+
+Generics can be used within functions, function types, classes and type aliases.
+
+```typescript
+type Response<Body> = { status: 200, body: Body };
+
+function respondWith<Body>(body: Body): Response<Body> {
+  return { status: 200, body };
+}
+
+// Type of response1 is "Response<{ message: 'Good response' }>"
+// which the same as "{ status: 200, body: { message: "Good response " } }"
+const response1 = respondWith({ message: "Good response" });
+
+// Type of response2 is "Response<[1, 2, 3]>"
+// which the same as "{ status: 200, body: [1, 2, 3] }"
+const response2 = respondWith([1, 2, 3]);
+
+// Type of bodyOfResponse2 is [1, 2, 3]"
+const bodyOfResponse2 = response2.body;
+```
+
+## Generic Syntax
+
+As was mentioned before, generics can be used within functions, function types, classes and type aliases.
+So, there are different syntax in different places.
+
+### Functions
+
+To define generic parameters for function you need to add sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) before arguments list
+
+```typescript
+// Function Declaration Generic Syntax
+function getResponseBodyAndStatus<Status, Body>(response: { status: Status, body: Body }): [Status, Body] {
+  return [response.status, response.body];
+}
+
+// Function Expression Generic Syntax
+const getResponseBodyAndStatus = function<Status, Body>(response: { status: Status, body: Body }): [Status, Body] {
+  return [response.status, response.body];
+}
+
+// Arrow Function Expression Generic Syntax
+const getResponseBodyAndStatus = <Status, Body>(response: { status: Status, body: Body }): [Status, Body] =>
+  [response.status, response.body];
+
+const obj = {
+  // Method Generic Syntax
+  getResponseBodyAndStatus<Status, Body>(response: { status: Status, body: Body }): [Status, Body] {
+    return [response.status, response.body];
+  }
+}
+```
+
+### Function Type
+
+Function type has the same syntax as for "Arrow Function Expression" with generic: 
+
+```typescript
+// Function Type Generic Syntax
+const getResponseBodyAndStatus: <Status, Body>({
+  status: Status,
+  body: Body
+}) => [Status, Body] = function(response) {
+  return [response.status, response.body];
+};
+```
+
+### Classes
+
+To define generic parameters for a class you need to add sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) after class identifier
+
+```typescript
+class Container<T> {
+  value: T;
+
+  constructor(value: T) {
+    this.value = value;
+  }
+}
+
+let value = 2;
+
+// Explicit type application
+// container1 type is Container<number>
+const container1 = new Container<number>(value);
+
+// Implicit type application
+// container2 type is Container<number>
+const container2 = new Container(value);
+```
+
+### Type Alias
+
+To define generic parameters for a type alias you need to add sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) after type alias identifier
+```typescript
+type Container<T> = { value: T }
+
+const container: Container<number> = { value: 2 }
+```
+
+## Type Checking
+
+First of all, if you defined some type as generic you can't use this type without type application.
+```typescript
+class Container<T> {
+  value: T;
+
+  constructor(value: T) {
+    this.value = value;
+  }
+}
+
+const container1: Container<number> = new Container(2);  // 👌!
+// Error: Generic type "Container<T>" should be used with type paramteres!
+const container2: Container = new Container(2);
+```
+
+```typescript
+type Container<T> = { value: T };
+
+const container1: Container<number> = { value: 2 };  // 👌!
+// Error: Generic type "Container<T>" should be used with type paramteres!
+const container2: Container = { value: 4 };
+```
+
+As you may understand, noone value will be valid for "type variable". Only arguments which annotated as "type variable" will be an valid value for this type.
+
+```typescript
+function getResponseBodyAndStatus<Status, Body>(
+  response: {
+    status: Status,
+    body: Body
+  }
+): [Status, Body] {
+  // Error: Type "[Status, 'Custom Body']" is incompatible with type "[Status, Body]"
+  return [response.status, "Custom Body"];
+}
+```
+
+Also, the same as [Unknown Type](/docs/unknown-type) you can't get properties from "type variable", because you can be replaced by "undefined", "null" or object which doesn't contain this property.
+
+```typescript
+function length<T>(somethingWithLength: T) {
+  // Error: Property "length" are not exists in "T"
+  return somethingWithLength.length;
+}
+```
+
+## Constraints
+
+But sometimes you need to annotate that your "type variable" can be only subtype of some existed in Hegel type. In Hegel you can annotate this super type after `:` (colon).
+
+```typescript
+function length<T: { length: number, ... }>(somethingWithLength: T) {
+  return somethingWithLength.length; // 👌!
+}
+
+length([1, 2, 3]);
+length({ length: 4 });
+length(() => 2);
+// Error: Parameter "Set<number>" is incompatible with restriction "{ length: number, ... }"
+// Because Set, WeakSet, Map and WeakMap has "size" property instead "length"
+length(new Set<number>());
+```
+
+Also, it works for primitive types
+```typescript
+function plus<T: number | bigint>(a: T, b: T): T {
+  return a + b;
+}
+
+plus(1, 2);   // 👌!
+plus(1n, 2n); // 👌!
+
+// Error: Parameter "'1'" is incompatible with restriction "bigint | number"
+plus("1", "2");
+// Error: Type "2n" is incompatible with type "number"
+plus(1, 2n);
+```
+
+## Default Type
+
+You can also provide defaults for "type variable" the same as for a function argument.
+
+```typescript
+type Container<T = unknown> = { value: T }
+
+// container type is "Container<unknown>"
+const container: Container<> = { value: "something" }
+```

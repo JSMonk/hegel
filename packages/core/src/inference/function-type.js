@@ -7,6 +7,7 @@ import { TypeVar } from "../type-graph/types/type-var";
 import { CallMeta } from "../type-graph/meta/call-meta";
 import { TypeScope } from "../type-graph/type-scope";
 import { THIS_TYPE } from "../type-graph/constants";
+import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
 import { addTypeVar } from "../utils/type-utils";
 import { $BottomType } from "../type-graph/types/bottom-type";
@@ -165,6 +166,15 @@ export function inferenceFunctionLiteralType(
       new VariableInfo(paramType, localTypeScope, new Meta(param.loc))
     );
     if (param.left !== undefined) {
+      if (
+        !isWithoutAnnotation &&
+        typeNode.typeAnnotation.type === NODES.NULLABLE_TYPE_ANNOTATION
+      ) {
+        throw new HegelError(
+          "Argument cannot be optional and has initializer.",
+          typeNode.typeAnnotation.loc
+        );
+      }
       const callResultType = addCallToTypeGraph(
         param,
         typeGraph,
@@ -187,18 +197,7 @@ export function inferenceFunctionLiteralType(
             callResultType.inferenced
           );
       const variants = [paramType, Type.Undefined];
-      paramType = !isWithoutAnnotation
-        ? paramType
-        : UnionType.term(null, {}, variants);
-    }
-    if (param.type === NODES.REST_ELEMENT) {
-      if (!(paramType instanceof CollectionType)) {
-        throw new HegelError(
-          "Rest argument type should be an array-like",
-          param.typeAnnotation.loc
-        );
-      }
-      paramType = new RestArgument(paramType);
+      paramType = UnionType.term(null, {}, variants);
     }
     if (isWithoutAnnotation && paramType === Type.Unknown) {
       const typeVar = addTypeVar(
@@ -208,7 +207,32 @@ export function inferenceFunctionLiteralType(
       if (typeVar instanceof TypeVar) {
         genericArguments.add(typeVar);
       }
-      return typeVar;
+      paramType = typeVar;
+    }
+    if (param.type === NODES.REST_ELEMENT) {
+      if (
+        !isWithoutAnnotation &&
+        !(
+          (paramType instanceof UnionType &&
+            paramType.variants.every(
+              variant =>
+                variant instanceof CollectionType ||
+                variant instanceof TupleType
+            )) ||
+          paramType instanceof CollectionType ||
+          paramType instanceof TupleType
+        )
+      ) {
+        throw new HegelError(
+          "Rest argument type should be an array-like",
+          param.typeAnnotation.loc
+        );
+      }
+      paramType =
+        paramType instanceof TypeVar && !paramType.isUserDefined
+          ? Type.find("Array").applyGeneric([Type.Unknown])
+          : paramType;
+      paramType = new RestArgument(paramType);
     }
     return paramType;
   });
@@ -399,7 +423,8 @@ export function implicitApplyGeneric(
         (existed === undefined ||
           existed instanceof TypeVar ||
           (dropUnknown && existed === Type.Unknown) ||
-          root.isSuperTypeFor(existed));
+          (!(root instanceof TypeVar && !root.isUserDefined) &&
+            root.isSuperTypeFor(existed)));
       if (!shouldSetNewRoot) {
         continue;
       }
@@ -569,6 +594,7 @@ export function inferenceFunctionTypeByScope(
   } = functionScope.declaration.type;
   const genericArguments = [...oldGenericArguments];
   let returnWasCalled = false;
+  let finalReturnWasCalled = false;
   // $FlowIssue
   const nestedScopes = functionScope.getAllChildScopes(typeGraph);
   for (const { calls } of nestedScopes) {
@@ -583,8 +609,12 @@ export function inferenceFunctionTypeByScope(
     }
   }
   for (let i = 0; i < calls.length; i++) {
+    const call = calls[i];
+    if (call.isFinal) {
+      finalReturnWasCalled = true;
+    }
     if (
-      calls[i].targetName === "return" &&
+      call.targetName === "return" &&
       returnType instanceof TypeVar &&
       !returnType.isUserDefined
     ) {
@@ -592,7 +622,7 @@ export function inferenceFunctionTypeByScope(
       const {
         arguments: [returnArgument],
         inferenced
-      } = calls[i];
+      } = call;
       const newReturnType =
         returnArgument instanceof VariableInfo
           ? returnArgument.type
@@ -626,6 +656,21 @@ export function inferenceFunctionTypeByScope(
     !returnType.isUserDefined
   ) {
     returnType.root = isAsync ? Type.Undefined.promisify() : Type.Undefined;
+  }
+  if (
+    returnWasCalled &&
+    !finalReturnWasCalled &&
+    returnType instanceof TypeVar &&
+    !returnType.isUserDefined
+  ) {
+    returnType.root = UnionType.term(
+      null,
+      {},
+      [
+        returnType.root,
+        isAsync ? Type.Undefined.promisify() : Type.Undefined
+      ].filter(a => a !== undefined)
+    );
   }
   const created: Map<TypeVar, TypeVar> = new Map();
   for (let i = 0; i < genericArguments.length; i++) {

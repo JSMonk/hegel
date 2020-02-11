@@ -5,6 +5,7 @@ import { Meta } from "../type-graph/meta/meta";
 import { CallMeta } from "../type-graph/meta/call-meta";
 import { TypeScope } from "../type-graph/type-scope";
 import { ObjectType } from "../type-graph/types/object-type";
+import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
@@ -52,10 +53,31 @@ export function addThisToClassScope(
     return;
   }
   const parentTypeScope = findNearestTypeScope(classScope, typeGraph);
+  const localTypeScope = new TypeScope(parentTypeScope);
+  const genericArguments =
+    currentNode.typeParameters &&
+    currentNode.typeParameters.params.map(typeAnnotation =>
+      getTypeFromTypeAnnotation(
+        { typeAnnotation },
+        localTypeScope,
+        classScope.parent,
+        true,
+        null,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      )
+    );
   const name =
     currentNode.id != undefined ? getDeclarationName(currentNode) : "{ }";
+  const typeName =
+    genericArguments != undefined
+      ? GenericType.getName(name, genericArguments)
+      : name;
   const selfObject = ObjectType.term(
-    name,
+    typeName,
     {
       parent: typeScope,
       isNominal:
@@ -64,29 +86,19 @@ export function addThisToClassScope(
     },
     []
   );
-  const localTypeScope = new TypeScope(parentTypeScope);
   const self =
     currentNode.typeParameters === undefined
       ? selfObject
-      : GenericType.term(
-          name,
-          { parent: typeScope },
-          currentNode.typeParameters.params.map(typeAnnotation =>
-            getTypeFromTypeAnnotation(
-              { typeAnnotation },
-              localTypeScope,
-              classScope.parent,
-              true,
-              null,
-              parentNode,
-              typeGraph,
-              precompute,
-              middlecompute,
-              postcompute
-            )
+      : new $BottomType(
+          {},
+          GenericType.new(
+            typeName,
+            { parent: typeScope },
+            genericArguments,
+            localTypeScope,
+            selfObject
           ),
-          localTypeScope,
-          selfObject
+          genericArguments
         );
   let superClass;
   if (currentNode.superClass != null) {
@@ -157,7 +169,14 @@ export function addThisToClassScope(
     currentNode.type === NODE.CLASS_EXPRESSION ||
     currentNode.type === NODE.CLASS_DECLARATION
   ) {
-    parentTypeScope.body.set(name, selfVar.type);
+    const typeInTypeScope =
+      selfVar.type instanceof $BottomType
+        ? selfVar.type.subordinateMagicType
+        : selfVar.type;
+    parentTypeScope.body.set(name, typeInTypeScope);
+    if (typeInTypeScope instanceof GenericType) {
+      typeInTypeScope.shouldBeUsedAsGeneric = true;
+    }
     const staticName = getClassName(currentNode);
     const options = { isNominal: true };
     if (superClass !== undefined) {
@@ -271,7 +290,9 @@ export function addPropertyNodeToThis(
           post
         );
   const selfType =
-    self.type instanceof GenericType ? self.type.subordinateType : self.type;
+    self.type instanceof $BottomType
+      ? self.type.subordinateMagicType.subordinateType
+      : self.type;
   if (!(selfType instanceof ObjectType)) {
     throw new Error("Never!!!");
   }
@@ -303,7 +324,9 @@ export function addObjectToTypeGraph(
   }
   // $FlowIssue
   let selfType: ObjectType =
-    self.type instanceof GenericType ? self.type.subordinateType : self.type;
+    self.type instanceof $BottomType
+      ? self.type.subordinateMagicType.subordinateType
+      : self.type;
   const properties = [];
   for (const [key, property] of selfType.properties.entries()) {
     if (property.hasInitializer) {
@@ -345,7 +368,9 @@ export function addClassToTypeGraph(
   );
   // $FlowIssue
   const { properties } =
-    self.type instanceof GenericType ? self.type.subordinateType : self.type;
+    self.type instanceof $BottomType
+      ? self.type.subordinateMagicType.subordinateType
+      : self.type;
   if (self.type.name === "{  }") {
     self.type.name = ObjectType.getName([...properties]);
   }
@@ -360,7 +385,12 @@ export function addClassToTypeGraph(
   }
 
   const superType = classScope.body.get("super");
-  typeScope.body.set(name, self.type);
+  typeScope.body.set(
+    name,
+    self.type instanceof $BottomType
+      ? self.type.subordinateMagicType
+      : self.type
+  );
   const existedConstructor = classNode.body.body.find(
     m => m.kind === "constructor"
   );
@@ -381,7 +411,8 @@ export function addClassToTypeGraph(
         // $FlowIssue
         constructorScope.declaration.meta.loc,
         "return",
-        false
+        false,
+        true
       );
       constructorScope.calls.push(callMeta);
     }

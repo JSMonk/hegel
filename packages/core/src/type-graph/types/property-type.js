@@ -138,7 +138,7 @@ export class $PropertyType extends GenericType {
       }
       realProperty.constraint = constraint;
     }
-    if (isTargetVariable && !isPropertyVariable) {
+    if (isTargetVariable && !realTarget.isUserDefined && !isPropertyVariable) {
       return realTarget.constraint.properties.get(propertyName).type;
     }
     if (isPropertyVariable) {

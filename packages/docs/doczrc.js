@@ -23,15 +23,16 @@ export default {
         "Primitive Types",
         "Unknown Type",
         "Optional Types",
-        "Variable Types",
+        "Union Types",
         "Function Types",
         "Object Types",
         "Class Types",
         "Array Types",
         "Tuple Types",
-        "Union Types",
+        "Type Aliases",
         "Generic Types",
-        "Utility Types"
+        "Utility Types",
+        "Modules"
       ]
     },
     {
@@ -40,7 +41,7 @@ export default {
         "No Any",
         "Type Compatibility",
         "Type Inference",
-        "Type Refinement",
+        "Type Refinement"
       ]
     },
     {
@@ -55,5 +56,5 @@ export default {
       name: "Extra",
       menu: ["Frequently Asked Questions", "Newcomer Examples", "Next Steps"]
     }
-  ],
+  ]
 };

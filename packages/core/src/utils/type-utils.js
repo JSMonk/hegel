@@ -43,12 +43,14 @@ export function addTypeVar(
   name: string,
   localTypeScope: TypeScope,
   constraint: ?Type,
+  defaultType: ?Type,
   isUserDefined?: boolean = false
 ): TypeVar {
   return TypeVar.new(
     name,
     { parent: localTypeScope },
     constraint,
+    defaultType,
     isUserDefined
   );
 }
@@ -84,6 +86,25 @@ export function getTypeFromTypeAnnotation(
     typeNode.typeAnnotation = typeNode.typeAnnotation.typeAnnotation;
   }
   switch (typeNode.typeAnnotation.type) {
+    case NODE.ARRAY_TYPE_ANNOTATION:
+      const elementType = getTypeFromTypeAnnotation(
+        { typeAnnotation: typeNode.typeAnnotation.elementType },
+        typeScope,
+        currentScope,
+        rewritable,
+        self,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      );
+      throw new HegelError(
+        `Array type annotation is not existed in Hegel. Use Array<${String(
+          elementType.name
+        )}> instead.`,
+        typeNode.typeAnnotation.loc
+      );
     case NODE.THIS_TYPE_ANNOTATION:
     case NODE.TS_THIS_TYPE_ANNOTATION:
       if (self === null || self === undefined) {
@@ -128,6 +149,11 @@ export function getTypeFromTypeAnnotation(
     case NODE.ANY_TYPE_ANNOTATION:
       throw new HegelError(
         'There is no "any" type in Hegel.',
+        typeNode.typeAnnotation.loc
+      );
+    case NODE.TYPEOF_TYPE_ANNOTATION:
+      throw new HegelError(
+        "typeof for types is not existed in Hegel. Use magic type $TypeOf instead.",
         typeNode.typeAnnotation.loc
       );
     case NODE.TS_SYMBOL_TYPE_ANNOTATION:
@@ -283,22 +309,51 @@ export function getTypeFromTypeAnnotation(
       );
     case NODE.TYPE_PARAMETER:
     case NODE.TS_TYPE_PARAMETER:
+      const constraint =
+        typeNode.typeAnnotation.bound &&
+        getTypeFromTypeAnnotation(
+          typeNode.typeAnnotation.bound,
+          typeScope,
+          currentScope,
+          false,
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
+        );
+      const defaultType =
+        typeNode.typeAnnotation.default &&
+        getTypeFromTypeAnnotation(
+          { typeAnnotation: typeNode.typeAnnotation.default },
+          typeScope,
+          currentScope,
+          false,
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
+        );
+      if (
+        constraint &&
+        defaultType &&
+        !constraint.isPrincipalTypeFor(defaultType)
+      ) {
+        throw new HegelError(
+          `Type "${String(
+            defaultType.name
+          )}" is incompatible with type "${String(constraint.name)}"`,
+          typeNode.typeAnnotation.default.loc
+        );
+      }
       return addTypeVar(
         typeNode.typeAnnotation.name,
         typeScope,
-        typeNode.typeAnnotation.bound &&
-          getTypeFromTypeAnnotation(
-            typeNode.typeAnnotation.bound,
-            typeScope,
-            currentScope,
-            false,
-            self,
-            parentNode,
-            typeGraph,
-            precompute,
-            middlecompute,
-            postcompute
-          ),
+        constraint,
+        defaultType,
         true
       );
     case NODE.TS_INDEX_PROPERTY:
@@ -574,6 +629,14 @@ export function getTypeFromTypeAnnotation(
         parent: typeScope,
         loc: target.loc
       });
+      if (typeInScope.shouldBeUsedAsGeneric) {
+        throw new HegelError(
+          `Generic type "${String(
+            typeInScope.name
+          )}" should be used with type paramteres!`,
+          target.loc
+        );
+      }
       return typeInScope instanceof TypeVar && typeInScope.root != undefined
         ? typeInScope.root
         : typeInScope;
@@ -703,7 +766,8 @@ export function createSelf(node: Node, parent: TypeScope) {
   return TypeVar.new(
     node.id.name,
     { isSubtypeOf: TypeVar.Self, parent },
-    null,
+    undefined,
+    undefined,
     true
   );
 }

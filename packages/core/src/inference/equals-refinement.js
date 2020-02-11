@@ -40,8 +40,11 @@ function getEqualsArguments(
   refinementNode: Node
 ): ?{ target: Node, value: Node } {
   if (
-    refinementNode.type !== NODE.BINARY_EXPRESSION ||
-    !["===", "==", "!==", "!="].includes(refinementNode.operator)
+    (refinementNode.type !== NODE.SWITCH_CASE ||
+      right === null ||
+      left === null) &&
+    (refinementNode.type !== NODE.BINARY_EXPRESSION ||
+      !["===", "==", "!==", "!="].includes(refinementNode.operator))
   ) {
     return;
   }
@@ -64,6 +67,9 @@ function getEqualsArguments(
 }
 
 function isStrict(refinementNode: Node) {
+  if (refinementNode.type === NODE.SWITCH_CASE) {
+    return true;
+  }
   switch (refinementNode.operator) {
     case "===":
     case "!==":
@@ -163,6 +169,7 @@ function equalsIdentifier(
       : refinementVariants([[], []], variableInfo.type, refinementType);
   if (
     !(variableInfo.type instanceof TypeVar) &&
+    variableInfo.type !== Type.Unknown &&
     refinementedVariants.length === 0
   ) {
     throw new HegelError(
@@ -187,7 +194,7 @@ function equalsIdentifier(
 export function refinePropertyWithConstraint(
   chaining: Array<string>,
   refinementType: Type,
-  variableType: TypeVar,
+  variableType: Type,
   typeScope: TypeScope
 ): [?Type, ?Type] {
   const refinementedType: Type = chaining.reduceRight((res: Type, property) => {
@@ -230,8 +237,11 @@ export function refinementProperty(
 ): ?[?Type, ?Type] {
   const currentPropertyName = chainingProperties[currentPropertyNameIndex];
   const isLast = currentPropertyNameIndex === chainingProperties.length - 1;
-  if (variableType instanceof TypeVar) {
-    if (!variableType.constraint) {
+  if (variableType instanceof TypeVar || variableType === Type.Unknown) {
+    if (
+      !(variableType instanceof TypeVar) ||
+      variableType.constraint === undefined
+    ) {
       return refinePropertyWithConstraint(
         chainingProperties.slice(currentPropertyNameIndex),
         refinementType,
@@ -432,9 +442,12 @@ export function equalsRefinement(
   typeScope: TypeScope,
   moduleScope: ModuleScope
 ): ?[string, Type, Type] {
+  const isSwitch = currentRefinementNode.type === NODE.SWITCH_CASE;
   const args = getEqualsArguments(
-    currentRefinementNode.left,
-    currentRefinementNode.right,
+    isSwitch
+      ? currentRefinementNode.parent.discriminant
+      : currentRefinementNode.left,
+    isSwitch ? currentRefinementNode.test : currentRefinementNode.right,
     currentRefinementNode
   );
   if (!args) {

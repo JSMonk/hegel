@@ -155,7 +155,17 @@ export class ObjectType extends Type {
       ) {
         continue;
       }
-      const anotherProperty = anotherType.properties.get(key) || {
+      const existedAnotherProperty = anotherType.properties.get(key);
+      if (
+        !existedAnotherProperty &&
+        !(
+          type instanceof UnionType &&
+          type.variants.some(variant => variant !== Type.Undefined)
+        )
+      ) {
+        return false;
+      }
+      const anotherProperty = existedAnotherProperty || {
         type: Type.Undefined
       };
       /* $FlowIssue - flow doesn't type methods by name */

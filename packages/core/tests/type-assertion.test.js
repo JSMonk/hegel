@@ -1002,8 +1002,8 @@ describe("Rest parameter typing", () => {
       'Type "[2]" is incompatible with type "...Array<string>"'
     );
     expect(errors[0].loc).toEqual({
-      end: { column: 9, line: 3 },
-      start: { column: 8, line: 3 }
+      end: { column: 10, line: 3 },
+      start: { column: 6, line: 3 }
     });
   });
   test("Required and full rest param", async () => {

@@ -174,6 +174,10 @@ export class Type {
   }
 
   isPrincipalTypeFor(type: Type): boolean {
+    if ("variants" in type) {
+      // $FlowIssue
+      return type.variants.every(variant => this.isPrincipalTypeFor(variant));
+    }
     return (
       this.equalsTo(Type.Unknown) ||
       this.equalsTo(type) ||

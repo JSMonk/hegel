@@ -1,0 +1,62 @@
+---
+name: Unknown Type
+route: /docs/unknown-type
+menu: Type Annotations
+---
+
+# Unknown Type
+---------------------
+
+Sometimes you don't know which type will come as function argument/variable value/object property value.
+As example [`JSON.parse`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse). This function can return array of any types, object with any properties or any valid JSON value like string, number, boolean and etc.
+
+```typescript
+const anything = JSON.parse('{ "name": null }');
+```
+
+The most general type in Hegel is `unknown`. You can imagine this type as ["Universal Set"](https://en.wikipedia.org/wiki/Universal_set). It means that all possible values in JavaScript has `unknown` type. It's a supertype for all types in Hegel type system.
+
+```typescript
+const anyNumber: unknown = 2;
+const anyString: unknown = "something";
+const anything: unknown = class User {};
+```
+
+**Info**: If you already familiar with TypeScript or Flow.js, this type has the same semantic as `unknown` in TS or `mixed` in Flow.js
+
+But, as you can understand, you can assign concret type to wider type, but you can't assign wider type to a concrete type.
+
+```typescript
+const concretType: string = "I'm good for unknown";
+const wideType: unknown = "I'm too wide for string";
+
+const iCanBeUnknown: unknown = concretType;
+const andICanBeString: string = concretType;
+
+const andICanBeUnknownToo: unknown = wideType;
+const butCantBeString: string = wideType;
+```
+
+Also, it means that you can't use unknown type as an argument for function which waiting for some concrete type:
+
+```typescript
+function waitingFor(value: string) {
+  return `Awesome ${value}`;
+}
+
+const anything: unknown = 4;
+
+waitingFor(anything);
+```
+
+Or operator:
+
+```typescript
+function waitingFor(value: unknown) {
+  return `Awesome ${value}`;
+}
+
+waitingFor(class User {});
+```
+
+**Info**: Actualy, Hegel provide an ability to [refine type](/docs/type-refinement).

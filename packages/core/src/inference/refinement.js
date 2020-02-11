@@ -7,6 +7,7 @@ import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
 import { inRefinement } from "./in-operator";
+import { equalsRefinement } from "./equals-refinement";
 import { typeofRefinement } from "./typeof";
 import { variableRefinement } from "./variable-refinement";
 import { intersection, union } from "../utils/common";
@@ -48,6 +49,42 @@ function getScopesForLogicalExpression(
     : [alternateScope, primaryScope];
 }
 
+function getScopesForSwitchCase(
+  condition: Node,
+  currentScope: VariableScope | ModuleScope,
+  moduleScope: ModuleScope
+): [VariableScope, Array<VariableScope> | void] {
+  const primaryScopeName = VariableScope.getName(condition.consequent);
+  // $FlowIssue
+  let primaryScope: VariableScope = moduleScope.scopes.get(primaryScopeName);
+  if (!(primaryScope instanceof VariableScope)) {
+    primaryScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
+    moduleScope.scopes.set(primaryScopeName, primaryScope);
+  }
+  const currentCaseIndex = condition.parent.cases.indexOf(condition);
+  if (currentCaseIndex === -1) {
+    return [primaryScope, []];
+  }
+  const alternateScopes = [];
+  for (let i = currentCaseIndex + 1; i < condition.parent.cases.length; i++) {
+    const $case = condition.parent.cases[i];
+    const alternateScopeName = VariableScope.getName($case.consequent);
+    // $FlowIssue
+    let alternateScope: VariableScope = moduleScope.scopes.get(
+      alternateScopeName
+    );
+    if (!(alternateScope instanceof VariableScope)) {
+      alternateScope = new VariableScope(
+        VariableScope.BLOCK_TYPE,
+        currentScope
+      );
+      moduleScope.scopes.set(alternateScopeName, alternateScope);
+    }
+    alternateScopes.push(alternateScope);
+  }
+  return [primaryScope, alternateScopes];
+}
+
 function getScopesForConditionalExpression(
   condition: ConditionalExpression,
   currentScope: VariableScope | ModuleScope,
@@ -81,7 +118,7 @@ function getPrimaryAndAlternativeScopes(
   currentScope: VariableScope | ModuleScope,
   typeScope: TypeScope,
   moduleScope: ModuleScope
-): [VariableScope, VariableScope | void] {
+): [VariableScope, VariableScope | Array<VariableScope> | void] {
   let primaryScope: Node | void;
   let alternateScope: Node | void;
   switch (currentRefinementNode.type) {
@@ -116,6 +153,13 @@ function getPrimaryAndAlternativeScopes(
         moduleScope
       );
       break;
+    case NODE.SWITCH_CASE:
+      [primaryScope, alternateScope] = getScopesForSwitchCase(
+        currentRefinementNode,
+        currentScope,
+        moduleScope
+      );
+      break;
   }
   if (
     !primaryScope ||
@@ -136,6 +180,7 @@ function getCondition(currentRefinementNode: Node) {
     case NODE.FOR_STATEMENT:
       return currentRefinementNode.test;
     case NODE.LOGICAL_EXPRESSION:
+    case NODE.SWITCH_CASE:
       return currentRefinementNode;
   }
 }
@@ -237,6 +282,14 @@ function refinementByCondition(
   moduleScope: ModuleScope
 ): ?Array<[string, Type, Type]> {
   switch (condition.type) {
+    case NODE.SWITCH_CASE:
+      const caseRefinement = equalsRefinement(
+        condition,
+        currentScope,
+        typeScope,
+        moduleScope
+      );
+      return caseRefinement && [caseRefinement];
     case NODE.UNARY_EXPRESSION:
       if (condition.operator === "!") {
         const refinements = refinementByCondition(
@@ -363,6 +416,10 @@ export function refinement(
     typeScope,
     moduleScope
   );
+  const alternateScopes =
+    Array.isArray(alternateScope) || alternateScope == undefined
+      ? alternateScope
+      : [alternateScope];
   const condition: ?Node = getCondition(currentRefinementNode);
   if (condition == undefined) {
     return;
@@ -379,8 +436,10 @@ export function refinement(
   currentRefinements.forEach(refinement => {
     const [varName, refinementedType, alternateType] = refinement;
     primaryScope.body.set(varName, new VariableInfo(refinementedType));
-    if (alternateType && alternateScope) {
-      alternateScope.body.set(varName, new VariableInfo(alternateType));
+    if (alternateType && alternateScopes) {
+      alternateScopes.forEach(alternateScope => {
+        alternateScope.body.set(varName, new VariableInfo(alternateType));
+      });
     }
   });
 }

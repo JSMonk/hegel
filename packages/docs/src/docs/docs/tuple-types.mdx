@@ -1,0 +1,78 @@
+---
+name: Tuple Types
+route: /docs/tuple-types
+menu: Type Annotations
+---
+
+# Tuple Types
+----------------
+
+The same as [Primitive Types](/docs/primitive-types) and [Object Types](/docs/primitive-types), Hegel provide support for usage array literal as type, and this array literal types called Tuples. Tuple types allow you to define an array with a fixed number of elements with known types. The syntax fo tuple types is `[type1, type2, type3]`.
+```typescript
+const tuple: [string, number] = ["", 0];
+```
+
+## Getting element from Tuple
+
+Unlike [Array Types](/docs/array-types) Tuple will return strict type which placed at position in tuple type definition and will show an error, if you will try to access out of tuple range.
+
+```typescript
+const tuple: [string, number] = ["", 0];
+
+// first type is "string"
+const first = tuple[0];
+// second type is "number"
+const second = tuple[1];
+// Error: Property "2" are not exists in "[string, number]"
+const third = tuple[2];
+```
+
+Also, unlike [Array Types](/docs/array-types), Tuples have strict defined type for length and as result, a cannot mutate "length" property in a tuple type.
+```typescript
+const tuple: [string, number] = ["", 0];
+
+// length type is "2"
+const length = tuple.length;
+
+// Error: Type "3" is incompatible with type "2"
+tuple.length = 3;
+```
+
+## Tuple methods and mutation
+
+As you may understand, Hegel provide the same methods for Tuples Types as for [Array Types](/docs/array-types), but with one exception. If you will try to use any of methods from Array which will mutate source tuple (https://doesitmutate.xyz/) you will have an error. 
+
+```typescript
+const numbers: [number, number, number] = [1, 2, 3];
+const plusOne = numbers.map(a => a + 1);
+const lessThan3 = numbers.filter(a => a < 3);
+
+// Error: You trying to use tuple as Array, please setup variable type as Array
+const reversed = numbers.reverse();
+```
+
+## Subtyping
+
+The same as [Array Types](/docs/array-types) Tuple types have invariant nature, so you can't assign to one tuple another with more wide element type or with greater or less elements count.
+
+```typescript
+const source: [number, number] = [0, 0];
+
+// Error: Type "[number, number]" is incompatible with type "[number | string, number]"
+const widerByElementType: [number | string, number] = source;
+
+// Error: Type "[number, number]" is incompatible with type "[number, number, number]"
+const widerByElementsCount: [number, number, number] = source;
+
+// Error: Type "[number, number]" is incompatible with type "[number]"
+const narrowerByElementsCount: [number] = source;
+```
+
+And also tuples don’t match array types:
+
+```typescript
+const source: [number, number] = [0, 0];
+
+// Error: Type "[number, number]" is incompatible with type "Array<number>"
+const array: Array<number> = source;
+```

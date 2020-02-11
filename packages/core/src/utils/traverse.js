@@ -44,7 +44,8 @@ function mixBodyToArrowFunctionExpression(currentNode: Node) {
 function mixBlockToLogicalOperator(currentNode: Node) {
   if (
     currentNode.type !== NODE.LOGICAL_EXPRESSION ||
-    (currentNode.operator !== "&&" && currentNode.operator !== "||")
+    (currentNode.operator !== "&&" && currentNode.operator !== "||") ||
+    currentNode.left.type === NODE.BLOCK_STATEMENT
   ) {
     return currentNode;
   }
@@ -68,7 +69,10 @@ function mixBlockToLogicalOperator(currentNode: Node) {
 }
 
 function mixBlockToConditionalExpression(currentNode: Node) {
-  if (currentNode.type !== NODE.CONDITIONAL_EXPRESSION) {
+  if (
+    currentNode.type !== NODE.CONDITIONAL_EXPRESSION ||
+    currentNode.consequent.type === NODE.BLOCK_STATEMENT
+  ) {
     return currentNode;
   }
   currentNode.consequent = {
@@ -129,10 +133,41 @@ function getInitFor(node) {
     case NODE.FOR_IN_STATEMENT:
       return { type: NODE.PURE_KEY, of: node.right };
     case NODE.FOR_OF_STATEMENT:
-      return { type: NODE.PURE_VALUE, of: node.right };
+      return { type: NODE.VALUE, of: node.right };
     default:
       return;
   }
+}
+
+function mixBlockToCaseStatement(currentNode: Node) {
+  if (currentNode.type !== NODE.SWITCH_STATEMENT) {
+    return currentNode;
+  }
+  for (let i = 0; i < currentNode.cases.length; i++) {
+    const $case = currentNode.cases[i];
+    const locStart = $case.loc.start;
+    let locEnd = currentNode.loc.end;
+    const body = $case.consequent.body || $case.consequent;
+    for (let j = i; j < currentNode.cases.length; j++) {
+      const breakStatement = body.find(
+        statement =>
+          statement.type === NODE.RETURN_STATEMENT ||
+          statement.type === NODE.THROW_STATEMENT ||
+          statement.type === NODE.BREAK_STATEMENT
+      );
+      if (breakStatement !== undefined) {
+        locEnd = breakStatement.loc.end;
+        break;
+      }
+    }
+    $case.parent = currentNode;
+    $case.consequent = {
+      type: NODE.BLOCK_STATEMENT,
+      loc: { start: locStart, end: locEnd },
+      body
+    };
+  }
+  return currentNode;
 }
 
 function mixDeclarationsInideForBlock(currentNode: Node) {
@@ -278,7 +313,8 @@ const getCurrentNode = compose(
   mixExportInfo,
   mixBlockToLogicalOperator,
   mixElseIfReturnOrThrowExisted,
-  mixBlockToConditionalExpression
+  mixBlockToConditionalExpression,
+  mixBlockToCaseStatement
 );
 
 export type Handler = (

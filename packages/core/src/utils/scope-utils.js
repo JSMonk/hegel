@@ -52,9 +52,19 @@ export function findNearestTypeScope(
   );
   do {
     // $FlowIssue
-    if (scope.declaration && "localTypeScope" in scope.declaration.type) {
-      // $FlowIssue
-      return scope.declaration.type.localTypeScope;
+    if (scope.declaration) {
+      if ("localTypeScope" in scope.declaration.type) {
+        // $FlowIssue
+        return scope.declaration.type.localTypeScope;
+      }
+      if (
+        scope.declaration.type.instanceType &&
+        scope.declaration.type.instanceType.subordinateMagicType &&
+        "localTypeScope" in scope.declaration.type.instanceType.subordinateMagicType
+      ) {
+        // $FlowIssue
+        return scope.declaration.type.instanceType.subordinateMagicType.localTypeScope;
+      }
     }
     const parent = scope.parent;
     if (parent === null) {
@@ -94,7 +104,8 @@ export function getScopeFromNode(
   currentNode: Node,
   parentNode: Node | ModuleScope | VariableScope,
   typeGraph: ModuleScope,
-  declaration?: VariableInfo
+  declaration?: VariableInfo,
+  scopeCreator?: string
 ) {
   return new VariableScope(
     getScopeType(currentNode),
@@ -102,6 +113,7 @@ export function getScopeFromNode(
       ? parentNode
       : getParentForNode(currentNode, parentNode, typeGraph),
     declaration,
+    scopeCreator,
     currentNode.skipCalls !== undefined
   );
 }
@@ -109,7 +121,8 @@ export function getScopeFromNode(
 export function addScopeToTypeGraph(
   currentNode: Node,
   parentNode: Node,
-  typeGraph: ModuleScope
+  typeGraph: ModuleScope,
+  creator?: Node
 ) {
   const scopeName = VariableScope.getName(currentNode);
   if (typeGraph.scopes.has(scopeName)) {
@@ -117,6 +130,31 @@ export function addScopeToTypeGraph(
   }
   typeGraph.scopes.set(
     scopeName,
-    getScopeFromNode(currentNode, parentNode, typeGraph)
+    getScopeFromNode(
+      currentNode,
+      parentNode,
+      typeGraph,
+      undefined,
+      getScopeCreator(creator)
+    )
   );
+}
+
+function getScopeCreator(creator: Node) {
+  switch (creator.type) {
+    case NODE.IF_STATEMENT:
+      return "if";
+    case NODE.WHILE_STATEMENT:
+      return "while";
+    case NODE.DO_WHILE_STATEMENT:
+      return "do-while";
+    case NODE.FOR_STATEMENT:
+      return "for";
+    case NODE.FOR_OF_STATEMENT:
+      return "for-of";
+    case NODE.FOR_IN_STATEMENT:
+      return "for-in";
+    case NODE.BLOCK_STATEMENT:
+      return "block";
+  }
 }

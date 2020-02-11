@@ -1,0 +1,203 @@
+---
+name: Function Types
+route: /docs/function-types
+menu: Type Annotations
+---
+
+# Function Types
+---------------------
+
+Functions have two places where you can annotate types: arguments (input) and the return value (output).
+
+```typescript
+// Function Declaration
+function sum1(a: number, b: number): number {
+  return a + b;
+}
+
+// Function Expression
+const sum2 = function (a: number, b: number): number {
+  return a + b;
+}
+
+// Arrow Function Expression
+const sum3 = (a: number, b: number): number => a + b;
+
+sum1(1, 2) // 👌!
+sum2(1, 2) // 👌!
+sum3(1, 2) // 👌!
+
+// Error: Type "false" is incompatible with type "number"
+sum1(false, "");
+
+// Error: Type "''" is incompatible with type "number"
+sum2("", 4);
+
+// Error: Type "'1'" is incompatible with type "number"
+sum3("1", "2");
+```
+
+## Function Returns
+
+As you understand, arguments types will be checked when you will try to apply arguments to a function. But return type will be checked when you implemented function logic. 
+
+```typescript
+function awesome(name: string): string {
+  // Error: Type "2" is incompatible with type "string"
+  return 2;
+}
+```
+
+Return types ensure that every `return` will be called with the same type. This prevents you from accidentally not returning a value under certain conditions.
+
+## Optional and Default Argument
+
+All arguments are required by default. But, (as was mentioned in [Optional Types](/docs/optiona-types) if you annotate some argument as optional type then this argument will become optional:
+
+```typescript
+function awesome(name: ?string) {
+  const actualName = name === undefined ? "you" : name;
+  return `Awesome, ${actualName}.`;
+}
+
+awesome()             // 👌!
+awesome("JavaScript") // 👌!
+```
+
+In JavaScript, we can also set a default value for optional argument like this:
+
+```typescript
+function awesome(name = "you") {
+  return `Awesome, ${name}.`;
+}
+```
+
+So, with which type should be annotated for `name` argument?
+If you will set `string` type to name and firstly hover on (in [Hegel Playground](/try#GYVwdgxgLglg9mABAQwO4FMDOcC26AUYyeAXIplAE4xgDmiAvIgEQCecIzAlIgN4BQiRJXRQQlJAAMAghmx4ANIgAkvIngC+AOkkBufhqA)) function name and after on argument name, you will see some kind of magic: function is optional outside the function but concrete inside.
+
+```typescript
+// awesome: (string | undefined) => string
+function awesome(name: string = "you") {
+  return `Awesome, ${name}.`;
+}
+
+awesome()             // 👌!
+awesome("JavaScript") // 👌!
+```
+
+## Rest Argument
+
+Sometimes, you don't know how many argument will be applied to the function. JavaScript supports rest arguments. The rest operator '...' group all applied arguments in array of arguments.
+
+```typescript
+function sum(...numbers) {
+  // ...
+}
+```
+
+In Hegel you can annotate this argument the same as other arguments, but with a constraint. The type of this rest argument should be an [`Array` type](/docs/array-types) or [tuple type](/docs/tuple-types)
+
+```typescript
+function sum(...numbers: Array<number>) {
+  return numbers.reduce((a, b) => a + b, 0);
+}
+
+sum();             // 👌!
+sum(1);            // 👌!
+sum(1, 2);         // 👌!
+sum(1, 2, 42);     // 👌!
+sum(1, 2, 42, 14); // 👌!
+// ...
+```
+
+```typescript
+function sum(...numbers: [number] | [number, number] | [number, number, number]) {
+  return numbers.reduce((a, b) => a + b, 0);
+}
+
+// Error: Type "[]" is incompatible with type "...[number, number, number] | [number, number] | [number]"
+sum();
+sum(1);       // 👌!
+sum(1, 2);    // 👌!
+sum(1, 2, 3); // 👌!
+
+// Error Type "[1, 2, 3, 4]" is incompatible with type "...[number, number, number] | [number, number] | [number]"
+sum(1, 2, 3, 4);
+```
+
+## Function Type
+
+Sometimes, you need to annotate argument or return type as function. Hegel have syntax for function type annotation `(type1, type2) => returnType`. For example:
+
+```typescript
+function twice(fn: (number) => number, arg: number) {
+   return fn(fn(arg)); 
+}
+
+twice((a: number): number => a + 4, 4); // 👌!
+twice(                                  // 👌!
+  (a: number | string): number => (typeof a === "string" ? parseInt(a) : a) + 4,
+  4
+); 
+
+// Error: Type "(string) => number" is incompatible with type "(number) => number"
+twice((a: string): number => parseInt(a), 4);
+
+// Error: Type "(number) => string" is incompatible with type "(number) => number"
+twice((a: number): string => String(a), 4);
+
+// Error: Type "(number) => number | string" is incompatible with type "(number) => number"
+twice((a: number): number | string => a, 4);
+```
+
+**Info**: If you will play with previous example you will see a next rule with function type:
+You can assign function to another only if arguments wider then declarated and return type is more concret then declarated. This rule sounds like: function is [contravariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by arguments and [covariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by return.
+
+More easy and classical example of this rule:
+
+```typescript
+class Animal {
+  name: string;
+  constructor(name: string) {
+    this.name = name;
+  }
+}
+class Dog extends Animal {}
+class Corgi extends Dog {}
+
+function presentMyDog(goodBoy: Dog, dogPresenter: (Dog) => Dog): string {
+  const dog = dogPresenter(goodBoy);
+  return `${dog.name}, my ${dog.name}, i will give you to noone.`;
+}
+
+const nickolay = new Corgi("Nickolay");
+
+presentMyDog(nickolay, (goodBoy: Dog): Dog => goodBoy);     // 👌!
+presentMyDog(nickolay, (goodBoy: Animal): Dog => nickolay); // 👌!
+
+// Error: Type "(Corgi) => Dog" is incompatible with type "(Dog) => Dog"
+presentMyDog(nickolay, (goodBoy: Corgi): Dog => nickolay);
+
+presentMyDog(nickolay, (goodBoy: Dog): Corgi => nickolay);  // 👌!
+
+// Error: Type "(Dog) => Animal" is incompatible with type "(Dog) => Dog"
+presentMyDog(nickolay, (goodBoy: Dog): Animal => nickolay);
+```
+
+## Function
+
+Also, Hegel supports `Function` type which represent any possible function in JavaScript:
+
+```typescript
+function argsLength(fn: Function) {
+  return fn.length;
+}
+
+argsLength(() => 2);
+argsLength((a: number) => a);
+argsLength(parseFloat);
+// Error: Type "2" is incompatible with type "Function"
+argsLength(2);
+// Error: Type "[]" is incompatible with type "Function"
+argsLength([]);
+```

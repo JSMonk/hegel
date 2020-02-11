@@ -634,7 +634,7 @@ interface Object {
 }
 
 interface ObjectConstructor {
-  constructor(value?: any): Object;
+  new(value?: any): Object;
 
   //     /** A reference to the prototype for a class of objects. */
   readonly prototype: Object;
@@ -855,6 +855,8 @@ interface String {
   //       * @param replaceValue A string containing the text to replace for every successful match of searchValue in this string.
   //       */
   replace(searchValue: string | RegExp, replaceValue: string): string;
+
+  repeat(times: number): string;
 
   //     /**
   //       * Replaces text in a string, using a regular expression or search string.
@@ -1561,7 +1563,7 @@ interface JSON {
   parse(
     text: string,
     reviver?: (this: any, key: string, value: any) => any
-  ): object;
+  ): unknown;
   //     /**
   //       * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
   //       * @param value A JavaScript value, usually an object or array, to be converted.

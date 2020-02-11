@@ -475,11 +475,11 @@ const mixBaseOperators = moduleScope => {
     ],
     [
       "in",
-      FunctionType.term(
-        "(string, Object) => boolean",
-        { parent: typeScope },
-        [Type.String, ObjectType.Object],
-        Type.Boolean
+      genericFunction(
+        typeScope,
+        parent => [["T", TypeVar.term("T", { parent }, ObjectType.Object)]],
+        l => [Type.String, l.body.get("T")],
+        l => Type.Boolean
       )
     ],
     [

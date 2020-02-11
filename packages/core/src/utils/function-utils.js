@@ -80,6 +80,7 @@ export function addFunctionToTypeGraph(
     post,
     name
   );
+  variableInfo.isInferenced = currentNode.returnType === undefined;
   const currentTypeScope = findNearestTypeScope(
     variableInfo.parent,
     moduleScope
@@ -127,14 +128,13 @@ export function addFunctionToTypeGraph(
   const withPositions = moduleScope instanceof PositionedModuleScope;
   currentNode.params.forEach((param, index) => {
     let type = (functionType: any).argumentsTypes[index];
-    const id = param.left || param;
-    if (
-      param.left != undefined &&
-      type instanceof UnionType &&
-      id.typeAnnotation == undefined
-    ) {
+    const id = param.left || param.argument || param;
+    if (param.left != undefined && type instanceof UnionType) {
       const types = type.variants.filter(a => a !== Type.Undefined);
       type = UnionType.term(null, { parent: currentTypeScope }, types);
+    }
+    if (param.argument != undefined) {
+      type = type.type;
     }
     let varInfo = scope.body.get(id.name);
     if (varInfo !== undefined) {

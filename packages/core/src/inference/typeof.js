@@ -89,6 +89,23 @@ function getRefinmentType(stringNode: Node): Type {
   );
 }
 
+function refinementVariants(
+  [refinementedVariants, alternateVariants]: [Array<Type>, Array<Type>],
+  variant: Type,
+  refinementType: Type
+): [Array<Type>, Array<Type>] {
+  if (refinementType.isPrincipalTypeFor(variant)) {
+    return [refinementedVariants.concat([variant]), alternateVariants];
+  }
+  if (variant.isSuperTypeFor(refinementType)) {
+    return [
+      refinementedVariants.concat([refinementType]),
+      alternateVariants.concat([variant])
+    ];
+  }
+  return [refinementedVariants, alternateVariants.concat([variant])];
+}
+
 function typeofIdentifier(
   node: Identifier,
   currentScope: VariableScope | ModuleScope,
@@ -102,15 +119,13 @@ function typeofIdentifier(
   const [refinementedVariants, alternateVariants] =
     variableInfo.type instanceof UnionType
       ? variableInfo.type.variants.reduce(
-          ([refinementedVariants, alternateVariants], variant) =>
-            refinementType.isPrincipalTypeFor(variant)
-              ? [refinementedVariants.concat([variant]), alternateVariants]
-              : [refinementedVariants, alternateVariants.concat([variant])],
+          (res, variant) => refinementVariants(res, variant, refinementType),
           [[], []]
         )
-      : [[], []];
+      : refinementVariants([[], []], variableInfo.type, refinementType);
   if (
     !(variableInfo.type instanceof TypeVar) &&
+    variableInfo.type !== Type.Unknown  &&
     refinementedVariants.length === 0
   ) {
     throw new HegelError(
