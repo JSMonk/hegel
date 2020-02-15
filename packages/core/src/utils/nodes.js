@@ -100,6 +100,7 @@ export const LITERAL_TYPES = {
 
 export const ANNOTATION_TYPES = {
   FUNCTION_TYPE_ANNOTATION: "FunctionTypeAnnotation",
+  CLASS_IMPLEMENTS: "ClassImplements",
   ANY_TYPE_ANNOTATION: "AnyTypeAnnotation",
   VOID_TYPE_ANNOTATION: "VoidTypeAnnotation",
   BOOLEAN_TYPE_ANNOTATION: "BooleanTypeAnnotation",

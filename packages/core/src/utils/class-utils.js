@@ -2,6 +2,8 @@
 import NODE from "./nodes";
 import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
+import { Type } from "../type-graph/types/type";
+import { $Soft } from "../type-graph/types/soft-type";
 import { CallMeta } from "../type-graph/meta/call-meta";
 import { TypeScope } from "../type-graph/type-scope";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -9,6 +11,7 @@ import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
+import { $Intersection } from "../type-graph/types/intersection-type";
 import { VariableScope } from "../type-graph/variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { addCallToTypeGraph } from "../type-graph/call";
@@ -377,9 +380,18 @@ export function addClassToTypeGraph(
   }
   const errors = [];
   // properties.forEach((property, key) => {
-  //  if (!property.hasInitializer && property.type.name !== "undefined") {
-  //    errors.push(new HegelError(`Property "${key}" has a type, but doesn't have an initializer!`, property.meta.loc));
-  //  }
+  //   if (
+  //     !isTypeDefinitions &&
+  //     !property.hasInitializer &&
+  //     !property.type.contains(Type.Undefined)
+  //   ) {
+  //     errors.push(
+  //       new HegelError(
+  //         `Property "${key}" has a type, but doesn't have an initializer!`,
+  //         property.meta.loc
+  //       )
+  //     );
+  //   }
   // });
   if (errors.length !== 0) {
     throw errors;
@@ -438,6 +450,37 @@ export function addClassToTypeGraph(
         );
       }
     }
+  }
+  if (classNode.implements) {
+    const localTypeScope =
+      self.type instanceof $BottomType
+        ? self.type.subordinateMagicType.localTypeScope
+        : typeScope;
+    classNode.implements.forEach((typeAnnotation, index) => {
+      const typeForImplementation = new $Soft().applyGeneric(
+        [
+          getTypeFromTypeAnnotation(
+            { typeAnnotation },
+            localTypeScope,
+            classScope.parent,
+            true,
+            null,
+            parentNode,
+            typeGraph,
+            pre,
+            middle,
+            post
+          )
+        ],
+        typeAnnotation.loc
+      );
+      if (!typeForImplementation.isPrincipalTypeFor(self.type)) {
+        throw new HegelError(
+          `Wrong implementation for type "${typeAnnotation.id.name}"`,
+          typeAnnotation.loc
+        );
+      }
+    });
   }
   classScope.isProcessed = true;
   // $FlowIssue

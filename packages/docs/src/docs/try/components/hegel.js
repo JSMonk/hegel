@@ -4,7 +4,7 @@ import { createModuleScope, createGlobalScope } from "@hegel/core";
 let module = undefined;
 
 const STANDARD_LIB_OPTIONS = { plugins: ["typescript"] };
-const DEFAULT_OPTIONS = { plugins: ["bigInt", ["flow", { all: true }]] };
+const DEFAULT_OPTIONS = { plugins: ["bigInt", "classProperties", ["flow", { all: true }]] };
 // eslint-disable-next-line
 const STANDARD_AST = parse(STD_LIB_CONTENT, STANDARD_LIB_OPTIONS).program;
 

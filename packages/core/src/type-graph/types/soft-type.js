@@ -32,7 +32,7 @@ export class $Soft extends GenericType {
     const [target] = parameters;
     const realTarget = target.constraint || target;
     if (!(realTarget instanceof ObjectType)) {
-      throw new HegelError("First parameter should be an object type", loc);
+      throw new HegelError("Parameter should be an object type", loc);
     }
     const properties = [...realTarget.properties.entries()];
     return ObjectType.term(

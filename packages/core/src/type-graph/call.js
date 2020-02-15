@@ -415,7 +415,8 @@ export function addCallToTypeGraph(
         pre,
         middle,
         post,
-        meta
+        meta,
+        { isForAssign: true }
       );
       const left = addCallToTypeGraph(
         node.left,
@@ -594,8 +595,8 @@ export function addCallToTypeGraph(
       );
       const lts = new TypeScope(typeScope);
       const argsTypes = [
-          TypeVar.new("A", { parent: lts }, undefined, undefined, true),
-          TypeVar.new("B", { parent: lts }, undefined, undefined, true)
+        TypeVar.new("A", { parent: lts }, undefined, undefined, true),
+        TypeVar.new("B", { parent: lts }, undefined, undefined, true)
       ];
       const property = new $BottomType(
         { isForAssign: meta.isForAssign },

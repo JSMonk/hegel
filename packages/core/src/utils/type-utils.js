@@ -523,6 +523,7 @@ export function getTypeFromTypeAnnotation(
         typeParameters: { params: [{ id: typeNode.typeAnnotation.exprName }] }
       };
     case NODE.GENERIC_TYPE_ANNOTATION:
+    case NODE.CLASS_IMPLEMENTS:
     case NODE.TS_TYPE_REFERENCE_ANNOTATION:
     case NODE.TS_EXPRESSION_WITH_TYPE_ARGUMENTS:
       const target = typeNode.typeAnnotation || typeNode;
