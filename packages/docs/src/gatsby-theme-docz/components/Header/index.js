@@ -128,7 +128,7 @@ export function Header() {
         <Container>
           <List>
             <ListItem>
-              <NavLink>Docs</NavLink>
+              <NavLink to="/docs">Docs</NavLink>
             </ListItem>
             <ListItem>
               <NavLink to="/try">Try</NavLink>
@@ -137,7 +137,13 @@ export function Header() {
               <NavLink>Community</NavLink>
             </ListItem>
             <ListItem>
-              <NavLink>GitHub</NavLink>
+              <NavLink
+                as="a"
+                href="https://github.com/JSMonk/hegel"
+                target="_blank"
+              >
+                GitHub
+              </NavLink>
             </ListItem>
           </List>
           <Toggle mode={colorMode} onClick={toggleMode}>

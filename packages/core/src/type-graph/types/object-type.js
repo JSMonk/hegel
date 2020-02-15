@@ -94,6 +94,7 @@ export class ObjectType extends Type {
   isNominal: boolean;
   properties: Map<string, VariableInfo>;
   instanceType: Type | null = null;
+  classType: Type | null = null;
   isStrict: boolean = true;
   priority = 2;
 

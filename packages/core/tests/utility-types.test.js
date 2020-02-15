@@ -248,7 +248,7 @@ describe("Test $InstanceOf", () => {
   test("Simple test of instance of", async () => {
     const sourceAST = prepareAST(`
       class User { name: string = "" }
-      type A = $InstanceOf<User>;
+      type A = $InstanceOf<$TypeOf<User>>;
     `);
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
@@ -257,20 +257,9 @@ describe("Test $InstanceOf", () => {
     expect(type).toBeInstanceOf(ObjectType);
     expect(type === Type.find("User", { parent: actual.typeScope })).toBe(true);
   });
-  test("Should throw error with non-runtime first argument", async () => {
-    const sourceAST = prepareAST(`
-      type A = $InstanceOf<number>;
-    `);
-    const [, errors] = await createTypeGraph([sourceAST]);
-    expect(errors.length).toEqual(1);
-    expect(errors[0].message).toEqual(
-      '"$InstanceOf" work only with identifier'
-    );
-  });
   test("Should throw error with non-class first argument", async () => {
     const sourceAST = prepareAST(`
-      const a = {};
-      type A = $InstanceOf<a>;
+      type A = $InstanceOf<{}>;
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);

@@ -18,6 +18,7 @@ import { $ThrowsResult } from "../type-graph/types/throws-type";
 import { VariableScope } from "../type-graph/variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { getVariableType } from "../utils/variable-utils";
+import { $AppliedImmutable } from "../type-graph/types/immutable-type";
 import { addCallToTypeGraph } from "../type-graph/call";
 import { findNearestTypeScope } from "../utils/scope-utils";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
@@ -301,6 +302,9 @@ export function getCallTarget(
 ): FunctionType {
   let callTargetType =
     call.target instanceof VariableInfo ? call.target.type : call.target;
+  if (callTargetType instanceof $AppliedImmutable) {
+    callTargetType = callTargetType.readonly;
+  }
   if (callTargetType instanceof TypeVar) {
     callTargetType = Type.getTypeRoot(callTargetType);
   }
@@ -356,7 +360,10 @@ function resolveOuterTypeVarsFromCall(
       }
       root = Type.getTypeRoot(root);
       variable = Type.getTypeRoot(variable, true);
-      if (!genericArguments.some(arg => arg.contains(variable))) {
+      if (
+        !genericArguments.some(arg => arg.contains(variable)) ||
+        (genericArguments.includes(variable) && variable.isUserDefined)
+      ) {
         continue;
       }
       const shouldSetNewRoot =
@@ -434,9 +441,6 @@ export function implicitApplyGeneric(
       maybeBottom.unrootSubordinateType();
     }
   }
-  if (appliedArgumentsTypes.size === 0) {
-    return fn.subordinateType;
-  }
   const rootFinder = t => {
     const root = Type.getTypeRoot(t);
     let mainRoot = appliedArgumentsTypes.get(root);
@@ -452,6 +456,9 @@ export function implicitApplyGeneric(
       !isReachableType(resultType, localTypeScope)
     ) {
       unreachableTypes.add(resultType);
+    }
+    if (resultType === t && resultType.defaultType !== undefined) {
+      return resultType.defaultType;
     }
     return resultType;
   });

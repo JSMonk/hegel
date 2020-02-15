@@ -129,9 +129,10 @@ export class GenericType<T: Type> extends Type {
     );
     const wrongArgumentIndex = genericArguments.findIndex((arg, i) => {
       const parameter = parameters[i];
-      return parameter === undefined
-        ? arg.defaultType === undefined
-        : !arg.isPrincipalTypeFor(parameter);
+      return (parameter === undefined && arg.defaultType === undefined) ||
+            (parameter instanceof TypeVar ? 
+              !arg.isPrincipalTypeFor(parameter)
+              : (arg.constraint !== undefined && !arg.constraint.isPrincipalTypeFor(parameter)));
     });
     if (wrongArgumentIndex !== -1) {
       const parameter = parameters[wrongArgumentIndex];
@@ -273,15 +274,20 @@ export class GenericType<T: Type> extends Type {
     if (!(appliedSelf instanceof TypeVar)) {
       return appliedSelf;
     }
-    const result = this.subordinateType.changeAll(
-      [...this.genericArguments, oldAppliedSelf],
-      [...parameters, appliedSelf],
-      theMostPriorityParent
-    );
-    result.name = result.name === undefined ? appliedTypeName : result.name;
-    appliedSelf.root = result;
-    result.priority = this.subordinateType.priority + 1;
-    return result.save();
+    try {
+      const result = this.subordinateType.changeAll(
+        [...this.genericArguments, oldAppliedSelf],
+        [...parameters, appliedSelf],
+        theMostPriorityParent
+      );
+      result.name = result.name === undefined ? appliedTypeName : result.name;
+      appliedSelf.root = result;
+      result.priority = this.subordinateType.priority + 1;
+      return result.save();
+    } catch (e) {
+      e.loc = e.loc || loc;
+      throw e;
+    }
   }
 
   getPropertyType(propertyName: mixed): ?Type {

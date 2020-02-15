@@ -189,6 +189,7 @@ export function addThisToClassScope(
     classScope.parent.body.set(name, staticSelfVar);
     classScope.declaration = staticSelfVar;
     staticSelfObject.instanceType = self;
+    self.classType = staticSelfObject;
     const isConstructorPresented = currentNode.body.body.some(
       m => m.kind === "constructor"
     );

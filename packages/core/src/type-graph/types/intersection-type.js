@@ -4,6 +4,7 @@ import { TypeScope } from "../type-scope";
 import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 import { $BottomType } from "./bottom-type";
+import { $AppliedImmutable } from "./immutable-type";
 
 export class $Intersection extends GenericType {
   constructor(_, meta = {}) {
@@ -52,15 +53,31 @@ export class $Intersection extends GenericType {
       return new $BottomType({}, this, [firstObject, secondObject]);
     }
     if (!(firstObject instanceof ObjectType)) {
-      throw new HegelError("First parameter should be an object type", loc);
+      throw new HegelError(
+        "First parameter should be an mutable object type",
+        loc
+      );
+    }
+    if ("readonly" in secondObject) {
+      secondObject = secondObject.readonly;
     }
     if (!(secondObject instanceof ObjectType)) {
       throw new HegelError("Second parameter should be an object type", loc);
     }
-    const newProperties = [
-      ...firstObject.properties,
-      ...secondObject.properties
-    ];
+    const newProperties = [...firstObject.properties];
+    for (const [key, variable] of secondObject.properties.entries()) {
+      const existed = firstObject.properties.get(key);
+      if (existed !== undefined && existed.type instanceof $AppliedImmutable) {
+        throw new HegelError(
+          `Attempt to mutate immutable property "${key}" in "${String(
+            firstObject.name
+          )}" type`,
+          loc
+        );
+      }
+      newProperties.push([key, variable]);
+    }
+
     return ObjectType.term(
       ObjectType.getName(newProperties),
       {},

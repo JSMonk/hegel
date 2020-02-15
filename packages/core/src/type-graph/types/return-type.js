@@ -1,4 +1,5 @@
 import HegelError from "../../utils/errors";
+import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { TypeScope } from "../type-scope";
 import { GenericType } from "./generic-type";
@@ -34,12 +35,25 @@ export class $ReturnType extends GenericType {
     shouldBeMemoize = true,
     isCalledAsBottom = false
   ) {
-    super.assertParameters(parameters, loc);
-    const [target] = parameters;
-    const realTarget = target.constraint || target;
-    if (!(realTarget instanceof FunctionType)) {
-      throw new HegelError("First parameter should be an function type", loc);
+    let [target, ...genericParameters] = parameters;
+    const oldGenericArguments = this.genericArguments;
+    if (target instanceof GenericType) {
+      this.genericArguments = this.genericArguments.concat(
+        target.genericArguments.map(a =>
+          Object.assign(new TypeVar(), a, { defaultType: Type.Unknown })
+        )
+      );
+      target = target.applyGeneric(genericParameters, loc);
     }
-    return realTarget.returnType;
+    try {
+      super.assertParameters(parameters, loc);
+      const realTarget = target.constraint || target;
+      if (!(realTarget instanceof FunctionType)) {
+        throw new HegelError("First parameter should be an function type", loc);
+      }
+      return realTarget.returnType;
+    } finally {
+      this.genericArguments = oldGenericArguments;
+    }
   }
 }

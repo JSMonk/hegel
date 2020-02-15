@@ -9,6 +9,8 @@ import type { TypeMeta } from "./type";
 import type { SourceLocation } from "@babel/parser";
 
 export class CollectionType<K: Type, V: Type> extends Type {
+  static Array = new TypeVar("Array");
+
   static term(
     name: mixed,
     meta?: TypeMeta = {},
@@ -76,6 +78,9 @@ export class CollectionType<K: Type, V: Type> extends Type {
     if (this._alreadyProcessedWith === anotherType) {
       return true;
     }
+    if ("readonly" in anotherType && this.equalsTo(TupleType.ReadonlyArray.root.applyGeneric([this.valueType])) && this === anotherType.readonly) {
+      return true;
+    }
     this._alreadyProcessedWith = anotherType;
     const result =
       anotherType instanceof CollectionType &&
@@ -105,10 +110,10 @@ export class CollectionType<K: Type, V: Type> extends Type {
         this.keyType.equalsTo(anotherType.keyType) &&
         this.valueType.isPrincipalTypeFor(anotherType.valueType)) ||
       (anotherType instanceof TupleType &&
-        (anotherType.isSubtypeOf === null ||
-          selfNameWithoutApplying ===
-            GenericType.getNameWithoutApplying(anotherType.isSubtypeOf.name)) &&
-        this.keyType.equalsTo(Type.Number) &&
+        (
+          this.equalsTo(CollectionType.Array.root.applyGeneric([this.valueType])) ||
+          this.equalsTo(TupleType.ReadonlyArray.root.applyGeneric([this.valueType]))
+        ) &&
         anotherType.items.every(t => this.valueType.isPrincipalTypeFor(t)));
     this._alreadyProcessedWith = null;
     return result;

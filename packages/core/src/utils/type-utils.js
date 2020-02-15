@@ -554,10 +554,7 @@ export function getTypeFromTypeAnnotation(
             typeNode.typeAnnotation.loc
           );
         }
-        if (
-          existedGenericType.name === "$TypeOf" ||
-          existedGenericType.name === "$InstanceOf"
-        ) {
+        if (existedGenericType.name === "$TypeOf") {
           if (
             genericArguments.length !== 1 ||
             (genericArguments[0].id == undefined ||

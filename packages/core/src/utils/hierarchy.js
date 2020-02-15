@@ -5,6 +5,7 @@ import { TupleType } from "../type-graph/types/tuple-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { FunctionType } from "../type-graph/types/function-type";
+import { CollectionType } from "../type-graph/types/collection-type";
 
 export function setupBaseHierarchy(globalTypeScope) {
   Type.GlobalTypeScope = globalTypeScope;
@@ -19,7 +20,8 @@ export function setupBaseHierarchy(globalTypeScope) {
   Type.Never.parent = globalTypeScope;
   ObjectType.Object.parent = globalTypeScope;
   FunctionType.Function.parent = globalTypeScope;
-  TupleType.Array.parent = globalTypeScope;
+  TupleType.ReadonlyArray.parent = globalTypeScope;
+  CollectionType.Array.parent = globalTypeScope;
   TypeVar.Self.parent = globalTypeScope;
 }
 
@@ -28,19 +30,30 @@ export function setupFullHierarchy(globalTypeScope) {
   globalTypeScope.body.set("Object", ObjectType.Object);
   FunctionType.Function.root = ObjectType.term("Function", {}, []);
   globalTypeScope.body.set("Function", FunctionType.Function);
-  const local = new TypeScope(globalTypeScope);
-  TupleType.Array.root = GenericType.term(
+  const readonlyArrayLocal = new TypeScope(globalTypeScope);
+  TupleType.ReadonlyArray.root = GenericType.term(
+    "ReadonlyArray",
+    {},
+    [TypeVar.new("T", { parent: readonlyArrayLocal })],
+    readonlyArrayLocal,
+    ObjectType.new("ReadonlyArray<T>", { parent: readonlyArrayLocal }, [])
+  );
+  TupleType.ReadonlyArray.name = "$Immutable<Array<T>>";
+  TupleType.ReadonlyArray.root.name = "$Immutable<Array<T>>";
+  TupleType.ReadonlyArray.root.subordinateType.name = "$Immutable<Array<T>>";
+  const arrayLocal = new TypeScope(globalTypeScope);
+  CollectionType.Array.root = GenericType.term(
     "Array",
     {},
-    [TypeVar.new("T", { parent: local })],
-    local,
-    ObjectType.new("Array<T>", { parent: local }, [])
+    [TypeVar.new("T", { parent: arrayLocal })],
+    arrayLocal,
+    ObjectType.new("Array<T>", { parent: arrayLocal }, [])
   );
-  globalTypeScope.body.set("Array", TupleType.Array);
 }
 
 export function dropAllGlobals() {
   ObjectType.Object.root = undefined;
   FunctionType.Function.root = undefined;
-  TupleType.Array.root = undefined;
+  TupleType.ReadonlyArray.root = undefined;
+  CollectionType.Array.root = undefined;
 }

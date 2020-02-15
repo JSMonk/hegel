@@ -32,10 +32,10 @@ export class $InstanceOf extends GenericType {
     super.assertParameters(parameters, loc);
     const [target] = parameters;
     if (
-      !(target.type instanceof ObjectType && target.type.instanceType !== null)
+      !(target instanceof ObjectType && target.instanceType !== null)
     ) {
       throw new HegelError("Cannot apply $InstanceOf to non-class type", loc);
     }
-    return target.type.instanceType;
+    return target.instanceType;
   }
 }

@@ -7,6 +7,9 @@ export default {
   mdPlugins: [],
   ignore: ["src/gatsby-theme-docz/**"],
   public: "./public",
+  themeConfig: {
+    useColorSchemeMediaQuery: true
+  },
   menu: [
     {
       name: "Intro",
@@ -31,7 +34,7 @@ export default {
         "Tuple Types",
         "Type Aliases",
         "Generic Types",
-        "Utility Types",
+        "Magic Types",
         "Modules"
       ]
     },

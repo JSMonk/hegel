@@ -995,6 +995,9 @@ function invoke({
   meta,
   dropUnknown
 }) {
+  if (targetType instanceof $AppliedImmutable) {
+    targetType = targetType.readonly;
+  }
   if (
     !(targetType instanceof $BottomType) &&
     !(targetType instanceof TypeVar && !targetType.isUserDefined) &&

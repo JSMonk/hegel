@@ -1,8 +1,9 @@
-import HegelError from "../../utils/errors";
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
+import { TupleType } from "./tuple-type";
 import { TypeScope } from "../type-scope";
 import { GenericType } from "./generic-type";
+import { CollectionType } from "./collection-type";
 
 export class $AppliedImmutable extends Type {
   static term(
@@ -28,6 +29,13 @@ export class $AppliedImmutable extends Type {
 
   constructor(name, meta = {}, type) {
     name = name || this.getName(type);
+    if (
+      type instanceof CollectionType &&
+      CollectionType.Array.root !== undefined &&
+      type.equalsTo(CollectionType.Array.root.applyGeneric([type.valueType]))
+    ) {
+      type = TupleType.ReadonlyArray.root.applyGeneric([type.valueType]);
+    }
     if (!type.onlyLiteral) {
       meta.isSubtypeOf = type;
     }
@@ -36,6 +44,12 @@ export class $AppliedImmutable extends Type {
   }
 
   equalsTo(type) {
+    if (
+      type instanceof CollectionType &&
+      type.equalsTo(TupleType.ReadonlyArray.root.applyGeneric([type.valueType]))
+    ) {
+      return true;
+    }
     if (type.onlyLiteral || type instanceof $AppliedImmutable) {
       return (
         type instanceof $AppliedImmutable &&
@@ -112,9 +126,6 @@ export class $Immutable extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [target] = parameters;
-    if (!(target instanceof Type)) {
-      throw new HegelError("First parameter should be an type", loc);
-    }
     return $AppliedImmutable.term(
       `$Immutable<${String(target.name)}>`,
       { parent: target.parent },

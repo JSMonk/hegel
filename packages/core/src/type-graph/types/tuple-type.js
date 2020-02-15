@@ -9,7 +9,7 @@ import { CollectionType } from "./collection-type";
 import type { TypeMeta } from "./type";
 
 export class TupleType extends Type {
-  static Array = new TypeVar("Array");
+  static ReadonlyArray = new TypeVar("ReadonlyArray");
 
   static term(
     name: mixed,
@@ -34,16 +34,6 @@ export class TupleType extends Type {
     return super.term(name, newMeta, items, ...args);
   }
 
-  static mutable = [
-    "pop",
-    "push",
-    "reverse",
-    "shift",
-    "sort",
-    "splice",
-    "unshift"
-  ];
-
   static getName(params: Array<Type> | Type) {
     if (params instanceof Type) {
       return String(params.name);
@@ -66,9 +56,9 @@ export class TupleType extends Type {
       items.length !== 0 ? UnionType.term(null, {}, items) : Type.Unknown
     ];
     const isSubtypeOf =
-      TupleType.Array.root === undefined
-        ? new $BottomType({}, TupleType.Array, arrayValue)
-        : TupleType.Array.root.applyGeneric(arrayValue);
+      TupleType.ReadonlyArray.root === undefined
+        ? new $BottomType({}, TupleType.ReadonlyArray, arrayValue)
+        : TupleType.ReadonlyArray.root.applyGeneric(arrayValue);
     super(name, { ...meta, isSubtypeOf });
     this.items = items;
   }
@@ -156,11 +146,6 @@ export class TupleType extends Type {
     }
     if (propertyIndex === "length") {
       return Type.term(this.items.length, { isSubtypeOf: Type.Number });
-    }
-    if (TupleType.mutable.includes(propertyIndex)) {
-      throw new HegelError(
-        "You trying to use tuple as Array, please setup variable type as Array"
-      );
     }
     return super.getPropertyType(propertyIndex);
   }

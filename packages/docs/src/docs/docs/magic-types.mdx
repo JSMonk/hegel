@@ -1,0 +1,106 @@
+---
+name: Magic Types
+route: /docs/magic-types
+menu: Type Annotations
+---
+
+# Magic Types
+----------------
+
+Hegel provides several of types which help to extract or create new types from existed. They may help to remove copy-pasted code. These types are available globally.
+
+Table of contents:
+- [$Class](#class)
+- [$Immutable](#immutable)
+- [$InstanceOf](#instanceof)
+- [$Intersection](#intersection)
+- [$Keys](#keys)
+- [$Omit](#omit)
+- [$Partial](#partial)
+- [$Pick](#pick)
+- [$PropertyType](#propertytype)
+- [$ReturnType](#returntype)
+- [$Soft](#soft)
+- [$Strict](#strict)
+- [$Throws](#throws)
+- [$TypeOf](#typeof)
+- [$Values](#values)
+
+
+## $Class<Instance\>
+
+$Class extract static type of constructor for given `Instance` type.
+
+```typescript
+class Animal {}
+class Dog extends Animal {}
+class Plant {}
+
+let animalClass: $Class<Animal> = Animal;
+let dogClass: $Class<Dog> = Dog;
+let plantClass: $Class<Plant> = Plant;
+
+// Because "class Dog" is subtype of "class Animal"
+animalClass = dogClass; // 👌!
+// Error: Type "class Animal" is incompatible with type "class Dog"
+dogClass = animalClass;
+// Error: Type "class Animal" is incompatible with type "class Plant"
+plantClass = animalClass;
+// Error: Type "class Dog" is incompatible with type "class Plant"
+plantClass = dogClass;
+```
+
+## $Immutable<Type\>
+
+This magic type convert any type into immutable variant of this type which means that you will not be able to mutate this type or his properties. You can use it in several situation.
+
+1. Prevent variable mutation.
+```typescript
+function manipulate(num: $Immutable<number>) {
+  // Error: Attempt to mutate immutable type
+  num = 15;
+}
+```
+
+2. Prevent object mutation.
+```typescript
+const admin: $Immutable<{ name: string }> = { name: "Roy Trenneman" };
+
+// Error: Attempt to mutate immutable type
+admin.name = "Maurice Moss";
+
+// Error: First parameter should be an mutable object type
+Object.assign(admin, { name: "Maurice Moss" });
+```
+
+3. Prevent mutation of specific property.
+
+```typescript
+const admin: { name: string, age: $Immutable<number> } = { name: "Roy Trenneman", age: 32 };
+
+admin.name = "Maurice Moss"; // 👌!
+
+// Error: Attempt to mutate immutable type
+admin.age = 33;
+
+Object.assign(admin, { name: "Maurice Moss" }); // 👌!
+
+// Error: Attempt to mutate immutable property "age" in "{ age: $Immutable<number>, name: string }" type
+Object.assign(admin, { age: 12 });
+```
+
+4. Prevent array mutation.
+
+```typescript
+const admin: { name: string, age: $Immutable<number> } = { name: "Roy Trenneman", age: 32 };
+
+admin.name = "Maurice Moss"; // 👌!
+
+// Error: Attempt to mutate immutable type
+admin.age = 33;
+
+Object.assign(admin, { name: "Maurice Moss" }); // 👌!
+
+// Error: Attempt to mutate immutable property "age" in "{ age: $Immutable<number>, name: string }" type
+Object.assign(admin, { age: 12 });
+```

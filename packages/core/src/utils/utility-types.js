@@ -1,6 +1,9 @@
 import { $Keys } from "../type-graph/types/keys-type";
 import { $Pick } from "../type-graph/types/pick-type";
 import { $Omit } from "../type-graph/types/omit-type";
+import { $Soft } from "../type-graph/types/soft-type";
+import { $Class } from "../type-graph/types/class-type";
+import { $Strict } from "../type-graph/types/strict-type";
 import { $TypeOf } from "../type-graph/types/type-of-type";
 import { $Throws } from "../type-graph/types/throws-type";
 import { $Values } from "../type-graph/types/values-type";
@@ -33,7 +36,10 @@ const mixUtilityTypes = moduleScope => {
     ],
     ["$Throws", new $Throws($Throws.name, { parent: typeScope })],
     ["$Immutable", new $Immutable($Immutable.name, { parent: typeScope })],
-    ["$Collection", new $Collection($Collection.name, { parent: typeScope })]
+    ["$Collection", new $Collection($Collection.name, { parent: typeScope })],
+    ["$Soft", new $Soft($Soft.name, { parent: typeScope })],
+    ["$Strict", new $Strict($Strict.name, { parent: typeScope })],
+    ["$Class", new $Class($Class.name, { parent: typeScope })]
   ]);
   for (const [name, type] of utilityTypes) {
     typeScope.body.set(name, type);
