@@ -279,16 +279,48 @@ function refinementByCondition(
   condition: Node,
   currentScope: VariableScope | ModuleScope,
   typeScope: TypeScope,
-  moduleScope: ModuleScope
+  moduleScope: ModuleScope,
+  primaryScope: VariableScope | ModuleScope
 ): ?Array<[string, Type, Type]> {
   switch (condition.type) {
     case NODE.SWITCH_CASE:
       const caseRefinement = equalsRefinement(
         condition,
-        currentScope,
+        primaryScope,
         typeScope,
         moduleScope
       );
+      const indexOfCurrentCase = condition.parent.cases.indexOf(condition);
+      const previousCase =
+        indexOfCurrentCase > 0
+          ? condition.parent.cases[indexOfCurrentCase - 1]
+          : undefined;
+      if (
+        caseRefinement &&
+        previousCase &&
+        !previousCase.consequent.body.some(
+          a =>
+            a.type === NODE.BREAK_STATEMENT ||
+            a.type === NODE.THROW_STATEMENT ||
+            a.type === NODE.RETURN_STATEMENT
+        )
+      ) {
+        const [name, primary, alternate] = caseRefinement;
+        const previousCaseScope = moduleScope.scopes.get(
+          VariableScope.getName(previousCase.consequent)
+        );
+        const previousPrimaryRefinement = previousCaseScope.body.get(name);
+        if (previousPrimaryRefinement === undefined) {
+          return;
+        }
+        return [
+          [
+            name,
+            UnionType.term(null, {}, [primary, previousPrimaryRefinement.type]),
+            alternate
+          ]
+        ];
+      }
       return caseRefinement && [caseRefinement];
     case NODE.UNARY_EXPRESSION:
       if (condition.operator === "!") {
@@ -296,7 +328,8 @@ function refinementByCondition(
           condition.argument,
           currentScope,
           typeScope,
-          moduleScope
+          moduleScope,
+          primaryScope
         );
         return (
           refinements &&
@@ -332,7 +365,8 @@ function refinementByCondition(
         condition.left.body || condition.left,
         currentScope,
         typeScope,
-        moduleScope
+        moduleScope,
+        primaryScope
       );
       if (leftSideRefinement) {
         leftSideRefinement.forEach(([key, refinement, alternate]) => {
@@ -356,7 +390,8 @@ function refinementByCondition(
           ? additionalAlternateScope
           : additionalPrimaryScope,
         typeScope,
-        moduleScope
+        moduleScope,
+        primaryScope
       );
       if (!leftSideRefinement || !rightSideRefinement) {
         return condition.operator === "&&"
@@ -428,7 +463,8 @@ export function refinement(
     condition,
     currentScope,
     typeScope,
-    moduleScope
+    moduleScope,
+    primaryScope
   );
   if (!currentRefinements) {
     return;

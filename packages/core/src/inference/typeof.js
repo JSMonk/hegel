@@ -125,7 +125,7 @@ function typeofIdentifier(
       : refinementVariants([[], []], variableInfo.type, refinementType);
   if (
     !(variableInfo.type instanceof TypeVar) &&
-    variableInfo.type !== Type.Unknown  &&
+    variableInfo.type !== Type.Unknown &&
     refinementedVariants.length === 0
   ) {
     throw new HegelError(
@@ -139,10 +139,14 @@ function typeofIdentifier(
   let alternateType;
   if (variableInfo.type instanceof UnionType) {
     refinementedType = UnionType.term(null, {}, refinementedVariants);
-    alternateType = UnionType.term(null, {}, alternateVariants);
+    alternateType =
+      alternateVariants.length === 0
+        ? Type.Never
+        : UnionType.term(null, {}, alternateVariants);
   } else {
     refinementedType = refinementType;
-    alternateType = variableInfo.type;
+      alternateType =
+          refinementType === variableInfo.type ? Type.Never : refinementType;
   }
   return [variableName, refinementedType, alternateType];
 }

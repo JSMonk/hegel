@@ -145,25 +145,11 @@ function mixBlockToCaseStatement(currentNode: Node) {
   }
   for (let i = 0; i < currentNode.cases.length; i++) {
     const $case = currentNode.cases[i];
-    const locStart = $case.loc.start;
-    let locEnd = currentNode.loc.end;
     const body = $case.consequent.body || $case.consequent;
-    for (let j = i; j < currentNode.cases.length; j++) {
-      const breakStatement = body.find(
-        statement =>
-          statement.type === NODE.RETURN_STATEMENT ||
-          statement.type === NODE.THROW_STATEMENT ||
-          statement.type === NODE.BREAK_STATEMENT
-      );
-      if (breakStatement !== undefined) {
-        locEnd = breakStatement.loc.end;
-        break;
-      }
-    }
     $case.parent = currentNode;
     $case.consequent = {
       type: NODE.BLOCK_STATEMENT,
-      loc: { start: locStart, end: locEnd },
+      loc: $case.loc,
       body
     };
   }
