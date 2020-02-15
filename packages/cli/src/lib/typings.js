@@ -31,11 +31,17 @@ async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
   const body = new Map<string, VariableInfo>(globalScope.body);
   const typesBody = new Map<unknown, Type>(globalScope.typeScope.body);
   for (const entry of typingsScope.body.entries()) {
+    if (entry === undefined) {
+      continue;
+    }
     const variable = entry[1];
     variable.parent = globalScope;
     body.set(entry[0], variable);
   }
   for (const entry of typingsScope.typeScope.body.entries()) {
+    if (entry === undefined) {
+      continue;
+    } 
     const type = entry[1];
     type.parent = globalScope.typeScope;
     typesBody.set(entry[0], type);

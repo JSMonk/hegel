@@ -9,7 +9,7 @@ import { mixTypeDefinitions } from "./lib/typings";
 import { getConfig, createConfig } from "./lib/config";
 import { getErrorsPrint, getVerdictPrint } from "./lib/printer";
 import type { ErrorWithLocation } from "./lib/printer";
-import type { ExtendedProgram, HegelError } from "@hegel/core"; 
+import type { ExtendedProgram, HegelError } from "@hegel/core";
 
 const logger = getLogger();
 
@@ -25,7 +25,7 @@ Valid values for COMMAND:
   {
     input: ["init"]
   }
-);
+); 
 
 const COMMAND = CLI.input[0];
 
@@ -41,7 +41,7 @@ switch (COMMAND) {
     main();
     break;
   default:
-    logger.error(`Unsupported command "${String(COMMAND)}"!`);
+    logger.error(`Unsupported command "${COMMAND}"!`);
 }
 
 async function main() {
@@ -49,7 +49,7 @@ async function main() {
     const config = await getConfig();
     const getFileAST = createASTGenerator(config);
     const sources = await getSources(config);
-    let errors: Array<ErrorWithLocation> = []
+    let errors: Array<ErrorWithLocation> = [];
     try {
       const asts: Array<ExtendedProgram> = await Promise.all(
         sources.map(file => getFileAST(file))

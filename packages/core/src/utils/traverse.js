@@ -224,6 +224,8 @@ function mixElseIfReturnOrThrowExisted(currentNode: Node, parentNode: Node) {
     currentNode.consequent.body.findIndex(
       node =>
         node.type === NODE.RETURN_STATEMENT ||
+        node.type === NODE.BREAK_STATEMENT ||
+        node.type === NODE.CONTINUE_STATEMENT ||
         node.type === NODE.THROW_STATEMENT
     ) === -1
   ) {

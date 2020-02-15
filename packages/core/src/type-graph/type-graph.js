@@ -274,6 +274,7 @@ const fillModuleScope = (
         break;
       case NODE.OBJECT_METHOD:
       case NODE.CLASS_METHOD:
+      case NODE.CLASS_PRIVATE_METHOD:
       case NODE.TS_DECLARE_METHOD:
         addMethodToThis(
           currentNode,
@@ -388,6 +389,8 @@ const middlefillModuleScope = (
       case NODE.OBJECT_METHOD:
       case NODE.CLASS_PROPERTY:
       case NODE.CLASS_METHOD:
+      case NODE.CLASS_PRIVATE_METHOD:
+      case NODE.CLASS_PRIVATE_PROPERTY:
         addPropertyNodeToThis(
           currentNode,
           parentNode,
@@ -437,6 +440,7 @@ const afterFillierActions = (
         break;
       case NODE.CLASS_PROPERTY:
       case NODE.OBJECT_PROPERTY:
+      case NODE.CLASS_PRIVATE_PROPERTY:
         addPropertyToThis(
           currentNode,
           parentNode,
@@ -577,6 +581,7 @@ const afterFillierActions = (
         break;
       case NODE.OBJECT_METHOD:
       case NODE.CLASS_METHOD:
+      case NODE.CLASS_PRIVATE_METHOD:
       case NODE.FUNCTION_EXPRESSION:
       case NODE.ARROW_FUNCTION_EXPRESSION:
       case NODE.FUNCTION_DECLARATION:

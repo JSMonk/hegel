@@ -181,7 +181,7 @@ export function addThisToClassScope(
       typeInTypeScope.shouldBeUsedAsGeneric = true;
     }
     const staticName = getClassName(currentNode);
-    const options = { isNominal: true };
+    const options = { isNominal: true, parent: typeScope };
     if (superClass !== undefined) {
       // $FlowIssue
       options.isSubtypeOf = superClass;
@@ -270,8 +270,19 @@ export function addPropertyNodeToThis(
   middle: Handler,
   post: Handler
 ) {
-  let propertyName = currentNode.key.name || `${currentNode.key.value}`;
-  propertyName = propertyName === "constructor" ? CONSTRUCTABLE : propertyName;
+  let propertyName;
+  const isPrivate = currentNode.type === NODE.CLASS_PRIVATE_METHOD;
+  if (isPrivate) {
+    propertyName = `#${currentNode.key.id.name}`;
+  } else {
+    propertyName = currentNode.key.name || `${currentNode.key.value}`;
+  }
+  if (currentNode.kind === "constructor") {
+    propertyName = CONSTRUCTABLE;
+  }
+  if (currentNode.type === NODE.CLASS_PRIVATE_PROPERTY) {
+    propertyName = `#${propertyName}`;
+  }
   // $FlowIssue
   const currentClassScope: VariableScope = getParentForNode(
     currentNode,

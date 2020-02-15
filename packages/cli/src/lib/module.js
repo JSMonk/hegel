@@ -36,7 +36,7 @@ async function findTypingsInsideNodeModules(importPath, config: Config) {
       const packageJSON = JSON.parse(
         await promises.readFile(pathToPackage, "utf8")
       );
-      if ("types" in packageJSON && typeof packageJSON.types === "string") {
+      if (typeof packageJSON === "object" && packageJSON !== null && "types" in packageJSON && typeof packageJSON.types === "string") {
         typingsPath = join(dirname(pathToPackage), packageJSON.types);
       }
       typingsPath = typingsPath.includes("d.ts")

@@ -202,6 +202,7 @@ export function addCallToTypeGraph(
       }
       return { result: varInfo };
     case NODE.CLASS_PROPERTY:
+    case NODE.CLASS_PRIVATE_PROPERTY:
     case NODE.OBJECT_PROPERTY:
       const self = currentScope.findVariable({ name: THIS_TYPE });
       // $FlowIssue
@@ -213,9 +214,14 @@ export function addCallToTypeGraph(
         selfObject instanceof $BottomType
           ? selfObject.subordinateMagicType.subordinateType
           : selfObject;
-      const propertyType = selfObject.properties.get(
-        node.key.name || `${node.key.value}`
-      );
+      const isPrivate = node.type === NODE.CLASS_PRIVATE_PROPERTY;
+      let _propertyName;
+      if (isPrivate) {
+        _propertyName = `#${node.key.id.name}`;
+      } else {
+        _propertyName = node.key.name || `${node.key.value}`;
+      }
+      const propertyType = selfObject.properties.get(_propertyName);
       if (propertyType === undefined) {
         throw new Error("Never!!!");
       }
@@ -317,7 +323,7 @@ export function addCallToTypeGraph(
         // $FlowIssue
         currentScope
           .getParentsUntil(nearestFn)
-          .every(parent => parent.creator === "block");
+          .every(parent => parent.creator === "block" || parent.creator === "catch");
       if (isFinal) {
         nearestFn.calls.push(
           new CallMeta(undefined, [], node.loc, undefined, false, true)
@@ -562,6 +568,10 @@ export function addCallToTypeGraph(
       target = new FunctionType(targetName, {}, args, target);
       break;
     case NODE.MEMBER_EXPRESSION:
+      const propertyName =
+        node.property.type === NODE.PRIVATE_NAME
+          ? `#${node.property.id.name}`
+          : node.property.name;
       args = [
         getWrapperType(
           addCallToTypeGraph(
@@ -576,8 +586,10 @@ export function addCallToTypeGraph(
           ).result,
           moduleScope
         ),
-        node.property.type === NODE.IDENTIFIER && !node.computed
-          ? Type.term(`'${node.property.name}'`, { isSubtypeOf: Type.String })
+        (node.property.type === NODE.IDENTIFIER ||
+          node.property.type === NODE.PRIVATE_NAME) &&
+        !node.computed
+          ? Type.term(`'${propertyName}'`, { isSubtypeOf: Type.String })
           : addCallToTypeGraph(
               node.property,
               moduleScope,
@@ -1094,7 +1106,13 @@ export function addPropertyToThis(
   middlecompute: Handler,
   postcompute: Handler
 ) {
-  const propertyName = currentNode.key.name || `${currentNode.key.value}`;
+  let propertyName;
+  const isPrivate = currentNode.type === NODE.CLASS_PRIVATE_PROPERTY;
+  if (isPrivate) {
+    propertyName = `#${currentNode.key.id.name}`;
+  } else {
+    propertyName = currentNode.key.name || `${currentNode.key.value}`;
+  }
   // $FlowIssue
   const currentScope: VariableScope = getParentForNode(
     currentNode,
@@ -1139,7 +1157,10 @@ export function addPropertyToThis(
   const property = new VariableInfo(
     type,
     currentClassScope,
-    new Meta(currentNode.loc)
+    new Meta(currentNode.loc),
+    false,
+    false,
+    isPrivate
   );
   if (!(selfType instanceof ObjectType)) {
     throw new Error("Never!!!");
@@ -1150,9 +1171,6 @@ export function addPropertyToThis(
   selfType.properties.set(propertyName, property);
   if (moduleScope instanceof PositionedModuleScope) {
     moduleScope.addPosition(currentNode.key, property);
-  }
-  if (selfType.parent.priority < property.type.parent.priority) {
-    selfType.parent = property.type.parent;
   }
   if (
     currentNode.type === NODE.OBJECT_METHOD ||
@@ -1215,10 +1233,16 @@ export function addMethodToThis(
   if (classScope.isProcessed) {
     return;
   }
-  const propertyName =
-    currentNode.key.name === "constructor"
-      ? CONSTRUCTABLE
-      : currentNode.key.name;
+  let propertyName;
+  const isPrivate = currentNode.type === NODE.CLASS_PRIVATE_METHOD;
+  if (isPrivate) {
+    propertyName = `#${currentNode.key.id.name}`;
+  } else {
+    propertyName = currentNode.key.name || `${currentNode.key.value}`;
+  }
+  if (currentNode.kind === "constructor") {
+    propertyName = CONSTRUCTABLE;
+  }
   const self = classScope.findVariable({ name: THIS_TYPE });
   // $FlowIssue
   const classVar: VariableInfo =
@@ -1240,7 +1264,7 @@ export function addMethodToThis(
   const expectedType =
     existedProperty instanceof VariableInfo ? existedProperty.type : undefined;
   currentNode.expected = currentNode.expected || expectedType;
-  const fn = addFunctionToTypeGraph(
+  let fn = addFunctionToTypeGraph(
     currentNode,
     parentNode,
     moduleScope,
@@ -1249,6 +1273,16 @@ export function addMethodToThis(
     post,
     isTypeDefinitions
   );
+  if (isPrivate) {
+    fn = new VariableInfo(
+      fn.type,
+      fn.parent,
+      fn.meta,
+      fn.isConstant,
+      fn.isInferenced,
+      true
+    );
+  }
   fn.hasInitializer = true;
   if (!isTypeDefinitions && classScope.type === VariableScope.CLASS_TYPE) {
     const fnScope = moduleScope.scopes.get(VariableScope.getName(currentNode));
@@ -1286,12 +1320,27 @@ export function addMethodToThis(
       type.argumentsTypes,
       returnType
     );
+    const isConstructorGeneric = fn.type instanceof GenericType;
     if (self.type instanceof $BottomType) {
+      const genericArguments = self.type.genericArguments.concat(
+        isConstructorGeneric ? fn.type.genericArguments : []
+      );
+      const localTypeScope = isConstructorGeneric
+        ? fn.type.localTypeScope
+        : self.type.subordinateMagicType.localTypeScope;
       constructorType = GenericType.new(
         fnName,
         {},
-        self.type.genericArguments,
-        self.type.subordinateMagicType.localTypeScope,
+        genericArguments,
+        localTypeScope,
+        constructorType
+      );
+    } else if (isConstructorGeneric) {
+      constructorType = GenericType.new(
+        fnName,
+        {},
+        fn.type.genericArguments,
+        fn.type.localTypeScope,
         constructorType
       );
     }
@@ -1299,8 +1348,5 @@ export function addMethodToThis(
   }
   if (moduleScope instanceof PositionedModuleScope) {
     moduleScope.addPosition(currentNode, fn);
-  }
-  if (classType.parent.priority < fn.type.parent.priority) {
-    classType.parent = fn.type.parent;
   }
 }

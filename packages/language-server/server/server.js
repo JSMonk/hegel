@@ -43,7 +43,9 @@ const babelrc = {
   plugins: [
     ["flow", { all: true }],
     "bigInt",
-    "classProperties",
+    "classProperties",   
+    "classPrivateMethods",
+    "classPrivateProperties",
     "@babel/plugin-syntax-bigint",
     "@babel/plugin-proposal-class-properties",
     "@babel/plugin-proposal-private-methods",

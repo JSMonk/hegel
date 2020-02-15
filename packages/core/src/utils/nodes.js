@@ -42,6 +42,7 @@ export const STATEMENTS_TYPES = {
   TRY_STATEMENT: "TryStatement",
   THROW_STATEMENT: "ThrowStatement",
   BREAK_STATEMENT: "BreakStatement",
+  CONTINUE_STATEMENT: "ContinueStatement",
   CATCH_CLAUSE: "CatchClause",
   SWITCH_STATEMENT: "SwitchStatement",
   SWITCH_CASE: "SwitchCase"
@@ -84,7 +85,10 @@ export const OBJECT_PROPERTIES = {
 
 export const CLASS_PROPERTIES = {
   CLASS_METHOD: "ClassMethod",
-  CLASS_PROPERTY: "ClassProperty"
+  CLASS_PRIVATE_METHOD: "ClassPrivateMethod",
+  CLASS_PROPERTY: "ClassProperty",
+  CLASS_PRIVATE_PROPERTY: "ClassPrivateProperty",
+  PRIVATE_NAME: "PrivateName"
 };
 
 export const LITERAL_TYPES = {

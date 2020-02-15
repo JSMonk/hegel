@@ -28,7 +28,7 @@ export function printSingleError(
 export async function getErrorsPrint(errors: Array<ErrorWithLocation>) {
   let result = "";
   for (const error of errors) {
-    if (error.source === "") {
+    if (error === undefined || error.source === "") {
       continue;
     }
     const content = await getFileContent(error.source);

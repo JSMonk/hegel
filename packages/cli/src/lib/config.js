@@ -5,10 +5,16 @@ import type { ParserOptions } from "@babel/parser";
 
 const BABELRC: ParserOptions = {
   sourceType: "module",
-  plugins: [["flow", { all: true }], "bigInt"]
+  plugins: [
+    "bigInt",
+    "classProperties",
+    "classPrivateMethods",
+    "classPrivateProperties",
+    ["flow", { all: true }]
+  ]
 };
 
-const CWD = process.cwd(); 
+const CWD = process.cwd();
 const babelExplorer = cosmic("babel");
 const hegelExplorer = cosmic("hegel");
 
@@ -46,7 +52,8 @@ export type Config = {
 };
 
 export async function getConfig(workingDirectory = CWD) {
-  const hegelConfig = await getMainConfigs(workingDirectory) || DEFAULT_CONFIG;
+  const hegelConfig =
+    (await getMainConfigs(workingDirectory)) || DEFAULT_CONFIG;
   const hegel = Object.assign(DEFAULT_CONFIG.config, hegelConfig.config);
   const projectRoot = dirname(hegelConfig.filepath);
   const typings = hegel.typings.map(

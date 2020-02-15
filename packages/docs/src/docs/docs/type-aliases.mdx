@@ -52,3 +52,24 @@ function createResponse(status: Status): { status: Status } {
 ```
 
 Aliasing doesn’t create a new type - it creates a new name to refer to source type.
+
+## Interfaces
+
+Also you can use `implements` with object type aliases for [Class Types](/docs/class-types) to tell Hegel that you want that a class to match an "protocol".
+
+```typescript
+type JsonSerializable = {
+  toJSON: () => string
+}
+
+class User implements JsonSerializable {
+  email: string,
+  password: string
+  #
+
+  constructor(email, password) {
+    this.email = email;
+    this.password = password;
+  }
+}
+```

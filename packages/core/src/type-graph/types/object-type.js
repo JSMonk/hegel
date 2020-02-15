@@ -139,10 +139,16 @@ export class ObjectType extends Type {
       }
       fieldOwner = fieldOwner.isSubtypeOf;
     }
-    if (!field) {
+    if (field === undefined) {
       return null;
     }
-    return field.type instanceof Type ? field.type : field;
+    if (!(field.type instanceof Type)) {
+      return field;
+    }
+    if (field.isPrivate && !this.properties.has(propertyName)) {
+      return null;
+    }
+    return field.type;
   }
 
   isAllProperties(
@@ -157,11 +163,13 @@ export class ObjectType extends Type {
         continue;
       }
       const existedAnotherProperty = anotherType.properties.get(key);
+      // $FlowIssue
+      const maybeUnion = "readonly" in type ? type.readonly : type;
       if (
         !existedAnotherProperty &&
         !(
-          type instanceof UnionType &&
-          type.variants.some(variant => variant !== Type.Undefined)
+          maybeUnion instanceof UnionType &&
+          maybeUnion.variants.some(variant => variant !== Type.Undefined)
         )
       ) {
         return false;

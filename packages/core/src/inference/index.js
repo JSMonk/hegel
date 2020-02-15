@@ -86,6 +86,7 @@ export function inferenceTypeForNode(
       break;
     case NODE.OBJECT_METHOD:
     case NODE.CLASS_METHOD:
+    case NODE.CLASS_PRIVATE_METHOD:
     case NODE.FUNCTION_DECLARATION:
     case NODE.TS_DECLARE_METHOD:
     case NODE.FUNCTION_EXPRESSION:
