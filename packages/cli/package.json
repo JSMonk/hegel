@@ -25,12 +25,12 @@
     "@babel/code-frame": "^7.0.0",
     "@babel/parser": "^7.8.3",
     "@babel/preset-env": "^7.7.6",
-    "@hegel/core": "^0.0.10",
-    "@hegel/typings": "^0.0.10",
+    "@hegel/core": "0.0.10",
+    "@hegel/typings": "0.0.10",
     "chalk": "^2.4.2",
     "cosmiconfig": "^5.2.1",
     "glob": "^7.1.6",
-    "meow": "^6.0.0"
+    "meow": "^6.0.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.3",
@@ -38,10 +38,10 @@
     "@babel/plugin-proposal-class-properties": "^7.1.0",
     "@babel/preset-flow": "^7.8.3",
     "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^23.6.0",
+    "babel-jest": "^25.1.0",
     "babel-plugin-syntax-flow": "^6.18.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
     "flow-bin": "^0.94.0",
-    "jest": "^23.6.0"
+    "jest": "^25.1.0"
   }
 }

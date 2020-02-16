@@ -10,7 +10,8 @@ const babelrc = {
 
 const definitionsRc = {
   sourceType: "module",
-  plugins: ["typescript"]
+  plugins: ["typescript"],
+  strictMode: false
 };
 
 const libsFile = fs.readFileSync(

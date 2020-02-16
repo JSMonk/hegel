@@ -27,7 +27,7 @@ Valid values for COMMAND:
   }
 );
 
-const COMMAND = CLI.input[0];
+const COMMAND = CLI.input[0]; 
 
 switch (COMMAND) {
   case "init":

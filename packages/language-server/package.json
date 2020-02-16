@@ -50,11 +50,11 @@
     "test": "node ./node_modules/vscode/bin/test"
   },
   "devDependencies": {
-    "typescript": "^3.3.1",
-    "vscode": "^1.1.28",
+    "@types/mocha": "^2.2.42",
+    "@types/node": "^10.17.15",
     "eslint": "^5.13.0",
-    "@types/node": "^10.12.21",
-    "@types/mocha": "^2.2.42"
+    "typescript": "^3.3.1",
+    "vscode": "^1.1.28"
   },
   "dependencies": {
     "@babel/parser": "^7.4.5",
@@ -67,8 +67,8 @@
     "@babel/plugin-syntax-bigint": "^7.7.4",
     "@babel/plugin-syntax-dynamic-import": "^7.7.4",
     "@hegel/cli": "^0.0.15",
-    "@hegel/core": "^0.0.10",
-    "@hegel/typings": "^0.0.10",
+    "@hegel/core": "0.0.10",
+    "@hegel/typings": "0.0.10",
     "vscode-languageclient": "^5.3.0-next.1",
     "vscode-languageserver": "^5.3.0-next.1"
   }
