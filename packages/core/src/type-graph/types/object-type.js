@@ -76,7 +76,7 @@ export class ObjectType extends Type {
               .name
           )}`
       )
-      .join(", ")}${isSoft ? ", ..." : ""} }`;
+      .join(", ")}${properties.length > 0 && isSoft ? ", " : ""}${isSoft ? "..." : ""} }`;
   }
 
   static multyLine(properties: Array<[string, Type]>, isSoft: boolean) {
@@ -88,7 +88,9 @@ export class ObjectType extends Type {
               .name
           ).replace(/\n/g, "\n\t")}`
       )
-      .join(",\n")}\n${isSoft ? "\t...\n" : ""}}`;
+      .join(",\n")}${properties.length > 0 ? "\n" : ""}${
+      isSoft ? "\t...\n" : ""
+    }}`;
   }
 
   isNominal: boolean;

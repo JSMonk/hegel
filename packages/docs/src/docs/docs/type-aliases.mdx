@@ -59,17 +59,29 @@ Also you can use `implements` with object type aliases for [Class Types](/docs/c
 
 ```typescript
 type JsonSerializable = {
-  toJSON: () => string
-}
+  toJSON: () => Object,
+  ...
+};
 
 class User implements JsonSerializable {
-  email: string,
-  password: string
-  #
-
+  email: string;
+  password: string;
+  
   constructor(email, password) {
     this.email = email;
     this.password = password;
   }
+
+  toJSON() {
+    return {
+      email: this.email,
+      password: this.password,
+      _type: "User"
+    };
+  }
 }
+
+const json: JsonSerializable = new User("test@gmail.com", "qwerty");
 ```
+
+**Warning**: Note, that your object type which should act like interface should be a soft object type.

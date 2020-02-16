@@ -3,7 +3,6 @@ import NODE from "./nodes";
 import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
 import { Type } from "../type-graph/types/type";
-import { $Soft } from "../type-graph/types/soft-type";
 import { CallMeta } from "../type-graph/meta/call-meta";
 import { TypeScope } from "../type-graph/type-scope";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -468,23 +467,27 @@ export function addClassToTypeGraph(
         ? self.type.subordinateMagicType.localTypeScope
         : typeScope;
     classNode.implements.forEach((typeAnnotation, index) => {
-      const typeForImplementation = new $Soft().applyGeneric(
-        [
-          getTypeFromTypeAnnotation(
-            { typeAnnotation },
-            localTypeScope,
-            classScope.parent,
-            true,
-            null,
-            parentNode,
-            typeGraph,
-            pre,
-            middle,
-            post
-          )
-        ],
-        typeAnnotation.loc
+      const typeForImplementation = getTypeFromTypeAnnotation(
+        { typeAnnotation },
+        localTypeScope,
+        classScope.parent,
+        true,
+        null,
+        parentNode,
+        typeGraph,
+        pre,
+        middle,
+        post
       );
+      if (
+        !(typeForImplementation instanceof ObjectType) ||
+        typeForImplementation.isStrict
+      ) {
+        throw new HegelError(
+          "Type which should be implemented should be an soft objecty type",
+          typeAnnotation.loc
+        );
+      }
       if (!typeForImplementation.isPrincipalTypeFor(self.type)) {
         throw new HegelError(
           `Wrong implementation for type "${typeAnnotation.id.name}"`,

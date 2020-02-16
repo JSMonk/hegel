@@ -36,15 +36,6 @@ function inIdentifier(
 ): ?[string, ?Type, ?Type] {
   const variable = currentScope.findVariable(targetNode);
   const type = variable.type;
-  if (type.equalsTo(ObjectType.Object)) {
-    return [
-      targetNode.name,
-      ObjectType.term(null, {}, [
-        [propertyName, new VariableInfo(Type.Unknown)]
-      ]),
-      type
-    ];
-  }
   if (type instanceof UnionType) {
     const [refinementedVariants, alternateVariants] = type.variants.reduce(
       ([refinementedVariants, alternateVariants], variant) => {
@@ -65,6 +56,20 @@ function inIdentifier(
         alternateVariants,
         typeScope
       )
+    ];
+  }
+  if (
+    type instanceof ObjectType &&
+    !type.isStrict &&
+    type.getPropertyType(targetNode.name) === null
+  ) {
+    return [
+      targetNode.name,
+      ObjectType.term(null, { isSoft: true }, [
+        ...type.properties,
+        [propertyName, new VariableInfo(Type.Unknown)]
+      ]),
+      type
     ];
   }
 }

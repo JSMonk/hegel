@@ -78,8 +78,8 @@ function getRefinmentType(stringNode: Node): Type {
     case "function":
       return FunctionType.Function;
     case "object":
-      return UnionType.term("Object | null", {}, [
-        ObjectType.Object,
+      return UnionType.term("{ ... } | null", {}, [
+        ObjectType.term("{ ... }", { isSoft: true }, []),
         Type.Null
       ]);
   }
@@ -145,8 +145,8 @@ function typeofIdentifier(
         : UnionType.term(null, {}, alternateVariants);
   } else {
     refinementedType = refinementType;
-      alternateType =
-          refinementType === variableInfo.type ? Type.Never : refinementType;
+    alternateType =
+      refinementType === variableInfo.type ? Type.Never : refinementType;
   }
   return [variableName, refinementedType, alternateType];
 }

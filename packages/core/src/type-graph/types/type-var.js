@@ -86,6 +86,9 @@ export class TypeVar extends Type {
     if (type === this) {
       return true;
     }
+    if (this.root !== undefined) {
+      return this.root.isPrincipalTypeFor(type);
+    }
     if (
       TypeVar.strictEquality &&
       (!(type instanceof TypeVar) ||

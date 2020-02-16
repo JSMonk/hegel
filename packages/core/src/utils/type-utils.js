@@ -719,15 +719,10 @@ export function mergeObjectsTypes(
   if (obj2 instanceof TypeVar) {
     return obj2;
   }
-  const resultProperties = unique(
-    [...obj1.properties.entries(), ...obj2.properties.entries()],
-    ([key]) => key
-  );
-  return ObjectType.term(
-    ObjectType.getName(resultProperties),
-    {},
-    resultProperties
-  );
+  return ObjectType.term(null, { isSoft: !obj1.isStrict }, [
+    ...obj1.properties.entries(),
+    ...obj2.properties.entries()
+  ]);
 }
 
 export function createObjectWith(
