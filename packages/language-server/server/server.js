@@ -72,11 +72,11 @@ connection.onHover(meta => {
   const location = convertRangeToLoc(meta.position);
   if (types instanceof PositionedModuleScope) {
     const varInfo = types.getVarAtPosition(location, types);
-    return varInfo === undefined || varInfo.type === undefined
+    return varInfo === undefined
       ? undefined
       : {
           contents: [
-            { language: "typescript", value: getTypeName(varInfo.type) }
+            { language: "typescript", value: getTypeName(varInfo.type || varInfo) }
           ]
         };
   }
@@ -124,7 +124,7 @@ async function getHegelTypings(source, path) {
     return [types, errors];
   } catch (e) {
     e.source = e.source || path;
-    return [, [e]];
+     return [, [e]];
   }
 }
 
@@ -180,7 +180,7 @@ async function getModuleAST(currentModulePath) {
         : moduleContent;
     const config = isTypings ? dtsrc : babelrc;
     return babylon.parse(moduleContent, config).program;
-  });
+  }, true);
 }
 
 function wrapJSON(content) {

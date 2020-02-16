@@ -1,7 +1,7 @@
 #!/usr/local/bin/node
 import meow from "meow";
 import { getLogger } from "./lib/logger";
-import { getSources } from "./lib/file-system";
+import { getSources } from "./lib/file-system"; 
 import { importModule } from "./lib/module";
 import { createGlobalScope } from "@hegel/core";
 import { createASTGenerator } from "./lib/parser";
@@ -12,7 +12,7 @@ import type { ErrorWithLocation } from "./lib/printer";
 import type { ExtendedProgram, HegelError } from "@hegel/core";
 
 const logger = getLogger();
-
+ 
 const CLI = meow(
   `
 Usage
@@ -25,7 +25,7 @@ Valid values for COMMAND:
   {
     input: ["init"]
   }
-); 
+);
 
 const COMMAND = CLI.input[0];
 

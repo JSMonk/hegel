@@ -45,7 +45,8 @@ export const STATEMENTS_TYPES = {
   CONTINUE_STATEMENT: "ContinueStatement",
   CATCH_CLAUSE: "CatchClause",
   SWITCH_STATEMENT: "SwitchStatement",
-  SWITCH_CASE: "SwitchCase"
+  SWITCH_CASE: "SwitchCase",
+  INTERPRETER_DIRECTIVE: "InterpreterDirective"
 };
 
 export const EXPRESSIONS_TYPES = {

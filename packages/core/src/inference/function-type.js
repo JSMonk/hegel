@@ -233,7 +233,7 @@ export function inferenceFunctionLiteralType(
         paramType instanceof TypeVar && !paramType.isUserDefined
           ? Type.find("Array").applyGeneric([Type.Unknown])
           : paramType;
-      paramType = new RestArgument(paramType);
+      paramType = RestArgument.term(null, {}, paramType);
     }
     return paramType;
   });
@@ -349,6 +349,16 @@ function resolveOuterTypeVarsFromCall(
     if (actualType === undefined || declaratedType === undefined) {
       continue;
     }
+    if (declaratedType instanceof RestArgument) {
+      actualType = TupleType.term(
+        null,
+        {},
+        call.arguments
+          .slice(i)
+          .map(a => (a instanceof VariableInfo ? a.type : a))
+      );
+      i = call.arguments.length;
+    }
     actualType = Type.getTypeRoot(actualType, true);
     declaratedType = Type.getTypeRoot(declaratedType);
     // $FlowIssue
@@ -397,7 +407,7 @@ export function implicitApplyGeneric(
   for (let i = 0; i < declaratedArgumentsTypes.length; i++) {
     const maybeBottom = declaratedArgumentsTypes[i];
     const givenArgument = argumentsTypes[i] || Type.Undefined;
-    const givenArgumentType =
+    let givenArgumentType =
       givenArgument instanceof VariableInfo
         ? givenArgument.type
         : givenArgument;
@@ -410,6 +420,16 @@ export function implicitApplyGeneric(
       declaratedArgument instanceof GenericType
         ? declaratedArgument.subordinateType
         : declaratedArgument;
+    if (declaratedArgument instanceof RestArgument) {
+      givenArgumentType = TupleType.term(
+        null,
+        {},
+        argumentsTypes
+          .slice(i)
+          .map(a => (a instanceof VariableInfo ? a.type : a))
+      );
+      declaratedArgument = declaratedArgument.type;
+    }
     const difference = givenArgumentType.getDifference(declaratedArgument);
     for (let j = 0; j < difference.length; j++) {
       let { root, variable } = difference[j];

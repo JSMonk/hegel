@@ -129,10 +129,13 @@ export class GenericType<T: Type> extends Type {
     );
     const wrongArgumentIndex = genericArguments.findIndex((arg, i) => {
       const parameter = parameters[i];
-      return (parameter === undefined && arg.defaultType === undefined) ||
-            (parameter instanceof TypeVar ? 
-              !arg.isPrincipalTypeFor(parameter)
-              : (arg.constraint !== undefined && !arg.constraint.isPrincipalTypeFor(parameter)));
+      return (
+        (parameter === undefined && arg.defaultType === undefined) ||
+        (parameter instanceof TypeVar
+          ? !arg.isPrincipalTypeFor(parameter)
+          : arg.constraint !== undefined &&
+            !arg.constraint.isPrincipalTypeFor(parameter))
+      );
     });
     if (wrongArgumentIndex !== -1) {
       const parameter = parameters[wrongArgumentIndex];
@@ -251,7 +254,13 @@ export class GenericType<T: Type> extends Type {
       }
       return appliedType;
     });
-    const appliedTypeName = GenericType.getName(this.name, parameters);
+    let appliedTypeName = this.getChangedName(
+      this.genericArguments,
+      parameters
+    );
+    if (appliedTypeName === this.name) {
+      appliedTypeName = GenericType.getName(this.name, parameters);
+    }
     const oldAppliedSelf = new $BottomType(
       { parent: this.subordinateType.parent },
       this,

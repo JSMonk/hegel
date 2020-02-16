@@ -13,17 +13,26 @@ export class RestArgument extends Type {
     type: Type,
     ...args: Array<any>
   ) {
+    name = name == null ? this.getName(type) : name;
     const newMeta = {
       ...meta,
-      parent: meta.parent || type.parent
+      parent:
+        meta.parent === undefined || type.parent.priority > meta.parent.priority
+          ? type.parent
+          : meta.parent
     };
     return super.term(name, newMeta, type, ...args);
   }
 
+  static getName(type: Type) {
+    return `...${String(type.name)}`;
+  }
+
   type: Type;
 
-  constructor(type: Type) {
-    super(`...${String(type.name)}`);
+  constructor(name: mixed, meta: TypeMeta = {}, type: Type) {
+    name = name == null ? RestArgument.getName(type) : name;
+    super(name, meta);
     this.type = type;
   }
 
@@ -45,7 +54,7 @@ export class RestArgument extends Type {
         this._alreadyProcessedWith = null;
         return this;
       }
-      return this.endChanges(new RestArgument(newType));
+      return this.endChanges(RestArgument.term(null, {}, newType));
     } catch (e) {
       this._alreadyProcessedWith = null;
       throw e;
@@ -85,9 +94,8 @@ export class RestArgument extends Type {
   }
 
   getDifference(type: Type, withReverseUnion?: boolean = false) {
-    const selfType = this.getOponentType(this.type);
     // $FlowIssue
-    return selfType.valueType.getDifference(type, withReverseUnion);
+    return this.getOponentType(this.type).getDifference(type, withReverseUnion);
   }
 }
 

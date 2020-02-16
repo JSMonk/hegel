@@ -2,6 +2,7 @@ include:
   - ./**/*.js
 exclude:
   - ./node_modules/**
+  - ./build/**
 types:
   - ./@types
   - ./node_modules/@types

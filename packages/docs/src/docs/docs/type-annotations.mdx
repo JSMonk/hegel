@@ -1,0 +1,57 @@
+---
+name: Type Annotations
+route: /docs/type-annotations
+menu: Type Annotations
+---
+
+# Type Annotations
+----------------
+
+Type Annotations it's the most valuable part of Hegel.
+
+Type Annotation is ability to declare which values are valid for the variable. Lets explore this ability.
+
+First of all, lets write a simple function in pure JavaScript.
+
+```typescript
+function mul(a, b) {
+  return a * b;
+}
+```
+
+So, you can apply this function with different values:
+
+```typescript
+mul(42, 42);               // 1764
+mul(42, "42");             // 1764
+mul(true, "42");           // 42
+mul(class User {}, "42");  // NaN
+```
+
+As you can see, applying this function with different data types sometimes will return a valid result.
+But, you always want to get a valid result. So, you can add types.
+
+```typescript
+function mul(a: number, b: number) {
+  return a * b;
+}
+```
+
+And if you try to apply function by the same way in [Playground](/try#GYVwdgxgLglg9mABAWxAGwBQEMBciwjIBGApgE4A0iReBx5AlIgN4BQiiZJUIZSWiAFTUA3KwC+rVqkwAWAExUFDERzXqNiAPRbEgXg3AMjsBCKTsQBRMmThk8AFQCeABxKIARAHIFHt4hgBnP0g4ZCcsWCI0VwB3GCgAC0QoZ1c3OlIyN2l0DAUqNwU3FU1NU11La1tERxd3KDIQEl8AoIgQsIioxFiEpJT3dPIsmQx6xvzC4o0yiysbe363CDQsf0CAVX8hv0CYYNDwmEiYuMTk2rTCDOGc5dWNrbIWcQn5IrEgA) then you will see that Hegel will regect invalid data types application and will notify you about the problem.
+
+```typescript
+function mul(a: number, b: number) {
+  return a * b;
+}
+
+mul(42, 42); // 👌!
+
+// Error: Type "'42'" is incompatible with type "number"
+mul(42, "42");            
+
+// Error: Type "true" is incompatible with type "number"
+mul(true, "42");      
+
+// Error: Type "class User" is incompatible with type "number"
+mul(class User {}, "42");
+```

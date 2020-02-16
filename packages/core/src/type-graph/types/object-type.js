@@ -76,7 +76,9 @@ export class ObjectType extends Type {
               .name
           )}`
       )
-      .join(", ")}${properties.length > 0 && isSoft ? ", " : ""}${isSoft ? "..." : ""} }`;
+      .join(", ")}${properties.length > 0 && isSoft ? ", " : ""}${
+      isSoft ? "..." : ""
+    } }`;
   }
 
   static multyLine(properties: Array<[string, Type]>, isSoft: boolean) {
@@ -193,7 +195,12 @@ export class ObjectType extends Type {
     typeScope: TypeScope
   ): Type {
     if (sourceTypes.every(type => !this.canContain(type))) {
-      return this;
+      const newName = this.getChangedName(sourceTypes, targetTypes);
+      return this.name[0] === "{" || newName === this.name
+        ? this
+        : Object.assign(new ObjectType("", {}, this.properties), this, {
+            name: newName
+          });
     }
     if (this._alreadyProcessedWith !== null) {
       return this._alreadyProcessedWith;

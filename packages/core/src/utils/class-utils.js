@@ -191,7 +191,7 @@ export function addThisToClassScope(
     classScope.parent.body.set(name, staticSelfVar);
     classScope.declaration = staticSelfVar;
     staticSelfObject.instanceType = self;
-    self.classType = staticSelfObject;
+    selfObject.classType = staticSelfObject;
     const isConstructorPresented = currentNode.body.body.some(
       m => m.kind === "constructor"
     );
@@ -206,7 +206,7 @@ export function addThisToClassScope(
           new Meta(currentNode.loc)
         );
       // $FlowIssue
-      const type: FunctionType =
+      let type: FunctionType =
         constructor.type instanceof GenericType
           ? constructor.type.subordinateType
           : constructor.type;
@@ -216,6 +216,26 @@ export function addThisToClassScope(
         ObjectType.Object.isPrincipalTypeFor(type.returnType)
           ? type.returnType
           : self;
+      if (self instanceof $BottomType) {
+        const isConstructorGeneric = constructor.type instanceof GenericType;
+        const localTypeScope = isConstructorGeneric
+          ? constructor.type.localTypeScope
+          : self.subordinateMagicType.localTypeScope;
+        const genericArguments = [
+          ...new Set(
+            self.genericArguments.concat(
+              isConstructorGeneric ? constructor.type.genericArguments : []
+            )
+          )
+        ];
+        type = GenericType.new(
+          `constructor ${String(self.name)}`,
+          {},
+          genericArguments,
+          localTypeScope,
+          type
+        );
+      }
       constructor.type = type;
       staticSelfObject.properties.set(CONSTRUCTABLE, constructor);
     }
@@ -240,14 +260,19 @@ export function addClassScopeToTypeGraph(
   parentNode: Node,
   typeGraph: ModuleScope
 ) {
-  const scope = getScopeFromNode(currentNode, parentNode, typeGraph);
-  const parentTypeScope = findNearestTypeScope(scope, typeGraph);
+  const scopeName = VariableScope.getName(currentNode);
+  const existed = typeGraph.scopes.get(scopeName);
+  if (existed !== undefined) {
+    return existed;
+  }
   const name =
     currentNode.id != undefined
       ? getDeclarationName(currentNode)
       : getAnonymousKey(currentNode);
+  const scope = getScopeFromNode(currentNode, parentNode, typeGraph);
+  const parentTypeScope = findNearestTypeScope(scope, typeGraph);
   parentTypeScope.body.set(name, currentNode);
-  typeGraph.scopes.set(VariableScope.getName(currentNode), scope);
+  typeGraph.scopes.set(scopeName, scope);
   if (scope.type === VariableScope.OBJECT_TYPE) {
     addThisToObjectScope(scope, currentNode);
   } else {
@@ -413,6 +438,17 @@ export function addClassToTypeGraph(
     self.type instanceof $BottomType
       ? self.type.subordinateMagicType
       : self.type
+  );
+  const selfObject =
+    self.type instanceof $BottomType
+      ? self.type.subordinateMagicType.subordinateType
+      : self.type;
+  selfObject.parent = [...selfObject.properties].reduce(
+    (parent, [_, { type }]) =>
+      type !== undefined && parent.priority < type.parent.priority
+        ? type.parent
+        : parent,
+    selfObject.parent
   );
   const existedConstructor = classNode.body.body.find(
     m => m.kind === "constructor"

@@ -1,0 +1,28 @@
+---
+name: Modules
+route: /docs/modules
+menu: Type Annotations
+---
+
+# Modules
+----------------
+
+Sometimes you need to use a type which declared in other module. So, you need a mechanism of importing/exporting types from different modules. Hegel provide ECMAScript modules like syntax for this case.
+
+```typescript
+// ./modules/a.js
+export class A {}
+export type B = {}
+export default class Main {}
+export const MY_OWN_CONST = 42;
+```
+
+```typescript
+// ./modules/b.js
+import type Main, { A, B, MY_OWN_CONST } from "./b.js"
+
+// Error: Type "22" is incompatible with type "42"
+const NEW_CONST: MY_OWN_CONST = 22;
+```
+
+As you can see, you can import type of values without actual value importing. It means that the same as other "type imports", this imports will be removed by compiler.

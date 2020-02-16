@@ -50,7 +50,7 @@ export function importDependencies(
   importNode.specifiers.forEach(specifier => {
     const importName = getImportName(specifier);
     let importElement = importName
-      ? importSource.get(importName)
+      ? importSource.get(importName) || exports.get(importName)
       : ObjectType.term(
           ObjectType.getName(importEntries),
           { typeScope: currentModuleTypeScope },
@@ -113,10 +113,12 @@ export default async function mixImportedDependencies(
 ): Promise<void> {
   const importRequests = [];
   let importCount = 0;
-  for (let i = 0; i < ast.body.length; i++) {
-    const node = ast.body[i];
+  for (importCount = 0; importCount < ast.body.length; importCount++) {
+    const node = ast.body[importCount];
+    if (node.type === NODE.INTERPRETER_DIRECTIVE) {
+      continue;
+    }
     if (!NODE.isImport(node)) {
-      importCount = i;
       break;
     }
     importRequests.push(

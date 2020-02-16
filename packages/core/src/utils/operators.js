@@ -118,7 +118,7 @@ const mixBaseOperators = moduleScope => {
         "(unknown) => undefined",
         { parent: typeScope },
         [Type.Unknown],
-        Type.String
+        Type.Undefined
       )
     ],
     [

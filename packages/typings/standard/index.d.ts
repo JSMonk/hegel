@@ -328,7 +328,6 @@ interface Array<T> {
   [n: number]: T;
 }
 
-
 interface ReadonlyArray<T> {
   //     /**
   //       * Gets the length of the array. This is a number one higher than the highest element defined in an array.
@@ -346,7 +345,7 @@ interface ReadonlyArray<T> {
   //       * Combines two or more arrays.
   //       * @param items Additional items to add to the end of array1.
   //       */
-  concat(...items: Array<ReadonlyArray<T>>): T[];
+  concat(...items: Array<ReadonlyArray<T>> | Array<T[]>): T[];
   //       * Adds all the elements of an array separated by the specified separator string.
   //       * @param separator A string used to separate one element of an array from the next in the resulting String. If omitted, the array elements are separated with a comma.
   //       */
@@ -464,32 +463,32 @@ interface ReadonlyArray<T> {
 }
 
 interface IteratorYieldResult<TYield> {
-    done?: false;
-    value: TYield;
+  done?: false;
+  value: TYield;
 }
 
 interface IteratorReturnResult<TReturn> {
-    done: true;
-    value: TReturn;
+  done: true;
+  value: TReturn;
 }
 
 type IteratorResult<T, TReturn> =
-    | IteratorYieldResult<T>
-    | IteratorReturnResult<TReturn>;
+  | IteratorYieldResult<T>
+  | IteratorReturnResult<TReturn>;
 
 interface Iterator<T, TReturn, TNext> {
-    // NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
-    next(...args: [] | [TNext]): IteratorResult<T, TReturn>;
-    return?(value?: TReturn): IteratorResult<T, TReturn>;
-    throw?(e?: any): IteratorResult<T, TReturn>;
+  // NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
+  next(...args: [] | [TNext]): IteratorResult<T, TReturn>;
+  return?(value?: TReturn): IteratorResult<T, TReturn>;
+  throw?(e?: any): IteratorResult<T, TReturn>;
 }
 
 interface Iterable<T> {
-    //[Symbol.iterator](): Iterator<T>;
+  //[Symbol.iterator](): Iterator<T>;
 }
 
 interface IterableIterator<T> extends Iterator<T, any, any> {
-    //[Symbol.iterator](): IterableIterator<T>;
+  //[Symbol.iterator](): IterableIterator<T>;
 }
 
 interface RegExpExecArray extends Array<string> {
@@ -746,7 +745,30 @@ interface ObjectConstructor {
    * @param target The target object to copy to.
    * @param source The source object from which to copy properties.
    */
-  assign<T, U>(target: T, source: U): T & U;
+  assign<
+    O1,
+    O2,
+    O3 = {},
+    O4 = {},
+    O5 = {},
+    O6 = {},
+    O7 = {},
+    O8 = {},
+    O9 = {},
+    O10 = {}
+  >(
+    target: O1,
+    ...sources:
+      | [O2]
+      | [O2, O3]
+      | [O2, O3, O4]
+      | [O2, O3, O4, O5]
+      | [O2, O3, O4, O5, O6]
+      | [O2, O3, O4, O5, O6, O7]
+      | [O2, O3, O4, O5, O6, O7, O8]
+      | [O2, O3, O4, O5, O6, O7, O8, O9]
+      | [O2, O3, O4, O5, O6, O7, O8, O9, O10]
+  ): O1 & O2 & O3 & O4 & O5 & O6 & O7 & O8 & O9 & O10;
 }
 
 // /**

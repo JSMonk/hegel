@@ -17,6 +17,7 @@ import { ObjectType } from "./types/object-type";
 import { GenericType } from "./types/generic-type";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
+import { $ThrowsResult } from "./types/throws-type";
 import { VariableScope } from "./variable-scope";
 import { getVariableType } from "../utils/variable-utils";
 import { addVariableToGraph } from "../utils/variable-utils";
@@ -599,30 +600,71 @@ const afterFillierActions = (
           declaration.type instanceof GenericType
             ? declaration.type.subordinateType
             : declaration.type;
-        declarationType.throwable = (functionScope.throwable || []).length
-          ? inferenceErrorType(currentNode, moduleScope)
-          : undefined;
-        if (functionScope.declaration instanceof VariableInfo) {
-          const fnType = functionScope.declaration.type;
-          if (
-            fnType instanceof GenericType &&
-            functionScope.type === VariableScope.FUNCTION_TYPE &&
-            fnType.subordinateType instanceof FunctionType
-          ) {
-            // $FlowIssue - Type refinements
-            prepareGenericFunctionType(functionScope);
-            if (fnType.genericArguments.some(a => !a.isUserDefined)) {
-              inferenceFunctionTypeByScope(
-                // $FlowIssue - Type refinements
-                functionScope,
-                typeScope,
-                moduleScope
-              );
-            }
+        if (
+          !isTypeDefinitions &&
+          functionScope.throwable.length === 0 &&
+          declarationType.throwable !== undefined
+        ) {
+          throw new HegelError(
+            `Function should throw "${String(
+              declarationType.throwable.name
+            )}" but throw nothing`,
+            currentNode.returnType
+              ? currentNode.returnType.loc
+              : currentNode.loc
+          );
+        }
+        if (
+          functionScope.throwable.length !== 0 &&
+          declarationType.throwable === undefined
+        ) {
+          const throwableType = inferenceErrorType(currentNode, moduleScope);
+          const isGeneric = declaration.type instanceof GenericType;
+          const fnName = FunctionType.getName(
+            declarationType.argumentsTypes,
+            declarationType.returnType,
+            isGeneric ? declaration.type.genericArguments : [],
+            declarationType.isAsync,
+            throwableType
+          );
+          let newFunctionType = FunctionType.term(
+            fnName,
+            {},
+            declarationType.argumentsTypes,
+            declarationType.returnType,
+            declarationType.isAsync
+          );
+          newFunctionType.throwable = throwableType;
+          if (isGeneric && newFunctionType instanceof FunctionType) {
+            newFunctionType = GenericType.new(
+              fnName,
+              {},
+              declaration.type.genericArguments,
+              declaration.type.localTypeScope,
+              newFunctionType
+            );
           }
-          if (currentNode.exportAs) {
-            moduleScope.exports.set(currentNode.exportAs, declaration);
+          declaration.type = newFunctionType;
+        }
+        const fnType = functionScope.declaration.type;
+        if (
+          fnType instanceof GenericType &&
+          functionScope.type === VariableScope.FUNCTION_TYPE &&
+          fnType.subordinateType instanceof FunctionType
+        ) {
+          // $FlowIssue - Type refinements
+          prepareGenericFunctionType(functionScope);
+          if (fnType.genericArguments.some(a => !a.isUserDefined)) {
+            inferenceFunctionTypeByScope(
+              // $FlowIssue - Type refinements
+              functionScope,
+              typeScope,
+              moduleScope
+            );
           }
+        }
+        if (currentNode.exportAs) {
+          moduleScope.exports.set(currentNode.exportAs, declaration);
         }
         break;
       case NODE.TS_EXPORT_ASSIGNMENT:

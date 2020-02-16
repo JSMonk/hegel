@@ -84,6 +84,13 @@ export class $BottomType extends Type {
         }
         return result;
       }
+      if (argument instanceof UnionType) {
+        const newType = argument.changeAll(sourceTypes, targetTypes, typeScope);
+        const result = argument.variants
+          .map(mapper)
+          .filter(a => a !== undefined);
+        return result.length > 1 && newType.parent.priority <= 1 ? newType : result[0];
+      }
       return argument;
     };
     this._alreadyProcessedWith = TypeVar.createSelf(
@@ -91,12 +98,7 @@ export class $BottomType extends Type {
       this.parent
     );
     try {
-      const appliedParameters = this.genericArguments.map(
-        argument =>
-          argument instanceof UnionType
-            ? argument.variants.map(mapper).find(a => a !== undefined)
-            : mapper(argument)
-      );
+      const appliedParameters = this.genericArguments.map(mapper);
       if (appliedParameters.every(a => a === undefined)) {
         return this.endChanges(this);
       }

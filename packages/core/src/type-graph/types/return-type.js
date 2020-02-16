@@ -39,9 +39,7 @@ export class $ReturnType extends GenericType {
     const oldGenericArguments = this.genericArguments;
     if (target instanceof GenericType) {
       this.genericArguments = this.genericArguments.concat(
-        target.genericArguments.map(a =>
-          Object.assign(new TypeVar(), a, { defaultType: Type.Unknown })
-        )
+        target.genericArguments
       );
       target = target.applyGeneric(genericParameters, loc);
     }

@@ -48,7 +48,7 @@ export class Scope {
       precompute,
       middlecompute,
       postcompute,
-      parentNode
+      parentNode.parentNode || parentNode
     );
     const scope = typeGraph.scopes.get(scopeName);
     // $FlowIssue

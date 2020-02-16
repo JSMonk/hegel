@@ -9,16 +9,7 @@ import { $AppliedImmutable } from "./immutable-type";
 export class $Intersection extends GenericType {
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
-    super(
-      "$Intersection",
-      meta,
-      [
-        TypeVar.term("target1", { parent }),
-        TypeVar.term("target2", { parent })
-      ],
-      parent,
-      null
-    );
+    super("$Intersection", meta, [], parent, null);
   }
 
   isPrincipalTypeFor() {
@@ -33,51 +24,54 @@ export class $Intersection extends GenericType {
     return false;
   }
 
-  applyGeneric(
-    parameters,
-    loc,
-    shouldBeMemoize = true,
-    isCalledAsBottom = false
-  ) {
-    super.assertParameters(parameters, loc);
-    const [firstObject, secondObject] = parameters;
-    const isFirstVar = firstObject instanceof TypeVar;
-    const isSecondVar = secondObject instanceof TypeVar;
-    if (isFirstVar && !firstObject.isUserDefined) {
-      firstObject.constraint = ObjectType.Object;
-    }
-    if (isSecondVar && !secondObject.isUserDefined) {
-      secondObject.constraint = ObjectType.Object;
-    }
-    if (isFirstVar || isSecondVar) {
-      return new $BottomType({}, this, [firstObject, secondObject]);
-    }
-    if (!(firstObject instanceof ObjectType)) {
+  applyGeneric(objects, loc, shouldBeMemoize = true, isCalledAsBottom = false) {
+    if (objects.length < 2) {
       throw new HegelError(
-        "First parameter should be an mutable object type",
+        "$Intersection required at minimum 2 type parameters.",
         loc
       );
     }
-    if ("readonly" in secondObject) {
-      secondObject = secondObject.readonly;
-    }
-    if (!(secondObject instanceof ObjectType)) {
-      throw new HegelError("Second parameter should be an object type", loc);
-    }
-    const newProperties = [...firstObject.properties];
-    for (const [key, variable] of secondObject.properties.entries()) {
-      const existed = firstObject.properties.get(key);
-      if (existed !== undefined && existed.type instanceof $AppliedImmutable) {
-        throw new HegelError(
-          `Attempt to mutate immutable property "${key}" in "${String(
-            firstObject.name
-          )}" type`,
-          loc
-        );
+    let containsVariable = false;
+    const objectTypes = objects.map((obj, i) => {
+      const isVar = obj instanceof TypeVar;
+      if (isVar) {
+        containsVariable = true;
+        if (!obj.isUserDefined) {
+          obj.constraint = ObjectType.Object;
+        }
       }
-      newProperties.push([key, variable]);
+      return i !== 0 && "readonly" in obj ? obj.readonly : obj;
+    });
+    if (containsVariable) {
+      return new $BottomType({}, this, objects);
     }
-
+    const wrongIndex = objectTypes.findIndex(a => !(a instanceof ObjectType));
+    if (wrongIndex !== -1) {
+      debugger;
+      throw new HegelError(
+        `All parameters should be an object type. Only first parameter should mutable object type. ${wrongIndex} is not.`,
+        loc
+      );
+    }
+    const [firstObject, ...restObjects] = objectTypes;
+    const newProperties = [...firstObject.properties];
+    for (const obj of restObjects) {
+      for (const [key, variable] of obj.properties.entries()) {
+        const existed = firstObject.properties.get(key);
+        if (
+          existed !== undefined &&
+          existed.type instanceof $AppliedImmutable
+        ) {
+          throw new HegelError(
+            `Attempt to mutate immutable property "${key}" in "${String(
+              firstObject.name
+            )}" type`,
+            loc
+          );
+        }
+        newProperties.push([key, variable]);
+      }
+    }
     return ObjectType.term(
       ObjectType.getName(newProperties),
       {},

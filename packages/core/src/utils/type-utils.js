@@ -205,34 +205,21 @@ export function getTypeFromTypeAnnotation(
     case NODE.TS_SYMBOL_TYPE_ANNOTATION:
       return Type.Symbol;
     case NODE.TS_INTERSECTION_TYPE:
-      const firstObject = getTypeFromTypeAnnotation(
-        { typeAnnotation: typeNode.typeAnnotation.types[0] },
-        typeScope,
-        currentScope,
-        rewritable,
-        self,
-        parentNode,
-        typeGraph,
-        precompute,
-        middlecompute,
-        postcompute
+      const objects = typeNode.typeAnnotation.types.map(typeAnnotation =>
+        getTypeFromTypeAnnotation(
+          { typeAnnotation },
+          typeScope,
+          currentScope,
+          rewritable,
+          self,
+          parentNode,
+          typeGraph,
+          precompute,
+          middlecompute,
+          postcompute
+        )
       );
-      const secondObject = getTypeFromTypeAnnotation(
-        { typeAnnotation: typeNode.typeAnnotation.types[1] },
-        typeScope,
-        currentScope,
-        rewritable,
-        self,
-        parentNode,
-        typeGraph,
-        precompute,
-        middlecompute,
-        postcompute
-      );
-      return Type.find("$Intersection").applyGeneric(
-        [firstObject, secondObject],
-        typeNode.loc
-      );
+      return Type.find("$Intersection").applyGeneric(objects, typeNode.loc);
     case NODE.NULLABLE_TYPE_ANNOTATION:
       const resultType = getTypeFromTypeAnnotation(
         typeNode.typeAnnotation,
@@ -679,7 +666,7 @@ export function getTypeFromTypeAnnotation(
           postcompute
         );
         return annotation.type === NODE.REST_ELEMENT
-          ? new RestArgument(result)
+          ? RestArgument.term(null, {}, result)
           : result;
       });
       const { returnType: returnTypeNode } = typeNode.typeAnnotation;

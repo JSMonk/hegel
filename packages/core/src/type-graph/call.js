@@ -17,7 +17,6 @@ import { VariableInfo } from "./variable-info";
 import { $PropertyType } from "./types/property-type";
 import { VariableScope } from "./variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
-import { addToThrowable } from "../utils/throwable";
 import { isCallableType } from "../utils/function-utils";
 import { getAnonymousKey } from "../utils/common";
 import { getVariableType } from "../utils/variable-utils";
@@ -26,6 +25,7 @@ import { inferenceTypeForNode } from "../inference";
 import { pickFalsy, pickTruthy } from "../utils/type-utils";
 import { addFunctionToTypeGraph } from "../utils/function-utils";
 import { ModuleScope, PositionedModuleScope } from "./module-scope";
+import { addToThrowable, findThrowableBlock } from "../utils/throwable";
 import { THIS_TYPE, CALLABLE, CONSTRUCTABLE } from "./constants";
 import {
   getRawFunctionType,
@@ -323,13 +323,25 @@ export function addCallToTypeGraph(
         // $FlowIssue
         currentScope
           .getParentsUntil(nearestFn)
-          .every(parent => parent.creator === "block" || parent.creator === "catch");
+          .every(
+            parent => parent.creator === "block" || parent.creator === "catch"
+          );
       if (isFinal) {
         nearestFn.calls.push(
           new CallMeta(undefined, [], node.loc, undefined, false, true)
         );
       }
-      addToThrowable(args[0], currentScope);
+      const nearestThrowableScope = findThrowableBlock(currentScope);
+      if (
+          nearestThrowableScope !== null &&
+        nearestThrowableScope.type === VariableScope.FUNCTION_TYPE &&
+        nearestThrowableScope.declaration.type.throwable !== undefined
+      ) {
+        target = target.type.applyGeneric([
+          nearestThrowableScope.declaration.type.throwable
+        ]);
+      }
+      addToThrowable(args[0], nearestThrowableScope);
       break;
     case NODE.AWAIT_EXPRESSION:
       args = [
@@ -886,7 +898,25 @@ export function addCallToTypeGraph(
         throwableType.throwable !== undefined &&
         !(currentScope instanceof ModuleScope)
       ) {
-        addToThrowable(throwableType.throwable, currentScope);
+        const nearestThrowableScope = findThrowableBlock(currentScope);
+        addToThrowable(throwableType.throwable, nearestThrowableScope);
+        if (
+          nearestThrowableScope !== null &&
+          nearestThrowableScope.type === VariableScope.FUNCTION_TYPE &&
+          nearestThrowableScope.declaration.type.throwable !== undefined &&
+          !nearestThrowableScope.declaration.type.throwable.isPrincipalTypeFor(
+            throwableType.throwable
+          )
+        ) {
+          throw new HegelError(
+            `Current function throws "${String(
+              throwableType.throwable.name
+            )}" type which is incompatible with declareted throw type "${String(
+              nearestThrowableScope.declaration.type.throwable.name
+            )}"`,
+            node.loc
+          );
+        }
       }
       if (genericArguments != null) {
         target = fnType;
@@ -1322,9 +1352,13 @@ export function addMethodToThis(
     );
     const isConstructorGeneric = fn.type instanceof GenericType;
     if (self.type instanceof $BottomType) {
-      const genericArguments = self.type.genericArguments.concat(
-        isConstructorGeneric ? fn.type.genericArguments : []
-      );
+      const genericArguments = [
+        ...new Set(
+          self.type.genericArguments.concat(
+            isConstructorGeneric ? fn.type.genericArguments : []
+          )
+        )
+      ];
       const localTypeScope = isConstructorGeneric
         ? fn.type.localTypeScope
         : self.type.subordinateMagicType.localTypeScope;

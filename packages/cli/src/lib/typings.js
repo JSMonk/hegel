@@ -14,7 +14,7 @@ const typings = dirname(require.resolve("@hegel/typings"));
 const nodejs = join(typings, "nodejs/globals.d.ts");
 const standard = join(typings, "standard/index.d.ts");
 
-async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
+async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {   
   const errors: Array<HegelError> = [];
   const typingsScope = await createModuleScope(
     ast,
@@ -33,7 +33,7 @@ async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
   for (const entry of typingsScope.body.entries()) {
     if (entry === undefined) {
       continue;
-    }
+    } 
     const variable = entry[1];
     variable.parent = globalScope;
     body.set(entry[0], variable);

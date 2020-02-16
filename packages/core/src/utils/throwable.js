@@ -4,11 +4,11 @@ import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
 
-function findThrowableBlock(
-  parentScope: VariableScope | ModuleScope
+export function findThrowableBlock(
+  parentScope: null | VariableScope | ModuleScope
 ): ?VariableScope {
   if (!parentScope || !(parentScope instanceof VariableScope)) {
-    throw new Error("Never");
+    return null;
   }
   let parent = parentScope;
   do {
@@ -22,7 +22,7 @@ function findThrowableBlock(
 
 export function addToThrowable(
   throwType: Type | VariableInfo,
-  currentScope: VariableScope | ModuleScope
+  currentScope: null | VariableScope | ModuleScope
 ) {
   const throwableScope = findThrowableBlock(currentScope);
   if (

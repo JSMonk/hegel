@@ -217,6 +217,21 @@ function mixTryCatchInfo(currentNode: Node) {
   };
 }
 
+function mixParentToClassObjectAndFunction(
+  currentNode: Node,
+  parentNode: Node
+) {
+  if (
+    typeof currentNode === "object" &&
+    currentNode !== null &&
+    (currentNode.type === NODE.CLASS_DECLARATION ||
+      currentNode.type === NODE.FUNCITON_DECLARATION)
+  ) {
+    currentNode.parentNode = parentNode;
+  }
+  return currentNode;
+}
+
 function mixElseIfReturnOrThrowExisted(currentNode: Node, parentNode: Node) {
   if (
     parentNode === undefined ||
@@ -302,7 +317,8 @@ const getCurrentNode = compose(
   mixBlockToLogicalOperator,
   mixElseIfReturnOrThrowExisted,
   mixBlockToConditionalExpression,
-  mixBlockToCaseStatement
+  mixBlockToCaseStatement,
+  mixParentToClassObjectAndFunction
 );
 
 export type Handler = (
