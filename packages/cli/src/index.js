@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/env node
 import meow from "meow";
 import { getLogger } from "./lib/logger";
 import { getSources } from "./lib/file-system"; 
