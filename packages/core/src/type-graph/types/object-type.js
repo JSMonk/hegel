@@ -202,13 +202,20 @@ export class ObjectType extends Type {
             name: newName
           });
     }
-    if (this._alreadyProcessedWith !== null) {
-      return this._alreadyProcessedWith;
-    }
-    this._alreadyProcessedWith = TypeVar.createSelf(
+    const currentSelf = TypeVar.createSelf(
       this.getChangedName(sourceTypes, targetTypes),
       this.parent
     );
+    if (
+      this._changeStack !== null &&
+      this._changeStack.find(a => a.equalsTo(currentSelf))
+    ) {
+      return currentSelf;
+    }
+    this._changeStack =
+      this._changeStack === null
+        ? [currentSelf]
+        : [...this._changeStack, currentSelf];
     let isAnyPropertyChanged = false;
     try {
       const newProperties: Array<[string, VariableInfo]> = [];
@@ -235,8 +242,7 @@ export class ObjectType extends Type {
           ? this.isSubtypeOf
           : this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
       if (!isAnyPropertyChanged && this.isSubtypeOf === isSubtypeOf) {
-        this._alreadyProcessedWith = null;
-        return this;
+        return this.endChanges(this);
       }
       const isSoft = !this.isStrict;
       const result = ObjectType.term(
@@ -247,7 +253,7 @@ export class ObjectType extends Type {
       );
       return this.endChanges(result);
     } catch (e) {
-      this._alreadyProcessedWith = null;
+      this._changeStack = null;
       throw e;
     }
   }

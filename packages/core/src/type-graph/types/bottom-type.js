@@ -54,14 +54,25 @@ export class $BottomType extends Type {
     if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    if (this._alreadyProcessedWith !== null) {
-      return this._alreadyProcessedWith;
+    const currentSelf = TypeVar.createSelf(
+      this.getChangedName(sourceTypes, targetTypes),
+      this.parent
+    );
+    if (
+      this._changeStack !== null &&
+      this._changeStack.find(a => a.equalsTo(currentSelf))
+    ) {
+      return currentSelf;
     }
+    this._changeStack =
+      this._changeStack === null
+        ? [currentSelf]
+        : [...this._changeStack, currentSelf];
     let includedUndefined = false;
     let includedBottom = false;
     const includedSelfIndex = sourceTypes.findIndex(t => this.equalsTo(t));
     if (includedSelfIndex !== -1) {
-      return targetTypes[includedSelfIndex];
+      return this.endChanges(targetTypes[includedSelfIndex]);
     }
     const mapper = argument => {
       if (argument instanceof $BottomType) {
@@ -89,14 +100,12 @@ export class $BottomType extends Type {
         const result = argument.variants
           .map(mapper)
           .filter(a => a !== undefined);
-        return result.length > 1 && newType.parent.priority <= 1 ? newType : result[0];
+        return result.length > 1 && newType.parent.priority <= 1
+          ? newType
+          : result[0];
       }
       return argument;
     };
-    this._alreadyProcessedWith = TypeVar.createSelf(
-      this.getChangedName(sourceTypes, targetTypes),
-      this.parent
-    );
     try {
       const appliedParameters = this.genericArguments.map(mapper);
       if (appliedParameters.every(a => a === undefined)) {
@@ -137,7 +146,7 @@ export class $BottomType extends Type {
         )
       );
     } catch (e) {
-      this._alreadyProcessedWith = null;
+      this._changeStack = null;
       throw e;
     }
   }

@@ -2,6 +2,7 @@
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
+import { TypeVar } from "../type-graph/types/type-var";
 import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -29,22 +30,32 @@ function instanceofIdentifier(
 ): [string, ?Type, ?Type] {
   const variable = currentScope.findVariable(targetNode);
   const type = variable.type;
-  if (!(type instanceof UnionType) && type !== Type.Unknown) {
+  if (
+    !(type instanceof UnionType) &&
+    type !== Type.Unknown &&
+    !(type instanceof TypeVar) &&
+    !type.isPrincipalTypeFor(constructor)
+  ) {
     throw new HegelError(
-      `Type "${String(type.name)}" never or always instance of "${String(
-        constructor.name
-      )}"`,
-      targetNode.loc
+      `Variable can't be an instance of "${refinementNode.right.name}"`,
+      refinementNode.loc
     );
   }
-  if (type === Type.Unknown) {
+  if (type.equalsTo(constructor)) {
+    throw new HegelError(
+      `Variable is always instance of "${refinementNode.right.name}"`,
+      refinementNode.loc
+    );
+  }
+  if (type === Type.Unknown || !(type instanceof UnionType)) {
     return [targetNode.name, constructor, type];
   }
   // $FlowIssue
   const [refinementedVariants, alternateVariants] = type.variants.reduce(
-    ([refinementedVariants, alternateVariants], variant) => constructor.isPrincipalTypeFor(variant)
-      ? [refinementedVariants.concat([variant]), alternateVariants]
-      : [refinementedVariants, alternateVariants.concat([variant])],
+    ([refinementedVariants, alternateVariants], variant) =>
+      constructor.isPrincipalTypeFor(variant)
+        ? [refinementedVariants.concat([variant]), alternateVariants]
+        : [refinementedVariants, alternateVariants.concat([variant])],
     [[], []]
   );
   return [
@@ -204,13 +215,14 @@ function instanceofProperty(
     propertiesChaining,
     typeScope
   );
-  if (
-    !refinmentedAndAlternate ||
-    !refinmentedAndAlternate[0] ||
-    !refinmentedAndAlternate[1]
-  ) {
+  if (!refinmentedAndAlternate) {
+    return;
+  }
+  if (!refinmentedAndAlternate[0] || !refinmentedAndAlternate[1]) {
     throw new HegelError(
-      `Property never or always be instance of "${refinementNode.right.name}"`,
+      `Property ${
+        refinmentedAndAlternate[0] === undefined ? "can't be" : "is always"
+      } instance of "${refinementNode.right.name}"`,
       refinementNode.loc
     );
   }

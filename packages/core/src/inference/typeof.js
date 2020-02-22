@@ -146,7 +146,15 @@ function typeofIdentifier(
   } else {
     refinementedType = refinementType;
     alternateType =
-      refinementType === variableInfo.type ? Type.Never : refinementType;
+      refinementType === variableInfo.type ? Type.Never : alternateType;
+  }
+  if (refinementedType === Type.Never || alternateType === Type.Never) {
+    throw new HegelError(
+      `Variable ${refinementedType === Type.Never ? "can't be" : "is always"} "${
+        stringNode.value
+      }"`,
+      refinementNode.loc
+    );
   }
   return [variableName, refinementedType, alternateType];
 }
@@ -178,15 +186,14 @@ function typeofProperty(
     propertiesChaining,
     typeScope
   );
-  if (
-    !refinmentedAndAlternate ||
-    !refinmentedAndAlternate[0] ||
-    !refinmentedAndAlternate[1]
-  ) {
+  if (!refinmentedAndAlternate) {
+    return;
+  }
+  if (!refinmentedAndAlternate[0] || !refinmentedAndAlternate[1]) {
     throw new HegelError(
-      `Property can't be "${stringNode.value}" type or always have type "${
-        stringNode.value
-      }"`,
+      `Property ${
+        refinmentedAndAlternate[0] === undefined ? "can't be" : "is always"
+      } "${stringNode.value}"`,
       refinementNode.loc
     );
   }

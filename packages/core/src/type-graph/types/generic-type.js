@@ -161,13 +161,27 @@ export class GenericType<T: Type> extends Type {
     if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    if (this._alreadyProcessedWith !== null) {
-      return this._alreadyProcessedWith;
-    }
-    this._alreadyProcessedWith = TypeVar.createSelf(
+    const currentSelf = TypeVar.createSelf(
       this.getChangedName(sourceTypes, targetTypes),
       this.parent
     );
+    [sourceTypes, targetTypes] = sourceTypes.reduce(
+      ([newSourceTypes, newTargetTypes], sourceType, index) =>
+        this.genericArguments.find(a => sourceType.contains(a)) !== undefined
+          ? [newSourceTypes, newTargetTypes]
+          : [
+              [...newSourceTypes, sourceType],
+              [...newTargetTypes, targetTypes[index]]
+            ],
+      [[], []]
+    );
+    if (this._changeStack !== null && this._changeStack.find(a => a.equalsTo(currentSelf))) {
+      return currentSelf;
+    }
+    this._changeStack =
+      this._changeStack === null
+        ? [currentSelf]
+        : [...this._changeStack, currentSelf];
     try {
       const newSubordinateType = this.subordinateType.changeAll(
         sourceTypes,
@@ -175,8 +189,7 @@ export class GenericType<T: Type> extends Type {
         typeScope
       );
       if (newSubordinateType === this.subordinateType) {
-        this._alreadyProcessedWith = null;
-        return this;
+        return this.endChanges(this);
       }
       const newGenericArguments = this.genericArguments.filter(arg =>
         newSubordinateType.contains(arg)
@@ -210,7 +223,7 @@ export class GenericType<T: Type> extends Type {
         )
       );
     } catch (e) {
-      this._alreadyProcessedWith = null;
+      this._changeStack = null;
       throw e;
     }
   }

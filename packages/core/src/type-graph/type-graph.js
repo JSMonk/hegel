@@ -510,7 +510,8 @@ const afterFillierActions = (
               );
         if (
           currentNode.id != null &&
-          currentNode.id.typeAnnotation == undefined
+          currentNode.id.typeAnnotation == undefined &&
+          currentNode.init !== null
         ) {
           const newType =
             newTypeOrVar.result instanceof VariableInfo

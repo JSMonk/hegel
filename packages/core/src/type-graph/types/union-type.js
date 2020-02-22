@@ -105,13 +105,20 @@ export class UnionType extends Type {
     if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    if (this._alreadyProcessedWith !== null) {
-      return this._alreadyProcessedWith;
-    }
-    this._alreadyProcessedWith = TypeVar.createSelf(
+    const currentSelf = TypeVar.createSelf(
       this.getChangedName(sourceTypes, targetTypes),
       this.parent
     );
+    if (
+      this._changeStack !== null &&
+      this._changeStack.find(a => a.equalsTo(currentSelf))
+    ) {
+      return currentSelf;
+    }
+    this._changeStack =
+      this._changeStack === null
+        ? [currentSelf]
+        : [...this._changeStack, currentSelf];
     try {
       let isVariantsChanged = false;
       const newVariants = this.variants.map(t => {
@@ -122,13 +129,11 @@ export class UnionType extends Type {
         isVariantsChanged = true;
         return newT;
       });
-      if (!isVariantsChanged) {
-        this._alreadyProcessedWith = null;
-        return this;
-      }
-      return this.endChanges(UnionType.term(null, {}, newVariants));
+      return this.endChanges(
+        !isVariantsChanged ? this : UnionType.term(null, {}, newVariants)
+      );
     } catch (e) {
-      this._alreadyProcessedWith = null;
+      this._changeStack = null;
       throw e;
     }
   }

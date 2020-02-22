@@ -1185,7 +1185,7 @@ describe("Promises", () => {
       const a = Promise.resolve();
       async function b() {
         const c = await a;
-      } 
+      }
     `);
     const [[module], errors] = await createTypeGraph(
       [sourceAST],

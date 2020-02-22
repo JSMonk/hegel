@@ -830,6 +830,9 @@ export function getWrapperType(
   if (type === Type.Symbol || type.isSubtypeOf === Type.Symbol) {
     return Type.find("Symbol");
   }
+  if (type === Type.BigInt || type.isSubtypeOf === Type.BigInt) {
+    return Type.find("BigInt");
+  }
   return argument;
 }
 

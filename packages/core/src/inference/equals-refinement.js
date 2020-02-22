@@ -155,7 +155,8 @@ function equalsIdentifier(
   currentScope: VariableScope | ModuleScope,
   typeScope: TypeScope,
   value: Identifier | NullLiteral,
-  refinementNode: Node
+  refinementNode: Node,
+  isSwitch: boolean
 ): [string, Type, Type] {
   const variableName = node.name;
   const refinementType = getRefinmentType(value, refinementNode);
@@ -190,7 +191,19 @@ function equalsIdentifier(
   } else {
     refinementedType = refinementType;
     alternateType =
-      refinementType === variableInfo.type ? Type.Never : refinementType;
+      refinementType === variableInfo.type ? Type.Never : alternateType;
+  }
+  if (
+    refinementedType == Type.Never ||
+    (alternateType == Type.Never && !isSwitch)
+  ) {
+    const typeName = String(refinementType.name);
+    throw new HegelError(
+      `Type ${
+        refinementedType === Type.Never ? "can't be" : "is always"
+      } "${typeName}"`,
+      refinementNode.loc
+    );
   }
   return [variableName, refinementedType, alternateType];
 }
@@ -398,7 +411,8 @@ function equalsProperty(
   currentScope: VariableScope | ModuleScope,
   typeScope: TypeScope,
   value: Identifier | NullLiteral,
-  refinementNode: Node
+  refinementNode: Node,
+  isSwitch: boolean
 ): ?[string, Type, Type] {
   const targetObject = getMemberExressionTarget(node);
   if (targetObject.type !== NODE.IDENTIFIER) {
@@ -429,12 +443,21 @@ function equalsProperty(
     return;
   }
   if (
+    refinmentedAndAlternate[0] !== undefined &&
+    refinmentedAndAlternate[1] === undefined &&
+    isSwitch
+  ) {
+    return [variableName, refinmentedAndAlternate[0], Type.Never];
+  }
+  if (
     refinmentedAndAlternate[0] == undefined ||
-    refinmentedAndAlternate[1] == undefined
+    (refinmentedAndAlternate[1] == undefined && !isSwitch)
   ) {
     const typeName = String(refinementType.name);
     throw new HegelError(
-      `Property can't be "${typeName}" type or always have type "${typeName}"`,
+      `Property ${
+        refinmentedAndAlternate[0] === undefined ? "can't be" : "is always"
+      } "${typeName}"`,
       refinementNode.loc
     );
   }
@@ -465,7 +488,8 @@ export function equalsRefinement(
       currentScope,
       typeScope,
       value,
-      currentRefinementNode
+      currentRefinementNode,
+      isSwitch
     );
   }
   if (target.type === NODE.MEMBER_EXPRESSION) {
@@ -474,7 +498,8 @@ export function equalsRefinement(
       currentScope,
       typeScope,
       value,
-      currentRefinementNode
+      currentRefinementNode,
+      isSwitch
     );
     if (!result) {
       return;

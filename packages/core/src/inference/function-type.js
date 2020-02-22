@@ -526,9 +526,15 @@ export function getRawFunctionType(
     if (fn.isUserDefined) {
       throw new Error("Never!");
     }
-    const argTypes = args.map(a => (a instanceof VariableInfo ? a.type : a));
+    const argTypes = args.map(a => {
+      const result = a instanceof VariableInfo ? a.type : a;
+      if (result instanceof TypeVar && !isReachableType(result, fn.parent)) {
+        fn.parent.body.set(result.name, result);
+      }
+      return result;
+    });
     const returnTypeName = invocationTypeNames[iterator];
-    const returnType = TypeVar.new(returnTypeName, { parent: localTypeScope });
+    const returnType = TypeVar.new(returnTypeName, { parent: fn.parent });
     const newFunctionTypeName = FunctionType.getName(argTypes, returnType, []);
     const result = FunctionType.term(
       newFunctionTypeName,
@@ -809,8 +815,10 @@ export function inferenceFunctionTypeByScope(
     const genericArgument = oldGenericArguments[i];
     const oldRoot = Type.getTypeRoot(genericArgument);
     clearRoot(genericArgument);
-    const isTypeVarStillExisted = newArgumentsTypes.find(arg =>
-      arg.contains(genericArgument)
+    const isTypeVarStillExisted = newArgumentsTypes.find(
+      arg =>
+        arg.contains(genericArgument) &&
+        !isReachableType(arg, localTypeScope.parent)
     );
     if (isTypeVarStillExisted && genericArgument instanceof TypeVar) {
       newGenericArguments.add(genericArgument);

@@ -22,7 +22,7 @@ const anyString: unknown = "something";
 const anything: unknown = class User {};
 ```
 
-**Info**: If you already familiar with TypeScript or Flow.js, this type has the same semantic as `unknown` in TS or `mixed` in Flow.js
+> If you already familiar with TypeScript or Flow.js, this type has the same semantic as `unknown` in TS or `mixed` in Flow.js
 
 But, as you can understand, you can assign concret type to wider type, but you can't assign wider type to a concrete type.
 
@@ -59,4 +59,4 @@ function waitingFor(value: unknown) {
 waitingFor(class User {});
 ```
 
-**Info**: Actualy, Hegel provide an ability to [refine type](/docs/type-refinement).
+> Actualy, Hegel provide an ability to [refine type](/docs/type-refinement).

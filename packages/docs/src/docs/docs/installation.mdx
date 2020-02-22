@@ -9,18 +9,18 @@ menu: Setup
 
 You can install Hegel CLI using npm or yarn:
 
-```sh
-npm install -g @hegel/cli
+```bash
+$ npm install -g @hegel/cli
 # or
-yarn global add @hegel/cli
+$ yarn global add @hegel/cli
 ```
 
 Or install localy only for your project:
 
-```sh
-npm install -D @hegel/cli
+```bash
+$ npm install -D @hegel/cli
 # or
-yarn add -D @hegel/cli
+$ yarn add -D @hegel/cli
 ```
 
 And run Hegel inside your project:
@@ -32,10 +32,10 @@ No errors!
 
 ## Setup Project
 
-Also you will need to setup a compiler which will strip away Hegel types. The same as Flow, you can choose between Babel and flow-remove-types.
+Also you will need to setup a compiler which will strip away Hegel types. The same as Flow, you can choose between Babel and [flow-remove-types](https://www.npmjs.com/package/flow-remove-types).
 
-```sh
-npm i -D @babel/core @babel/cli @babel/preset-flow
+```bash
+$ npm i -D @babel/core @babel/cli @babel/preset-flow
 ```
 
 After that you need to create a .babelrc file at the root of your project with next content:
@@ -48,8 +48,8 @@ After that you need to create a .babelrc file at the root of your project with n
 
 Now you can run it manualy:
 
-```sh
-npx babel directory_with_your_project_files/ -- -d compilation_destination_directory
+```bash
+$ npx babel directory_with_your_project_files/ -- -d compilation_destination_directory
 ```
 
 Or you can add script inside your package.json:
@@ -65,7 +65,7 @@ Or you can add script inside your package.json:
 
 And run it by:
 ```bash
-npm run build
+$ npm run build
 ```
 
 **Note**: ["More about Babel setup"](https://babeljs.io/setup)

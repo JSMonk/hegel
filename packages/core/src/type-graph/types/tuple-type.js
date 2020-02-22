@@ -71,13 +71,20 @@ export class TupleType extends Type {
     if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    if (this._alreadyProcessedWith !== null) {
-      return this._alreadyProcessedWith;
-    }
-    this._alreadyProcessedWith = TypeVar.createSelf(
+    const currentSelf = TypeVar.createSelf(
       this.getChangedName(sourceTypes, targetTypes),
       this.parent
     );
+    if (
+      this._changeStack !== null &&
+      this._changeStack.find(a => a.equalsTo(currentSelf))
+    ) {
+      return currentSelf;
+    }
+    this._changeStack =
+      this._changeStack === null
+        ? [currentSelf]
+        : [...this._changeStack, currentSelf];
     try {
       let isItemsChanged = false;
       const newItems = this.items.map(t => {
@@ -91,13 +98,13 @@ export class TupleType extends Type {
       const isSubtypeOf =
         this.isSubtypeOf &&
         this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
-      if (!isItemsChanged && isSubtypeOf === this.isSubtypeOf) {
-        this._alreadyProcessedWith = null;
-        return this;
-      }
-      return this.endChanges(TupleType.term(null, { isSubtypeOf }, newItems));
+      return this.endChanges(
+        !isItemsChanged && isSubtypeOf === this.isSubtypeOf
+          ? this
+          : TupleType.term(null, { isSubtypeOf }, newItems)
+      );
     } catch (e) {
-      this._alreadyProcessedWith = null;
+      this._changeStack = null;
       throw e;
     }
   }

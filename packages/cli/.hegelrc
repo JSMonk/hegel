@@ -6,5 +6,5 @@ exclude:
 types:
   - ./@types
   - ./node_modules/@types
-libs:
+environment:
   - nodejs

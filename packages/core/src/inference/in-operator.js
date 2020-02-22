@@ -2,6 +2,7 @@
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
+import { TypeVar } from "../type-graph/types/type-var";
 import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -96,12 +97,23 @@ function refinementProperty(
         !(property.type instanceof ObjectType)
       ) {
         throw new HegelError(
-          `Property have not "${propertyName}" property or always have property "${propertyName}"`,
+          `Property has not "${propertyName}" property`,
           refinementNode.loc
         );
       }
       if (property.type instanceof ObjectType) {
-        return property.type.getPropertyType(propertyName)
+        const existed = property.type.getPropertyType(propertyName);
+        if (!property.type.isStrict && !existed) {
+          return [
+            mergeObjectsTypes(
+              property.type,
+              createObjectWith(propertyName, Type.Unknown, typeScope),
+              typeScope
+            ),
+            property.type
+          ];
+        }
+        return existed
           ? [property.type, undefined]
           : [undefined, property.type];
       }
@@ -239,13 +251,14 @@ function inProperty(
     propertiesChaining,
     typeScope
   );
-  if (
-    !refinmentedAndAlternate ||
-    !refinmentedAndAlternate[0] ||
-    !refinmentedAndAlternate[1]
-  ) {
+  if (!refinmentedAndAlternate) {
+    return;
+  }
+  if (!refinmentedAndAlternate[0] || !refinmentedAndAlternate[1]) {
     throw new HegelError(
-      `Property have not "${propertyName}" property or always have property "${propertyName}"`,
+      `Property always ${
+        refinmentedAndAlternate[0] === undefined ? "has not" : "has"
+      } property "${propertyName}"`,
       refinementNode.loc
     );
   }

@@ -44,19 +44,24 @@ export class RestArgument extends Type {
     if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    if (this._alreadyProcessedWith !== null) {
-      return this._alreadyProcessedWith;
+    const currentSelf = TypeVar.createSelf(this.name, this.parent);
+    if (
+      this._changeStack !== null &&
+      this._changeStack.find(a => a.equalsTo(currentSelf))
+    ) {
+      return currentSelf;
     }
-    this._alreadyProcessedWith = TypeVar.createSelf(this.name, this.parent);
+    this._changeStack =
+      this._changeStack === null
+        ? [currentSelf]
+        : [...this._changeStack, currentSelf];
     try {
       const newType = this.type.changeAll(sourceTypes, targetTypes, typeScope);
-      if (this.type === newType) {
-        this._alreadyProcessedWith = null;
-        return this;
-      }
-      return this.endChanges(RestArgument.term(null, {}, newType));
+      return this.endChanges(
+        this.type === newType ? this : RestArgument.term(null, {}, newType)
+      );
     } catch (e) {
-      this._alreadyProcessedWith = null;
+      this._changeStack = null;
       throw e;
     }
   }
@@ -244,13 +249,20 @@ export class FunctionType extends Type {
     if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    if (this._alreadyProcessedWith !== null) {
-      return this._alreadyProcessedWith;
-    }
-    this._alreadyProcessedWith = TypeVar.createSelf(
+    const currentSelf = TypeVar.createSelf(
       this.getChangedName(sourceTypes, targetTypes),
       this.parent
     );
+    if (
+      this._changeStack !== null &&
+      this._changeStack.find(a => a.equalsTo(currentSelf))
+    ) {
+      return currentSelf;
+    }
+    this._changeStack =
+      this._changeStack === null
+        ? [currentSelf]
+        : [...this._changeStack, currentSelf];
     let isArgumentsChanged = false;
     try {
       const newArguments = this.argumentsTypes.map(t => {
@@ -267,8 +279,7 @@ export class FunctionType extends Type {
         typeScope
       );
       if (newReturn === this.returnType && !isArgumentsChanged) {
-        this._alreadyProcessedWith = null;
-        return this;
+        return this.endChanges(this);
       }
       const result = FunctionType.term(
         FunctionType.getName(newArguments, newReturn, undefined, this.isAsync),
@@ -279,7 +290,7 @@ export class FunctionType extends Type {
       result.isAsync = this.isAsync;
       return this.endChanges(result);
     } catch (e) {
-      this._alreadyProcessedWith = null;
+      this._changeStack = null;
       throw e;
     }
   }

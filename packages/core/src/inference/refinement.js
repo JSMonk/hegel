@@ -370,13 +370,19 @@ function refinementByCondition(
       );
       if (leftSideRefinement) {
         leftSideRefinement.forEach(([key, refinement, alternate]) => {
-          if (refinement !== undefined) {
+          if (
+            refinement !== undefined &&
+            !additionalPrimaryScope.body.has(key)
+          ) {
             additionalPrimaryScope.body.set(
               key,
               new VariableInfo(refinement, additionalPrimaryScope)
             );
           }
-          if (alternate !== undefined) {
+          if (
+            alternate !== undefined &&
+            !additionalAlternateScope.body.has(key)
+          ) {
             additionalAlternateScope.body.set(
               key,
               new VariableInfo(alternate, additionalAlternateScope)
@@ -411,14 +417,25 @@ function refinementByCondition(
           const sameRefinement: any = leftSideRefinement.find(
             a => a[0] === key
           );
-          if (condition.operator === "||") {
+          if (sameRefinement === undefined) {
+            return [key, refinementedType, alternateType];
+          }
+          if (
+            condition.operator === "||" &&
+            sameRefinement[1] !== undefined &&
+            sameRefinement[2] !== undefined
+          ) {
             return [
               key,
               unionOfTypes(refinementedType, sameRefinement[1], typeScope),
               intersectionOfTypes(alternateType, sameRefinement[2], typeScope)
             ];
           }
-          if (condition.operator === "&&") {
+          if (
+            condition.operator === "&&" &&
+            sameRefinement[1] !== undefined &&
+            sameRefinement[2] !== undefined
+          ) {
             return [
               key,
               intersectionOfTypes(
@@ -471,11 +488,22 @@ export function refinement(
   }
   currentRefinements.forEach(refinement => {
     const [varName, refinementedType, alternateType] = refinement;
-    primaryScope.body.set(varName, new VariableInfo(refinementedType));
+    if (
+      !primaryScope.body.has(varName) ||
+      condition.type === NODE.SWITCH_CASE
+    ) {
+      primaryScope.body.set(varName, new VariableInfo(refinementedType));
+    }
     if (alternateType && alternateScopes) {
       alternateScopes.forEach(alternateScope => {
-        alternateScope.body.set(varName, new VariableInfo(alternateType));
+        if (
+          !alternateScope.body.has(varName) ||
+          condition.type === NODE.SWITCH_CASE
+        ) {
+          alternateScope.body.set(varName, new VariableInfo(alternateType));
+        }
       });
     }
   });
+  currentRefinementNode.isRefinemented = true;
 }

@@ -6,6 +6,7 @@ import { TupleType } from "../type-graph/types/tuple-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
+import { CollectionType } from "../type-graph/types/collection-type";
 import { getDeclarationName } from "./common";
 import { PositionedModuleScope } from "../type-graph/module-scope";
 import { getTypeFromTypeAnnotation } from "./type-utils";
@@ -45,17 +46,44 @@ export function getVariableInfoFromDelcaration(
   );
 }
 
-export function getSuperTypeOf(type: Type, typeScope: TypeScope): Type {
+export function getSuperTypeOf(
+  type: Type,
+  typeScope: TypeScope,
+  withUnion: boolean = false
+): Type {
+  if (type instanceof UnionType) {
+    return withUnion
+      ? UnionType.term(
+          null,
+          {},
+          type.variants.map(variant =>
+            getSuperTypeOf(variant, typeScope, withUnion)
+          )
+        )
+      : type;
+  }
   if (
-    !type.isSubtypeOf ||
+    type.isSubtypeOf == undefined ||
     type.name === null ||
-    type.name === "undefined" ||
     type instanceof FunctionType ||
-    type instanceof TupleType ||
-    type instanceof UnionType ||
     (type instanceof ObjectType && String(type.name)[0] !== "{")
   ) {
     return type;
+  }
+  if (type instanceof TupleType) {
+    return CollectionType.Array.root.applyGeneric([
+      getSuperTypeOf(
+        type.items.length === 0
+          ? Type.Unknown
+          : UnionType.term(
+              null,
+              {},
+              type.items.map(a => getSuperTypeOf(a, typeScope, withUnion))
+            ),
+        typeScope,
+        true
+      )
+    ]);
   }
   if (type instanceof ObjectType) {
     const propertyTypes = [...type.properties.entries()].map(([key, v]) => [
@@ -66,7 +94,7 @@ export function getSuperTypeOf(type: Type, typeScope: TypeScope): Type {
       key,
       // $FlowIssue
       Object.assign(new VariableInfo(), type.properties.get(key), {
-        type: getSuperTypeOf(p, typeScope)
+        type: getSuperTypeOf(p, typeScope, withUnion)
       })
     ]);
     return ObjectType.term(
@@ -89,7 +117,9 @@ export function getVariableType(
   }
   if (
     !inferenced ||
-    (variable && variable.isConstant && newType.constructor === Type)
+    (variable &&
+      variable.isConstant &&
+      (newType.constructor === Type || newType.constructor === TupleType))
   ) {
     return newType;
   }

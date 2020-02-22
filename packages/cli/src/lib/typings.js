@@ -55,7 +55,7 @@ export async function mixTypeDefinitions(
   prepeareAST: (string, boolean) => Promise<ExtendedProgram>
 ) {
   const standardAST = await prepeareAST(standard, true);
-  const nodejsAST = config.libs.includes("nodejs")
+  const nodejsAST = config.environment.includes("nodejs")
     ? await prepeareAST(nodejs, true)
     : undefined;
   return async globalScope => {

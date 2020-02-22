@@ -1,0 +1,227 @@
+---
+name: Type Inference
+route: /docs/type-inference
+menu: Type System
+---
+
+# Type Inference
+----------------
+
+One of the main features of Hegel is high-level type inference.
+
+Type Inference is ability of analyzer to define valid type for variable/function without type annotation.
+
+```typescript
+// Type of "isItNumber" is "number" even if you will not annotate it.
+let isItNumber = 42;
+```
+
+There are many place where Hegel can infer type instead of you.
+
+## Variable type Inference
+
+Hegel can infer any JavaScript literal type.
+
+```typescript
+/*
+Type of "a" variable is "{
+    1: number,
+    2: bigint,
+    3: string,
+    4: boolean,
+    5: symbol,
+    6: null,
+    7: undefined,
+    8: RegExp
+}"
+*/
+const a = {
+  1: 1,
+  2: 2n,
+  3: "3",
+  4: true,
+  5: Symbol("for"),
+  6: null,
+  7: undefined,
+  8: /da/gi,
+};
+```
+
+Also, Hegel can inference variable type if variable value is result of functionr or operator application.
+```typescript
+// Type of "sum" variable is "bigint"
+const sum = 2n + 44n;
+
+// Type of "type" variable is "'string' | 'boolean' | 'number' | 'function' | 'object' | 'undefined' | 'symbol' | 'bigint'"
+const type = typeof isNaN;
+
+// Type of "formated" variable is "string"
+const formated = sum.toLocaleString();
+```
+
+## Inference of generic function invocation result
+
+One more case for inference algorythm is function invocation. If you call generic function you may not apply type argument to it.
+
+```typescript
+function first<T>(arr: Array<T>): T | undefined {
+    return arr[0];
+}
+
+// Type of "arr" variable is Array<number>
+let arr = [1, 2];
+
+// Type of "f" variable is "number | undefined"
+const f = first(arr);
+```
+
+## Inference of function arguments and return
+
+Also, you able to skip function arguments types and return type annotations and Hegel will try to infer this types. Lets see at few examples to understand rules of inference.
+
+### Empty return
+
+If you defined function without return statement inside then return type of this function will be `undefined` for sync functions and `Promise<undefined>` for async functions.
+
+```typescript
+// Type of "syncNothing" function is "() => undefined"
+function syncNothing() {}
+
+// Type of "asyncNothing" function is "async () => Promise<undefined>"
+async function asyncNothing() {}
+```
+
+### Existed return statement
+
+If you defined function with return statement inside then return type of this function will be type of return statement argument.
+
+```typescript
+// Type of "getNumber" function is "() => number"
+function getNumber() {
+    return 42;
+}
+
+// Type of "getNumberAsync" function is "async () => Promise<number>"
+async function getNumberAsync() {
+    return 42;
+}
+```
+
+### Arguments
+
+First of all, Hegel define your argument as type variable and convert your function into generic function.
+
+```typescript
+// Type of "provideEverything" function is "<a'>(a') => undefined"
+function provideEverything(everything) {
+
+}
+```
+
+This algorythm give an ability to inference full generic functions like identity.
+
+```typescript
+// Type of "id" function is "<a'>(a') => a'"
+function id(x) {
+  return x;
+}
+```
+
+If your argument will be used as argument of an operator or function then this argument type become the same as argument at used operator or function.
+
+```typescript
+// Inference by operator usage
+// Type of "greatings" function is "(string) => string"
+function greatings(name) {
+    return "Hello, " + name + "!";
+}
+
+// Inference by function usage
+// Type of "welcome" function is "(string) => string"
+function welcome(name) {
+    return greatings(name) + "Nice to see you at this page";
+}
+```
+
+If the argument of operator or function is also type variable then argument type will not be changed, but will be added a constraint of this operator or function argument. 
+
+```typescript
+// Type of "add" function is "<T: bigint | number | string>(T, T) => T"
+function add(a, b) {
+    return a + b;
+}
+
+// Type of "prop" function is "<a': Object, b': $Keys<a'>>(a', b') => $PropertyType<a', b'>"
+function prop(a, b) {
+    return a[b];
+}
+
+// Type of "length" function is "<a': { length: a0', ... }, a0'>(a') => a0'"
+function length(a) {
+    return a.length;
+}
+
+// Type of "mul" function is "<T: bigint | number | string>(T, number) => T"
+function mul(a, b) {
+    while(b > 0) {
+        a = add(a, a);
+        b--;
+    }
+    return a;
+}
+```
+
+### Function throws inference
+
+As was mentioned, Hegel has [$Throws](/docs/magic-types#throwsreturntype-errortype) magic type, which give an ability to annotate type of Error which can be thrown by a function. But this type can be inferenced too, by analyzing of which function you use and which type you throw inside your function.
+
+```typescript
+// Type of "assertType" function is 
+// "(unknown, 'bigint' | 'boolean' | 'function' | 'number' | 'object' | 'string' | 'symbol' | 'undefined') => undefined throws TypeError"
+function assertType(arg, type) {
+    if (typeof arg !== type) {
+        throw new TypeError("Wrong argument type");
+    }
+}
+
+// Type of "validateNumber" function is "(unknown) => undefined throws TypeError"
+function validateNumber(arg) {
+  assertType(arg, "number");
+}
+```
+
+If you provde try-catch statement for the "validateNumber" - throws will be removed
+
+```typescript
+function assertType(arg, type) {
+    if (typeof arg !== type) {
+        throw new TypeError("Wrong argument type");
+    }
+}
+
+// Type of "validateNumber" function is "(unknown) => undefined"
+function validateNumber(arg) {
+  try {
+    assertType(arg, "number");
+  } catch {
+
+  }
+}
+```
+
+## Error type inference inside catch statement
+
+As result of previous inference Hegel can inference the argument type of catch statement.
+
+```typescript
+function assertType(arg, type) {
+    if (typeof arg !== type) {
+        throw new TypeError("Wrong argument type");
+    }
+}
+
+try {
+  assertType(4, "string");
+// Type of "e" variable is "TypeError | unknown"
+} catch(e) {}
+```

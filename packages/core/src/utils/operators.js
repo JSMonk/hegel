@@ -165,20 +165,20 @@ const mixBaseOperators = moduleScope => {
     ],
     [
       "===",
-      FunctionType.term(
-        "(unknown, unknown) => boolean",
-        { parent: typeScope },
-        [Type.Unknown, Type.Unknown],
-        Type.Boolean
+      genericFunction(
+        typeScope,
+        parent => [["T", TypeVar.term("T", { parent })]],
+        l => [l.body.get("T"), l.body.get("T")],
+        l => Type.Boolean
       )
     ],
     [
       "!==",
-      FunctionType.term(
-        "(unknown, unknown) => boolean",
-        { parent: typeScope },
-        [Type.Unknown, Type.Unknown],
-        Type.Boolean
+      genericFunction(
+        typeScope,
+        parent => [["T", TypeVar.term("T", { parent })]],
+        l => [l.body.get("T"), l.body.get("T")],
+        l => Type.Boolean
       )
     ],
     [

@@ -1,0 +1,307 @@
+---
+name: Type Refinement
+route: /docs/type-refinement
+menu: Type System
+---
+
+# Type Refinement
+
+Type refinement is an ability to prove that your variable has specific type. It helps you to build more type safe program when you work with user input or server response and don't miss static type analysis.
+
+Lets explore the next example.
+
+```typescript
+function calculateSum(firstUserInput: unknown, secondUserInput: unknown) {
+  if (typeof firstUserInput !== "number") {
+    throw new TypeError("first provided value has a wrong type. Shoulde be a number");
+  }
+  if (typeof secondUserInput !== "number") {
+    throw new TypeError("second provided value has a wrong type. Shoulde be a number");
+  }
+  return firstUserInput + secondUserInput;
+}
+```
+
+If you will open this example in [Playground](/try#GYVwdgxgLglg9mABBAhgGwiNKoFMDKIAtgBTAwBOAzlAKpW4UCSYADiFAFyLgDWYcAO5gANIgYQEAE3qMW7LjzD8hYAJSIA3gChEiGMEQkoAT1a44h8tToNmbDogCEAXheIARGGIAjRh40dPT0oAAsKIUQwXEFEABUzXABRCgiKEg9rGkRWCIA3GClcKUQ89BBcRFCUKkQUREEIsABzRFNzADpEfFC4LCLEPzqo3381AG5dRABfKYMjdotDCWlZewVnN09vIj8KAK0pkPDI6NiE8xS0jJWwEty4AqKSsrQKqprhxoRWxa6evpoAZDeo7PYBSZ6WZ6Ci4KAgChILK2OQOKCIADU4lwkjua3kHEm0yAA) then you will see that Hegel doesn't show any type error at the 8 line. But why? 
+
+It's because we proved by conditions that "firstUserInput" and "secondUserInput" will always be a numbers at the 8 line.
+
+So, type refinement it's a specific condition inside `if`, `while`, `do..while`, `for`, ternary and logical operators, which precise the type of variable.
+
+Hegel has several conditions which could be used as refinement operator.
+
+Table of contents:
+- [Equality](#equality)
+- [switch](#switch)
+- [Identifier](#identifier)
+- [typeof](#typeof)
+- [instanceof](#instanceof)
+- [in](#in)
+- [Not](#not)
+- [Combinations](#combinations)
+- [return, break, continue, throw](#return-break-continue-throw)
+- [Needless refinement](#needlessrefinement)
+
+## Equality
+
+The most simple refinement operator is equality. You only may prove equality of variable and some literal and inside the block this
+
+```typescript
+function get2(arg: unknown): 2 {
+  if (arg === 2) {
+    // Inside if block type of "arg" variable is "2"
+    return arg;
+  }
+  throw new TypeError("Arg is not 2");
+} 
+```
+
+## switch
+
+The same logic has switch expression. In each case you prove that variable equals to a value. But with an exception - if you will drop "break", "return" and "throw" statement from case then the next case will include previous prove.
+
+```typescript
+type User = { name: string, age: number, id: number };
+
+type Action =
+  | { type: "DELETE_USER", payload: { userId: number } }
+  | { type: "REMOVE_USER", payload: { userId: number } }
+  | { type: "CREATE_USER", payload: { user: User } };
+
+function reducer(action: Action) {
+  switch (action.type) {
+    case "REMOVE_USER":
+    case "DELETE_USER":
+      // In this case action type is "{ payload: { userId: number }, type: 'DELETE_USER' } | { payload: { userId: number }, type: 'REMOVE_USER' }"
+      return "User deleted";
+    case "CREATE_USER":
+      // In this case action type is "{ payload: { user: { age: number, id: number, name: string } }, type: 'CREATE_USER' }"
+      return action.payload.user;
+    default:
+      // In this case action type is "never"
+      panic(action);
+  }
+}
+
+function panic(arg: ?never) {
+  throw new Error();
+}
+```
+
+## Identifier
+
+The second simple refinement operator is identifier. The main restriction of this refinement that it can be used only insde logical expressions
+
+```typescript
+const maybeTwo: ?number = 2;
+
+// We have proved that "maybeTwo" at the right part of "logical and" is not "falsy", so we can use "maybeTwo" with "+" operator
+// Type of "sub" variable is "0 | number | undefined"
+const sum = maybeTwo && maybeTwo + 4;
+
+// We have proved that "maybeTwo" at the right part of "logical or" is  "falsy", so we can return something to remove this union case.
+// Type of "defaultTwo" variable is "2 | number"
+const defaultTwo = maybeTwo || 2;
+```
+
+## typeof
+
+Typeof refinement based on comparasion of return value of `typeof` operator and string literal. You can 
+
+```typescript
+const maybeTwo: number | string = 2;
+
+// We have proved that in positive case of condition inside ternary operator "maybeTwo" variable will have a type "string" and in negative - type "number"
+// Type of "two" variable is "number"
+const two = typeof maybeTwo === "string" ? Number(maybeTwo) : maybeTwo;
+```
+
+## instanceof
+
+Instanceof refinement prove that variable or property inside variable is instance of provided constructor.
+
+```typescript
+class User {}
+class Admin extends User { sayHiToAdmin() {} }
+
+const user = new User();
+
+if (user instanceof Admin) {
+  user.sayHiToAdmin();
+}
+```
+
+## in
+
+In refinement prove that variable or property inside variable has specified property.
+
+```typescript
+class User {}
+class Admin { sayHiToAdmin() {} }
+
+const user: User | Admin = new User();
+
+if ("sayHiToAdmin" in user) {
+  user.sayHiToAdmin();
+}
+```
+
+```typescript
+const unknownObj: {...} = {};
+
+if ("value" in unknownObj) {
+  // Type of "unknownValue" variable is "unknown"
+  const unknownValue = unknownObj.value; 
+}
+```
+
+## in
+
+In refinement prove that variable or property inside variable has specified property.
+
+```typescript
+class User {}
+class Admin { sayHiToAdmin() {} }
+
+const user: User | Admin = new User();
+
+if ("sayHiToAdmin" in user) {
+  user.sayHiToAdmin();
+}
+```
+
+```typescript
+const unknownObj: {...} = {};
+
+if ("value" in unknownObj) {
+  // Type of "unknownValue" variable is "unknown"
+  const unknownValue = unknownObj.value; 
+}
+```
+
+## Not
+
+If you will use any refinement condition with logical "not" operator or oposite operators like not-equal, strict not-not equal you will prove negative case of your refinement
+
+```typescript
+class Empire { aveEmperor() {} }
+class Republic { spqr() {} }
+
+const rome: Empire | Republic = new Empire();
+
+if (!(rome instanceof Republic)) {
+  // rome in this case is Empire
+  rome.aveEmperor();
+}
+```
+
+```typescript
+type Answer = 'To Be' | 'Not to Be';
+
+function hamlet(answer: Answer) {
+  if (answer !== 'To Be') {
+    // Type of variable is "'Not to Be'" inside this scope
+    return answer;
+  }
+  throw new Error();
+}
+```
+
+## Combinations
+
+Also, you may combine existed refinements via "logical and" or "logical or" operators.
+
+```typescript
+const stranger = JSON.parse('{}');
+
+if (
+  typeof stranger === "object" &&
+  stranger != null &&
+  "secretPhrase" in stranger &&
+  stranger.secretPhrase === "valar morghulis"
+) {
+  // Type of "stranger" variable in this scope is "{ secretPhrase: "valar morghulis", ... }"
+  const someoneWithoutName = stranger;
+}
+```
+
+```typescript
+function detectSong(songPhrase: string) {
+  if (songPhrase === "It's like I'm paranoid" || songPhrase === "looking over my back") {
+    // Type of "songPhrase" in this scope is "'It's like I'm paranoid' | 'looking over my back'
+    const familiarPhrase = songPhrase;
+    return "Linkin Park - Papercut";
+  }
+}
+```
+
+## return, break, continue, throw
+
+If you use next statements (return, throw, break, continue) inside refinement scope, you prove that outside this block your variable will have oposite type.
+
+```typescript
+class Empire { aveEmperor() {} }
+class Republic { spqr() {} }
+
+const rome: Empire | Republic = new Empire();
+
+if (rome instanceof Empire) {
+  throw new TypeError("Empire was fallen!");
+}
+
+// rome in this case is Republic
+rome.spqr();
+```
+
+```typescript
+class Empire { aveEmperor() {} }
+
+const empires: Array<Empire> = [];
+
+empires[1] = new Empire();
+
+for (const empire of empires) {
+  if (empire === undefined) {
+    continue;
+  }
+  empire.aveEmperor();
+}
+```
+
+## Needless refinement
+
+Sometimes (especialy after refactoring) you may do refinement which are not do something usefull. As example is provment that type of variable is `number` while variable type is always `number` In this case Hegel try to notify you about it.
+
+```typescript
+const calculatedSum = 42 + 14;
+
+// Error: Type number can't be "string" type
+if (typeof calculatedSum === "number") {
+  
+}
+```
+
+Another reallife example that after refactoring you dropped a variant of union in switch, but your code still try to handle this case:
+
+```typescript
+type User = { name: string, age: number, id: number };
+
+type Action =
+  | { type: "DELETE_USER", payload: { userId: number } }
+// Deleted after refactoring case
+//  | { type: "REMOVE_USER", payload: { userId: number } }
+  | { type: "CREATE_USER", payload: { user: User } };
+
+function reducer(action: Action) {
+  switch (action.type) {
+    // Error: Property can't be "'REMOVE_USER'"
+    case "REMOVE_USER":
+    case "DELETE_USER":
+      // In this case action type is "{ payload: { userId: number }, type: 'DELETE_USER' } | { payload: { userId: number }, type: 'REMOVE_USER' }"
+      return "User deleted";
+    case "CREATE_USER":
+      // In this case action type is "{ payload: { user: { age: number, id: number, name: string } }, type: 'CREATE_USER' }"
+      return action.payload.user;
+  }
+}
+```

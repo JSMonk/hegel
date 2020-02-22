@@ -27,7 +27,7 @@ const DEFAULT_CONFIG = {
     workingDirectory: CWD,
     babel: BABELRC,
     typings: ["./@types", "./node_modules/@types"],
-    libs: []
+    environment: []
   },
   filepath: join(CWD, CONFIG_NAME)
 };
@@ -40,13 +40,13 @@ types:
   - ./@types
   - ./node_modules/@types`;
 
-export type Lib = "browser" | "nodejs";
+export type Environment = "browser" | "nodejs";
 
 export type Config = {
   include: ?Array<string>,
   exclude: ?Array<string>,
   workingDirectory: string,
-  libs: Array<Lib>,
+  environment: Array<Environment>,
   typings: Array<string>,
   babel: ParserOptions
 };

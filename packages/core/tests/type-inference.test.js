@@ -153,9 +153,8 @@ describe("Simple inference for module variables by literal", () => {
     );
     const a = actual.body.get("a").type;
     expect(errors.length).toBe(0);
-    expect(a).toBeInstanceOf(TupleType);
-    expect(a === Type.find("[]")).toBe(true);
-    expect(a.items.length).toBe(0);
+    expect(a).toBeInstanceOf(CollectionType);
+    expect(a === Type.find("Array<unknown>")).toBe(true);
   });
   test("Inference global module constant with single item array type", async () => {
     const sourceAST = prepareAST(`
@@ -186,10 +185,8 @@ describe("Simple inference for module variables by literal", () => {
     );
     const a = actual.body.get("a").type;
     expect(errors.length).toBe(0);
-    expect(a).toBeInstanceOf(TupleType);
-    expect(a === Type.find("[2]")).toBe(true);
-    expect(a.items.length).toBe(1);
-    expect(a.items[0] === Type.find(2)).toBe(true);
+    expect(a).toBeInstanceOf(CollectionType);
+    expect(a === Type.find("Array<number>")).toBe(true);
   });
   test("Inference global module constant with multy items array type", async () => {
     const sourceAST = prepareAST(`
@@ -221,11 +218,8 @@ describe("Simple inference for module variables by literal", () => {
     );
     const a = actual.body.get("a").type;
     expect(errors.length).toBe(0);
-    expect(a).toBeInstanceOf(TupleType);
-    expect(a === Type.find("[2, '2']")).toBe(true);
-    expect(a.items.length).toBe(2);
-    expect(a.items[0] === Type.find(2)).toBe(true);
-    expect(a.items[1] === Type.find("'2'")).toBe(true);
+    expect(a).toBeInstanceOf(CollectionType);
+    expect(a === Type.find("Array<number | string>")).toBe(true);
   });
   test("Inference global module object property type", async () => {
     const sourceAST = prepareAST(`
@@ -2812,9 +2806,7 @@ describe("Type refinement", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
     expect(errors[0]).toBeInstanceOf(HegelError);
-    expect(errors[0].message).toBe(
-      'Property can\'t be "number" type or always have type "number"'
-    );
+    expect(errors[0].message).toBe('Property is always "number"');
   });
   test("Typeof refinement for variable without variant", async () => {
     const sourceAST = prepareAST(`

@@ -41,7 +41,6 @@ export default {
     {
       name: "Type System",
       menu: [
-        "No Any",
         "Type Compatibility",
         "Type Inference",
         "Type Refinement"
@@ -49,15 +48,10 @@ export default {
     },
     {
       name: "Configuration",
-      menu: ["include", "exclude", "babel"]
     },
     {
       name: "Libraries",
-      menu: ["Definition Language", "Libraries Definition", "Custom Definition"]
-    },
-    {
-      name: "Extra",
-      menu: ["Frequently Asked Questions", "Newcomer Examples", "Next Steps"]
+      menu: []
     }
   ]
 };

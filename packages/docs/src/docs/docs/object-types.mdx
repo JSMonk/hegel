@@ -43,7 +43,7 @@ const softUser: { email: string, password: string, ... } = { // 👌!
 };
 ```
 
-**Info** If you are familiar with Flow.js, in Flow.js this two examples (strict and soft object types) will be look like this:
+> If you are familiar with Flow.js, in Flow.js this two examples (strict and soft object types) will be look like this:
 
 ```typescript
 const strictUser: {| email: string, password: string |} = { // 👌!
@@ -71,7 +71,7 @@ const user: { email: string, password: ?string } = { name: "any.user@gmail.com" 
 The logic is next - if you will try to access to property which is not existed in object then value of this property will be undefined. Optional Types annotate that type of argument/variable/property can have annotated type value or undefined, so, undefined will be a valid value for this property.
 
 
-**Info**: If you are familiar with Flow.js or TypeScript, you may know about similar optional property syntax inside this two "analyzers", which looks like this:
+> If you are familiar with Flow.js or TypeScript, you may know about similar optional property syntax inside this two "analyzers", which looks like this:
 ```typescript
 const user: { email: string, password?: string } = { name: "any.user@gmail.com" }; // 👌!
 ```

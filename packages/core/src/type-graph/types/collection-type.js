@@ -78,7 +78,13 @@ export class CollectionType<K: Type, V: Type> extends Type {
     if (this._alreadyProcessedWith === anotherType) {
       return true;
     }
-    if ("readonly" in anotherType && this.equalsTo(TupleType.ReadonlyArray.root.applyGeneric([this.valueType])) && this === anotherType.readonly) {
+    if (
+      "readonly" in anotherType &&
+      this.equalsTo(
+        TupleType.ReadonlyArray.root.applyGeneric([this.valueType])
+      ) &&
+      this === anotherType.readonly
+    ) {
       return true;
     }
     this._alreadyProcessedWith = anotherType;
@@ -110,10 +116,12 @@ export class CollectionType<K: Type, V: Type> extends Type {
         this.keyType.equalsTo(anotherType.keyType) &&
         this.valueType.isPrincipalTypeFor(anotherType.valueType)) ||
       (anotherType instanceof TupleType &&
-        (
-          this.equalsTo(CollectionType.Array.root.applyGeneric([this.valueType])) ||
-          this.equalsTo(TupleType.ReadonlyArray.root.applyGeneric([this.valueType]))
-        ) &&
+        (this.equalsTo(
+          CollectionType.Array.root.applyGeneric([this.valueType])
+        ) ||
+          this.equalsTo(
+            TupleType.ReadonlyArray.root.applyGeneric([this.valueType])
+          )) &&
         anotherType.items.every(t => this.valueType.isPrincipalTypeFor(t)));
     this._alreadyProcessedWith = null;
     return result;
@@ -127,13 +135,20 @@ export class CollectionType<K: Type, V: Type> extends Type {
     if (sourceTypes.every(type => !this.canContain(type))) {
       return this;
     }
-    if (this._alreadyProcessedWith !== null) {
-      return this._alreadyProcessedWith;
-    }
-    this._alreadyProcessedWith = TypeVar.createSelf(
+    const currentSelf = TypeVar.createSelf(
       this.getChangedName(sourceTypes, targetTypes),
       this.parent
     );
+    if (
+      this._changeStack !== null &&
+      this._changeStack.find(a => a.equalsTo(currentSelf))
+    ) {
+      return currentSelf;
+    }
+    this._changeStack =
+      this._changeStack === null
+        ? [currentSelf]
+        : [...this._changeStack, currentSelf];
     try {
       const newValueType = this.valueType.changeAll(
         sourceTypes,
@@ -143,20 +158,18 @@ export class CollectionType<K: Type, V: Type> extends Type {
       const isSubtypeOf =
         this.isSubtypeOf &&
         this.isSubtypeOf.changeAll(sourceTypes, targetTypes, typeScope);
-      if (newValueType === this.valueType && isSubtypeOf === this.isSubtypeOf) {
-        this._alreadyProcessedWith = null;
-        return this;
-      }
       return this.endChanges(
-        CollectionType.term(
-          this.getChangedName(sourceTypes, targetTypes),
-          { isSubtypeOf },
-          this.keyType,
-          newValueType
-        )
+        newValueType === this.valueType && isSubtypeOf === this.isSubtypeOf
+          ? this
+          : CollectionType.term(
+              this.getChangedName(sourceTypes, targetTypes),
+              { isSubtypeOf },
+              this.keyType,
+              newValueType
+            )
       );
     } catch (e) {
-      this._alreadyProcessedWith = null;
+      this._changeStack = null;
       throw e;
     }
   }

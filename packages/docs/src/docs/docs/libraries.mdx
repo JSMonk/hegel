@@ -1,0 +1,46 @@
+---
+name: Libraries
+route: /docs/libraries
+menu: Libraries
+---
+
+# Libraries
+---------------------
+
+JavaScript program always contais specific libraries to solve the problem without copy-paste a problem solution between the projects. A lot of libraries are existed in [NPM Registry](https://www.npmjs.com/). And to make program type safe we need to have some mechanism which will provide ability to annotate with types code which developer can't chane.
+In order to handle this, Hegel supports the concept of a “library definition”.
+
+We decided to not create our own "library definition" language, because we could face next propblem: creating of "library definitions" from scratch for all popular libraries. So, we decided to use popular "library definition" format - [TypeScript](http://www.typescriptlang.org).
+
+More information about TypeScript library definition you can find at [Definition Files](http://www.typescriptlang.org/docs/handbook/declaration-files/deep-dive.html#definition-file-theory-a-deep-dive). There are only problems with: enums, modules, conditional types, because Hegel doesn't provde any additional and non-type safe concepts for type annotations.
+
+> Currently we are working for function type overloading which will help to make more warm relationships with "d.ts" files.
+
+## Definition Directories
+
+As was mentioned in [Configuration "typings"](/docs/configuration#typings) section you may configure path for typings and can have multiple directories for typings. We decided that the better practive will be to "store" your third-party typings inside "node_modules/@types" directory and local typings inside "@types" directory (this behaivour is default).
+
+## Definition search strategy
+
+Hegel will try to find type definition for specific library by the next algorythm:
+
+1. Search inside defined inside ["typings" configuration section](/docs/configuration#typings) paths in the order which defined inside the section.
+2. Search for typing path which defined inside "types" section of specific package `package.json` file.
+3. Search for path of specific package with "d.ts" extension instead ".js" 
+4. Try to inference types of specific package.
+
+Lets explore it by example:
+
+```typescript
+import * as smthg from "awesome-library";
+```
+
+First step is atempt to find "awesome-library" types definition inside defined paths from ["typings" configuration section](/docs/configuration#typings) (by default "@types" and "node_modules/@types")
+If "awesome-library.d.ts" file exist inside "@types" or "node_modules/@types" directories algorythm will be stoped and return found definition.
+
+Otherwise, Hegel will try to resolve definition which can be defined in "types" section of "node_modules/awesome-library/package.json" file.
+
+If it doesn't exist, Hegel will try to find file by resolved "awesome-library" path. Lets imagine that this path is "node_modules/awesome-library/index.js". So, Hegel will try to read "node_modules/awesome-library.d.ts" file and will return the typings if the file are existed.
+
+Otherwise, Hegel will try to inference types of the module by himself without any type definitions.
+Note, if Hegel will inferencing a module and this module will contain type errors, Hegel will notify you about module problems and you will need to define the typings manualy inside local "@types" directory.

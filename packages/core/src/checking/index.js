@@ -177,13 +177,17 @@ function checkCalls(
   errors: Array<HegelError>
 ): void {
   let returnWasCalled = false;
+  let finalWasCalled = false;
   for (let i = 0; i < scope.calls.length; i++) {
     const call = scope.calls[i];
     if (call.target === undefined) {
       continue;
     }
-    if (call.targetName === "return" && call.isFinal) {
+    if (call.targetName === "return") {
       returnWasCalled = true;
+    }
+    if (call.isFinal) {
+      finalWasCalled = true;
     }
     try {
       checkSingleCall(call, typeScope);
@@ -196,7 +200,8 @@ function checkCalls(
     scope instanceof VariableScope &&
     scope.type === VariableScope.FUNCTION_TYPE &&
     scope.declaration instanceof VariableInfo &&
-    !returnWasCalled
+    !returnWasCalled &&
+    !finalWasCalled
   ) {
     const { declaration } = scope;
     const { returnType, isAsync }: any =

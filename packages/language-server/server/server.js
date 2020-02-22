@@ -193,8 +193,8 @@ function mixTypeDefinitions(config) {
       stdLibTypeGraph = await getStandardTypeDefinitions(globalScope);
     }
     mixSomeTypeDefinitions(globalScope, stdLibTypeGraph);
-    const shouldIncludeNodeJS = config.libs.includes("nodejs");
-    const shouldIncludeBrowser = config.libs.includes("browser");
+    const shouldIncludeNodeJS = config.environment.includes("nodejs");
+    const shouldIncludeBrowser = config.environment.includes("browser");
     const waitingTypes = [
       shouldIncludeNodeJS && nodeJsGlobalTypeGraph === undefined
         ? getNodeJSTypeDefinitions(globalScope)

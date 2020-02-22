@@ -93,6 +93,7 @@ export class Type {
   shouldBeUsedAsGeneric: boolean;
   isSubtypeOf: Type | null;
   _alreadyProcessedWith: Type | null = null;
+  _changeStack: Array<Type> | null = null;
   onlyLiteral: boolean = false;
   priority = 1;
 
@@ -277,13 +278,20 @@ export class Type {
   }
 
   endChanges(result: Type) {
-    if (this._alreadyProcessedWith === null) {
+    if (this._changeStack === null) {
+      return result;
+    }
+    const last = this._changeStack.pop();
+    if (last === undefined) {
+      this._changeStack = null;
       return result;
     }
     // $FlowIssue
-    this._alreadyProcessedWith.root = result;
-    this._alreadyProcessedWith.name = result.name;
-    this._alreadyProcessedWith = null;
+    last.root = result;
+    last.name = result.name;
+    if (this._changeStack.length === 0) {
+      this._changeStack = null;
+    }
     return result;
   }
 

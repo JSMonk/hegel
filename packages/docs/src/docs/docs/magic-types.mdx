@@ -67,7 +67,7 @@ const intermediateStatuses: Array<$Exclude<Status, "Ok" | "Failed">> = ["Pending
 intermediateStatuses.push("Failed"); 
 ```
 
-**Info** If you familiar with TypeScript then you can be familiar with Exclude type.
+> If you familiar with TypeScript then you can be familiar with Exclude type.
 [TypeScript Exclude Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#excludetu)
 
 ## $Immutable<Type\>
@@ -151,7 +151,7 @@ plant = animal;
 plant = dog;
 ```
 
-**Info** If your class is generic then you should provide type parameters after class:
+> If your class is generic then you should provide type parameters after class:
 
 ```typescript
 class Container<T> {}
@@ -186,7 +186,7 @@ const fullSerializable: $Intersection<JsonSerializable, Base64Serializable, Hash
 }
 ```
 
-**Info** If you familiar with TypeScript or Flow.js then you can be familiar with intersection type.
+> If you familiar with TypeScript or Flow.js then you can be familiar with intersection type.
 [Intersection in TypeScript](http://www.typescriptlang.org/docs/handbook/advanced-types.html#intersection-types), [Intersection in Flow.js](https://flow.org/en/docs/types/intersections/#intersection-type-syntax-);
 
 ## $Keys<Obj\>
@@ -200,7 +200,7 @@ type Admin = { name: string, age: number };
 const property: $Keys<Admin> = "name"; 
 ```
 
-**Info** If you familiar with Flow.js then you can be familiar with $Keys type.
+> If you familiar with Flow.js then you can be familiar with $Keys type.
 [Flow.js $Keys](https://flow.org/en/docs/types/utilities/#toc-keys).
 
 
@@ -215,7 +215,7 @@ type Admin = { name: string, age: number, position: "admin" };
 const admin: $Omit<Admin, "age" | "name"> = { position: "admin" }
 ```
 
-**Info** If you familiar with TypeScript then you can be familiar with Ommit type.
+> If you familiar with TypeScript then you can be familiar with Ommit type.
 [TypeScript Ommit Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#omittk)
 
 ## $Partial<Obj\>
@@ -240,7 +240,7 @@ const original: User = { name: "original name", age: 20 };
 const olderUser = patch(original, { age: 22 });
 ```
 
-**Info** If you familiar with TypeScript then you can be familiar with Partial type.
+> If you familiar with TypeScript then you can be familiar with Partial type.
 [TypeScript Partial Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#partialt)
 
 ## $Pick<Obj, Keys\>
@@ -254,7 +254,7 @@ type Admin = { name: string, age: number, position: "admin" };
 const admin: $Pick<Admin, "age" | "name"> = { name: "Maurice Moss", age: 33 };
 ```
 
-**Info** If you familiar with TypeScript then you can be familiar with Pick type.
+> If you familiar with TypeScript then you can be familiar with Pick type.
 [TypeScript Pick Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#picktk)
 
 ## $PropertyType<Obj, Key\>
@@ -268,7 +268,7 @@ type Admin = { name: string, age: number, position: "admin" };
 const age: $PropertyType<Admin, "age"> = 33;
 ```
 
-**Info** If you familiar with Flow.js then you can be familiar with $PropertyType type.
+> If you familiar with Flow.js then you can be familiar with $PropertyType type.
 [Flow.js $PropertyType](https://flow.org/en/docs/types/utilities/#toc-propertytype).
 The main difference between Flow.js $PropertyType and Hegel $PropertyType is ability to use not only string literal as a second parameter of $PropertyType.
 
@@ -306,7 +306,7 @@ const returnOfGenericFunction: $ReturnType<GenericFunction, string> = "";
 const _: $ReturnType<GenericFunction> = "";
 ```
 
-**Info** If you familiar with Flow.js then you can be familiar with $Call type. $ReturnType has the same semantic as $Call type in Flow.js
+> If you familiar with Flow.js then you can be familiar with $Call type. $ReturnType has the same semantic as $Call type in Flow.js
 [Flow.js $Call](https://flow.org/en/docs/types/utilities/#toc-call).
 
 ## $Soft<Obj\>
@@ -322,7 +322,7 @@ const strictAdmin: Admin = { name: "Maurice Moss", age: 33, test: 2 };
 const softAdmin: $Soft<Admin> = { name: "Maurice Moss", age: 33, test: 2 }; // 👌!
 ```
 
-**Info** If you familiar with Flow.js then you can be familiar with $Shape type. $Soft has the same semantic as $Shape type in Flow.js
+> If you familiar with Flow.js then you can be familiar with $Shape type. $Soft has the same semantic as $Shape type in Flow.js
 [Flow.js $Shape](https://flow.org/en/docs/types/utilities/#toc-shape).
 
 ## $Strict<Obj\>
@@ -338,7 +338,7 @@ const softAdmin: Admin = { name: "Maurice Moss", age: 33, test: 2 }; // 👌!
 const strictAdmin: $Strict<Admin> = { name: "Maurice Moss", age: 33, test: 2 };
 ```
 
-**Info** If you familiar with Flow.js then you can be familiar with $Exact type. $Soft has the same semantic as $Exact type in Flow.js
+> If you familiar with Flow.js then you can be familiar with $Exact type. $Soft has the same semantic as $Exact type in Flow.js
 [Flow.js $Exact](https://flow.org/en/docs/types/utilities/#toc-exact).
 
 ## $Throws<ReturnType, ErrorType\>
@@ -411,7 +411,7 @@ const _: $TypeOf<number> = []
 const _: $TypeOf<a> = []
 ```
 
-**Info** If you familiar with TypeScript or Flow.js then you can be familiar with "typeof" operator.
+> If you familiar with TypeScript or Flow.js then you can be familiar with "typeof" operator.
 [TypeScript typeof operator](http://www.typescriptlang.org/play/index.html?ssl=2&ssc=10&pln=2&pc=16#code/MYewdgzgLgBGCuBbARgUwE4QFwwILvQEMBPAHgRQwD4YBeGAbQEYAaGAJjYGYBdAbgBQoSLEI4oxAA6oQAMzhI0mOgsqY+QA)
 [Flofw.js typeof operator](https://flow.org/en/docs/types/typeof/#toc-typeof-type-syntax)
 
@@ -426,5 +426,5 @@ type Admin = { name: string, age: number };
 const property: $Values<Admin> = "name"; 
 ```
 
-**Info** If you familiar with Flow.js then you can be familiar with $Vaues type.
+> If you familiar with Flow.js then you can be familiar with $Vaues type.
 [Flow.js $Values](https://flow.org/en/docs/types/utilities/#toc-values).

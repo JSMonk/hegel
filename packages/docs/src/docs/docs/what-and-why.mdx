@@ -5,4 +5,147 @@ menu: Intro
 ---
 ## What is Hegel?
 
-Hegel is a static type checker for JavaScript with minimalistic type annotation syntax, strong type system and powerful type inference. 
+Hegel is a static type checker for JavaScript. It means that it is not a new one language which compiles to JavaScript. No. it's only a tool which analyzes your code ahead of time and show you results of the analysis. Also it means that you don't need to learn a new language to use static strong type system - JavaScript is enough. But, additionaly, this tool provide an type syntax for your variable and function arguments, analysis of your types (even if you don't use type syntax), which give you an ability to find bugs faster without actually running your program.
+
+```typescript
+// Example from real life 😭
+class DataBase {
+  reconnect() { /* ... reconnect logic */}
+  dropDatabase() {}
+}
+class Fixture {
+  reconnect() { this.dropDatabase(); /* ... reconnect logic */}
+  dropDatabase() {}
+}
+
+function setupE2E(db) {
+  db.reconnect();
+}
+
+// And your teamate forgot to change something after debugging
+const db = new Fixture();
+debugger;
+setupE2E(db);
+// Congratulations, you became an DropDatabase Engineer 
+```
+
+But if you would added only one thing in your code with Hegel, you would not droped an DataBase.
+
+```typescript
+// ...
+function setupE2E(db: DataBase) {
+// ...
+```
+
+You can see result in [Hegel Playground](/try#MYGwhgzhAEAiYBcwCFIFNoG8BQ1oCc1gB7AO1KIQAoBKLAtBAV31OgQAsBLCAbgHoAVNAB0YhiXKVoIYgHMuwaIP4BfbOtCQYAMS4APZoSy4JZCsGp1M7bhBEATfMQAO8JACN0tXgyNtOHgFhMREzKUsZeUVlNVMnV3cwLwg0Wix1dWwAMyZSSy4yaFTmFwBRACYyqgcPAC44RBR0a3iPEUJJCyteDWxsfn5oAEFSB2gAT2IWdjQwAFtEDGzifDliBHZiaGAOMFI5DAhiecZuA+gwbIQ0fGgHNA8mOQUD7EkITdroAF5oCgA7tA9IYWGkaL0Hk8XrdeoMRmNJtNoHsAG4YYYAeQAKtBbs47lw2FMZmgHFwEKtoFSifcWIhCmxiNloC5nAAraQkeYuLjgBCM7AlJjlKo1DwQ7BAA) - you would be notified before the incedent.
+
+## Why Hegel?
+
+First of all, lets explore the main goals of Hegel:
+
+- Minimalistic types syntax
+- Strong type system
+- Powerful type inference
+
+But, we need to answer at this question differently for different audience. So, chose list item which discribe your experience:
+
+- [You never work with typed languages or type checkers](#)
+- [You works with TypeScript](#)
+- [You works with Flow.js](#)
+- [You works with other staticly typed language with JavaScript target](#)
+
+## Why actually do we need static analysis?
+
+First of all, static analysis means that your code will be analyze without actually running. So, static type analysis will analyze your code for any type errors.
+
+Actually, there are 2 major benefits of static type analysis:
+1. Static type analysis find and provide to you information about a type error which existed in your code in duration of code writing. It not only gives you an garantees that you code working without runtime type errors but in addition  it realy economs a lot of time for finding and fixing errors, especially in big projects which contains a realy long build step. 
+2. When you use instrument which provide type information of your variables, functions, methods, classes and etc - you have got an documentation of method usage without any additional efforts.
+
+```typescript
+function deserializeUser(stringifiedUserJson) {
+  const maybeUser = JSON.parse(stringifiedUserJson);
+  if (
+    typeof maybeUser === "object" &&
+    maybeUser !== null &&
+    "name" in maybeUser &&
+    typeof maybeUser.name === "string"
+  ) {
+    return maybeUser;
+  }
+  throw new TypeError("Provided serialized user is invalid!");
+}
+
+deserializeUser("42");
+```
+
+If you will open this examplie in [Hegel Playground](/try#GYVwdgxgLglg9mABAEwKYGdUCcYEMA2MAXqgKqZYAU6UOYA5jMDKsudgFLoICUiA3gChEiCAhqIAtrgCeAIzIVEAXkQcAygHkAcgDoADriyZqtGAyYs2FLrwDcwxE0SVHIqDP2o4wKbIXsWCrKqgBEcHIAVqjQoYgAZPFufvKK2IgAhCGIYCD4+AlJIiKhYLiSqHHmKQFKickeXj41aVi6ZRXBYTR09KGOfELFiFioUCBYSNKpgQ4iAL6OUAAWWHAA7jmomwAqnqgAolhrVKEACmsAbjBoyIgUeIQkdyBKMOhOYJcENxmhPA5FoI0A8fiRApRQgAWABM-zsQA) and will hover at `deserializeUser` function invokation then you will see arguments types of the function, return type of the function and which error this funcation may throw. And you've got it free.
+
+## Benefits and disadvantages over TypeScript
+
+If you familiar with TypeScript you may know benefits of static typing, so lets explore benefits and disadvantages of Hegel over TypeScript
+
+### Benefits
+
+1. Powerful Type Inference
+
+Hegel is targeting at realy powerful type inference which give an ability to write less type annotations. As example:
+
+```typescript
+const Entities = {
+    Plant: class Plant { },
+    Animal: class Animal { },
+    Mushrooms: class Mushrooms { }
+};
+
+function model(store, modelName) {
+    return store[modelName];
+}
+
+// Type of "Class" variable is "class Plant"
+const Class = model(Entities, "Plant");
+```
+
+### Disadvantages 
+
+1. Minimal changes in JavaScript Syntax
+
+TypeScript provide a lot of additional syntax features and syntax sugar with types, but for now it's realy complicated for newbees. Lets see an example implemented in TypeScript and Hegel.
+
+```typescript
+// TypeScript
+const Entities = {
+    Plant: class Plant { },
+    Animal: class Animal { },
+    Mushrooms: class Mushrooms { }
+};
+
+function model<M extends object, K extends keyof M>(store: M, modelName: K): M[K] {
+    return store[modelName];
+}
+
+const Class = model(Entities, "Plant");
+```
+
+```typescript
+// Hegel
+const Entities = {
+    Plant: class Plant { },
+    Animal: class Animal { },
+    Mushrooms: class Mushrooms { }
+};
+
+function model<M: Object, K: $Keys<M>>(store: M, modelName: K): $PropertyType<M, K> {
+    return store[modelName];
+}
+
+const Class = model(Entities, "Plant");
+```
+
+2. Popularity
+
+As you understand, Hegel is less popular than TypeScript 😄
+
+## Benefits and disadvantages over Flow.js
+
+## Benefits and disadvantages over popular typed languages with JavaScript target
