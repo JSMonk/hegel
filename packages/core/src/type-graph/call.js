@@ -333,7 +333,7 @@ export function addCallToTypeGraph(
       }
       const nearestThrowableScope = findThrowableBlock(currentScope);
       if (
-          nearestThrowableScope !== null &&
+        nearestThrowableScope !== null &&
         nearestThrowableScope.type === VariableScope.FUNCTION_TYPE &&
         nearestThrowableScope.declaration.type.throwable !== undefined
       ) {
@@ -872,8 +872,8 @@ export function addCallToTypeGraph(
         localTypeScope,
         node.loc
       );
-      args = node.arguments.map(
-        (n, i) =>
+      args = node.arguments.map((n, i) => {
+        const givenArgument =
           n.type === NODE.FUNCTION_EXPRESSION ||
           n.type === NODE.ARROW_FUNCTION_EXPRESSION
             ? // $FlowIssue
@@ -888,8 +888,28 @@ export function addCallToTypeGraph(
                 post
               )
             : // $FlowIssue
-              args[i]
-      );
+              args[i];
+        let declaratedArgument = fnType.argumentsTypes[i];
+        declaratedArgument =
+          declaratedArgument instanceof GenericType &&
+          declaratedArgument.subordinateType instanceof FunctionType
+            ? declaratedArgument.subordinateType
+            : declaratedArgument;
+        const givenArgumentType =
+          givenArgument instanceof VariableInfo
+            ? givenArgument.type
+            : givenArgument;
+        return declaratedArgument instanceof FunctionType &&
+          givenArgumentType instanceof GenericType
+          ? getRawFunctionType(
+              givenArgumentType,
+              declaratedArgument.argumentsTypes,
+              undefined,
+              localTypeScope,
+              n.loc
+            )
+          : givenArgument;
+      });
       const throwableType: any =
         targetType instanceof GenericType
           ? targetType.subordinateType
