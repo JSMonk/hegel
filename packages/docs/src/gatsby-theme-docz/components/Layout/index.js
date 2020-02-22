@@ -31,9 +31,13 @@ export const Layout = ({ children }) => {
               onClick={() => setOpen(false)}
             />
           )}
-          <Container sx={styles.content} data-testid="main-container">
-            {children}
-          </Container>
+          {docs.main ? (
+            children
+          ) : (
+            <Container sx={styles.content} data-testid="main-container">
+              {children}
+            </Container>
+          )}
         </div>
       </Main>
     </BaseLayout>

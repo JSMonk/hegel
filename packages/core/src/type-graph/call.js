@@ -900,7 +900,8 @@ export function addCallToTypeGraph(
             ? givenArgument.type
             : givenArgument;
         return declaratedArgument instanceof FunctionType &&
-          givenArgumentType instanceof GenericType
+          givenArgumentType instanceof GenericType &&
+          givenArgumentType.subordinateType !== declaratedArgument
           ? getRawFunctionType(
               givenArgumentType,
               declaratedArgument.argumentsTypes,
@@ -922,20 +923,26 @@ export function addCallToTypeGraph(
         addToThrowable(throwableType.throwable, nearestThrowableScope);
         if (
           nearestThrowableScope !== null &&
-          nearestThrowableScope.type === VariableScope.FUNCTION_TYPE &&
-          nearestThrowableScope.declaration.type.throwable !== undefined &&
-          !nearestThrowableScope.declaration.type.throwable.isPrincipalTypeFor(
-            throwableType.throwable
-          )
+          nearestThrowableScope.type === VariableScope.FUNCTION_TYPE
         ) {
-          throw new HegelError(
-            `Current function throws "${String(
-              throwableType.throwable.name
-            )}" type which is incompatible with declareted throw type "${String(
-              nearestThrowableScope.declaration.type.throwable.name
-            )}"`,
-            node.loc
-          );
+          const declaration = nearestThrowableScope.declaration;
+          const declarationType =
+            declaration.type instanceof GenericType
+              ? declaration.type.subordinateType
+              : declaration.type;
+          if (
+            declarationType.throwable !== undefined &&
+            !declarationType.throwable.isPrincipalTypeFor(throwableType.throwable)
+          ) {
+            throw new HegelError(
+              `Current function throws "${String(
+                throwableType.throwable.name
+              )}" type which is incompatible with declareted throw type "${String(
+                declarationType.throwable.name
+              )}"`,
+              node.loc
+            );
+          }
         }
       }
       if (genericArguments != null) {

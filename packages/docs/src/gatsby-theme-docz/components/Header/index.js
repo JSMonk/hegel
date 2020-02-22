@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { Link } from "gatsby";
 import { Logo } from "../Logo";
 import { useThemeUI } from "theme-ui";
+import { useCurrentDoc } from "docz";
 
 const HEADER_HEIGHT = 50;
 
@@ -23,7 +24,12 @@ const HtmlHeader = styled.header`
   position: relative;
   z-index: 2;
   border-bottom: 1px solid
-    ${props => (props.mode === "light" ? "#CED4DE" : "#2D3747")};
+    ${props =>
+      props.withoutBorder
+        ? "transparent"
+        : props.mode === "light"
+          ? "#CED4DE"
+          : "#2D3747"};
 `;
 
 const Navigation = styled.nav`
@@ -119,11 +125,12 @@ export function Header() {
   const { colorMode, setColorMode } = useThemeUI();
   const toggleMode = () =>
     setColorMode(colorMode === "light" ? "dark" : "light");
+  const docs = useCurrentDoc();
   return (
-    <HtmlHeader mode={colorMode}>
+    <HtmlHeader mode={colorMode} withoutBorder={docs.main}>
       <Navigation>
         <NavLink to="/">
-          <Logo mode={colorMode} />
+          {docs.main ? null : <Logo mode={colorMode} height={35} />}
         </NavLink>
         <Container>
           <List>

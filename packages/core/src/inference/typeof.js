@@ -135,24 +135,16 @@ function typeofIdentifier(
       refinementNode.loc
     );
   }
-  let refinementedType;
-  let alternateType;
-  if (variableInfo.type instanceof UnionType) {
-    refinementedType = UnionType.term(null, {}, refinementedVariants);
-    alternateType =
-      alternateVariants.length === 0
-        ? Type.Never
-        : UnionType.term(null, {}, alternateVariants);
-  } else {
-    refinementedType = refinementType;
-    alternateType =
-      refinementType === variableInfo.type ? Type.Never : alternateType;
-  }
+  const refinementedType = UnionType.term(null, {}, refinementedVariants);
+  const alternateType =
+    alternateVariants.length === 0 || refinementType === variableInfo.type
+      ? Type.Never
+      : UnionType.term(null, {}, alternateVariants);
   if (refinementedType === Type.Never || alternateType === Type.Never) {
     throw new HegelError(
-      `Variable ${refinementedType === Type.Never ? "can't be" : "is always"} "${
-        stringNode.value
-      }"`,
+      `Variable ${
+        refinementedType === Type.Never ? "can't be" : "is always"
+      } "${stringNode.value}"`,
       refinementNode.loc
     );
   }

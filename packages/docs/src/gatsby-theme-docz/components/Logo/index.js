@@ -1,8 +1,16 @@
-import React from 'react'
-import lightLogo from './logo-light.svg';
-import darkLogo from './logo-dark.svg';
+import React from "react";
+import styled from "styled-components";
+import lightLogo from "./logo-light.svg";
+import darkLogo from "./logo-dark.svg";
 
-export function Logo({ mode }) {
+const Image = styled.img`
+  min-height: ${props => isNaN(props.height) ? "100px" : props.height}
+  max-height: 170px;
+`;
+
+export function Logo({ mode, style, height }) {
   const logo = mode === "dark" ? lightLogo : darkLogo;
-  return <img src={logo} height="35px" alt="That's my logo" />;
+  return (
+    <Image src={logo} height={height} alt="Hegel Logo" />
+  );
 }
