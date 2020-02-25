@@ -175,7 +175,10 @@ export class GenericType<T: Type> extends Type {
             ],
       [[], []]
     );
-    if (this._changeStack !== null && this._changeStack.find(a => a.equalsTo(currentSelf))) {
+    if (
+      this._changeStack !== null &&
+      this._changeStack.find(a => a.equalsTo(currentSelf))
+    ) {
       return currentSelf;
     }
     this._changeStack =
@@ -253,7 +256,8 @@ export class GenericType<T: Type> extends Type {
       }
       if (
         t.constraint instanceof UnionType &&
-        appliedType instanceof UnionType
+        appliedType instanceof UnionType &&
+        appliedType.equalsTo(t.constraint)
       ) {
         return appliedType;
       }
