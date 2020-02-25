@@ -4,9 +4,9 @@ import { TypeScope } from "../type-scope";
 import { GenericType } from "./generic-type";
 
 export class $ThrowsResult extends Type {
-  constructor(name, meta = {}, resultType, errorType) {
+  constructor(name, meta = {}, errorType) {
+    name = name === null ? `$Throws<${String(errorType).name}>` : name;
     super(name, meta);
-    this.resultType = resultType;
     this.errorType = errorType;
   }
 }
@@ -14,13 +14,7 @@ export class $ThrowsResult extends Type {
 export class $Throws extends GenericType {
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
-    super(
-      "$Throws",
-      meta,
-      [TypeVar.term("result", { parent }), TypeVar.term("errors", { parent })],
-      parent,
-      null
-    );
+    super("$Throws", meta, [TypeVar.term("errors", { parent })], parent, null);
   }
 
   isPrincipalTypeFor() {
@@ -42,12 +36,7 @@ export class $Throws extends GenericType {
     isCalledAsBottom = false
   ) {
     super.assertParameters(parameters, loc);
-    const [result, error] = parameters;
-    return $ThrowsResult.term(
-      `$Throws<${String(result.name)}, ${String(error.name)}>`,
-      { parent: result.parent },
-      result,
-      error
-    );
+    const [error] = parameters;
+    return $ThrowsResult.term(null, { parent: error.parent }, error);
   }
 }

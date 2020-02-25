@@ -23,7 +23,7 @@ Table of contents:
 - [$ReturnType](#returntypefn-)
 - [$Soft](#softobj)
 - [$Strict](#strictobj)
-- [$Throws](#throwsreturntype-errortype)
+- [$Throws](#throwserrortype)
 - [$TypeOf](#typeofvariable)
 - [$Values](#valuesobj)
 
@@ -341,36 +341,36 @@ const strictAdmin: $Strict<Admin> = { name: "Maurice Moss", age: 33, test: 2 };
 > If you familiar with Flow.js then you can be familiar with $Exact type. $Soft has the same semantic as $Exact type in Flow.js
 [Flow.js $Exact](https://flow.org/en/docs/types/utilities/#toc-exact).
 
-## $Throws<ReturnType, ErrorType\>
+## $Throws<ErrorType\>
 
 $Throws type act like a [Throws Statement in Java](https://www.javatpoint.com/throws-keyword-and-difference-between-throw-and-throws). When you declare return type of your function as $Throws, you will need to throw subtype of declaret throws type.
 
 ```typescript
 // Error: Function should throw "SyntaxError" but throw nothing
-function assert(something: unknown): $Throws<undefined, SyntaxError> {}
+function assert(something: unknown): $Throws<SyntaxError> {}
 ```
 
 ```typescript
-function assert(something: unknown): $Throws<undefined, SyntaxError> {
+function assert(something: unknown): $Throws<SyntaxError> {
   // Error: Type "ReferenceError" is incompatible with type "SyntaxError"
   throw new ReferenceError();
 }
 ```
 
 ```typescript
-function assert(something: unknown): $Throws<undefined, ReferenceError> {
+function assert(something: unknown): $Throws<ReferenceError> {
   throw new ReferenceError(); // 👌!
 }
 ```
 
 ```typescript
-function assert(something: unknown): $Throws<undefined, SyntaxError | ReferenceError> {
+function assert(something: unknown): $Throws<SyntaxError | ReferenceError> {
   throw new ReferenceError(); // 👌!
 }
 ```
 
 ```typescript
-function assert(something: unknown): $Throws<undefined, Error> {
+function assert(something: unknown): $Throws<Error> {
   throw new ReferenceError(); // 👌!
 }
 ```
@@ -384,9 +384,20 @@ function assertIsNumber(something: unknown) {
   }
 }
 
-function assertEntry(something: unknown): $Throws<undefined, TypeError> {
+function assertEntry(something: unknown): $Throws<TypeError> {
   // Error: Current function throws "Error" type which is incompatible with declareted throw type "TypeError"
   assertIsNumber(something);
+}
+```
+
+If you want to annotate that your function will throw something or will return something then you should use [Union Type](/docs/union-types) with $Throws:
+
+```typescript
+function processIfValid(a, b): number | $Throws<TypeError> {
+  if (typeof a !== "number" || typeof b !== "number") {
+    throw new TypeError("Function works only with numbers!");
+  }
+  return a + b;
 }
 ```
 

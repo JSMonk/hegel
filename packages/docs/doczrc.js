@@ -2,13 +2,15 @@ export default {
   title: "Hegel",
   description: "Feel power of types",
   indexHtml: "public/index.html",
+  base: '/docz',
   typescript: false,
   propsParser: false,
   mdPlugins: [],
   ignore: ["src/gatsby-theme-docz/**"],
   public: "./public",
   themeConfig: {
-    useColorSchemeMediaQuery: true
+    useColorSchemeMediaQuery: true,
+    initialColorMode: "dark"
   },
   menu: [
     {
@@ -40,14 +42,10 @@ export default {
     },
     {
       name: "Type System",
-      menu: [
-        "Type Compatibility",
-        "Type Inference",
-        "Type Refinement"
-      ]
+      menu: ["Type Compatibility", "Type Inference", "Type Refinement"]
     },
     {
-      name: "Configuration",
+      name: "Configuration"
     },
     {
       name: "Libraries",

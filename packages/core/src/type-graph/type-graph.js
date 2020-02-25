@@ -17,7 +17,6 @@ import { ObjectType } from "./types/object-type";
 import { GenericType } from "./types/generic-type";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
-import { $ThrowsResult } from "./types/throws-type";
 import { VariableScope } from "./variable-scope";
 import { getVariableType } from "../utils/variable-utils";
 import { addVariableToGraph } from "../utils/variable-utils";

@@ -261,7 +261,31 @@ export function inferenceFunctionLiteralType(
     if (returnType instanceof TypeVar) {
       genericArguments.add(returnType);
     }
-  } else if (currentNode.async) {
+  }
+  if (returnType instanceof $ThrowsResult || returnType instanceof UnionType) {
+    if (returnType instanceof UnionType) {
+      const [returnTypes, errors] = returnType.variants.reduce(
+        ([result, errors], type) =>
+          type instanceof $ThrowsResult
+            ? [result, [...errors, type.errorType]]
+            : [[...result, type], errors],
+        [[], []]
+      );
+      if (errors.length !== 0) {
+        returnType = UnionType.term(null, {}, returnTypes);
+        throwableType = new $ThrowsResult(
+          null,
+          {},
+          UnionType.term(null, {}, errors)
+        );
+      }
+    } else {
+      throwableType = returnType;
+      returnType = Type.Undefined;
+    }
+  }
+
+  if (currentNode.async) {
     const unknownPromise = Type.Unknown.promisify();
     if (!unknownPromise.isPrincipalTypeFor(returnType)) {
       throw new HegelError(
@@ -269,9 +293,6 @@ export function inferenceFunctionLiteralType(
         currentNode.returnType.loc
       );
     }
-  } else if (returnType instanceof $ThrowsResult) {
-    throwableType = returnType;
-    returnType = returnType.resultType;
   }
   const genericArgumentsTypes = [...genericArguments];
   const typeName = FunctionType.getName(

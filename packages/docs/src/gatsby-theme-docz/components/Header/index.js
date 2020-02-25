@@ -126,6 +126,8 @@ export function Header() {
   const toggleMode = () =>
     setColorMode(colorMode === "light" ? "dark" : "light");
   const docs = useCurrentDoc();
+  // eslint-disable-next-line
+  const linkToRepository = REPOSITORY;
   return (
     <HtmlHeader mode={colorMode} withoutBorder={docs.main}>
       <Navigation>
@@ -144,11 +146,7 @@ export function Header() {
               <NavLink>Community</NavLink>
             </ListItem>
             <ListItem>
-              <NavLink
-                as="a"
-                href="https://github.com/JSMonk/hegel"
-                target="_blank"
-              >
+              <NavLink as="a" href={linkToRepository} target="_blank">
                 GitHub
               </NavLink>
             </ListItem>

@@ -88,7 +88,7 @@ export function createModuleScope(
   globalModule: ModuleScope,
   isTypeDefinitions: boolean,
   withPositions?: boolean
-): $Throws<Promise<ModuleScope | PositionedModuleScope>, ExtendedSyntaxError>;
+): Promise<ModuleScope | PositionedModuleScope> | $Throws<ExtendedSyntaxError>;
 
 export function createGlobalScope(
   ast: Array<ExtendedProgram>,
@@ -96,9 +96,12 @@ export function createGlobalScope(
   isTypeDefinitions: boolean,
   mixTypeDefinitions: (module: ModuleScope) => undefined | Promise<undefined>,
   withPositions?: boolean
-): $Throws<
-  Promise<
-    [Array<ModuleScope | PositionedModuleScope>, Array<HegelError>, ModuleScope]
-  >,
-  ExtendedSyntaxError
->;
+):
+  | Promise<
+      [
+        Array<ModuleScope | PositionedModuleScope>,
+        Array<HegelError>,
+        ModuleScope
+      ]
+    >
+  | $Throws<ExtendedSyntaxError>;

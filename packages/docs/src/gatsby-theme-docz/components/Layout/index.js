@@ -7,6 +7,7 @@ import { jsx, Layout as BaseLayout, Main, Container } from "theme-ui";
 import global from "~theme/global";
 import { Header } from "../Header";
 import { Sidebar } from "gatsby-theme-docz/src/components/Sidebar";
+import { Footer } from "gatsby-theme-docz/src/components/Footer";
 import * as styles from "gatsby-theme-docz/src/components/Layout/styles";
 
 export const Layout = ({ children }) => {
@@ -40,6 +41,7 @@ export const Layout = ({ children }) => {
           )}
         </div>
       </Main>
+      <Footer/>
     </BaseLayout>
   );
 };
