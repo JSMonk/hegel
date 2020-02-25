@@ -165,7 +165,7 @@ export class ExtendedSyntaxError extends SyntaxError {
 export function parse(
   input: string,
   options?: ParserOptions
-): $Throws<File, ExtendedSyntaxError>;
+): File | $Throws<ExtendedSyntaxError>;
 
 /**
  * Parse the provided code as a single expression.

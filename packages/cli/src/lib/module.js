@@ -9,7 +9,7 @@ import type { Program, SourceLocation } from "@babel/parser";
 const typings = dirname(require.resolve("@hegel/typings")); 
 
 const isRelative = (path: string) => path[0] === ".";
-const isNotNull = a => a !== null;
+const isNotNull = (a: unknown) => a !== null;
 
 async function resolveModule(importPath, config) { 
   if (existsSync(importPath)) {

@@ -229,6 +229,10 @@ export class Type {
     if ("root" in type) {
       type = Type.getTypeRoot(type);
     }
+    if (withReadonly && "readonly" in type) {
+      // $FlowIssue
+      type = type.readonly;
+    }
     if ("unpack" in type) {
       // $FlowIssue
       type = withUnpack ? type.unpack() : type.subordinateMagicType;

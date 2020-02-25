@@ -337,9 +337,8 @@ export class FunctionType extends Type {
     }
     const result =
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
-      (this.throwable === anotherType.throwable ||
-        (this.throwable !== undefined &&
-          anotherType.throwable !== undefined &&
+      (this.throwable === undefined ||
+        (anotherType.throwable !== undefined &&
           this.throwable.isPrincipalTypeFor(anotherType.throwable))) &&
       this.argumentsTypes.length >= anotherType.argumentsTypes.length &&
       anotherType.argumentsTypes.every((arg, i) =>

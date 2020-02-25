@@ -287,7 +287,7 @@ export function inferenceFunctionLiteralType(
 
   if (currentNode.async) {
     const unknownPromise = Type.Unknown.promisify();
-    if (!unknownPromise.isPrincipalTypeFor(returnType)) {
+    if (!unknownPromise.isPrincipalTypeFor(returnType) && currentNode.returnType != undefined) {
       throw new HegelError(
         `Return type of async function should be an promise`,
         currentNode.returnType.loc

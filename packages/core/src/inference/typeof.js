@@ -97,7 +97,7 @@ function refinementVariants(
   if (refinementType.isPrincipalTypeFor(variant)) {
     return [refinementedVariants.concat([variant]), alternateVariants];
   }
-  if (variant.isSuperTypeFor(refinementType)) {
+  if (variant.isPrincipalTypeFor(refinementType)) {
     return [
       refinementedVariants.concat([refinementType]),
       alternateVariants.concat([variant])
