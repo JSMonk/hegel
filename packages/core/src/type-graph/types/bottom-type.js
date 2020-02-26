@@ -4,6 +4,10 @@ import { UnionType } from "./union-type";
 import { FunctionType } from "./function-type";
 
 export class $BottomType extends Type {
+  static get name() {
+    return "$BottomType";
+  }
+
   static getParent(meta, _, genericArguments = []) {
     return genericArguments.reduce(
       (parent, type) =>

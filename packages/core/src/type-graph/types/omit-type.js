@@ -7,6 +7,10 @@ import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 
 export class $Omit extends GenericType {
+  static get name() {
+    return "$Omit";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super(

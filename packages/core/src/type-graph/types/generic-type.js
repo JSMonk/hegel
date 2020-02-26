@@ -9,6 +9,10 @@ import type { TypeMeta } from "./type";
 import type { SourceLocation } from "@babel/parser";
 
 export class GenericType<T: Type> extends Type {
+  static get name() {
+    return "GenericType";
+  }
+
   static new(name: mixed, meta?: TypeMeta = {}, ...args: Array<any>) {
     const [, localTypeScope, subordinateType] = args;
     const declaratedParent = meta.parent || Type.GlobalTypeScope;

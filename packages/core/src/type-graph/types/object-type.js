@@ -19,6 +19,10 @@ import type {
 type ExtendedTypeMeta = { ...TypeMeta, isNominal?: boolean, isSoft?: boolean };
 
 export class ObjectType extends Type {
+  static get name() {
+    return "ObjectType";
+  }
+
   static Object = new TypeVar("Object");
 
   static term(

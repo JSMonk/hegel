@@ -12,6 +12,10 @@ import { VariableInfo } from "../variable-info";
 import { CollectionType } from "./collection-type";
 
 export class $PropertyType extends GenericType {
+  static get name() {
+    return "$PropertyType";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super(

@@ -6,6 +6,10 @@ import { GenericType } from "./generic-type";
 import { FunctionType } from "./function-type";
 
 export class $ReturnType extends GenericType {
+  static get name() {
+    return "$ReturnType";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super(

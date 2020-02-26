@@ -9,6 +9,10 @@ import { CollectionType } from "./collection-type";
 import type { TypeMeta } from "./type";
 
 export class TupleType extends Type {
+  static get name() {
+    return "TupleType";
+  }
+
   static ReadonlyArray = new TypeVar("ReadonlyArray");
 
   static term(

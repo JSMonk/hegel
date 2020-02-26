@@ -5,6 +5,10 @@ import type { TypeMeta } from "./type";
 import type { TypeScope } from "../type-scope";
 
 export class TypeVar extends Type {
+  static get name() {
+    return "TypeVar";
+  }
+
   static Self = new TypeVar(THIS_TYPE);
   static strictEquality = false;
 

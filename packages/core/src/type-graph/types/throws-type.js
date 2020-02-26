@@ -4,6 +4,10 @@ import { TypeScope } from "../type-scope";
 import { GenericType } from "./generic-type";
 
 export class $ThrowsResult extends Type {
+  static get name() {
+    return "$ThrowsResult";
+  }
+
   constructor(name, meta = {}, errorType) {
     name = name === null ? `$Throws<${String(errorType).name}>` : name;
     super(name, meta);
@@ -12,6 +16,10 @@ export class $ThrowsResult extends Type {
 }
 
 export class $Throws extends GenericType {
+  static get name() {
+    return "$Throws";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super("$Throws", meta, [TypeVar.term("errors", { parent })], parent, null);

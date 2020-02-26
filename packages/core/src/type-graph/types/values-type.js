@@ -8,6 +8,10 @@ import { GenericType } from "./generic-type";
 import { CollectionType } from "./collection-type";
 
 export class $Values extends GenericType {
+  static get name() {
+    return "$Values";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super("$Values", meta, [TypeVar.term("target", { parent })], parent, null);

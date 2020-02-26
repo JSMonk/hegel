@@ -10,6 +10,10 @@ import { CollectionType } from "./collection-type";
 import { CALLABLE, CONSTRUCTABLE, INDEXABLE } from "../constants";
 
 export class $Keys extends GenericType {
+  static get name() {
+    return "$Keys";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super("$Keys", meta, [TypeVar.term("target", { parent })], parent, null);

@@ -7,6 +7,10 @@ import { $BottomType } from "./bottom-type";
 import { $AppliedImmutable } from "./immutable-type";
 
 export class $Intersection extends GenericType {
+  static get name() {
+    return "$Intersection";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super("$Intersection", meta, [], parent, null);

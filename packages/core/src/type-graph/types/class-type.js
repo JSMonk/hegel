@@ -5,6 +5,10 @@ import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 
 export class $Class extends GenericType {
+    static get name() {
+        return "$Class";
+    }
+
     constructor(_, meta = {}) {
         const parent = new TypeScope(meta.parent);
         super(

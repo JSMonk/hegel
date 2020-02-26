@@ -9,6 +9,10 @@ import type { TypeMeta } from "./type";
 import type { SourceLocation } from "@babel/parser";
 
 export class CollectionType<K: Type, V: Type> extends Type {
+  static get name() {
+    return "CollectionType";
+  }
+
   static Array = new TypeVar("Array");
 
   static term(
@@ -252,6 +256,10 @@ export class CollectionType<K: Type, V: Type> extends Type {
 }
 
 export class $Collection extends GenericType<Type> {
+  static get name() {
+    return "$Collection";
+  }
+
   constructor(_: mixed, meta: TypeMeta = {}) {
     const parent = new TypeScope(meta.parent);
     super(

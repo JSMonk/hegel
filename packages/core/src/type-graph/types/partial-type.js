@@ -8,6 +8,10 @@ import { GenericType } from "./generic-type";
 import { VariableInfo } from "../variable-info";
 
 export class $Partial extends GenericType {
+  static get name() {
+    return "$Partial";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super("$Partial", meta, [TypeVar.term("target", { parent })], parent, null);

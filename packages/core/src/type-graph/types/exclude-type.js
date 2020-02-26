@@ -6,6 +6,10 @@ import { UnionType } from "./union-type";
 import { GenericType } from "./generic-type";
 
 export class $Exclude extends GenericType {
+  static get name() {
+    return "$Exclude";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super(
@@ -51,10 +55,6 @@ export class $Exclude extends GenericType {
     const pickedVariants = target.variants.filter(
       variant => picks.find(pick => pick.equalsTo(variant)) === undefined
     );
-    return UnionType.term(
-      null,
-      {},
-      pickedVariants
-    );
+    return UnionType.term(null, {}, pickedVariants);
   }
 }

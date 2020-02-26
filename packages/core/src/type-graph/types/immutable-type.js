@@ -6,6 +6,10 @@ import { GenericType } from "./generic-type";
 import { CollectionType } from "./collection-type";
 
 export class $AppliedImmutable extends Type {
+  static get name() {
+    return "$AppliedImmutable";
+  }
+
   static term(
     name: ?string,
     meta?: TypeMeta = {},
@@ -95,6 +99,10 @@ export class $AppliedImmutable extends Type {
 }
 
 export class $Immutable extends GenericType {
+  static get name() {
+    return "$Immutable";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super(

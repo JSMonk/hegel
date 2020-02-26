@@ -15,6 +15,10 @@ export type TypeMeta = {
 const BOUNDARY = "[\\(\\)\\[\\]\\{\\}\\<\\>\\s\\n,]";
 
 export class Type {
+  static get name() {
+    return "Type";
+  }
+
   static GlobalTypeScope: TypeScope;
   static Undefined = new Type("undefined");
   static Null = new Type(null);

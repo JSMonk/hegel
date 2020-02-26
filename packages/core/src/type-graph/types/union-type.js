@@ -7,6 +7,10 @@ import type { TypeScope } from "../type-scope";
 
 // $FlowIssue
 export class UnionType extends Type {
+  static get name() {
+    return "UnionType";
+  }
+
   static term(
     name: mixed,
     meta?: TypeMeta = {},

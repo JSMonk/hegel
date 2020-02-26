@@ -7,6 +7,10 @@ import { $BottomType } from "./bottom-type";
 import { GenericType } from "./generic-type";
 
 export class $InstanceOf extends GenericType {
+  static get name() {
+    return "$InstanceOf";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super(

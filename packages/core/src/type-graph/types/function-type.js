@@ -7,6 +7,10 @@ import { GenericType } from "./generic-type";
 import type { TypeMeta } from "./type";
 
 export class RestArgument extends Type {
+  static get name() {
+    return "RestArgument";
+  }
+
   static term(
     name: mixed,
     meta?: TypeMeta = {},
@@ -105,6 +109,10 @@ export class RestArgument extends Type {
 }
 
 export class FunctionType extends Type {
+  static get name() {
+    return "FunctionType";
+  }
+
   static Function = new TypeVar("Function");
 
   static term(

@@ -7,6 +7,10 @@ import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 
 export class $Pick extends GenericType {
+  static get name() {
+    return "$Pick";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super(

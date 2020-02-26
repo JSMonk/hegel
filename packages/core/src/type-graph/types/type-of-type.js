@@ -3,6 +3,10 @@ import { TypeScope } from "../type-scope";
 import { GenericType } from "./generic-type";
 
 export class $TypeOf extends GenericType {
+  static get name() {
+    return "$TypeOf";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super(

@@ -5,6 +5,10 @@ import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 
 export class $Strict extends GenericType {
+  static get name() {
+    return "$Strict";
+  }
+
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
     super("$Strict", meta, [TypeVar.term("target", { parent })], parent, null);
