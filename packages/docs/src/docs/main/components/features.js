@@ -50,28 +50,22 @@ export function Features() {
           <ListItem>
             <Title>No Runtime TypeErrors</Title>
             <Text>
-              Hegel tries to prevent runtime TypeErrors by strong type
+              Hegel targets to prevent runtime TypeErrors by strong type
               system, great type inference and notify you about corner cases
-              {// Я бы вместо "Hegel tries to prevent" написал бы - "Hegel prevents". Более уверено звучит) //}
             </Text>
           </ListItem>
           <ListItem>
-            <Title>Easy Integration</Title>
-            {// Если ты имел ввиду "Легкая интеграция", то ок, а если "Легко интегрируемый", то - "Easily Integrated" //}
+            <Title>Easily Integrated</Title>
             <Text>
               Hegel is only JavaScript with types, so you don't need to use
-              specific file extensions or comments to start working with them.
-              {/* "with them" - это ты имел ввиду типы или с самим Хегелем?
-              Если с типами, то ок, а если с Хегелем, то - "it" вместо "them" */}
+              specific file extensions or comments to start working with it.
             </Text>
           </ListItem>
           <ListItem>
             <Title>Community-friendly</Title>
             <Text>
-              Hegel are developing by community for community. So, your PRs and
+              Hegel is developing by community for community. So, your PRs and
               issues will not be ignored or skipped.
-              {/* "Hegel are developing" - я бы лучше написал "Hegel is developed". 
-              Если ты имелл ввиду "разработан", а если "в данный момент раздабатывается", то - "Hegel is developing" */}
             </Text>
           </ListItem>
         </List>
