@@ -23,7 +23,7 @@ function calculateSum(firstUserInput: unknown, secondUserInput: unknown) {
 }
 ```
 
-If you will open this example in [Playground](/try#GYVwdgxgLglg9mABBAhgGwiNKoFMDKIAtgBTAwBOAzlAKpW4UCSYADiFAFyLgDWYcAO5gANIgYQEAE3qMW7LjzD8hYAJSIA3gChEiGMEQkoAT1a44h8tToNmbDogCEAXheIARGGIAjRh40dPT0oAAsKIUQwXEFEABUzXABRCgiKEg9rGkRWCIA3GClcKUQ89BBcRFCUKkQUREEIsABzRFNzADpEfFC4LCLEPzqo3381AG5dRABfKYMjdotDCWlZewVnN09vIj8KAK0pkPDI6NiE8xS0jJWwEty4AqKSsrQKqprhxoRWxa6evpoAZDeo7PYBSZ6WZ6Ci4KAgChILK2OQOKCIADU4lwkjua3kHEm0yAA) then you will see that Hegel doesn't show any type error at the 8 line. But why? 
+If you open this example in [Playground](/try#GYVwdgxgLglg9mABBAhgGwiNKoFMDKIAtgBTAwBOAzlAKpW4UCSYADiFAFyLgDWYcAO5gANIgYQEAE3qMW7LjzD8hYAJSIA3gChEiGMEQkoAT1a44h8tToNmbDogCEAXheIARGGIAjRh40dPT0oAAsKIUQwXEFEABUzXABRCgiKEg9rGkRWCIA3GClcKUQ89BBcRFCUKkQUREEIsABzRFNzADpEfFC4LCLEPzqo3381AG5dRABfKYMjdotDCWlZewVnN09vIj8KAK0pkPDI6NiE8xS0jJWwEty4AqKSsrQKqprhxoRWxa6evpoAZDeo7PYBSZ6WZ6Ci4KAgChILK2OQOKCIADU4lwkjua3kHEm0yAA) then you will see that Hegel doesn't show any type error at the 8 line. But why? 
 
 It's because we proved by conditions that "firstUserInput" and "secondUserInput" will always be a numbers at the 8 line.
 
@@ -45,7 +45,7 @@ Table of contents:
 
 ## Equality
 
-The most simple refinement operator is equality. You only may prove equality of variable and some literal and inside the block this
+The most simple refinement operator is equality. You only may prove equality of variable and some literal inside the block like this
 
 ```typescript
 function get2(arg: unknown): 2 {
@@ -59,7 +59,7 @@ function get2(arg: unknown): 2 {
 
 ## switch
 
-The same logic has switch expression. In each case you prove that variable equals to a value. But with an exception - if you will drop "break", "return" and "throw" statement from case then the next case will include previous prove.
+The same logic has switch expression. In each case you prove that variable equals to a value. But with an exception - if you drop "break", "return" and "throw" statement from case then the next case will include previous prove.
 
 ```typescript
 type User = { name: string, age: number, id: number };
@@ -91,7 +91,7 @@ function panic(arg: ?never) {
 
 ## Identifier
 
-The second simple refinement operator is identifier. The main restriction of this refinement that it can be used only insde logical expressions
+The second simple refinement operator is identifier. The main restriction of this refinement that it can be used only inside logical expressions
 
 ```typescript
 const maybeTwo: ?number = 2;
@@ -107,7 +107,7 @@ const defaultTwo = maybeTwo || 2;
 
 ## typeof
 
-Typeof refinement based on comparasion of return value of `typeof` operator and string literal. You can 
+Typeof refinement based on comparison of return value of `typeof` operator and string literal.
 
 ```typescript
 const maybeTwo: number | string = 2;
@@ -182,7 +182,7 @@ if ("value" in unknownObj) {
 
 ## Not
 
-If you will use any refinement condition with logical "not" operator or oposite operators like not-equal, strict not-not equal you will prove negative case of your refinement
+If you use any refinement condition with logical "not" operator or oposite operators like not-equal, strict not-not equal you will prove negative case of your refinement
 
 ```typescript
 class Empire { aveEmperor() {} }
@@ -271,7 +271,7 @@ for (const empire of empires) {
 
 ## Needless refinement
 
-Sometimes (especialy after refactoring) you may do refinement which are not do something usefull. As example is provment that type of variable is `number` while variable type is always `number` In this case Hegel try to notify you about it.
+Sometimes (especially after refactoring) you may do refinement which does not do something usefull. As example is provement that type of variable is `number` while variable type is always `number`. In this case Hegel try to notify you about it.
 
 ```typescript
 const calculatedSum = 42 + 14;
