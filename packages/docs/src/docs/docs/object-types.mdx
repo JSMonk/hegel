@@ -34,7 +34,7 @@ const strictUser: { email: string, password: string } = {
 };
 ```
 
-To make defined object type as soft you can add special statement `...` (three dots). This statement will give to Hegel information that you want includes additional properties inside object type.
+To make defined object type as soft you can add special statement `...` (three dots). This statement will give Hegel information that you want to include additional properties inside object type.
 ```typescript
 const softUser: { email: string, password: string, ... } = { // 👌!
   name: "any.user@gmail.com",
@@ -43,7 +43,7 @@ const softUser: { email: string, password: string, ... } = { // 👌!
 };
 ```
 
-> If you are familiar with Flow.js, in Flow.js this two examples (strict and soft object types) will be look like this:
+> If you are familiar with Flow.js, in Flow.js this two examples (strict and soft object types) will look like this:
 
 ```typescript
 const strictUser: {| email: string, password: string |} = { // 👌!
@@ -62,24 +62,24 @@ const softUser: { email: string, password: string } = { // 👌!
 
 ## Optional object type properties
 
-As was mentioned in [Optional Types](/docs/optional-types), you can define object properties as optional by adding `?`(question mark) behind the type name.
+As was mentioned in [Optional Types](/docs/optional-types), you can define object properties as optional by adding `?`(question mark) before the type name.
 
 ```typescript
 const user: { email: string, password: ?string } = { name: "any.user@gmail.com" }; // 👌!
 ```
 
-The logic is next - if you will try to access to property which is not existed in object then value of this property will be undefined. Optional Types annotate that type of argument/variable/property can have annotated type value or undefined, so, undefined will be a valid value for this property.
+The logic is next - if you try to access to property which does not exist in object then value of this property will be undefined. Optional Types annotate that type of argument/variable/property can have annotated type value or undefined, so, undefined will be a valid value for this property.
 
 
-> If you are familiar with Flow.js or TypeScript, you may know about similar optional property syntax inside this two "analyzers", which looks like this:
+> If you are familiar with Flow.js or TypeScript, you may know about similar optional property syntax inside this two "analyzers", which look like this:
 ```typescript
 const user: { email: string, password?: string } = { name: "any.user@gmail.com" }; // 👌!
 ```
-But Hegel doesn't have this syntax and define the same syntax for two situations (when your property are optional and when you property can contains undefined.
+But Hegel doesn't have this syntax and define the same syntax for two situations (when your property is optional and when your property can contain undefined.
 
 ## Object
 
-Also, Hegel supports `Object` type which represent any possible object in JavaScript:
+Also, Hegel supports `Object` type which represents any possible object in JavaScript:
 
 ```typescript
 function json(obj: Object) {
