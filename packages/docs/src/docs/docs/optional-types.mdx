@@ -7,20 +7,20 @@ menu: Type Annotations
 # Optional Types
 ---------------------
 
-Sometimes you need to include undefined to defined variable/object property. Optional type is solution. It is not some separated type. It's special syntax for type which add to any type additional value - undefined. You can create them by adding a question mark in front of the type name.
+Sometimes you need to include undefined to defined variable/object property. Optional type is a solution. It is not some separated type. It's special syntax for type that adds to any type additional value - undefined. You can create them by adding a question mark in front of the type name.
 
 ```typescript
 const givenAge = -5;
 const userAge: ?number = givenAge > 0 ? givenAge : undefined;
 ```
 
-**Warning**: Unlinke Flow.js, Hegel will throw an error if you will try to assign `null` as value of an optional type
+**Warning**: Unlike Flow.js, Hegel will throw an error if you try to assign `null` as value of an optional type
 ```typescript
 // Error: Type "null" is incompatible with type "number | undefined"
 const someValue: ?number = null;
 ```
 
-Optional type is not only about undefinedable variables or object properties.
+Optional type is not only about undefined variables or object properties.
 You can use it inside function argument definition to annotate optional argument.
 
 ```typescript
