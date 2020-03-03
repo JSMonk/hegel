@@ -39,7 +39,7 @@ sum3("1", "2");
 
 ## Function Returns
 
-As you understand, arguments types will be checked when you will try to apply arguments to a function. But return type will be checked when you implemented function logic. 
+As you understand, arguments types will be checked when you will try to apply arguments to a function. But return type will be checked when you implement function logic. 
 
 ```typescript
 function awesome(name: string): string {
@@ -73,7 +73,8 @@ function awesome(name = "you") {
 ```
 
 So, with which type should be annotated for `name` argument?
-If you will set `string` type to name and firstly hover on (in [Hegel Playground](/try#GYVwdgxgLglg9mABAQwO4FMDOcC26AUYyeAXIplAE4xgDmiAvIgEQCecIzAlIgN4BQiRJXRQQlJAAMAghmx4ANIgAkvIngC+AOkkBufhqA)) function name and after on argument name, you will see some kind of magic: function is optional outside the function but concrete inside.
+If you set `string` type to name and firstly hover on (in [Hegel Playground](/try#GYVwdgxgLglg9mABAQwO4FMDOcC26AUYyeAXIplAE4xgDmiAvIgEQCecIzAlIgN4BQiRJXRQQlJAAMAghmx4ANIgAkvIngC+AOkkBufhqA)) function name and after on argument name, you will see some kind of magic: function is optional outside the function but concrete inside.
+// "function is optional outside the function but concrete inside." может не "function" в начале, а "argument" ты имел ввиду?
 
 ```typescript
 // awesome: (string | undefined) => string
@@ -87,7 +88,7 @@ awesome("JavaScript") // 👌!
 
 ## Rest Argument
 
-Sometimes, you don't know how many argument will be applied to the function. JavaScript supports rest arguments. The rest operator '...' group all applied arguments in array of arguments.
+Sometimes, you don't know how many arguments will be applied to the function. JavaScript supports rest arguments. The rest operator '...' group all applied arguments in array of arguments.
 
 ```typescript
 function sum(...numbers) {
@@ -127,7 +128,7 @@ sum(1, 2, 3, 4);
 
 ## Function Type
 
-Sometimes, you need to annotate argument or return type as function. Hegel have syntax for function type annotation `(type1, type2) => returnType`. For example:
+Sometimes, you need to annotate argument or return type as function. Hegel has syntax for function type annotation `(type1, type2) => returnType`. For example:
 
 ```typescript
 function twice(fn: (number) => number, arg: number) {
@@ -150,10 +151,10 @@ twice((a: number): string => String(a), 4);
 twice((a: number): number | string => a, 4);
 ```
 
-> If you will play with previous example you will see a next rule with function type:
+> If you play with previous example you will see the next rule with function type:
 You can assign function to another only if actual arguments types wider then declarated and return type is more specific then declarated. This rule sounds like: function is [contravariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by arguments and [covariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by return.
 
-More easy and classical example of this rule:
+More classical and easy example of this rule:
 
 ```typescript
 class Animal {
@@ -186,7 +187,7 @@ presentMyDog(nickolay, (goodBoy: Dog): Animal => nickolay);
 
 ## Function
 
-Also, Hegel supports `Function` type which represent any possible function in JavaScript:
+Also, Hegel supports `Function` type which represents any possible function in JavaScript:
 
 ```typescript
 function argsLength(fn: Function) {
