@@ -7,17 +7,17 @@ menu: Type System
 # Type Compatibility
 ----------------
 
-The Hegel are trying to implement type safity in JavaScript via strong type system. It means that analyzer ensure that a variable value always assignable to declarated (or inferenced) static type.
+The Hegel tries to implement type safety in JavaScript via strong type system. It means that analyzer ensure that variable value is always assignable to declarated (or inferenced) static type.
 
 ## Which type is assignable to another?
 
-In Hegel are presented the next hierarchy.
+Next hierarchy is presented in Hegel.
 
 import { Schema } from "./schemas/schema";
 
 <Schema type="hierarchy" />
 
-This hierachy define rules of subtyping: "Every type which is higher in the hierarchy will be a super type for current type". Lets discover it by examples.
+This hierachy defines rules of subtyping: "Every type which is higher in the hierarchy will be a super type for current type". Lets discover that by examples.
 
 ```typescript
 // Tuple Type
@@ -52,8 +52,8 @@ const unknown: unknown = new Object();
 
 ## Function types Compatibility
 
-Functions are not create any hierarhy. Compatibility of two functions defined by the rule: 
-you can assign function to another only if actual arguments types wider then declarated and return type is more specific then declarated. This rule sounds like: function is [contravariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by arguments and [covariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by return.
+Functions does not create any hierarhy. Compatibility of two functions defined by the rule: 
+you can assign function to another only if actual arguments types are wider then declared and return type is more specific then declared. This rule sounds like: function is [contravariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by arguments and [covariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by return.
 
 ```typescript
 let func: (number) => number = () => 42; 
@@ -97,9 +97,9 @@ const wrappedNumber42: Container<42> = new Container<number>(84);
 const wrappedHelloWorld: Container<"Hello, World"> = new Container<number>(42);
 ```
 
-It's because `Container` type parameters is contained in hierarchy of each other.
+It's because `Container` type parameters are contained in hierarchy of each other.
 
-But, as you can see, only literals were used for examples. It's because every subtype of Object in JavaScript act not like a value but like a "poiter" at value. So, for all reference types you can't do assign between variables if variables have not the same type.
+But, as you can see, only literals were used for examples. It's because every subtype of Object in JavaScript act not like a value but like a "pointer" at value. So, for all reference types you can't do assign between variables if variables are not the same type.
 
 ```typescript
 const wrapped42: Container<42> = new Container<42>(42); // 👌!
@@ -109,9 +109,9 @@ const wrappedNumber: Container<number> = wrapped42;
 
 ## Soundness
 
-Soundness is ability of system to guarantee that after analysis your program will not be in invalid state. 
+Soundness is an ability of system to guarantee that after analysis your program will not be in invalid state. 
 
-Hegel try to implement the same soundness type system as [ReasonML/OCaml](https://reasonml.github.io/), [Haskell](https://www.haskell.org/), [Elm](https://elm-lang.org/) and other ML
--based languages. It means Hegel try to catch every single error that might happen at runtime without runtime type checking.
+Hegel tries to implement the same soundness type system as [ReasonML/OCaml](https://reasonml.github.io/), [Haskell](https://www.haskell.org/), [Elm](https://elm-lang.org/) and other ML
+-based languages. It means Hegel tries to catch every single error that might happen at runtime without runtime type checking.
 
-> If you familiar with [Rust Language](https://www.rust-lang.org/) you may know that Rust doesn't provide any type information in runtime and all types will be stripped after type checking, but Rust program still type safe. It's our dream to implement the same type checking in JavaScript.
+> If you familiar with [Rust Language](https://www.rust-lang.org/) you may know that Rust doesn't provide any type information in runtime and all types will be stripped after type checking, but Rust program is still type safe. It's our dream to implement the same type checking in JavaScript.
