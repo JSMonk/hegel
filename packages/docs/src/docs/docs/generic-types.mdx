@@ -7,7 +7,7 @@ menu: Type Annotations
 # Generic Types
 ----------------
 
-Sometimes you can have a different types for the same logic. The most easy example of this case is `identity` function:
+Sometimes you can have a different types for the same logic. The easiest example of this case is `identity` function:
 
 ```typescript
 function identity(value) {
@@ -15,7 +15,7 @@ function identity(value) {
 }
 ```
 
-If you will try to annotate only types with which you currently use this function you will have multiple declaration of the same function:
+If you try to annotate only types with which you currently use this function you will have multiple declaration of the same function:
 
 ```typescript
 function identityString(value: string): string {
@@ -38,7 +38,7 @@ let str = identityString("2");
 let bool = identityBoolean(false);
 ```
 
-As you can see, you need to define function only for type safity. This functions do not add a new business value to your code. You can try to solve this problem with [Unknown Type](/docs/unknown-type), but you will lose needed types.
+As you can see, you need to define function only for type safety. This functions do not add a new business value to your code. You can try to solve this problem with [Unknown Type](/docs/unknown-type), but you will lose needed types.
 ```typescript
 function identity(value: unknown): unknown {
   return value;
@@ -104,11 +104,11 @@ function respondWith<Body>(body: Body): Response<Body> {
 }
 
 // Type of response1 is "Response<{ message: 'Good response' }>"
-// which the same as "{ status: 200, body: { message: "Good response " } }"
+// is the same as "{ status: 200, body: { message: "Good response " } }"
 const response1 = respondWith({ message: "Good response" });
 
 // Type of response2 is "Response<[1, 2, 3]>"
-// which the same as "{ status: 200, body: [1, 2, 3] }"
+// is the same as "{ status: 200, body: [1, 2, 3] }"
 const response2 = respondWith([1, 2, 3]);
 
 // Type of bodyOfResponse2 is [1, 2, 3]"
@@ -163,7 +163,7 @@ const getResponseBodyAndStatus: <Status, Body>({
 
 ### Classes
 
-To define generic parameters for a class you need to add sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) after class identifier
+To define generic parameters for class you need to add sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) after class identifier
 
 ```typescript
 class Container<T> {
@@ -187,7 +187,7 @@ const container2 = new Container(value);
 
 ### Type Alias
 
-To define generic parameters for a type alias you need to add sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) after type alias identifier
+To define generic parameters for type alias you need to add sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) after type alias identifier
 ```typescript
 type Container<T> = { value: T }
 
@@ -219,7 +219,7 @@ const container1: Container<number> = { value: 2 };  // 👌!
 const container2: Container = { value: 4 };
 ```
 
-As you may understand, noone value will be valid for "type variable". Only arguments which annotated as "type variable" will be an valid value for this type.
+As you may understand, none value will be valid for "type variable". Only arguments which annotated as "type variable" will be a valid value for this type.
 
 ```typescript
 function getResponseBodyAndStatus<Status, Body>(
@@ -237,7 +237,7 @@ Also, the same as [Unknown Type](/docs/unknown-type) you can't get properties fr
 
 ```typescript
 function length<T>(somethingWithLength: T) {
-  // Error: Property "length" are not exists in "T"
+  // Error: Property "length" does not exist in "T"
   return somethingWithLength.length;
 }
 ```
