@@ -72,7 +72,7 @@ intermediateStatuses.push("Failed");
 
 ## $Immutable<Type\>
 
-This magic type convert any type into immutable variant of this type which means that you will not be able to mutate this type or his properties. You can use it in several situation.
+This magic type convert any type into immutable variant of this type which means that you will not be able to mutate this type or its properties. You can use it in several situations.
 
 1. Prevent variable mutation.
 ```typescript
@@ -89,7 +89,7 @@ const admin: $Immutable<{ name: string }> = { name: "Roy Trenneman" };
 // Error: Attempt to mutate immutable type
 admin.name = "Maurice Moss";
 
-// Error: First parameter should be an mutable object type
+// Error: First parameter should be a mutable object type
 Object.assign(admin, { name: "Maurice Moss" });
 ```
 
@@ -117,7 +117,7 @@ const arr: $Immutable<Array<number>> = [1, 2, 3];
 // Error: Attempt to mutate immutable type
 arr[0] = 4;
 
-// Error: Property "pop" are not exists in "$Immutable<Array<number>>"
+// Error: Property "pop" does not exist in "$Immutable<Array<number>>"
 arr.pop();
 ```
 
@@ -191,7 +191,7 @@ const fullSerializable: $Intersection<JsonSerializable, Base64Serializable, Hash
 
 ## $Keys<Obj\>
 
-$Keys type return an [Union Type](/docs/union-types) of all possible keys of provide [Object Type](/docs/object-types).
+$Keys type return a [Union Type](/docs/union-types) of all possible keys of provide [Object Type](/docs/object-types).
 
 ```typescript
 type Admin = { name: string, age: number };
@@ -259,7 +259,7 @@ const admin: $Pick<Admin, "age" | "name"> = { name: "Maurice Moss", age: 33 };
 
 ## $PropertyType<Obj, Key\>
 
-Return an property with name `Key` type from `Obj`.
+Return a property with name `Key` type from `Obj`.
 
 ```typescript
 type Admin = { name: string, age: number, position: "admin" };
@@ -301,7 +301,7 @@ type GenericFunction = <T>(T) => T;
 const returnOfGenericFunction: $ReturnType<GenericFunction, string> = "";
 
 
-// If you will not provide type argument for generic function you will got an error
+// If you does not provide type argument for generic function you will got an error
 // Error: Generic "<T>(T) => T" called with wrong number of arguments. Expect: 1, Actual: 0
 const _: $ReturnType<GenericFunction> = "";
 ```
@@ -343,10 +343,10 @@ const strictAdmin: $Strict<Admin> = { name: "Maurice Moss", age: 33, test: 2 };
 
 ## $Throws<ErrorType\>
 
-$Throws type act like a [Throws Statement in Java](https://www.javatpoint.com/throws-keyword-and-difference-between-throw-and-throws). When you declare return type of your function as $Throws, you will need to throw subtype of declaret throws type.
+$Throws type act like a [Throws Statement in Java](https://www.javatpoint.com/throws-keyword-and-difference-between-throw-and-throws). When you declare return type of your function as $Throws, you need to throw subtype of declared throws type.
 
 ```typescript
-// Error: Function should throw "SyntaxError" but throw nothing
+// Error: Function should throw "SyntaxError" but throws nothing
 function assert(something: unknown): $Throws<SyntaxError> {}
 ```
 
@@ -375,7 +375,7 @@ function assert(something: unknown): $Throws<Error> {
 }
 ```
 
-Also, if you call function which throw an error and this error is incompatible with declarated error type - Hegel whill notify you about it.
+Also, if you call function which throws an error and this error is incompatible with declarated error type - Hegel will notify you about it.
 
 ```typescript
 function assertIsNumber(something: unknown) {
@@ -403,7 +403,7 @@ function processIfValid(a, b): number | $Throws<TypeError> {
 
 ## $TypeOf<Variable\>
 
-The $TypeOf type returns the Hegel type of a provided variable `Variable`. Note, that $TypeOf is unique type because this is the only type which get non-type argument.
+The $TypeOf type returns the Hegel type of a provided variable `Variable`. Note, that $TypeOf is unique type because this is the only type which gets non-type argument.
 
 ```typescript
 const someVariable = [1, 2, 3];
