@@ -9,14 +9,14 @@ menu: Type System
 
 One of the main features of Hegel is high-level type inference.
 
-Type Inference is ability of analyzer to define valid type for variable/function without type annotation.
+Type Inference is an ability of analyzer to define valid type for variable/function without type annotation.
 
 ```typescript
 // Type of "isItNumber" is "number" even if you will not annotate it.
 let isItNumber = 42;
 ```
 
-There are many place where Hegel can infer type instead of you.
+There are many places where Hegel can infer type instead of you.
 
 ## Variable type Inference
 
@@ -47,7 +47,7 @@ const a = {
 };
 ```
 
-Also, Hegel can inference variable type if variable value is result of functionr or operator application.
+Also, Hegel can inference variable type if variable value is a result of functionr or operator application.
 ```typescript
 // Type of "sum" variable is "bigint"
 const sum = 2n + 44n;
@@ -109,7 +109,7 @@ async function getNumberAsync() {
 
 ### Arguments
 
-First of all, Hegel define your argument as type variable and convert your function into generic function.
+First of all, Hegel defines your argument as type variable and convert your function into generic function.
 
 ```typescript
 // Type of "provideEverything" function is "<a'>(a') => undefined"
@@ -118,7 +118,7 @@ function provideEverything(everything) {
 }
 ```
 
-This algorythm give an ability to inference full generic functions like identity.
+This algorythm gives an ability to inference full generic functions like identity.
 
 ```typescript
 // Type of "id" function is "<a'>(a') => a'"
@@ -127,7 +127,7 @@ function id(x) {
 }
 ```
 
-If your argument will be used as argument of an operator or function then this argument type become the same as argument at used operator or function.
+If your argument is used as argument of an operator or function then this argument type will become the same as argument at used operator or function.
 
 ```typescript
 // Inference by operator usage
@@ -143,7 +143,7 @@ function welcome(name) {
 }
 ```
 
-If the argument of operator or function is also type variable then argument type will not be changed, but will be added a constraint of this operator or function argument. 
+If the argument of operator or function is same type as variable then argument type will not be changed, but will be added a constraint of this operator or function argument. 
 
 ```typescript
 // Type of "add" function is "<T: bigint | number | string>(T, T) => T"
@@ -173,7 +173,7 @@ function mul(a, b) {
 
 ### Function throws inference
 
-As was mentioned, Hegel has [$Throws](/docs/magic-types#throwsreturntype-errortype) magic type, which give an ability to annotate type of Error which can be thrown by a function. But this type can be inferenced too, by analyzing of which function you use and which type you throw inside your function.
+As was mentioned, Hegel has [$Throws](/docs/magic-types#throwsreturntype-errortype) magic type, which gives an ability to annotate type of Error which can be thrown by a function. But this type can be inferenced too, by analyzing of which function you use and which type you throw inside your function.
 
 ```typescript
 // Type of "assertType" function is 
@@ -190,7 +190,7 @@ function validateNumber(arg) {
 }
 ```
 
-If you provde try-catch statement for the "validateNumber" - throws will be removed
+If you provide try-catch statement for the "validateNumber" - throws will be removed
 
 ```typescript
 function assertType(arg, type) {
