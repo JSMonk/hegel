@@ -7,7 +7,7 @@ menu: Type Annotations
 # Primitive Types
 ---------------------
 
-Imagine type as a Set of different values. Some of them is finitie and some is not. In nowdays JavaScript has 7 primitive types:
+Imagine type as a Set of different values. Some of them are finite and some are not. In nowadays JavaScript has 7 primitive types:
 - [Null](#null-and-undefined)
 - [Undefined](#null-and-undefined)
 - [Boolean](#boolean)
@@ -21,7 +21,7 @@ Hegel has not only the same types, but also adds several new types. Let's discov
 ## Null and Undefined
 
 The most primitive types in JavaScript are `null` and `undefined`, because each of them contains only one value. 
-You can define an variable with this datatype in Hegel:
+You can define variable with this datatype in Hegel:
 
 ```typescript
 let emptyValue: null = null;
@@ -64,7 +64,7 @@ let anyNumber: number = decimal + hex + binary + octal;
 let realyBigNumber: bigint = 2n**255n;
 ```
 
-**Warning**: `BigInt` is not subtype or super type for `Number` data type. Hegel will show you an error if you will try to use bigint as number or number as bigint. Also, in JavaScript you can't mix number and bigint in math operators, so, Hegel will show you an error too.
+**Warning**: `BigInt` is not subtype or super type for `Number` data type. Hegel will show you an error if you try to use bigint as number or number as bigint. Also, in JavaScript you can't mix number and bigint in math operators, so, Hegel will show you an error too.
 ```typescript
 // Error: Type "bigint" is incompatible with type "number"
 const usageBigIntAsNumber: number = 4n + 2n;
@@ -82,7 +82,7 @@ const usageNumberAsBigInt: bigint = 4 + 2;
 
 ## String
 
-Unlinke String in other programming languages, JavaScript String has an value (not reference) behaivour. So, any characters set wrapped in single quote ('), double quote (") or backtick/backquote (`) will be a valid JavaScript string literal. In Hegel you can annotate variable/object property with both literal or string datatype name, the same as with other datatypes.
+Unlinke String in other programming languages, JavaScript String has a value (not reference) behaivour. So, any characters set wrapped in single quote ('), double quote (") or backtick/backquote (`) will be a valid JavaScript string literal. In Hegel you can annotate variable/object property with both literal or string datatype name, the same as with other datatypes.
 
 ```typescript
 const fullName: string = "Robert Paulson";
@@ -95,7 +95,7 @@ JavaScript implicitly converts other types of values into strings by concatenati
 44 + "6" // 446
 ```
 
-Hegel implements an strong type system, so it will accept only strings when concatenating them or when template literal are used.
+Hegel implements a strong type system, so it will accept only strings when concatenating them or when template literal is used.
 
 ```typescript
 const world = { toString() { return "World" } };
@@ -125,7 +125,7 @@ const world = { toString() { return "World" } };
 
 ## Symbol
 
-Symbol is another "new" datatype which was included in language starting from ECMAScript 2015.  Symbols are created by `Symbol` function invokation in JavaScript. Hegel provide `symbol` datatype which can be used as type annotation. 
+Symbol is another "new" datatype which was included in language starting from ECMAScript 2015.  Symbols are created by `Symbol` function invocation in JavaScript. Hegel provides `symbol` datatype that can be used as type annotation. 
 
 ```typescript
 const unique: symbol = Symbol("unique");
