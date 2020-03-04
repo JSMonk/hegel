@@ -7,7 +7,7 @@ menu: Configuration
 # Configuration
 ---------------------
 
-Hegel initialy use default configuration, but if you want to ignore some files inside your project or say to Hegel that you have specific environment ([Node.js](https://nodejs.org/en/) for example) then you need to configure Hegel manualy.
+Hegel initialy uses default configuration, but if you want to ignore some files inside your project or say to Hegel that you have specific environment ([Node.js](https://nodejs.org/en/) for example) then you need to configure Hegel manually.
 
 To eject default configuration run:
 
@@ -18,7 +18,7 @@ Project initialized.
 
 After command will be executed `.hegelrc` file will be created.
 
-By default `.hegelrc` uses [YAML](https://yaml.org/) format. But you have ability to chose between YAML and JSON.
+By default `.hegelrc` uses [YAML](https://yaml.org/) format. But you have ability to choose between YAML and JSON.
 
 The `.hegelrc` consists of 4 sections:
 
@@ -29,7 +29,7 @@ The `.hegelrc` consists of 4 sections:
 
 ## environment
 
-Array of string, which define specific environment which should be used. For now only "nodejs" and "browser" options existed. With default Hegel configuration noone environment will be included.
+Array of string, which defines specific environment that should be used. For now only "nodejs" and "browser" options existed. With default Hegel configuration none environment will be included.
 
 ```yaml
 environment:
@@ -39,7 +39,7 @@ environment:
 
 ## exclude
 
-Array of [glob-pattern string](https://commandbox.ortusbooks.com/usage/parameters/globbing-patterns) which define which files should be ignored for analysis. With default Hegel configuration all "node_modules" files will be excluded.
+Array of [glob-pattern string](https://commandbox.ortusbooks.com/usage/parameters/globbing-patterns) that defines which files should be ignored for analysis. With default Hegel configuration all "node_modules" files will be excluded.
 
 ```yaml
 exclude:
@@ -50,7 +50,7 @@ exclude:
 
 ## include
 
-Array of [glob-pattern string](https://commandbox.ortusbooks.com/usage/parameters/globbing-patterns) which define which files should be analyzed. With default Hegel configuration all .js files will analyzed.
+Array of [glob-pattern string](https://commandbox.ortusbooks.com/usage/parameters/globbing-patterns) that defines which files should be analyzed. With default Hegel configuration all .js files will analyzed.
 
 ```yaml
 include:
@@ -61,7 +61,7 @@ include:
 
 ## typings
 
-Array of paths which define folder in which Hegel should search for typings. Order is metter because Hegel will try to find typings for specific library firstly inside first defined folder, after inside second and after one by one. With default Hegel configuration Hegel will try to find firstly inside local directory "@types" and after inside "./node_modules/@types".
+Array of paths that defines folder in which Hegel should search for typings. Order is metter because Hegel will try to find typings for specific library firstly inside first defined folder, after inside second and after one by one. With default Hegel configuration Hegel will try to find firstly inside local directory "@types" and after inside "./node_modules/@types".
 
 > If type definitions are placed inside specific package you should not to define this package path inside this configuration section.
 
@@ -73,4 +73,4 @@ types:
   - ./node_modules/custom-types
 ```
 
-> Hegel firstly will try to find type definitions inside directories which defined inside `types` configuration section and if type definitons will not be founded, after that Hegel will try to find it inside node_modules package directory, and if Hegel didn't find it will try to infer type of module automaticly.
+> Hegel firstly will try to find type definitions inside directories which are defined inside `types` configuration section and if type definitons will not be founded, after that Hegel will try to find it inside node_modules package directory, and if Hegel didn't find it will try to infer type of module automatically.
