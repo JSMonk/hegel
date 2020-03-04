@@ -7,7 +7,7 @@ menu: Type Annotations
 # Union Types
 ---------------------
 
-Sometimes you need more than one type or need to concrete values from any of existed type. A simple example when you need values from two different types is `repeat` function, which waiting as argument `number` or `string` and reapeat givven argument `n` times:
+Sometimes you need more than one type or need to concrete values from any of existed type. A simple example when you need values from two different types is `repeat` function, which is waiting argument as `number` or `string` and reapeat given argument `n` times:
 
 ```typescript
 function repeat(target, times) {
@@ -30,7 +30,7 @@ function repeat(target: unknown, times: number): unknown {
 }
 ```
 
-But you will have an Error, because you trying to get property from `unknown` type.
+But you will have an Error, because you try to get property from `unknown` type.
 You can try to add one more `if` statement like this:
 
 ```typescript
@@ -49,7 +49,7 @@ repeat(false, 4);
 
 But, if you put a wrong type (not number or string) you will find an error in runtime.
 
-So, the solution is union types. Actualy, union types is union of all possible values for types which will be provided to union operator `|`. You can define it by declarating sequence of needed types separated by '|':
+So, the solution is union types. Actually, union types is a union of all possible values for types which will be provided to union operator `|`. You can define it by declarating sequence of needed types separated by '|':
 
 ```typescript
 let iCanBeAStringOrNumber: string | number = 2;
