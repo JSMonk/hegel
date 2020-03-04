@@ -73,8 +73,7 @@ function awesome(name = "you") {
 ```
 
 So, with which type should be annotated for `name` argument?
-If you set `string` type to name and firstly hover on (in [Hegel Playground](/try#GYVwdgxgLglg9mABAQwO4FMDOcC26AUYyeAXIplAE4xgDmiAvIgEQCecIzAlIgN4BQiRJXRQQlJAAMAghmx4ANIgAkvIngC+AOkkBufhqA)) function name and after on argument name, you will see some kind of magic: function is optional outside the function but concrete inside.
-// "function is optional outside the function but concrete inside." может не "function" в начале, а "argument" ты имел ввиду?
+If you set `string` type to name and firstly hover on (in [Hegel Playground](/try#GYVwdgxgLglg9mABAQwO4FMDOcC26AUYyeAXIplAE4xgDmiAvIgEQCecIzAlIgN4BQiRJXRQQlJAAMAghmx4ANIgAkvIngC+AOkkBufhqA)) function name and after on argument name, you will see some kind of magic: function argument is optional outside the function but strict inside.
 
 ```typescript
 // awesome: (string | undefined) => string
