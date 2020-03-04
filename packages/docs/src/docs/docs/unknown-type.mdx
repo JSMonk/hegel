@@ -37,7 +37,7 @@ const andICanBeUnknownToo: unknown = wideType;
 const butCantBeString: string = wideType;
 ```
 
-Also, it means that you can't use unknown type as an argument for function which waiting for some concrete type:
+Also, it means that you can't use unknown type as an argument for function which is waiting for some concrete type:
 
 ```typescript
 function waitingFor(value: string) {
@@ -59,4 +59,4 @@ function waitingFor(value: unknown) {
 waitingFor(class User {});
 ```
 
-> Actualy, Hegel provide an ability to [refine type](/docs/type-refinement).
+> Actually, Hegel provides ability to [refine type](/docs/type-refinement).
