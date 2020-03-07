@@ -740,7 +740,7 @@ describe("Object and collection properties", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Property "b" are not exists in "{ a: number }"'
+      'Property "b" does not exist in "{ a: number }"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 10, line: 3 },
@@ -762,7 +762,7 @@ describe("Object and collection properties", () => {
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors[0].message).toEqual(
-      'Property "c" are not exists in "{ b: number }"'
+      'Property "c" does not exist in "{ b: number }"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 12, line: 3 },

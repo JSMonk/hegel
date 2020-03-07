@@ -40,7 +40,7 @@ describe("Test $PropertyType", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
     expect(errors[0].message).toEqual(
-      'Property "a" are not exists in "number"'
+      'Property "a" does not exist in "number"'
     );
   });
   test("Should throw error with non-literal property", async () => {

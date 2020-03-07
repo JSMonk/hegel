@@ -368,7 +368,7 @@ const middlefillModuleScope = (
         }
         errors.push(
           new HegelError(
-            "Interfaces are not existed in Hegel. Use 'type' instead.",
+            "Interfaces do not exist in Hegel. Use 'type alias' instead.",
             currentNode.loc,
             typeGraph.path
           )

@@ -92,7 +92,7 @@ export function addCallToTypeGraph(
   }
   switch (node.type) {
     case NODE.TYPE_CAST:
-      throw new HegelError("Type cast is not existed in Hegel", node.loc);
+      throw new HegelError("Type cast does not exist in Hegel", node.loc);
     case NODE.TEMPLATE_LITERAL:
       args = node.expressions.map(
         expression =>

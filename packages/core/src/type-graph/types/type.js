@@ -36,7 +36,7 @@ export class Type {
     // $FlowIssue
     const existed = scope.findTypeWithName(name, ...args);
     if (existed === undefined) {
-      throw new HegelError(`Type "${String(name)}" are not existed`, meta.loc);
+      throw new HegelError(`Type "${String(name)}" does not exist`, meta.loc);
     }
     return existed;
   }

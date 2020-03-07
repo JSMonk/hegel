@@ -176,7 +176,7 @@ export class $PropertyType extends GenericType {
       return fieldType;
     }
     throw new HegelError(
-      `Property "${propertyName}" are not exists in "${currentTarget.name}"`,
+      `Property "${propertyName}" does not exist in "${currentTarget.name}"`,
       loc
     );
   }

@@ -3,7 +3,6 @@ import NODE from "./nodes";
 import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
 import { Type } from "../type-graph/types/type";
-import { unique } from "./common";
 import { TypeVar } from "../type-graph/types/type-var";
 import { TypeScope } from "../type-graph/type-scope";
 import { TupleType } from "../type-graph/types/tuple-type";
@@ -100,7 +99,7 @@ export function getTypeFromTypeAnnotation(
         postcompute
       );
       throw new HegelError(
-        `Array type annotation is not existed in Hegel. Use Array<${String(
+        `Array type annotation does not exist in Hegel. Use Array<${String(
           elementType.name
         )}> instead.`,
         typeNode.typeAnnotation.loc
@@ -153,7 +152,7 @@ export function getTypeFromTypeAnnotation(
       );
     case NODE.TYPEOF_TYPE_ANNOTATION:
       throw new HegelError(
-        "typeof for types is not existed in Hegel. Use magic type $TypeOf instead.",
+        "typeof for types does not exist in Hegel. Use magic type $TypeOf instead.",
         typeNode.typeAnnotation.loc
       );
     case NODE.TS_SYMBOL_TYPE_ANNOTATION:
@@ -219,7 +218,7 @@ export function getTypeFromTypeAnnotation(
           postcompute
         )
       );
-      return Type.find("$Intersection").applyGeneric(objects, typeNode.loc);
+      return Type.find($Intersection.name).applyGeneric(objects, typeNode.loc);
     case NODE.NULLABLE_TYPE_ANNOTATION:
       const resultType = getTypeFromTypeAnnotation(
         typeNode.typeAnnotation,

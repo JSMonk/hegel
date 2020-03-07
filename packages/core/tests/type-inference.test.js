@@ -1917,7 +1917,7 @@ describe("Collection type inference", () => {
     );
     expect(errors.length).toBe(1);
     expect(errors[0].message).toBe(
-      'Property "0" are not exists in "Array<number>"'
+      'Property "0" does not exist in "Array<number>"'
     );
   });
 });
