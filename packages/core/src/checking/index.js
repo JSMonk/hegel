@@ -7,18 +7,13 @@ import { TypeScope } from "../type-graph/type-scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
-import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
+import { getCallTarget } from "../inference/function-type";
 import { $AppliedImmutable } from "../type-graph/types/immutable-type";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
-import {
-  getCallTarget,
-  implicitApplyGeneric,
-  isGenericFunctionType
-} from "../inference/function-type";
 import type { CallableType } from "../type-graph/meta/call-meta";
 import type { SourceLocation } from "@babel/parser";
 

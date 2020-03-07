@@ -608,7 +608,7 @@ const afterFillierActions = (
           throw new HegelError(
             `Function should throw "${String(
               declarationType.throwable.name
-            )}" but throw nothing`,
+            )}" but throws nothing`,
             currentNode.returnType
               ? currentNode.returnType.loc
               : currentNode.loc
