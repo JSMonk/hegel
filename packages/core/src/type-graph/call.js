@@ -872,45 +872,47 @@ export function addCallToTypeGraph(
         localTypeScope,
         node.loc
       );
-      args = node.arguments.map((n, i) => {
-        const givenArgument =
-          n.type === NODE.FUNCTION_EXPRESSION ||
-          n.type === NODE.ARROW_FUNCTION_EXPRESSION
-            ? // $FlowIssue
-              VariableScope.addAndTraverseNodeWithType(
-                // $FlowIssue
-                (fnType.argumentsTypes || [])[i],
-                n,
-                parentNode,
-                moduleScope,
-                pre,
-                middle,
-                post
+      if (fnType.argumentsTypes.length > 1 && args.length > 1) {
+        args = node.arguments.map((n, i) => {
+          const givenArgument =
+            n.type === NODE.FUNCTION_EXPRESSION ||
+            n.type === NODE.ARROW_FUNCTION_EXPRESSION
+              ? // $FlowIssue
+                VariableScope.addAndTraverseNodeWithType(
+                  // $FlowIssue
+                  (fnType.argumentsTypes || [])[i],
+                  n,
+                  parentNode,
+                  moduleScope,
+                  pre,
+                  middle,
+                  post
+                )
+              : // $FlowIssue
+                args[i];
+          let declaratedArgument = fnType.argumentsTypes[i];
+          declaratedArgument =
+            declaratedArgument instanceof GenericType &&
+            declaratedArgument.subordinateType instanceof FunctionType
+              ? declaratedArgument.subordinateType
+              : declaratedArgument;
+          const givenArgumentType =
+            givenArgument instanceof VariableInfo
+              ? givenArgument.type
+              : givenArgument;
+          return declaratedArgument instanceof FunctionType &&
+            givenArgumentType instanceof GenericType &&
+            givenArgumentType.subordinateType !== declaratedArgument
+            ? getRawFunctionType(
+                givenArgumentType,
+                declaratedArgument.argumentsTypes,
+                undefined,
+                localTypeScope,
+                n.loc
               )
-            : // $FlowIssue
-              args[i];
-        let declaratedArgument = fnType.argumentsTypes[i];
-        declaratedArgument =
-          declaratedArgument instanceof GenericType &&
-          declaratedArgument.subordinateType instanceof FunctionType
-            ? declaratedArgument.subordinateType
-            : declaratedArgument;
-        const givenArgumentType =
-          givenArgument instanceof VariableInfo
-            ? givenArgument.type
             : givenArgument;
-        return declaratedArgument instanceof FunctionType &&
-          givenArgumentType instanceof GenericType &&
-          givenArgumentType.subordinateType !== declaratedArgument
-          ? getRawFunctionType(
-              givenArgumentType,
-              declaratedArgument.argumentsTypes,
-              undefined,
-              localTypeScope,
-              n.loc
-            )
-          : givenArgument;
-      });
+        });
+      }
       const throwableType: any =
         targetType instanceof GenericType
           ? targetType.subordinateType

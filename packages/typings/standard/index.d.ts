@@ -5380,5 +5380,5 @@ interface Intl {
 declare var Intl: Intl;
 
 interface TemplateStringsArray extends ReadonlyArray<string> {
-  readonly raw: string[];
+  raw: string[];
 }

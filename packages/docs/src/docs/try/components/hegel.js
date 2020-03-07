@@ -8,6 +8,7 @@ const DEFAULT_OPTIONS = {
   plugins: [
     "bigInt",
     "classProperties",
+    "numericSeparator",
     "classPrivateMethods",
     "classPrivateProperties",
     ["flow", { all: true }]

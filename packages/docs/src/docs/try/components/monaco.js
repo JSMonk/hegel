@@ -78,7 +78,7 @@ function createLogicHandler(monaco, model) {
         model,
         PLAYGROUND,
         errors
-          .filter(error => "loc" in error)
+          .filter(error => "loc" in error && error.loc !== undefined)
           .map(({ loc, message }) => formatDiagnostic(loc, message))
       );
     }, 300);
