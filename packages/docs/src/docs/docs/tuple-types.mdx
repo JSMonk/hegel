@@ -23,7 +23,7 @@ const tuple: [string, number] = ["", 0];
 const first = tuple[0];
 // second type is "number"
 const second = tuple[1];
-// Error: Property "2" are not exists in "[string, number]"
+// Error: Property "2" does not exist in "[string, number]"
 const third = tuple[2];
 ```
 
@@ -47,7 +47,7 @@ const numbers: [number, number, number] = [1, 2, 3];
 const plusOne = numbers.map(a => a + 1);
 const lessThan3 = numbers.filter(a => a < 3);
 
-// Property "reverse" are not exists in "[number, number, number]"
+// Property "reverse" does not exist in "[number, number, number]"
 const reversed = numbers.reverse();
 ```
 

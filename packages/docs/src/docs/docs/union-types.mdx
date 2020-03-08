@@ -25,7 +25,7 @@ function repeat(target: unknown, times: number): unknown {
   if (typeof target === "number") {
     return target ** times;
   }
-  // Error: Property "repeat" are not exists in "unknown"
+  // Error: Property "repeat" does not exist in "unknown"
   return target.repeat(times); 
 }
 ```

@@ -52,7 +52,7 @@ If you want to use a class field you must define it first and give it an annotat
 ```typescript
 class Fighter {
   tellTheRules(): string {
-    // Error: Property "isNewbee" are not exists in "Fighter"
+    // Error: Property "isNewbee" does not exist in "Fighter"
     return this.isNewbee ? "I don't know the rules." : `
       1. You do not talk about Fight Club.
       2. You DO NOT talk about Fight Club.
@@ -110,6 +110,6 @@ class FightClub {
 const fightClubRules = FightClub.tellTheRules(); // 👌!
 
 const fightClubInNYC = new FightClub();
-// Error: Property "tellTheRules" are not exists in "FightClub"
+// Error: Property "tellTheRules" does not exist in "FightClub"
 const localFightClubRules = fightClubInNYC.tellTheRules();
 ```
