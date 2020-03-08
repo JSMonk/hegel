@@ -129,7 +129,7 @@ node --inspect-brk ./build/index.js
 
 ## Tests
 
-Currently all tests are written for @hegel/core, so, if you will change code inside @hegel/core package, you can run tests by:
+Currently all tests are written for [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core), so, if you will change code inside [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core) package, you can run tests by:
 
 ```sh
 npm run test
