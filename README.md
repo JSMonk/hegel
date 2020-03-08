@@ -86,12 +86,13 @@ $ yarn add -D @hegel/cli
 
 ## Project Overview
 
-There are few separated packages in Hegel project. 
-The main logic of analysis is placed in [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core)
-CLI interfaces is placed in [@hegel/cli](https://github.com/JSMonk/hegel/tree/master/packages/cli)
-The main typings (typings for browser or node.js environment and for default global environment) are placed in [@hegel/typings](https://github.com/JSMonk/hegel/tree/master/packages/typings)
-Language Server (which currently work with VS Code) is placed in [@hegel/language-server](https://github.com/JSMonk/hegel/tree/master/packages/language-server)
-Documentation is placed in [@hegel/docs](https://github.com/JSMonk/hegel/tree/master/packages/docs)
+There are few separated packages in Hegel project: 
+
+- The main logic of analysis is placed in [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core)
+- CLI interfaces is placed in [@hegel/cli](https://github.com/JSMonk/hegel/tree/master/packages/cli)
+- The main typings (typings for browser or node.js environment and for default global environment) are placed in [@hegel/typings](https://github.com/JSMonk/hegel/tree/master/packages/typings)
+- Language Server (which currently work with VS Code) is placed in [@hegel/language-server](https://github.com/JSMonk/hegel/tree/master/packages/language-server)
+- Documentation is placed in [@hegel/docs](https://github.com/JSMonk/hegel/tree/master/packages/docs)
 
 ## Building Hegel from source
 
