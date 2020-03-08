@@ -1,5 +1,4 @@
 # Hegel
---------------
 
 Hegel is a static type checker for JavaScript with strong typings, high inference level and a lot of additional goodies.
 To read more about Hegel, check out [URL WILL BE ADDED SOON].
@@ -66,7 +65,6 @@ try {
 ```
 
 ## Installation
-----------------
 
 You can install Hegel CLI using npm or yarn:
 
@@ -87,7 +85,6 @@ $ yarn add -D @hegel/cli
 > Hegel was developed for current LTS version of [Node.js (12.16.1)](https://nodejs.org/en/). So, you need to have at least 12 version.
 
 ## Project Overview
-----------------------------
 
 There are few separated packages in Hegel project. 
 The main logic of analysis is placed in [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core)
@@ -97,7 +94,6 @@ Language Server (which currently work with VS Code) is placed in [@hegel/languag
 Documentation is placed in [@hegel/docs](https://github.com/JSMonk/hegel/tree/master/packages/docs)
 
 ## Building Hegel from source
-----------------------------
 
 Hegel is written in JavaScript (Node.js 12 is required). Ensure that you have [Git](https://git-scm.com/downloads) and [Node.js 12](https://nodejs.org/en/) installed.
 
@@ -131,7 +127,6 @@ node --inspect-brk ./build/index.js
 ```
 
 ## Tests
-----------------
 
 Currently all tests are written for @hegel/core, so, if you will change code inside @hegel/core package, you can run tests by:
 
@@ -140,6 +135,5 @@ npm run test
 ```
  
 ## License
----------------
 
 Hegel is MIT-licensed ([LICENSE](https://github.com/JSMonk/hegel/blob/master/LICENSE)). 
