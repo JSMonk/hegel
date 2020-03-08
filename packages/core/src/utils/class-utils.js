@@ -2,7 +2,6 @@
 import NODE from "./nodes";
 import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
-import { Type } from "../type-graph/types/type";
 import { CallMeta } from "../type-graph/meta/call-meta";
 import { TypeScope } from "../type-graph/type-scope";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -10,7 +9,6 @@ import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
-import { $Intersection } from "../type-graph/types/intersection-type";
 import { VariableScope } from "../type-graph/variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { addCallToTypeGraph } from "../type-graph/call";

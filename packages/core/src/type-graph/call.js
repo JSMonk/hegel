@@ -1384,7 +1384,9 @@ export function addMethodToThis(
       const genericArguments = [
         ...new Set(
           self.type.genericArguments.concat(
-            isConstructorGeneric ? fn.type.genericArguments : []
+            isConstructorGeneric ?
+              fn.type.genericArguments.filter(a => a !== fn.type.subordinateType.returnType) 
+              : []
           )
         )
       ];
