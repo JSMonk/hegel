@@ -121,6 +121,17 @@ arr[0] = 4;
 arr.pop();
 ```
 
+5. Also (as result of array immutability), $Immutable can give you an ability to use more specific array as subtype of existed.
+
+```typescript
+const numbers: Array<number> = [1, 2, 3];
+// Error: Type "Array<number>" is incompatible with type "Array<number | string>"
+const numbersOrStrings: Array<number | string> = numbers;
+
+const immutableNumbers: $Immutable<Array<number>> = [1, 2, 3];
+const immutableNumbersOrStrings: $Immutable<Array<number | string>> = immutableNumbers; // 👌!
+```
+
 ## $InstanceOf<Constructor\>
 
 Create a type which is the instance type of a provided constructor `Constructor`.
