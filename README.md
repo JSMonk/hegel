@@ -55,7 +55,7 @@ function assertField(obj) {
   if (typeof obj === "object" && obj !== null && "value" in obj) {
     assertNumber(obj.value)
   }
-  throw new ReferenceError('"value" property doesn' exist');
+  throw new ReferenceError('"value" property doesn\'t exist');
 }
 try {
   assertField({});
