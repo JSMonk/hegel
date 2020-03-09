@@ -50,6 +50,7 @@ The most simple refinement operator is equality. You only may prove equality of 
 ```typescript
 function get2(arg: unknown): 2 {
   if (arg === 2) {
+
     // Inside if block type of "arg" variable is "2"
     return arg;
   }
@@ -151,6 +152,7 @@ if ("sayHiToAdmin" in user) {
 const unknownObj: {...} = {};
 
 if ("value" in unknownObj) {
+
   // Type of "unknownValue" variable is "unknown"
   const unknownValue = unknownObj.value; 
 }
@@ -175,6 +177,7 @@ if ("sayHiToAdmin" in user) {
 const unknownObj: {...} = {};
 
 if ("value" in unknownObj) {
+
   // Type of "unknownValue" variable is "unknown"
   const unknownValue = unknownObj.value; 
 }
@@ -191,6 +194,7 @@ class Republic { spqr() {} }
 const rome: Empire | Republic = new Empire();
 
 if (!(rome instanceof Republic)) {
+
   // rome in this case is Empire
   rome.aveEmperor();
 }
@@ -201,6 +205,7 @@ type Answer = 'To Be' | 'Not to Be';
 
 function hamlet(answer: Answer) {
   if (answer !== 'To Be') {
+
     // Type of variable is "'Not to Be'" inside this scope
     return answer;
   }
@@ -221,6 +226,7 @@ if (
   "secretPhrase" in stranger &&
   stranger.secretPhrase === "valar morghulis"
 ) {
+
   // Type of "stranger" variable in this scope is "{ secretPhrase: "valar morghulis", ... }"
   const someoneWithoutName = stranger;
 }
@@ -229,6 +235,7 @@ if (
 ```typescript
 function detectSong(songPhrase: string) {
   if (songPhrase === "It's like I'm paranoid" || songPhrase === "looking over my back") {
+
     // Type of "songPhrase" in this scope is "'It's like I'm paranoid' | 'looking over my back'
     const familiarPhrase = songPhrase;
     return "Linkin Park - Papercut";

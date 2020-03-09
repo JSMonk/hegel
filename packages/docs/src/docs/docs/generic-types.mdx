@@ -32,8 +32,10 @@ function identityBoolean(value: boolean): boolean {
 
 // Type of num is "number"
 let num = identityNumber(2);
+
 // Type of str is "string"
 let str = identityString("2");
+
 // Type of bool is "boolean"
 let bool = identityBoolean(false);
 ```
@@ -46,8 +48,10 @@ function identity(value: unknown): unknown {
 
 // Type of num is "unknown"
 let num = identity(2);
+
 // Type of str is "unknown"
 let str = identity("2");
+
 // Type of bool is "unknown"
 let bool = identity(false);
 ```
@@ -207,6 +211,7 @@ class Container<T> {
 }
 
 const container1: Container<number> = new Container(2);  // 👌!
+
 // Error: Generic type "Container<T>" should be used with type paramteres!
 const container2: Container = new Container(2);
 ```
@@ -215,6 +220,7 @@ const container2: Container = new Container(2);
 type Container<T> = { value: T };
 
 const container1: Container<number> = { value: 2 };  // 👌!
+
 // Error: Generic type "Container<T>" should be used with type paramteres!
 const container2: Container = { value: 4 };
 ```
@@ -226,8 +232,8 @@ function getResponseBodyAndStatus<Status, Body>(
   response: {
     status: Status,
     body: Body
-  }
-): [Status, Body] {
+  }): [Status, Body] {
+
   // Error: Type "[Status, 'Custom Body']" is incompatible with type "[Status, Body]"
   return [response.status, "Custom Body"];
 }
@@ -237,6 +243,7 @@ Also, the same as [Unknown Type](/docs/unknown-type) you can't get properties fr
 
 ```typescript
 function length<T>(somethingWithLength: T) {
+
   // Error: Property "length" does not exist in "T"
   return somethingWithLength.length;
 }
@@ -254,6 +261,7 @@ function length<T: { length: number, ... }>(somethingWithLength: T) {
 length([1, 2, 3]);
 length({ length: 4 });
 length(() => 2);
+
 // Error: Parameter "Set<number>" is incompatible with restriction "{ length: number, ... }"
 // Because Set, WeakSet, Map and WeakMap has "size" property instead "length"
 length(new Set<number>());
@@ -270,6 +278,7 @@ plus(1n, 2n); // 👌!
 
 // Error: Parameter "'1'" is incompatible with restriction "bigint | number"
 plus("1", "2");
+
 // Error: Type "2n" is incompatible with type "number"
 plus(1, 2n);
 ```

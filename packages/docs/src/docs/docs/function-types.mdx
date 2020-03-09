@@ -43,6 +43,7 @@ As you understand, arguments types will be checked when you will try to apply ar
 
 ```typescript
 function awesome(name: string): string {
+
   // Error: Type "2" is incompatible with type "string"
   return 2;
 }
@@ -196,8 +197,10 @@ function argsLength(fn: Function) {
 argsLength(() => 2);
 argsLength((a: number) => a);
 argsLength(parseFloat);
+
 // Error: Type "2" is incompatible with type "Function"
 argsLength(2);
+
 // Error: Type "[]" is incompatible with type "Function"
 argsLength([]);
 ```

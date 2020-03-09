@@ -59,13 +59,17 @@ you can assign function to another only if actual arguments types are wider then
 let func: (number) => number = () => 42; 
 
 func = (a: number): number => a;           // 👌!
+
 // It's okay because "number | string" is wider than "number"
 func = (a: number | string): number => 44; // 👌!
+
 // It's okay because "42" is more specific than "number"
 func = (a: number): 42 => 42;              // 👌!
+
 // Error: Type "(42) => number" is incompatible with type "(number) => number"
 // Because "42" is more specific than "number"
 func = (a: 42): number => 42; 
+
 // Error: Type "(number) => number | string" is incompatible with type "(number) => number"
 // Because "number | string" is wider than "number"
 func = (a: number): number | string => 42; 
@@ -93,6 +97,7 @@ const wrappedNumber: Container<number> = new Container<42>(42); // 👌!
 
 // Error: Type "Container<number>" is incompatible with type "Container<42>"
 const wrappedNumber42: Container<42> = new Container<number>(84);
+
 // Error: Type "Container<number>" is incompatible with type "Container<'Hello, World'>"
 const wrappedHelloWorld: Container<"Hello, World"> = new Container<number>(42);
 ```
@@ -103,6 +108,7 @@ But, as you can see, only literals were used for examples. It's because every su
 
 ```typescript
 const wrapped42: Container<42> = new Container<42>(42); // 👌!
+
 // Error: Type "Container<42>" is incompatible with type "Container<number>"
 const wrappedNumber: Container<number> = wrapped42;
 ```

@@ -61,6 +61,7 @@ Another interesting Hegel "feature" is type inference for element which will be 
 
 ```typescript
 const numbers: Array<number> = [];
+
 // Type of firstElement is "number | undefined"
 const firstElement = numbers[0];
 ```
@@ -70,6 +71,7 @@ const firstElement = numbers[0];
 
 ```typescript
 const numbers: Array<number> = [];
+
 // TypeError: Cannot read property 'toFixed' of undefined
 const firstElement = numbers[0].toFixed();
 ```
@@ -95,6 +97,7 @@ const numbers: Array<number> = [1, 2, 3];
 let intSequence = "";
 numbers.length = 5;
 for (let i = 0; i < numbers.length; i++) {
+
   // TypeError: Cannot read property 'toFixed' of undefined
   intSequence += numbers[i].toFixed();
 }
@@ -111,6 +114,7 @@ For nowadays this is not JavaScript-way to iterate over the array. You can use `
 
 ```typescript
 const numbers: Array<number> = [1, 2, 3];
+
 // num type is "number"
 numbers.forEach(num => { });
 ```

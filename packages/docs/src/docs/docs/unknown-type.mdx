@@ -46,6 +46,7 @@ function waitingFor(value: string) {
 
 const anything: unknown = 4;
 
+// Error: Type "unknown" is incompatible with type "string"
 waitingFor(anything);
 ```
 
@@ -53,6 +54,8 @@ Or operator:
 
 ```typescript
 function waitingFor(value: unknown) {
+
+  // Error: Type "unknown" is incompatible with type "string"
   return `Awesome ${value}`;
 }
 

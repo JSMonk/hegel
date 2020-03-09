@@ -25,6 +25,7 @@ function repeat(target: unknown, times: number): unknown {
   if (typeof target === "number") {
     return target ** times;
   }
+
   // Error: Property "repeat" does not exist in "unknown"
   return target.repeat(times); 
 }
@@ -60,6 +61,7 @@ iCanBeAStringOrNumber = false;
 ```
 
 > When you defined union type you lost ability to use this type as concret type.
+
 ```typescript
 const iCanBeAStringOrNumber: string | number = 2;
 

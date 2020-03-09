@@ -43,10 +43,13 @@ let plantClass: $Class<Plant> = Plant;
 
 // Because "class Dog" is subtype of "class Animal"
 animalClass = dogClass; // 👌!
+
 // Error: Type "class Animal" is incompatible with type "class Dog"
 dogClass = animalClass;
+
 // Error: Type "class Animal" is incompatible with type "class Plant"
 plantClass = animalClass;
+
 // Error: Type "class Dog" is incompatible with type "class Plant"
 plantClass = dogClass;
 ```
@@ -77,6 +80,7 @@ This magic type convert any type into immutable variant of this type which means
 1. Prevent variable mutation.
 ```typescript
 function manipulate(num: $Immutable<number>) {
+
   // Error: Attempt to mutate immutable type
   num = 15;
 }
@@ -125,6 +129,7 @@ arr.pop();
 
 ```typescript
 const numbers: Array<number> = [1, 2, 3];
+
 // Error: Type "Array<number>" is incompatible with type "Array<number | string>"
 const numbersOrStrings: Array<number | string> = numbers;
 
@@ -147,17 +152,22 @@ type PlantClass = $Class<Plant>;
 
 // The same as "animal: Animal"
 let animal: $InstanceOf<AnimalClass> = new Animal();
+
 // The same as "dog: Dog"
 let dog: $InstanceOf<DogClass> = new Dog();
+
 // The same as "planet: Planet"
 let plant: $InstanceOf<PlantClass> = new Plant();
 
 // Because "Dog" is subtype of "Animal"
 animal = dog; // 👌!
+
 // Error: Type "Animal" is incompatible with type "Dog"
 dog = animal;
+
 // Error: Type "Animal" is incompatible with type "Plant"
 plant = animal;
+
 // Error: Type "Dog" is incompatible with type "Plant"
 plant = dog;
 ```
@@ -311,7 +321,6 @@ type GenericFunction = <T>(T) => T;
 // Note that "string" was provided as type argument after original function type
 const returnOfGenericFunction: $ReturnType<GenericFunction, string> = "";
 
-
 // If you does not provide type argument for generic function you will got an error
 // Error: Generic "<T>(T) => T" called with wrong number of arguments. Expect: 1, Actual: 0
 const _: $ReturnType<GenericFunction> = "";
@@ -363,6 +372,7 @@ function assert(something: unknown): $Throws<SyntaxError> {}
 
 ```typescript
 function assert(something: unknown): $Throws<SyntaxError> {
+
   // Error: Type "ReferenceError" is incompatible with type "SyntaxError"
   throw new ReferenceError();
 }
@@ -396,6 +406,7 @@ function assertIsNumber(something: unknown) {
 }
 
 function assertEntry(something: unknown): $Throws<TypeError> {
+
   // Error: Current function throws "Error" type which is incompatible with declareted throw type "TypeError"
   assertIsNumber(something);
 }

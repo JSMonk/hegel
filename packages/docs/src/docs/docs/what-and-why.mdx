@@ -112,6 +112,7 @@ One of the non-goals of TypeScript is: "Apply a sound or "provably correct" type
 
 ```typescript
 const doubles: Array<number> = [Math.PI, Math.E];
+
 // Error: Type "Array<number>" is incompatible with type "Array<number | string>"
 const numbersToShow: Array<number | string> = doubles;
 numbersToShow.push(42..toString(2));
@@ -134,8 +135,9 @@ function assertIsTrue(arg) {
 
 try {
     assertIsTrue(false);
+
+  // Type of "e" variable is "TypeError | unknown"
 } catch (e) {
-    // Type of "e" variable is "TypeError | unknown"
 }
 ```
 
