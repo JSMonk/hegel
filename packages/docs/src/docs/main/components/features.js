@@ -25,9 +25,9 @@ const ListItem = styled.li`
   justify-content: center;
   align-items: center;
 
-  @media (max-width: 660px) ({
+  @media (max-width: 660px) {
      margin: 20px 0;
-  })
+  }
 `;
 
 const Title = styled.h2`

@@ -5,6 +5,7 @@ import darkLogo from "./logo-dark.svg";
 
 const Image = styled.img`
   min-height: ${props => isNaN(props.height) ? "100px" : props.height}
+  max-width: 100%;
   max-height: 170px;
 `;
 
