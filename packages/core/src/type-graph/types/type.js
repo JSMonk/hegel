@@ -201,7 +201,7 @@ export class Type {
       );
       for (const variant of variants) {
         const diff = this.getDifference(variant, withReverseUnion);
-        if (diff.length !== 0) {
+        if (diff.length !== 0 || variant.isPrincipalTypeFor(this)) {
           return diff;
         }
       }

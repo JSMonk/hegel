@@ -556,6 +556,7 @@ declare var RegExp: RegExpConstructor;
 //   * Creates a new function.
 //   */
 interface Function {
+  (...args: unknown[]): unknown;
   //     /**
   //       * Calls the function, substituting the specified object for the this value of the function, and the specified array for the arguments of the function.
   //       * @param thisArg The object to be used as the this object.
@@ -1788,7 +1789,7 @@ interface PromiseConstructor {
    * @param value A promise.
    * @returns A promise whose internal state matches the provided promise.
    */
-  resolve<T>(value: T | PromiseLike<T> | undefined): Promise<T>;
+  resolve<T = undefined>(value?: T | PromiseLike<T> | undefined): Promise<T>;
 }
 
 declare var Promise: PromiseConstructor;
@@ -5008,7 +5009,7 @@ interface Float64ArrayConstructor {
 declare var Float64Array: Float64ArrayConstructor;
 
 interface ArrayConstructor {
-  new <T>(arrayLength: number): (T | undefined)[];
+  new <T = unknown>(...args: [] | [number] | Array<T[]> | T[]): (T | undefined)[];
   <T>(...items: T[]): T[];
   isArray(arg: any): arg is Array<any>;
   readonly prototype: Array<any>;

@@ -385,6 +385,10 @@ export function getTypeFromTypeAnnotation(
         value
       );
     case NODE.OBJECT_TYPE_ANNOTATION:
+      if (typeNode.typeAnnotation.exact) {
+        throw new HegelError("Hegel has another syntax for strict (exact) object type. You should use pure object literal type for strict (exact)\
+         object and object liter with three dots (...) for soft (inexact) object type", typeNode.typeAnnotation.loc);
+      }
     case NODE.TS_OBJECT_TYPE_ANNOTATION:
     case NODE.TS_INTERFACE_DECLARATION:
       const { typeAnnotation: annotation } = typeNode;

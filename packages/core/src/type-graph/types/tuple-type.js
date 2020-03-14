@@ -65,6 +65,7 @@ export class TupleType extends Type {
         : TupleType.ReadonlyArray.root.applyGeneric(arrayValue);
     super(name, { ...meta, isSubtypeOf });
     this.items = items;
+    this.priority = items.length * 10;
   }
 
   changeAll(
