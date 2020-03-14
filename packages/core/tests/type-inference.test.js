@@ -1615,7 +1615,7 @@ describe("Object type inference", () => {
     expect(
       a.type ===
         Type.find(
-          "{ a: () => number, b: <a'>(a') => undefined, c: <a'>(a') => a' }"
+          "{ a: () => number, b: <_a>(_a) => undefined, c: <_a>(_a) => _a }"
         )
     ).toBe(true);
     expect(a.type.properties.get("a").type).toBeInstanceOf(FunctionType);
@@ -1628,7 +1628,7 @@ describe("Object type inference", () => {
     );
     expect(a.type.properties.get("b").type).toBeInstanceOf(GenericType);
     expect(
-      a.type.properties.get("b").type === Type.find("<a'>(a') => undefined")
+      a.type.properties.get("b").type === Type.find("<_a>(_a) => undefined")
     ).toBe(true);
     expect(
       a.type.properties.get("b").type.subordinateType.argumentsTypes.length
@@ -1642,7 +1642,7 @@ describe("Object type inference", () => {
     ).toBe(true);
     expect(a.type.properties.get("c").type).toBeInstanceOf(GenericType);
     expect(
-      a.type.properties.get("c").type === Type.find("<a'>(a') => a'")
+      a.type.properties.get("c").type === Type.find("<_a>(_a) => _a")
     ).toBe(true);
     expect(
       a.type.properties.get("c").type.subordinateType.argumentsTypes.length
