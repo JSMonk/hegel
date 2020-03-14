@@ -31,9 +31,9 @@ function provideNumber(providedData: ?number) {
 3. High level type Inference
 
 ```typescript
-// Inferenced as "<q', c'>((c') => q') => (c') => Promise<q'>"
+// Inferenced as "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
 const promisify = fn => arg => Promise.resolve(fn(arg));
-// Inferenced as "<c'>(c') => Promise<c'>"
+// Inferenced as "<_c>(_c) => Promise<_c>"
 const id = promisify(x => x);
 // Inferenced as "Promise<string>"
 const upperStr = id("It will be inferenced").then(str => str.toUpperCase());
