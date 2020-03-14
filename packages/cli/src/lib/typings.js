@@ -7,7 +7,7 @@ import type {
   ModuleScope,
   VariableInfo,
   Type,
-  ExtendedProgram
+  ExtendedFile
 } from "@hegel/core";
 
 const typings = dirname(require.resolve("@hegel/typings"));
@@ -52,7 +52,7 @@ async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
 
 export async function mixTypeDefinitions(
   config: Config,
-  prepeareAST: (string, boolean) => Promise<ExtendedProgram>
+  prepeareAST: (string, boolean) => Promise<ExtendedFile>
 ) {
   const standardAST = await prepeareAST(standard, true);
   const nodejsAST = config.environment.includes("nodejs")

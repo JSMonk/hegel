@@ -31,8 +31,8 @@ export class $Values extends GenericType {
 
   applyGeneric(parameters, loc) {
     super.assertParameters(parameters, loc);
-    const [target] = parameters;
-    const realTarget = target.constraint || target;
+    const [currentTarget] = parameters;
+    const realTarget = this.getOponentType(currentTarget);
     if (
       !(realTarget instanceof ObjectType) &&
       !(realTarget instanceof TupleType) &&

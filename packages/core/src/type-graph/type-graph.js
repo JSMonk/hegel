@@ -13,6 +13,7 @@ import { TypeVar } from "./types/type-var";
 import { TypeScope } from "./type-scope";
 import { refinement } from "../inference/refinement";
 import { UnionType } from "./types/union-type";
+import { IgnorableArray } from "../utils/ignore";
 import { ObjectType } from "./types/object-type";
 import { GenericType } from "./types/generic-type";
 import { FunctionType } from "./types/function-type";
@@ -55,7 +56,7 @@ import {
 } from "../utils/scope-utils";
 import type { CallableArguments } from "./meta/call-meta";
 import type { TraverseMeta, Handler } from "../utils/traverse";
-import type { Node, Program, SourceLocation } from "@babel/parser";
+import type { Node, File, Program, SourceLocation } from "@babel/parser";
 
 const hasTypeParams = (node: Node): boolean =>
   node.typeParameters &&
@@ -722,22 +723,25 @@ const afterFillierActions = (
 };
 
 export async function createModuleScope(
-  ast: Program,
-  errors: Array<HegelError>,
+  file: File,
+  globalErrors: Array<HegelError>,
   getModuleTypeGraph: (string, string, SourceLocation) => Promise<ModuleScope>,
   globalModule: ModuleScope,
   isTypeDefinitions: boolean,
   withPositions?: boolean = true
 ): Promise<ModuleScope> {
+  const errors = IgnorableArray.from(file.comments);
+  const ast = file.program;
   const typeScope = new TypeScope(globalModule.typeScope);
   const module = new (withPositions ? PositionedModuleScope : ModuleScope)(
-    ast.path,
+    file.path,
     new Map(),
     globalModule,
     typeScope
   );
   await mixImportedDependencies(
     ast,
+    file.path,
     errors,
     module,
     typeScope,
@@ -756,21 +760,22 @@ export async function createModuleScope(
       throw e;
     }
     if (Array.isArray(e)) {
-      errors.push(...e.map(e => Object.assign(e, { path: ast.path })));
+      errors.push(...e.map(e => Object.assign(e, { path: file.path })));
     } else {
-      e.source = ast.path;
+      e.source = file.path;
       errors.push(e);
     }
   }
   module.scopes.forEach(scope =>
-    checkCalls(ast.path, scope, typeScope, errors)
+    checkCalls(file.path, scope, typeScope, errors)
   );
-  checkCalls(ast.path, module, typeScope, errors);
+  checkCalls(file.path, module, typeScope, errors);
+  globalErrors.push(...errors);
   return module;
 }
 
 async function createGlobalScope(
-  ast: Array<Program>,
+  files: Array<File>,
   getModuleTypeGraph: (
     string,
     string,
@@ -793,11 +798,11 @@ async function createGlobalScope(
   setupFullHierarchy(globalModule.typeScope);
   mixBaseOperators(globalModule);
   const createDependencyModuleScope = (
-    ast: Program,
+    file: File,
     isTypeDefinitions: boolean
   ) =>
     createModuleScope(
-      ast,
+      file,
       errors,
       getModuleFromString,
       globalModule,
@@ -809,7 +814,7 @@ async function createGlobalScope(
     loc: SourceLocation
   ) => getModuleTypeGraph(path, currentPath, loc, createDependencyModuleScope);
   const modules = await Promise.all(
-    ast.map(module =>
+    files.map(module =>
       createModuleScope(
         module,
         errors,

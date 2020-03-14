@@ -121,3 +121,14 @@ Hegel tries to implement the same soundness type system as [ReasonML/OCaml](http
 -based languages. It means Hegel tries to catch every single error that might happen at runtime without runtime type checking.
 
 > If you familiar with [Rust Language](https://www.rust-lang.org/) you may know that Rust doesn't provide any type information in runtime and all types will be stripped after type checking, but Rust program is still type safe. It's our dream to implement the same type checking in JavaScript.
+
+## Hegel Issue
+
+Also, Hegel as other tools has hack for ignoring any kind of errors. You can pass the "@hegel-issue" comment and error will be ignored.
+
+```typescript
+// @hegel-issue
+const a: string = 44;
+```
+
+But, it's NOT RECOMMENDED to use it for a quick fix or business task solution. "@hegel-issue" should be used only if the error is Hegel bug.

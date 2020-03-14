@@ -133,9 +133,9 @@ const STRONG_TYPE_SYSTEM_CODE = `function provideNumber(providedData: ?number) {
 provideNumber(0);
 `;
 
-const TYPE_INFERENCE_CODE = `// Inferenced as "<q', c'>((c') => q') => (c') => Promise<q'>"
+const TYPE_INFERENCE_CODE = `// Inferenced as "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
 const promisify = fn => arg => Promise.resolve(fn(arg));
-// Inferenced as "<c'>(c') => Promise<c'>"
+// Inferenced as "<_c>(_c) => Promise<_c>"
 const id = promisify(x => x);
 // Inferenced as "Promise<string>"
 const upperStr = id("It will be inferenced").then(str => str.toUpperCase());

@@ -696,19 +696,13 @@ interface ObjectConstructor {
   //       * Prevents the modification of existing property attributes and values, and prevents the addition of new properties.
   //       * @param o Object on which to lock the attributes.
   //       */
-  freeze<T>(a: T[]): ReadonlyArray<T>;
-
-  //     /**
-  //       * Prevents the modification of existing property attributes and values, and prevents the addition of new properties.
-  //       * @param o Object on which to lock the attributes.
-  //       */
   // freeze<T extends Function>(f: T): T;
 
   //     /**
   //       * Prevents the modification of existing property attributes and values, and prevents the addition of new properties.
   //       * @param o Object on which to lock the attributes.
   //       */
-  freeze<T>(o: T): T;
+  freeze<T>(o: T): $Immutable<T>;
 
   //     /**
   //       * Prevents the addition of new properties to an object.

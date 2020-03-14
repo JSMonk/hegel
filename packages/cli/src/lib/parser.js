@@ -2,19 +2,19 @@ import { parse } from "@babel/parser";
 import { extname } from "path";
 import { promises as fs } from "fs";
 import type { Config } from "./config";
-import type { ParserPlugin, Program } from "@babel/parser";
+import type { ParserPlugin, Program, File } from "@babel/parser";
 
-export type File = {
+export type FileMeta = {
   content: string,
   path: string
 };
 
-export type AST = {
-  ...Program,
-  ...File
+export type ExtendedFile = {
+  ...File,
+  ...FileMeta
 };
 
-const cache = new Map<string, File | AST>();
+const cache = new Map<string, FileMeta | ExtendedFile>();
 
 export async function getFileContent(path) {
   const cached = cache.get(path);
@@ -31,7 +31,7 @@ export async function getFileContent(path) {
 export function createASTGenerator(config: Config) {
   return async (path, isDefinition = false) => {
     const cached = cache.get(path);
-    if (cached !== undefined && "body" in cached) {
+    if (cached !== undefined && "program" in cached) {
       return cached;
     }
     try {
@@ -50,12 +50,11 @@ export function createASTGenerator(config: Config) {
             )
             .concat(["typescript"])
         : declaredPlugins;
-      const configCopy = Object.assign({}, config.babel);
       const ast = parse(
         content,
-        Object.assign(configCopy, { strictMode: !isDefinition, plugins })
+        Object.assign({}, config.babel, { strictMode: !isDefinition, plugins })
       );
-      const result = Object.assign(ast.program, { path, content });
+      const result: ExtendedFile = Object.assign(ast, { path, content });
       cache.set(path, result);
       return result;
     } catch (e) {

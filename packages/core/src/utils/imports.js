@@ -26,6 +26,7 @@ function getImportName(specifier: ImportSpecifier): ?string {
 }
 
 export function importDependencies(
+  modulePath: string,
   importNode: ImportDeclaration,
   moduleTypeGraph: ModuleScope,
   currentModuleTypeGraph: ModuleScope | PositionedModuleScope,
@@ -60,7 +61,8 @@ export function importDependencies(
       throw new HegelError(
         `Module "${importNode.source.value}" hasn't "${importName ||
           "*"}" export`,
-        specifier.loc
+        specifier.loc,
+        modulePath
       );
     }
     if (
@@ -105,6 +107,7 @@ export function importDependencies(
 
 export default async function mixImportedDependencies(
   ast: Program,
+  path: string,
   errors: Array<HegelError>,
   currentModuleScope: ModuleScope,
   currentTypeScope: TypeScope,
@@ -124,7 +127,7 @@ export default async function mixImportedDependencies(
     importRequests.push(
       Promise.all([
         node,
-        getModuleTypeGraph(node.source.value, ast.path, node.loc).then(
+        getModuleTypeGraph(node.source.value, path, node.loc).then(
           module => {
             if (
               errors.some(error => error.source === module.path) &&
@@ -152,6 +155,7 @@ export default async function mixImportedDependencies(
     try {
       const [importNode, moduleTypeGraph] = importedTypeGraphs[i];
       importDependencies(
+        path,
         importNode,
         moduleTypeGraph,
         currentModuleScope,

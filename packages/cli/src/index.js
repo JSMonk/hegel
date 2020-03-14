@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 import meow from "meow";
 import { getLogger } from "./lib/logger";
-import { getSources } from "./lib/file-system"; 
+import { getSources } from "./lib/file-system";  
 import { importModule } from "./lib/module";
-import { createGlobalScope } from "@hegel/core";
+import { createGlobalScope } from "@hegel/core"; 
 import { createASTGenerator } from "./lib/parser";
 import { mixTypeDefinitions } from "./lib/typings";
 import { getConfig, createConfig } from "./lib/config";
 import { getErrorsPrint, getVerdictPrint } from "./lib/printer";
-import type { ErrorWithLocation } from "./lib/printer";
-import type { ExtendedProgram, HegelError } from "@hegel/core";
+import type { ErrorWithLocation } from "./lib/printer"; 
+import type { ExtendedFile, HegelError } from "@hegel/core"; 
 
 const logger = getLogger();
  
@@ -51,7 +51,7 @@ async function main() {
     const sources = await getSources(config);
     let errors: Array<ErrorWithLocation> = [];
     try {
-      const asts: Array<ExtendedProgram> = await Promise.all(
+      const asts: Array<ExtendedFile> = await Promise.all(
         sources.map(file => getFileAST(file))
       );
       const result = await createGlobalScope(

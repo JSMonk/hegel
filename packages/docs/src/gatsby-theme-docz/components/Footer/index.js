@@ -13,6 +13,10 @@ const List = styled.ul`
   margin: 0;
 `;
 
+const Info = styled.p`
+  font-size: 1rem;
+`;
+
 const Navigation = styled.nav`
   display: flex;
   flex-direction: row;
@@ -73,7 +77,7 @@ export function Footer() {
             </li>
           </List>
         </Navigation>
-        <p>© 2019 - {currentDate.getFullYear()} Artem Kobzar</p>
+        <Info>© Artem Kobzar 2019 - {currentDate.getFullYear()}</Info>
       </Wrapper>
     </HtmlFooter>
   );

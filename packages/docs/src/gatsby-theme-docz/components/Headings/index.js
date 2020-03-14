@@ -10,19 +10,26 @@ const Container = styled.div`
   width: 100%;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1rem;
 
   & > h1 {
     padding: 0;
-    margin: 0;
+    margin: 0 !important;
     margin-bottom: 16px;
     font-size: 48px;
     font-family: "Source Sans Pro", sans-serif;
     line-height: 1.125;
     font-weight: 700;
   }
+ 
+  & > a {
+    @media (max-width: 600px) {
+       display: none;
+    }
+  }
 `;
 
-const MainLink = styled.a`
+export const MainLink = styled.a`
   border: 2px solid ${props => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
   color: ${props => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
   text-decoration: none;

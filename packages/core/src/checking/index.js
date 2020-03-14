@@ -95,7 +95,7 @@ function isValidTypes(
   throw new Error("Never!");
 }
 
-function checkSingleCall(call: CallMeta, typeScope: TypeScope): void {
+function checkSingleCall(path: string, call: CallMeta, typeScope: TypeScope, errors: Array<HegelError>): void {
   const givenArgumentsTypes = call.arguments.map(
     t => (t instanceof VariableInfo ? t.type : t)
   );
@@ -110,57 +110,59 @@ function checkSingleCall(call: CallMeta, typeScope: TypeScope): void {
       )
   );
   if (requiredTargetArguments.length > givenArgumentsTypes.length) {
-    throw new HegelError(
+    errors.push(new HegelError(
       `${requiredTargetArguments.length} arguments are required. Given ${
         givenArgumentsTypes.length
       }.`,
-      call.loc
-    );
-  }
-  if (
+      call.loc,
+      path
+    ));
+  } else if (
     targetArguments.length < givenArgumentsTypes.length &&
     !(targetArguments[targetArguments.length - 1] instanceof RestArgument)
   ) {
-    throw new HegelError(
+    errors.push(new HegelError(
       `${targetArguments.length} arguments are expected. Given ${
         givenArgumentsTypes.length
       }.`,
-      call.loc
-    );
-  }
-
-  let firstArgumentType = call.arguments[0];
-  firstArgumentType =
-    firstArgumentType instanceof VariableInfo
-      ? firstArgumentType.type
-      : firstArgumentType;
-  if (isAssign(call) && firstArgumentType instanceof $AppliedImmutable) {
-    throw new HegelError(`Attempt to mutate immutable type`, call.loc);
-  }
-  for (let i = 0; i < targetArguments.length; i++) {
-    const arg1 = targetArguments[i];
-    const arg2 =
-      arg1 instanceof RestArgument
-        ? call.arguments.slice(i)
-        : call.arguments[i];
-    if (!isValidTypes(call.targetName, arg1, arg2, typeScope)) {
-      let actualType =
+      call.loc,
+      path
+    ));
+  } else {
+    let firstArgumentType = call.arguments[0];
+    firstArgumentType =
+      firstArgumentType instanceof VariableInfo
+        ? firstArgumentType.type
+        : firstArgumentType;
+    if (isAssign(call) && firstArgumentType instanceof $AppliedImmutable) {
+      errors.push(new HegelError(`Attempt to mutate immutable type`, call.loc, path));
+    }
+    for (let i = 0; i < targetArguments.length; i++) {
+      const arg1 = targetArguments[i];
+      const arg2 =
         arg1 instanceof RestArgument
-          ? givenArgumentsTypes.slice(i)
-          : givenArgumentsTypes[i];
-      actualType =
-        actualType instanceof VariableInfo ? actualType.type : actualType;
-      const actualTypeName =
-        // $FlowIssue
-        arg2 === undefined ? "undefined" : TupleType.getName(actualType);
-      throw new HegelError(
-        `Type "${actualTypeName}" is incompatible with type "${String(
-          arg1.name
-        )}"`,
-        arg1 instanceof RestArgument
-          ? call.loc
-          : call.argumentsLocations[i] || call.loc
-      );
+          ? call.arguments.slice(i)
+          : call.arguments[i];
+      if (!isValidTypes(call.targetName, arg1, arg2, typeScope)) {
+        let actualType =
+          arg1 instanceof RestArgument
+            ? givenArgumentsTypes.slice(i)
+            : givenArgumentsTypes[i];
+        actualType =
+          actualType instanceof VariableInfo ? actualType.type : actualType;
+        const actualTypeName =
+          // $FlowIssue
+          arg2 === undefined ? "undefined" : TupleType.getName(actualType);
+        errors.push(new HegelError(
+          `Type "${actualTypeName}" is incompatible with type "${String(
+            arg1.name
+          )}"`,
+          arg1 instanceof RestArgument
+            ? call.loc
+            : call.argumentsLocations[i] || call.loc,
+            path
+        ));
+      }
     }
   }
 }
@@ -184,12 +186,7 @@ function checkCalls(
     if (call.isFinal) {
       finalWasCalled = true;
     }
-    try {
-      checkSingleCall(call, typeScope);
-    } catch (e) {
-      e.source = path;
-      errors.push(e);
-    }
+    checkSingleCall(path, call, typeScope, errors);
   }
   if (
     scope instanceof VariableScope &&

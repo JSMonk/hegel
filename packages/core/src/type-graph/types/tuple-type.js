@@ -159,6 +159,13 @@ export class TupleType extends Type {
     if (propertyIndex === "length") {
       return Type.term(this.items.length, { isSubtypeOf: Type.Number });
     }
+    if (this.isSubtypeOf instanceof $BottomType) {
+      const unpacked = this.isSubtypeOf.unpack();
+      if (TupleType.ReadonlyArray.root !== undefined) {
+        this.isSubtypeOf = unpacked; 
+      }
+      return unpacked.getPropertyType(propertyIndex);
+    }
     return super.getPropertyType(propertyIndex);
   }
 

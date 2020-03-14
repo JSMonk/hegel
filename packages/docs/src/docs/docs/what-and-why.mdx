@@ -93,10 +93,10 @@ If you familiar with TypeScript you may know benefits of static typing, so lets 
 Hegel is targeting at really powerful type inference which gives an ability to write less type annotations. As example:
 
 ```typescript
-// Type of "promisify" function is "<q', c'>((c') => q') => (c') => Promise<q'>"
+// Type of "promisify" function is "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
 const promisify = fn => arg => Promise.resolve(fn(arg));
 
-// Type of "id" function is "<c'>(c') => Promise<c'>"
+// Type of "id" function is "<_c>(_c) => Promise<_c>"
 const id = promisify(x => x);
 
 // Type of "result" variable is "Promise<number>"
@@ -150,32 +150,41 @@ TypeScript provides a lot of additional syntax features and syntax sugar with ty
 
 ```typescript
 // TypeScript
-const Entities = {
-    Plant: class Plant { },
-    Animal: class Animal { },
-    Mushrooms: class Mushrooms { }
-};
-
-function model<M extends object, K extends keyof M>(store: M, modelName: K): M[K] {
-    return store[modelName];
+enum UserStatus {
+  Active,
+  Muted,
+  Banned
 }
 
-const Class = model(Entities, "Plant");
+class User {
+  constructor(
+    public name: string,
+    public status: UserStatus
+  ) {}
+}
+
+const Anatoly = new User("Anatoly", UserStatus.Active);
 ```
 
 ```typescript
 // Hegel
-const Entities = {
-    Plant: class Plant { },
-    Animal: class Animal { },
-    Mushrooms: class Mushrooms { }
-};
+const UserStatus = Object.freeze({ 
+  Active: "Active",
+  Muted: "Muted",
+  Banned: "Banned"
+});
 
-function model<M: Object, K: $Keys<M>>(store: M, modelName: K): $PropertyType<M, K> {
-    return store[modelName];
+class User {
+    name: string;
+    status: $Values<$TypeOf<UserStatus>>
+
+    constructor(name, status) {
+        this.name = name;
+        this.status = status;
+    }
 }
 
-const Class = model(Entities, "Plant");
+const Anatoly = new User("Anatoly", UserStatus.Active);
 ```
 
 2. No type coercion and "any" type

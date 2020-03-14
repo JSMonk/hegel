@@ -1,7 +1,7 @@
 import { HegelError } from "@hegel/core";
 import { existsSync, promises } from "fs";
 import { join, extname, dirname, isAbsolute, resolve } from "path";
-import type { ExtendedProgram } from "@hegel/core";
+import type { ExtendedFile } from "@hegel/core";
 import type { Config } from "./config";
 import type { ModuleScope } from "@hegel/core";
 import type { Program, SourceLocation } from "@babel/parser";
@@ -107,8 +107,8 @@ async function getModuleTypingsPath(
 
 async function parseAndAnalyze(
   module,
-  getAST: (string, ?boolean) => Promise<ExtendedProgram>,
-  getModuleScope: (ExtendedProgram, boolean) => Promise<ModuleScope>
+  getAST: (string, ?boolean) => Promise<ExtendedFile>,
+  getModuleScope: (ExtendedFile, boolean) => Promise<ModuleScope>
 ) { 
   const ast = await getAST(module.resolvedPath, module.isTypings);
   ast.path = module.resolvedPath;

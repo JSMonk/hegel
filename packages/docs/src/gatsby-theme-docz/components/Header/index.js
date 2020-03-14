@@ -1,10 +1,12 @@
-import Sun from "react-feather/dist/icons/sun";
-import React from "react";
+/** @jsx jsx */
 import styled from "styled-components";
 import { Link } from "gatsby";
 import { Logo } from "../Logo";
-import { useThemeUI } from "theme-ui";
 import { useCurrentDoc } from "docz";
+import { Menu, Sun } from "gatsby-theme-docz/src/components/Icons";
+import { jsx, useThemeUI, Box } from "theme-ui";
+
+import * as styles from "gatsby-theme-docz/src/components/Header/styles";
 
 const HEADER_HEIGHT = 50;
 
@@ -46,6 +48,11 @@ const Navigation = styled.nav`
   text-align: left;
   flex: 1;
   padding: 0 20px;
+  
+  @media (max-width: 1198px) {
+     flex-basis: 100%;
+     height: auto;
+  }
 `;
 
 const Container = styled.nav`
@@ -121,7 +128,7 @@ const NavLink = styled(Link)`
   line-height: 1.2em;
 `;
 
-export function Header() {
+export function Header({ onOpen }) {
   const { colorMode, setColorMode } = useThemeUI();
   const toggleMode = () =>
     setColorMode(colorMode === "light" ? "dark" : "light");
@@ -130,6 +137,11 @@ export function Header() {
   const linkToRepository = REPOSITORY;
   return (
     <HtmlHeader mode={colorMode} withoutBorder={docs.main}>
+      <Box sx={styles.menuIcon}>
+        <button sx={styles.menuButton} onClick={onOpen}>
+          <Menu size={25} />
+        </button>
+      </Box>
       <Navigation>
         <NavLink to="/">
           {docs.main ? null : <Logo mode={colorMode} height={35} />}
@@ -141,9 +153,6 @@ export function Header() {
             </ListItem>
             <ListItem>
               <NavLink to="/try">Try</NavLink>
-            </ListItem>
-            <ListItem>
-              <NavLink>Community</NavLink>
             </ListItem>
             <ListItem>
               <NavLink as="a" href={linkToRepository} target="_blank">

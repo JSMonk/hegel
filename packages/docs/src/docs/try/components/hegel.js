@@ -15,7 +15,7 @@ const DEFAULT_OPTIONS = {
   ]
 };
 // eslint-disable-next-line
-const STANDARD_AST = parse(STD_LIB_CONTENT, STANDARD_LIB_OPTIONS).program;
+const STANDARD_AST = parse(STD_LIB_CONTENT, STANDARD_LIB_OPTIONS);
 
 export function getTypeByLocation(location) {
   if (module === undefined) {
@@ -63,9 +63,9 @@ export async function getStandardTypeDefinitions(globalScope) {
 export async function getDiagnostics(sourceCode) {
   let errors = [];
   try {
-    const ast = parse(sourceCode, DEFAULT_OPTIONS).program;
+    const file = parse(sourceCode, DEFAULT_OPTIONS);
     [[module], errors] = await createGlobalScope(
-      [ast],
+      [file],
       () => {},
       false,
       mixTypeDefinitions,

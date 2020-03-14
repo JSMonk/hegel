@@ -7,6 +7,7 @@ import { ObjectType } from "../type-graph/types/object-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { CollectionType } from "../type-graph/types/collection-type";
+import { $AppliedImmutable } from "../type-graph/types/immutable-type";
 import { getDeclarationName } from "./common";
 import { PositionedModuleScope } from "../type-graph/module-scope";
 import { getTypeFromTypeAnnotation } from "./type-utils";
@@ -110,13 +111,15 @@ export function getVariableType(
   variable: VariableInfo | void,
   newType: Type,
   typeScope: TypeScope,
-  inferenced: boolean = false
+  inferenced: boolean = false,
+  freezed: boolean = false
 ): Type {
   if (variable && variable.type !== Type.Unknown) {
     return variable.type;
   }
   if (
     !inferenced ||
+    newType instanceof $AppliedImmutable ||
     (variable &&
       variable.isConstant &&
       (newType.constructor === Type || newType.constructor === TupleType))

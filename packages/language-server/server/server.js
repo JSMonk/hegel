@@ -115,7 +115,7 @@ async function getHegelTypings(source, path) {
   try {
     const ast = babylon.parse(source, babelrc);
     const [[types], errors] = await createTypeGraph(
-      [Object.assign(ast.program, { path })],
+      [Object.assign(ast, { path })],
       await getModuleAST(path),
       false,
       mixTypeDefinitions(config),
@@ -132,7 +132,7 @@ async function getTypeGraphFor(path, globalScope) {
   const content = await readFile(path, "utf8");
   const errors = [];
   const graph = await createModuleScope(
-    babylon.parse(content, dtsrc).program,
+    babylon.parse(content, dtsrc),
     errors,
     () => {},
     globalScope,
@@ -179,7 +179,7 @@ async function getModuleAST(currentModulePath) {
         ? wrapJSON(moduleContent)
         : moduleContent;
     const config = isTypings ? dtsrc : babelrc;
-    return babylon.parse(moduleContent, config).program;
+    return babylon.parse(moduleContent, config);
   }, true);
 }
 

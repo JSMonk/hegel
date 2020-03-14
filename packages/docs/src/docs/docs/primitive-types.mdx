@@ -85,7 +85,9 @@ const usageNumberAsBigInt: bigint = 4 + 2;
 Unlinke String in other programming languages, JavaScript String has a value (not reference) behaivour. So, any characters set wrapped in single quote ('), double quote (") or backtick/backquote (`) will be a valid JavaScript string literal. In Hegel you can annotate variable/object property with both literal or string datatype name, the same as with other datatypes.
 
 ```typescript
-const fullName: string = "Robert Paulson";
+const firstName: "Robert" = "Robert";
+const lastName: 'Paulson' = "Paulson";
+const fullName: string = firstName + " " + lastName;
 const sentence: string = `His name is ${fullName}.`;
 ```
 

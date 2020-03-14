@@ -38,7 +38,8 @@ export class $Keys extends GenericType {
     isCalledAsBottom = false
   ) {
     super.assertParameters(parameters, loc);
-    const [realTarget] = parameters;
+    const [currentTarget] = parameters;
+    const realTarget = this.getOponentType(currentTarget);
     if (
       !(realTarget instanceof ObjectType) &&
       !(realTarget instanceof TupleType) &&

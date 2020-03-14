@@ -20,7 +20,7 @@ const libsFile = fs.readFileSync(
 );
 
 exports.prepareAST = (source, isTypeDefinitions) =>
-  babylon.parse(source, isTypeDefinitions ? definitionsRc : babelrc).program;
+  babylon.parse(source, isTypeDefinitions ? definitionsRc : babelrc);
 
 exports.mixTypeDefinitions = () => {
   const definitionsAST = exports.prepareAST(libsFile, true);

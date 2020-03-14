@@ -1,4 +1,4 @@
-import { SourceLocation, ExtendedSyntaxError } from "@babel/parser";
+import { SourceLocation, ExtendedSyntaxError, File } from "@babel/parser";
 
 class Meta {
   loc: SourceLocation;
@@ -52,12 +52,12 @@ export class VariableInfo {
   parent: VariableScope | ModuleScope;
 }
 
-export interface ExtendedProgram extends Program {
+export interface ExtendedFile extends File {
   path: string;
 }
 
 type GraphCreator = (
-  ast: ExtendedProgram,
+  file: ExtendedFile,
   isTypeDefinitions: boolean
 ) => Promise<ModuleScope>;
 type ImportFunction = (
@@ -82,7 +82,7 @@ export class HegelError extends Error {
 }
 
 export function createModuleScope(
-  ast: ExtendedProgram,
+  file: ExtendedFile,
   errors: Array<HegelError>,
   getModuleTypeGraph: ModuleTypeGraphGetter | EmptyFunction,
   globalModule: ModuleScope,
@@ -91,7 +91,7 @@ export function createModuleScope(
 ): Promise<ModuleScope | PositionedModuleScope> | $Throws<ExtendedSyntaxError>;
 
 export function createGlobalScope(
-  ast: Array<ExtendedProgram>,
+  files: Array<ExtendedFile>,
   getModuleTypeGraph: ImportFunction,
   isTypeDefinitions: boolean,
   mixTypeDefinitions: (module: ModuleScope) => undefined | Promise<undefined>,

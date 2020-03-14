@@ -32,7 +32,7 @@ export interface Program extends BaseNode {
   sourceFile: string | null;
 }
 
-interface File extends BaseNode {
+export interface File extends BaseNode {
   type: "File";
   program: Program;
 }
