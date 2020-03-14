@@ -51,7 +51,7 @@ export const Code = ({ children, className: outerClassName }) => {
 
   return (
     <Container>
-      {docs.withoutPlayground ? null : <MainLink
+      {docs.withoutPlayground || language !== "typescript" ? null : <MainLink
         as={Link}
         target="_blank"
         mode={theme.colorMode}
