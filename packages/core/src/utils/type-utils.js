@@ -186,10 +186,15 @@ export function getTypeFromTypeAnnotation(
     case NODE.NULL_LITERAL_TYPE_ANNOTATION:
     case NODE.TS_NULL_LITERAL_TYPE_ANNOTATION:
       return Type.Null;
-    case NODE.NUBMER_LITERAL_TYPE_ANNOTATION:
+    case NODE.NUMBER_LITERAL_TYPE_ANNOTATION:
     case NODE.NUMERIC_LITERAL:
       return Type.term(typeNode.typeAnnotation.value, {
         isSubtypeOf: Type.Number
+      });
+    case NODE.BIGINT_LITERAL_TYPE_ANNOTATION:
+    case NODE.BIGINT_LITERAL:
+      return Type.term(typeNode.typeAnnotation.value, {
+        isSubtypeOf: Type.BigInt
       });
     case NODE.BOOLEAN_LITERAL_TYPE_ANNOTATION:
     case NODE.BOOLEAN_LITERAL:

@@ -112,7 +112,7 @@ async function getNumberAsync() {
 First of all, Hegel defines your argument as type variable and convert your function into generic function.
 
 ```typescript
-// Type of "provideEverything" function is "<a'>(a') => undefined"
+// Type of "provideEverything" function is "<_a>(_a) => undefined"
 function provideEverything(everything) {
 
 }
@@ -121,7 +121,7 @@ function provideEverything(everything) {
 This algorythm gives an ability to inference full generic functions like identity.
 
 ```typescript
-// Type of "id" function is "<a'>(a') => a'"
+// Type of "id" function is "<_a>(_a) => _a"
 function id(x) {
   return x;
 }
@@ -151,12 +151,12 @@ function add(a, b) {
     return a + b;
 }
 
-// Type of "prop" function is "<a': Object, b': $Keys<a'>>(a', b') => $PropertyType<a', b'>"
+// Type of "prop" function is "<_a: Object, _b: $Keys<_a>>(_a, _b) => $PropertyType<_a, _b>"
 function prop(a, b) {
     return a[b];
 }
 
-// Type of "length" function is "<a': { length: a0', ... }, a0'>(a') => a0'"
+// Type of "length" function is "<_a: { length: _a0, ... }, _a0>(_a) => _a0"
 function length(a) {
     return a.length;
 }

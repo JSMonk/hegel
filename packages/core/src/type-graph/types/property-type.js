@@ -81,7 +81,7 @@ export class $PropertyType extends GenericType {
               propertyName,
               new VariableInfo(
                 TypeVar.term(
-                  `${realTarget.name.slice(0, realTarget.name.indexOf("'"))}0'`,
+                  `${realTarget.name}0`,
                   {
                     parent: realTarget.parent
                   }
@@ -106,9 +106,9 @@ export class $PropertyType extends GenericType {
             propertyName,
             new VariableInfo(
               TypeVar.term(
-                `${realTarget.name.slice(0, realTarget.name.indexOf("'"))}${
+                `${realTarget.name}${
                   realTarget.constraint.properties.size
-                }'`,
+                }`,
                 { parent: realTarget.parent }
               )
             )
