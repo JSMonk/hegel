@@ -51,6 +51,10 @@ export class CollectionType<K: Type, V: Type> extends Type {
   }
 
   getPropertyType(propertyName: mixed, isForAssign: boolean = false): ?Type {
+    const result = super.getPropertyType(propertyName);
+    if (result !== null) {
+      return result;
+    }
     if (
       typeof propertyName === this.keyType.name ||
       propertyName === this.keyType.name
@@ -71,7 +75,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
         return result;
       }
     }
-    return super.getPropertyType(propertyName);
+    return null;
   }
 
   equalsTo(anotherType: Type) {

@@ -12,6 +12,7 @@ import { ObjectType } from "../type-graph/types/object-type";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { VariableInfo } from "../type-graph/variable-info";
+import { $ThrowsResult } from "../type-graph/types/throws-type";
 import { VariableScope } from "../type-graph/variable-scope";
 import { $Intersection } from "../type-graph/types/intersection-type";
 import { CollectionType } from "../type-graph/types/collection-type";
@@ -678,7 +679,8 @@ export function getTypeFromTypeAnnotation(
           : result;
       });
       const { returnType: returnTypeNode } = typeNode.typeAnnotation;
-      const returnType = getTypeFromTypeAnnotation(
+      let throwableType;
+      let returnType = getTypeFromTypeAnnotation(
         returnTypeNode
           ? { typeAnnotation: returnTypeNode }
           : // Ohhh, TS is beautiful ❤️
@@ -693,8 +695,37 @@ export function getTypeFromTypeAnnotation(
         middlecompute,
         postcompute
       );
-      const typeName = FunctionType.getName(args, returnType, genericParams);
+      if (returnType instanceof $ThrowsResult || returnType instanceof UnionType) {
+        if (returnType instanceof UnionType) {
+          const [returnTypes, errors] = returnType.variants.reduce(
+            ([result, errors], type) =>
+              type instanceof $ThrowsResult
+                ? [result, [...errors, type.errorType]]
+                : [[...result, type], errors],
+            [[], []]
+          );
+          if (errors.length !== 0) {
+            returnType = UnionType.term(null, {}, returnTypes);
+            throwableType = new $ThrowsResult(
+              null,
+              {},
+              UnionType.term(null, {}, errors)
+            );
+          }
+        } else {
+          throwableType = returnType;
+          returnType = Type.Undefined;
+        }
+      }
+      const typeName = FunctionType.getName(
+        args,
+        returnType,
+        genericParams,
+        false,
+        throwableType && throwableType.errorType
+      );
       const type = FunctionType.term(typeName, {}, args, returnType);
+      type.throwable = throwableType && throwableType.errorType;
       if (genericParams.length === 0 || !(type instanceof FunctionType)) {
         return type;
       }
