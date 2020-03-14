@@ -13,10 +13,7 @@ export default {
     initialColorMode: "dark"
   },
   menu: [
-    {
-      name: "Intro",
-      menu: ["What & Why"]
-    },
+     "What & Why",
     {
       name: "Setup",
       menu: ["Installation", "Editor Plugins"]
@@ -44,12 +41,7 @@ export default {
       name: "Type System",
       menu: ["Type Compatibility", "Type Inference", "Type Refinement"]
     },
-    {
-      name: "Configuration"
-    },
-    {
-      name: "Libraries",
-      menu: []
-    }
+    "Configuration",
+    "Libraries",
   ]
 };
