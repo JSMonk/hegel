@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useThemeUI } from "theme-ui";
-
-const DARK_FAVICON = "/public/images/favicon-dark.png";
-const LIGHT_FAVICON = "/public/images/favicon-light.png";
+import DARK_FAVICON from "./favicon-dark.png";
+import LIGHT_FAVICON from "./favicon-light.png";
 
 export default function Wrapper({ children }) {
   const { setColorMode } = useThemeUI();
