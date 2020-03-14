@@ -834,6 +834,10 @@ export function inferenceFunctionTypeByScope(
   }
   for (let i = 0; i < oldGenericArguments.length; i++) {
     const genericArgument = oldGenericArguments[i];
+    if (genericArgument.isUserDefined) {
+      newGenericArguments.add(genericArgument);
+      continue;
+    }
     const oldRoot = Type.getTypeRoot(genericArgument);
     clearRoot(genericArgument);
     const isTypeVarStillExisted = newArgumentsTypes.find(

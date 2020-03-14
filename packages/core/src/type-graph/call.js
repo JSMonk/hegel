@@ -1345,6 +1345,7 @@ export function addMethodToThis(
   fn.hasInitializer = true;
   if (!isTypeDefinitions && classScope.type === VariableScope.CLASS_TYPE) {
     const fnScope = moduleScope.scopes.get(VariableScope.getName(currentNode));
+    fnScope.declaration = fn;
     // $FlowIssue
     fnScope.body.set(
       THIS_TYPE,
