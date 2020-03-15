@@ -204,6 +204,9 @@ export function addThisToClassScope(
           classScope,
           new Meta(currentNode.loc)
         );
+      if (!constructor.hasInitializer) {
+        constructor.hasInitializer = true;
+      }
       // $FlowIssue
       let type: FunctionType =
         constructor.type instanceof GenericType
@@ -514,7 +517,7 @@ export function addClassToTypeGraph(
   }
   if (!isTypeDefinitions) {
     const errors = [];
-    properties.forEach((property, key) => {
+    [...properties, ...classScope.declaration.type.properties].forEach(([key, property]) => {
       if (
         !property.hasInitializer &&
         !property.type.contains(Type.Undefined)

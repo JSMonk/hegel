@@ -292,7 +292,7 @@ export class GenericType<T: Type> extends Type {
         parent === undefined || parent.priority < type.parent.priority
           ? type.parent
           : parent,
-      Type.GlobalTypeScope
+      this.parent
     );
     const appliedSelf = TypeVar.term(
       appliedTypeName,
