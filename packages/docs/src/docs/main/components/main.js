@@ -86,6 +86,7 @@ const MainLink = styled(Link)`
   padding: 8px 24px;
   margin-right: 24px;
   transition: all 0.3s ease 0s, color 0.3s ease 0s;
+  text-align: center;
 
   &:hover {
     color: ${props => (props.mode === "light" ? "#F5F6F7" : "#13161F")};
