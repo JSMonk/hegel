@@ -61,6 +61,14 @@ const CenterContainer = styled(Container)`
   align-items: center;
   justify-content: center;
   max-height: 170px;
+
+  & > * {
+    margin-right: 24px;
+  }
+
+  & > *:last-child {
+    margin-right: 0px;
+  }
 `;
 
 const Section = styled.section`
@@ -84,7 +92,6 @@ const MainLink = styled(Link)`
   color: ${props => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
   text-decoration: none;
   padding: 8px 24px;
-  margin-right: 24px;
   transition: all 0.3s ease 0s, color 0.3s ease 0s;
   text-align: center;
 

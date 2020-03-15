@@ -21,6 +21,7 @@
     "docz": "^2.2.0",
     "docz-theme-default": "^1.2.0",
     "facepaint": "^1.2.1",
+    "gatsby-plugin-styled-components": "^3.1.20",
     "gatsby-plugin-theme-ui": "^0.3.0",
     "keyboardjs": "^2.5.1",
     "lz-string": "^1.4.4",
