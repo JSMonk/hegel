@@ -311,7 +311,7 @@ export class ObjectType extends Type {
     const requiredProperties = [...this.properties.values()].filter(
       ({ type }) => {
         // $FlowIssue
-        type = "readonly" in type ? type.readonly : type;
+        type = type !== undefined && "readonly" in type ? type.readonly : type;
         return (
           !(type instanceof UnionType) ||
           !type.variants.some(t => t.equalsTo(Type.Undefined))

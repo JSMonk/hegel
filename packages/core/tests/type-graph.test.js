@@ -62,7 +62,7 @@ describe("Simple global variable nodes", () => {
     expect(errors.length).toBe(1);
     const [error] = errors;
     expect(error).toBeInstanceOf(HegelError);
-    expect(error.message).toEqual('There is no "any" type in Hegel.');
+    expect(error.message).toEqual('There is no "any" type in Hegel. Use "unknown" instead.');
     expect(error.loc).toEqual({
       start: { line: 2, column: 15 },
       end: { line: 2, column: 18 }

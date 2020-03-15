@@ -148,7 +148,12 @@ export function getTypeFromTypeAnnotation(
       );
     case NODE.ANY_TYPE_ANNOTATION:
       throw new HegelError(
-        'There is no "any" type in Hegel.',
+        'There is no "any" type in Hegel. Use "unknown" instead.',
+        typeNode.typeAnnotation.loc
+      );
+    case NODE.VOID_TYPE_ANNOTATION:
+      throw new HegelError(
+        'There is no "void" type in Hegel. Use "undefined" instead.',
         typeNode.typeAnnotation.loc
       );
     case NODE.TYPEOF_TYPE_ANNOTATION:

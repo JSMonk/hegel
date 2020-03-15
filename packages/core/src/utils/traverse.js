@@ -41,6 +41,17 @@ function mixBodyToArrowFunctionExpression(currentNode: Node) {
   return currentNode;
 }
 
+function sortClassMembers(currentNode: Node) {
+  if (
+    currentNode.type !== NODE.CLASS_DECLARATION ||
+    currentNode.type !== NODE.CLASS_EXPRESSION
+  ) {
+    return currentNode;
+  }
+  currentNode.body.body.sort((a, b) => a.kind === "constructor" ? -1 : 1);
+  return currentNode;
+}
+
 function mixBlockToLogicalOperator(currentNode: Node) {
   if (
     currentNode.type !== NODE.LOGICAL_EXPRESSION ||
@@ -318,7 +329,8 @@ const getCurrentNode = compose(
   mixElseIfReturnOrThrowExisted,
   mixBlockToConditionalExpression,
   mixBlockToCaseStatement,
-  mixParentToClassObjectAndFunction
+  mixParentToClassObjectAndFunction,
+  sortClassMembers
 );
 
 export type Handler = (
