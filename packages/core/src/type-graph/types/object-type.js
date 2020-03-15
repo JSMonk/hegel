@@ -151,20 +151,19 @@ export class ObjectType extends Type {
     if (field === undefined) {
       return null;
     }
+    if (
+      isForInit &&
+      fieldOwner === this &&
+      this.properties.has(propertyName) &&
+      !field.hasInitializer
+    ) {
+       field.hasInitializer = true;
+    }
     if (!(field.type instanceof Type)) {
       return field;
     }
     if (field.isPrivate && !this.properties.has(propertyName)) {
       return null;
-    }
-    if (
-      isForInit &&
-      fieldOwner === this &&
-      this.properties.has(propertyName) &&
-      field instanceof VariableInfo &&
-      !field.hasInitializer
-    ) {
-       field.hasInitializer = true;
     }
     return field.type;
   }

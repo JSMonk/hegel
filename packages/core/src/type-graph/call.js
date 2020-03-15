@@ -1222,6 +1222,9 @@ export function addPropertyToThis(
     false,
     isPrivate
   );
+  if (currentNode.hasInitializer) {
+    property.hasInitializer = true;
+  }
   if (!(selfType instanceof ObjectType)) {
     throw new Error("Never!!!");
   }
