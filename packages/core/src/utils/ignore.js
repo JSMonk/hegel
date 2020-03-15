@@ -23,7 +23,7 @@ export class IgnorableArray<T: { loc: SourceLocation }> extends Array<T> {
 
   push(...elements: T[]) {
     elements.forEach(element => {
-      if (element.loc === undefined || !this._ignored.has(element.loc.end.line)) {
+      if (element.loc === undefined || !this._ignored.has(element.loc.start.line)) {
         super.push(element);
       }
     });
