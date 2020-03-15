@@ -175,7 +175,7 @@ export class ObjectType extends Type {
   ): boolean {
     for (const [key, { type }] of this.properties) {
       if (
-        type === undefined ||
+        typeof type !== "object" ||
         [CALLABLE, INDEXABLE, CONSTRUCTABLE].includes(key)
       ) {
         continue;
@@ -321,7 +321,7 @@ export class ObjectType extends Type {
     const requiredProperties = [...this.properties.values()].filter(
       ({ type }) => {
         // $FlowIssue
-        type = type !== undefined && "readonly" in type ? type.readonly : type;
+        type = typeof type === "object" && "readonly" in type ? type.readonly : type;
         return (
           !(type instanceof UnionType) ||
           !type.variants.some(t => t.equalsTo(Type.Undefined))

@@ -43,7 +43,7 @@ function mixBodyToArrowFunctionExpression(currentNode: Node) {
 
 function sortClassMembers(currentNode: Node) {
   if (
-    currentNode.type !== NODE.CLASS_DECLARATION ||
+    currentNode.type !== NODE.CLASS_DECLARATION &&
     currentNode.type !== NODE.CLASS_EXPRESSION
   ) {
     return currentNode;
