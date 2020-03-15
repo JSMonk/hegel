@@ -58,7 +58,7 @@ const SpacedContainer = styled(Container)`
 const CenterContainer = styled(Container)`
   height: 100%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   max-height: 170px;
 `;
