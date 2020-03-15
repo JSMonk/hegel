@@ -55,6 +55,7 @@ type CallResult = {
 
 type CallableMeta = {
   isForAssign?: boolean,
+  isForInit?: boolean,
   isTypeDefinitions?: boolean,
   isImmutable?: boolean
 };
@@ -433,8 +434,7 @@ export function addCallToTypeGraph(
         pre,
         middle,
         post,
-        meta,
-        { isForAssign: true }
+        meta
       );
       const left = addCallToTypeGraph(
         node.left,
@@ -444,7 +444,7 @@ export function addCallToTypeGraph(
         pre,
         middle,
         post,
-        { isForAssign: true }
+        { ...meta, isForAssign: true }
       );
       args = [left.result, right.result];
       if (left.result instanceof VariableInfo && left.result.isConstant) {
@@ -584,6 +584,9 @@ export function addCallToTypeGraph(
         node.property.type === NODE.PRIVATE_NAME
           ? `#${node.property.id.name}`
           : node.property.name;
+      const isNotComputed = (node.property.type === NODE.IDENTIFIER ||
+        node.property.type === NODE.PRIVATE_NAME) &&
+        !node.computed;
       args = [
         getWrapperType(
           addCallToTypeGraph(
@@ -598,9 +601,7 @@ export function addCallToTypeGraph(
           ).result,
           moduleScope
         ),
-        (node.property.type === NODE.IDENTIFIER ||
-          node.property.type === NODE.PRIVATE_NAME) &&
-        !node.computed
+        isNotComputed
           ? Type.term(`'${propertyName}'`, { isSubtypeOf: Type.String })
           : addCallToTypeGraph(
               node.property,
@@ -624,7 +625,7 @@ export function addCallToTypeGraph(
       ];
       const property = new $BottomType(
         { isForAssign: meta.isForAssign },
-        new $PropertyType(),
+        new $PropertyType("", {}, meta.isForInit),
         genericArguments
       );
       target = GenericType.term(

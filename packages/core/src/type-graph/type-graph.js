@@ -571,7 +571,8 @@ const afterFillierActions = (
           parentNode,
           precompute,
           middlecompute,
-          postcompute
+          postcompute,
+          { isForInit: parentNode.kind === "constructor" }
         ).result;
         if (currentNode.exportAs) {
           const exportVar =

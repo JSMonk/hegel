@@ -16,7 +16,7 @@ export class $PropertyType extends GenericType {
     return "$PropertyType";
   }
 
-  constructor(_, meta = {}) {
+  constructor(_, meta = {}, isForInit = false) {
     const parent = new TypeScope(meta.parent);
     super(
       "$PropertyType",
@@ -28,6 +28,7 @@ export class $PropertyType extends GenericType {
       parent,
       null
     );
+    this.isForInit = isForInit;
   }
 
   findRealTarget(target, loc) {
@@ -168,7 +169,7 @@ export class $PropertyType extends GenericType {
         );
       }
     }
-    const fieldType = realTarget.getPropertyType(propertyName, initializing);
+    const fieldType = realTarget.getPropertyType(propertyName, initializing, this.isForInit);
     if (!realProperty.isSubtypeOf && !isCalledAsBottom) {
       throw new HegelError("Second parameter should be an literal", loc);
     }

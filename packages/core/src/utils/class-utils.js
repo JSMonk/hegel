@@ -2,6 +2,7 @@
 import NODE from "./nodes";
 import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
+import { Type } from "../type-graph/types/type";
 import { CallMeta } from "../type-graph/meta/call-meta";
 import { TypeScope } from "../type-graph/type-scope";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -411,25 +412,6 @@ export function addClassToTypeGraph(
   if (self.type.name === "{  }") {
     self.type.name = ObjectType.getName([...properties]);
   }
-  const errors = [];
-  // properties.forEach((property, key) => {
-  //   if (
-  //     !isTypeDefinitions &&
-  //     !property.hasInitializer &&
-  //     !property.type.contains(Type.Undefined)
-  //   ) {
-  //     errors.push(
-  //       new HegelError(
-  //         `Property "${key}" has a type, but doesn't have an initializer!`,
-  //         property.meta.loc
-  //       )
-  //     );
-  //   }
-  // });
-  if (errors.length !== 0) {
-    throw errors;
-  }
-
   const superType = classScope.body.get("super");
   typeScope.body.set(
     name,
@@ -500,7 +482,7 @@ export function addClassToTypeGraph(
       self.type instanceof $BottomType
         ? self.type.subordinateMagicType.localTypeScope
         : typeScope;
-    classNode.implements.forEach((typeAnnotation, index) => {
+    classNode.implements.forEach(typeAnnotation => {
       const typeForImplementation = getTypeFromTypeAnnotation(
         { typeAnnotation },
         localTypeScope,
@@ -529,6 +511,25 @@ export function addClassToTypeGraph(
         );
       }
     });
+  }
+  if (!isTypeDefinitions) {
+    const errors = [];
+    properties.forEach((property, key) => {
+      if (
+        !property.hasInitializer &&
+        !property.type.contains(Type.Undefined)
+      ) {
+        errors.push(
+          new HegelError(
+            `Property "${key}" has a type, but doesn't have an initializer!`,
+            property.meta.loc
+          )
+        );
+      }
+    });
+    if (errors.length !== 0) {
+      throw errors;
+    }
   }
   classScope.isProcessed = true;
   // $FlowIssue

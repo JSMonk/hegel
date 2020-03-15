@@ -5,7 +5,6 @@ import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
 import { FunctionType } from "./function-type";
 import { VariableInfo } from "../variable-info";
-import { $AppliedImmutable } from "./immutable-type";
 import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../constants";
 import type { TypeMeta } from "./type";
 import type { TypeScope } from "../type-scope";
@@ -130,7 +129,9 @@ export class ObjectType extends Type {
   }
 
   getPropertyType(
-    propertyName: mixed
+    propertyName: mixed,
+    _: boolean = false,
+    isForInit: boolean = false
   ): ?Type | ClassProperty | ObjectProperty | ClassMethod | ObjectMethod {
     let fieldOwner = this;
     let field = null;
@@ -155,6 +156,15 @@ export class ObjectType extends Type {
     }
     if (field.isPrivate && !this.properties.has(propertyName)) {
       return null;
+    }
+    if (
+      isForInit &&
+      fieldOwner === this &&
+      this.properties.has(propertyName) &&
+      field instanceof VariableInfo &&
+      !field.hasInitializer
+    ) {
+       field.hasInitializer = true;
     }
     return field.type;
   }
