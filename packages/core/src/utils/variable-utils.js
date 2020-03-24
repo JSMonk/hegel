@@ -1,4 +1,5 @@
 // @flow
+import NODE from "./nodes";
 import { Meta } from "../type-graph/meta/meta";
 import { Type } from "../type-graph/types/type";
 import { UnionType } from "../type-graph/types/union-type";
@@ -6,16 +7,32 @@ import { TupleType } from "../type-graph/types/tuple-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
+import { CONSTRUCTABLE } from "../type-graph/constants";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { $AppliedImmutable } from "../type-graph/types/immutable-type";
 import { getDeclarationName } from "./common";
 import { PositionedModuleScope } from "../type-graph/module-scope";
 import { getTypeFromTypeAnnotation } from "./type-utils";
 import { getParentForNode, findNearestTypeScope } from "./scope-utils";
-import type { Node } from "@babel/parser";
 import type { Handler } from "./traverse";
 import type { TypeScope } from "../type-graph/type-scope";
 import type { ModuleScope } from "../type-graph/module-scope";
+import type { Node, ClassProperty, ObjectProperty, ClassMethod, ObjectMethod } from "@babel/parser";
+
+export function getPropertyName(node: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod) {
+  const isPrivate = node.type === NODE.CLASS_PRIVATE_METHOD;
+  if (isPrivate) {
+    return `#${node.key.id.name}`;
+  }
+  if (node.kind === "constructor") {
+    return CONSTRUCTABLE;
+  }
+  const propertyName = node.key.name || `${node.key.value}`;
+  if (node.type === NODE.CLASS_PRIVATE_PROPERTY) {
+    return `#${propertyName}`;
+  }
+  return propertyName;
+}
 
 export function getVariableInfoFromDelcaration(
   currentNode: Node,

@@ -352,11 +352,11 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number | undefined) => number" is incompatible with type "(number) => undefined"'
+      'Type "2" is incompatible with type "undefined"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 54, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 53, line: 2 }
     });
   });
   test("Simple typed const declaration with function type with wrong return", async () => {
@@ -367,11 +367,11 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => number" is incompatible with type "(number) => undefined"'
+      'Type "number" is incompatible with type "undefined"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 53, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 52, line: 2 }
     });
   });
   test("Simple typed const declaration with function type with non-princiapl return by right", async () => {
@@ -389,11 +389,11 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => 2 | undefined" is incompatible with type "(number) => number"'
+      'Type "2 | undefined" is incompatible with type "number"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 71, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 49, line: 2 }
     });
   });
   test("Simple typed const declaration with function type with non-princiapl return", async () => {
@@ -408,12 +408,20 @@ describe("Variable declrataion and assignment", () => {
       const a: ?number => undefined = (a: number) => 2; 
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
-    expect(errors.length).toEqual(1);
+    expect(errors.length).toEqual(2);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "(number) => number" is incompatible with type "(number | undefined) => undefined"'
+      'Type "2" is incompatible with type "undefined"'
     );
     expect(errors[0].loc).toEqual({
+      end: { column: 54, line: 2 },
+      start: { column: 53, line: 2 }
+    });
+    expect(errors[1].constructor).toEqual(HegelError);
+    expect(errors[1].message).toEqual(
+      'Type "(number) => undefined" is incompatible with type "(number | undefined) => undefined"'
+    );
+    expect(errors[1].loc).toEqual({
       end: { column: 54, line: 2 },
       start: { column: 12, line: 2 }
     });
@@ -591,7 +599,6 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 29, line: 2 },
-      identifierName: "a",
       start: { column: 19, line: 2 }
     });
   });

@@ -12,6 +12,7 @@ import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
+import { getPropertyName } from "./variable-utils";
 import { addCallToTypeGraph } from "../type-graph/call";
 import { functionWithReturnType } from "./function-utils";
 import { getTypeFromTypeAnnotation } from "./type-utils";
@@ -242,6 +243,52 @@ export function addThisToClassScope(
       staticSelfObject.properties.set(CONSTRUCTABLE, constructor);
     }
   }
+  if (currentNode.implements) {
+    const localTypeScope =
+      self instanceof $BottomType
+        ? self.subordinateMagicType.localTypeScope
+        : typeScope;
+    currentNode.implements = currentNode.implements.map(typeAnnotation => {
+      const typeForImplementation = getTypeFromTypeAnnotation(
+        { typeAnnotation },
+        localTypeScope,
+        classScope.parent,
+        true,
+        null,
+        parentNode,
+        typeGraph,
+        precompute,
+        middlecompute,
+        postcompute
+      );
+      if (
+        !(typeForImplementation instanceof ObjectType) ||
+        typeForImplementation.isStrict
+      ) {
+        throw new HegelError(
+          "Type which should be implemented should be an soft objecty type",
+          typeAnnotation.loc
+        );
+      }
+      currentNode.body.body.forEach(node => {
+        if (
+          node.type !== NODE.CLASS_PROPERTY &&
+          node.type !== NODE.CLASS_PRIVATE_PROPERTY &&
+          node.type !== NODE.CLASS_METHOD &&
+          node.type !== NODE.CLASS_PRIVATE_METHOD
+        ) {
+          return
+        }
+        const propertyName = getPropertyName(node);
+        const existedProperty = typeForImplementation.properties.get(propertyName);
+        if (existedProperty === undefined) {
+          return;
+        }
+        node.expected = existedProperty.type;
+      });
+      return { loc: typeAnnotation.loc, id: typeAnnotation.id, typeForImplementation }; 
+    });
+  }
 }
 
 function addThisToObjectScope(
@@ -296,19 +343,7 @@ export function addPropertyNodeToThis(
   middle: Handler,
   post: Handler
 ) {
-  let propertyName;
-  const isPrivate = currentNode.type === NODE.CLASS_PRIVATE_METHOD;
-  if (isPrivate) {
-    propertyName = `#${currentNode.key.id.name}`;
-  } else {
-    propertyName = currentNode.key.name || `${currentNode.key.value}`;
-  }
-  if (currentNode.kind === "constructor") {
-    propertyName = CONSTRUCTABLE;
-  }
-  if (currentNode.type === NODE.CLASS_PRIVATE_PROPERTY) {
-    propertyName = `#${propertyName}`;
-  }
+  const propertyName = getPropertyName(currentNode);
   // $FlowIssue
   const currentClassScope: VariableScope = getParentForNode(
     currentNode,
@@ -485,33 +520,9 @@ export function addClassToTypeGraph(
       self.type instanceof $BottomType
         ? self.type.subordinateMagicType.localTypeScope
         : typeScope;
-    classNode.implements.forEach(typeAnnotation => {
-      const typeForImplementation = getTypeFromTypeAnnotation(
-        { typeAnnotation },
-        localTypeScope,
-        classScope.parent,
-        true,
-        null,
-        parentNode,
-        typeGraph,
-        pre,
-        middle,
-        post
-      );
-      if (
-        !(typeForImplementation instanceof ObjectType) ||
-        typeForImplementation.isStrict
-      ) {
-        throw new HegelError(
-          "Type which should be implemented should be an soft objecty type",
-          typeAnnotation.loc
-        );
-      }
+    classNode.implements.forEach(({ typeForImplementation, id, loc }) => {
       if (!typeForImplementation.isPrincipalTypeFor(self.type)) {
-        throw new HegelError(
-          `Wrong implementation for type "${typeAnnotation.id.name}"`,
-          typeAnnotation.loc
-        );
+        throw new HegelError(`Wrong implementation for type "${id.name}"`, loc);
       }
     });
   }

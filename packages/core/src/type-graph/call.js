@@ -19,11 +19,11 @@ import { VariableScope } from "./variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { isCallableType } from "../utils/function-utils";
 import { getAnonymousKey } from "../utils/common";
-import { getVariableType } from "../utils/variable-utils";
 import { $AppliedImmutable } from "./types/immutable-type";
 import { inferenceTypeForNode } from "../inference";
 import { pickFalsy, pickTruthy } from "../utils/type-utils";
 import { addFunctionToTypeGraph } from "../utils/function-utils";
+import { getVariableType, getPropertyName } from "../utils/variable-utils";
 import { ModuleScope, PositionedModuleScope } from "./module-scope";
 import { addToThrowable, findThrowableBlock } from "../utils/throwable";
 import { THIS_TYPE, CALLABLE, CONSTRUCTABLE } from "./constants";
@@ -215,13 +215,7 @@ export function addCallToTypeGraph(
         selfObject instanceof $BottomType
           ? selfObject.subordinateMagicType.subordinateType
           : selfObject;
-      const isPrivate = node.type === NODE.CLASS_PRIVATE_PROPERTY;
-      let _propertyName;
-      if (isPrivate) {
-        _propertyName = `#${node.key.id.name}`;
-      } else {
-        _propertyName = node.key.name || `${node.key.value}`;
-      }
+      const _propertyName = getPropertyName(node);
       const propertyType = selfObject.properties.get(_propertyName);
       if (propertyType === undefined) {
         throw new Error("Never!!!");

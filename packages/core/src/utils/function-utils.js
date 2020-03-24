@@ -124,6 +124,15 @@ export function addFunctionToTypeGraph(
         inferencedArgumentsTypes[i] = expected;
       }
     }
+    const expectedReturnType = expectedType.returnType;
+      if (
+        functionType.returnType instanceof TypeVar &&
+        !functionType.returnType.isUserDefined &&
+        expectedReturnType.parent.priority <= 1
+      ) {
+        functionType.returnType = expectedReturnType;
+        variableInfo.isInferenced = false;
+      }
   }
   const withPositions = moduleScope instanceof PositionedModuleScope;
   currentNode.params.forEach((param, index) => {

@@ -123,6 +123,7 @@ async function getHegelTypings(source, path) {
     );
     return [types, errors];
   } catch (e) {
+    
     e.source = e.source || path;
      return [, [e]];
   }
