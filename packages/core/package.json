@@ -1,10 +1,9 @@
 {
   "name": "@hegel/core",
   "author": "Artem Kobzar",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "description": "",
-  "main": "build/index.js",
-  "files": ["build"],
+  "main": "index.js",
   "scripts": {
     "build": " npm run build:clean && npm run build:start && npm run build:copy",
     "build:start": "babel src -d build",
