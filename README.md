@@ -1,6 +1,6 @@
 # Hegel
 <p align="center">
-  <a href="#" target="blank"><img src="./logo-light.svg" width="120" alt="Hegel Logo" /></a>
+  <a href="#" target="blank"><img src="./logo-dark.svg" width="300" alt="Hegel Logo" /></a>
 </p>
 
 Hegel is a static type checker for JavaScript with strong typings, high inference level and a lot of additional goodies.
