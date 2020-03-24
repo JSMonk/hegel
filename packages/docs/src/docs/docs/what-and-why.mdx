@@ -210,13 +210,13 @@ If you familiar with Flow.js you may know benefits of static typing, so lets exp
 As example Flow.js docs says: "Flow does not infer generic types. If you want something to have a generic type, annotate it. Otherwise, Flow may infer a type that is less polymorphic than you expect.". It's because Flow.js inference function type by function usage. Hegel inferences function type by function declaration and as result Hegel inferences polymorphic type.
 
 ```typescript
-// Type of "id" function is "<a'>(a') => a'"
+// Type of "id" function is "<_a>(_a) => _a"
 const id = x => x;
 // Type of "num" variable is "number"
 let num = id(4);
 // Type of "str" variable is "string"
 let str = id("4");
-// Type of "anotherId" variable is "<a'>(a') => a'"
+// Type of "anotherId" variable is "<_a>(_a) => _a"
 let anotherId = id(id);
 ```
 

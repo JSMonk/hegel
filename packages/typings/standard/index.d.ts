@@ -1510,16 +1510,16 @@ declare var DateTimeFormat: {
 };
 
 interface DateConstructor {
-  new (): Date;
-  new (value: number | string): Date;
   new (
-    year: number,
-    month: number,
-    date?: number,
-    hours?: number,
-    minutes?: number,
-    seconds?: number,
-    ms?: number
+    ...args: 
+    | [] 
+    | [Date | number | string] 
+    | [number, number]
+    | [number, number, number]
+    | [number, number, number, number]
+    | [number, number, number, number, number]
+    | [number, number, number, number, number, number]
+    | [number, number, number, number, number, number, number]
   ): Date;
   // (): string;
   readonly prototype: Date;

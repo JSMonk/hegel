@@ -1,0 +1,83 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/rush.schema.json",
+  "rushVersion": "5.22.0",
+  "npmVersion": "6.1.0",
+  // "npmVersion": "4.5.0",
+  "nodeSupportedVersionRange": ">=12.0.0",
+  // "suppressNodeLtsWarning": false,
+  // "ensureConsistentVersions": true,
+
+   "projectFolderMinDepth": 1,
+   "projectFolderMaxDepth": 3,
+
+  "gitPolicy": {
+    "versionBumpCommitMessage": "Applying package updates. [skip-ci]"
+  },
+
+  "repository": {
+     "url": "https://github.com/JSMonk/hegel",
+  },
+
+  "eventHooks": {
+    /**
+     * The list of shell commands to run before the Rush installation starts
+     */
+    "preRushInstall": [
+      // "common/scripts/pre-rush-install.js"
+    ],
+
+    /**
+     * The list of shell commands to run after the Rush installation finishes
+     */
+    "postRushInstall": [],
+
+    /**
+     * The list of shell commands to run before the Rush build command starts
+     */
+    "preRushBuild": [],
+
+    /**
+     * The list of shell commands to run after the Rush build command finishes
+     */
+    "postRushBuild": []
+  },
+
+  "variants": [
+    // {
+    //   /**
+    //    * The folder name for this variant.
+    //    */
+    //   "variantName": "old-sdk",
+    // 
+    //   /**
+    //    * An informative description
+    //    */
+    //   "description": "Build this repo using the previous release of the SDK"
+    // }
+  ],
+
+  "projects": [
+    {
+      "packageName": "@hegel/cli",
+      "projectFolder": "packages/cli"
+    },
+    {
+      "packageName": "@hegel/core",
+      "projectFolder": "packages/core"
+    },
+    {
+      "packageName": "@hegel/docs",
+      "projectFolder": "packages/docs",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@hegel/language-server",
+      "projectFolder": "packages/language-server",
+      "shouldPublish": false
+    },
+    {
+      "packageName": "@hegel/typings",
+      "projectFolder": "packages/typings"
+    }
+  ]
+}

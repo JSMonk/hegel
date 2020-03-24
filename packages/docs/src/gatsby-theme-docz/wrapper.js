@@ -12,7 +12,9 @@ export default function Wrapper({ children }) {
       const darkMatcher = window.matchMedia("(prefers-color-scheme: dark)");
         const switchFavicon = () => {
             changeFavicon(darkMatcher.matches ? DARK_FAVICON : LIGHT_FAVICON);
-            setColorMode(darkMatcher.matches ? "dark" : "light");
+            if (!localStorage.getItem("theme-ui-color-mode")) {
+              setColorMode(darkMatcher.matches ? "dark" : "light");
+            }
         };
       darkMatcher.addListener(switchFavicon);
       switchFavicon();
