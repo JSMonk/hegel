@@ -161,6 +161,7 @@ export function getTypeFromTypeAnnotation(
         "typeof for types does not exist in Hegel. Use magic type $TypeOf instead.",
         typeNode.typeAnnotation.loc
       );
+    case NODE.SYMBOL_TYPE_ANNOTATION:
     case NODE.TS_SYMBOL_TYPE_ANNOTATION:
       return Type.Symbol;
     case NODE.TS_BIGINT_TYPE_ANNOTATION:

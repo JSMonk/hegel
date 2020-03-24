@@ -1,17 +1,18 @@
 {
   "name": "@hegel/core",
   "author": "Artem Kobzar",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "description": "",
-  "main": "./index.js",
-  "files": "./build",
+  "main": "build/index.js",
+  "files": ["build"],
   "scripts": {
     "build": " npm run build:clean && npm run build:start && npm run build:copy",
-    "build:check": "flow",
     "build:start": "babel src -d build",
     "build:copy": "cp ./package.json ./build/package.json && cp ./src/index.d.ts ./build/index.d.ts",
     "build:clean": "rm -rf build && mkdir build",
-    "test": "jest"
+    "test": "jest",
+    "prepare" : "npm run build",
+    "prepublishOnly": "npm run test"
   },
   "license": "MIT",
   "dependencies": {

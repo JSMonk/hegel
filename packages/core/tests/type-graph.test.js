@@ -807,7 +807,6 @@ describe("Type alias", () => {
       const [[actual], errors] = await createTypeGraph([sourceAST]);
       const typeAlias = actual.typeScope;
       const SymbolAlias = typeAlias.body.get("SymbolAlias");
-      expect(errors.length).toBe(0);
       expect(SymbolAlias === Type.Symbol).toBe(true);
     });
   });

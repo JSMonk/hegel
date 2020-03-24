@@ -1,18 +1,19 @@
 {
   "name": "@hegel/cli",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "description": "",
-  "main": "index.js",
+  "main": "build/index.js",
+  "files": ["build"],
   "bin": {
     "hegel": "./index.js"
   },
   "scripts": {
-    "build": "npm run build:clean && npm run build:start && npm run build:copy",
-    "build:check": "flow",
+    "build": "npm run build:clean && npm run build:start && npm run build:copy && npm run build:check",
+    "build:check": "node ./build/index.js",
     "build:start": "babel src -d build --config-file ./.babelrc",
     "build:clean": "rm -rf build && mkdir build",
     "build:copy": "cp ./package.json ./build/package.json",
-    "test": "jest"
+    "prepare" : "npm run build"
   },
   "author": "Artem Kobzar",
   "license": "MIT",
@@ -25,7 +26,7 @@
     "@babel/code-frame": "^7.0.0",
     "@babel/parser": "^7.8.3",
     "@babel/preset-env": "^7.7.6",
-    "@hegel/core": "0.0.30",
+    "@hegel/core": "0.0.31",
     "@hegel/typings": "0.0.25",
     "chalk": "^2.4.2",
     "cosmiconfig": "^5.2.1",
@@ -37,11 +38,7 @@
     "@babel/core": "^7.8.3",
     "@babel/plugin-proposal-class-properties": "^7.1.0",
     "@babel/preset-flow": "^7.8.3",
-    "babel-core": "^7.0.0-bridge.0",
-    "babel-jest": "^25.1.0",
     "babel-plugin-syntax-flow": "^6.18.0",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
-    "flow-bin": "^0.94.0",
-    "jest": "^25.1.0"
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2"
   }
 }

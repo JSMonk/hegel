@@ -15,7 +15,7 @@
   },
 
   "repository": {
-     "url": "https://github.com/JSMonk/hegel",
+     "url": "https://github.com/JSMonk/hegel.git",
   },
 
   "eventHooks": {
@@ -59,11 +59,13 @@
   "projects": [
     {
       "packageName": "@hegel/cli",
-      "projectFolder": "packages/cli"
+      "projectFolder": "packages/cli",
+      "shouldPublish": true
     },
     {
       "packageName": "@hegel/core",
-      "projectFolder": "packages/core"
+      "projectFolder": "packages/core",
+      "shouldPublish": true
     },
     {
       "packageName": "@hegel/docs",
@@ -77,7 +79,8 @@
     },
     {
       "packageName": "@hegel/typings",
-      "projectFolder": "packages/typings"
+      "projectFolder": "packages/typings",
+      "shouldPublish": true
     }
   ]
 }
