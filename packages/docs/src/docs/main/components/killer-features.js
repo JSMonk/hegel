@@ -133,22 +133,22 @@ const STRONG_TYPE_SYSTEM_CODE = `function provideNumber(providedData: ?number) {
 provideNumber(0);
 `;
 
-const TYPE_INFERENCE_CODE = `// Inferenced as "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
+const TYPE_INFERENCE_CODE = `// Hegel will inference "promisify" as "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
 const promisify = fn => arg => Promise.resolve(fn(arg));
-// Inferenced as "<_c>(_c) => Promise<_c>"
+// There, Hegel will inference "<_c>(_c) => Promise<_c>"
 const id = promisify(x => x);
-// Inferenced as "Promise<string>"
+// And "upperStr" will be inferenced as "Promise<string>"
 const upperStr = id("It will be inferenced").then(str => str.toUpperCase());
-// Inferenced as "Promise<number>"
+// Finally, "twiceNum" will be inferenced as "Promise<number>"
 const twicedNum = id(42).then(num => num ** 2);`;
 
-const TYPED_ERRORS_CODE = `// Inferenced type "(unknown) => undefined throws TypeError"
+const TYPED_ERRORS_CODE = `// Inferenced type will be "(unknown) => undefined throws TypeError"
 function assertNumber(arg) {
   if (typeof arg !== "number") {
     throw new TypeError("Given arg is not a number");
   }
 }
-// Inferenced type "(unknown) => undefined throws ReferenceError | TypeError"
+// And there, Inferenced type will be "(unknown) => undefined throws ReferenceError | TypeError"
 function assertField(obj) {
   if (typeof obj === "object" && obj !== null && "value" in obj) {
     assertNumber(obj.value)
@@ -159,7 +159,7 @@ function assertField(obj) {
 try {
   assertField({});
 } catch(error) {
-  // error type is "ReferenceError | TypeError | unknown"
+  // So, as result, "error" variable type will be "ReferenceError | TypeError | unknown"
 }`;
 
 export function KillerFeatures() {
@@ -167,7 +167,7 @@ export function KillerFeatures() {
   return (
     <Section mode={colorMode}>
       <List>
-        <ListItem>
+        <ListItem id="soundness">
           <Container>
             <Title>Soundness</Title>
             <Wrapped>
@@ -177,7 +177,7 @@ export function KillerFeatures() {
             </Wrapped>
           </Container>
         </ListItem>
-        <ListItem>
+        <ListItem id="strong-type-system">
           <Container>
             <Title>Strong Type System</Title>
             <Wrapped>
@@ -189,7 +189,7 @@ export function KillerFeatures() {
             </Wrapped>
           </Container>
         </ListItem>
-        <ListItem>
+        <ListItem id="type-inference">
           <Container>
             <Title>Type Inference</Title>
             <Wrapped>
@@ -199,7 +199,7 @@ export function KillerFeatures() {
             </Wrapped>
           </Container>
         </ListItem>
-        <ListItem>
+        <ListItem id="typed-errors">
           <Container>
             <Title>Typed Errors</Title>
             <Wrapped>
