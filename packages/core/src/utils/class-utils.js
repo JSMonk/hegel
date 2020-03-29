@@ -74,14 +74,14 @@ export function addThisToClassScope(
     );
   const name =
     currentNode.id != undefined ? getDeclarationName(currentNode) : "{ }";
-  const typeName =
-    genericArguments != undefined
+  const isGenericType = genericArguments != undefined;
+  const typeName = isGenericType
       ? GenericType.getName(name, genericArguments)
       : name;
   const selfObject = ObjectType.term(
     typeName,
     {
-      parent: typeScope,
+      parent: isGenericType ? localTypeScope : typeScope,
       isNominal:
         currentNode.type === NODE.CLASS_EXPRESSION ||
         currentNode.type === NODE.CLASS_DECLARATION
