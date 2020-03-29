@@ -400,7 +400,7 @@ function resolveOuterTypeVarsFromCall(
       const shouldSetNewRoot =
         variable instanceof TypeVar &&
         !root.contains(variable) &&
-        (variable.isUserDefined || variable.constraint === undefined) &&
+        (variable.constraint === undefined || variable.constraint.isPrincipalTypeFor(root)) &&
         (variable.root === undefined ||
           variable.root.isSuperTypeFor(variable.root));
       if (!genericArguments.includes(variable)) {
@@ -616,11 +616,7 @@ export function getInvocationType(
 }
 
 export function clearRoot(type: Type) {
-  while (type instanceof TypeVar && type.root != undefined) {
-    const root = type.root;
-    type.root = undefined;
-    type = root;
-  }
+  type.root = undefined;
 }
 
 export function prepareGenericFunctionType(

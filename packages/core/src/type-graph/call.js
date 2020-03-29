@@ -498,13 +498,11 @@ export function addCallToTypeGraph(
         middle,
         post
       );
-      target =
-        declaration.returnType instanceof $BottomType ||
-        (declaration.returnType instanceof TypeVar &&
-          !declaration.returnType.isUserDefined)
-          ? target
-          : // $FlowIssue
-            target.type.applyGeneric([declaration.returnType], node.loc);
+      // $FlowIssue
+      target = target.type.subordinateType.changeAll(
+        target.type.genericArguments,
+        [declaration.returnType]
+      );
       isFinal =
         currentScope === fn ||
         // $FlowIssue
@@ -736,12 +734,6 @@ export function addCallToTypeGraph(
           post,
           meta
         ).result: any);
-        if (target instanceof TypeVar) {
-          throw new HegelError(
-            "Inferencing of functions inside inferenced object is not safe, if you want to use functions as property of your variable - add a type to this variable.",
-            node.loc
-          );
-        }
       }
       let targetType = target instanceof VariableInfo ? target.type : target;
       targetType =
