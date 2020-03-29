@@ -20,18 +20,14 @@ import type { ModuleScope } from "../type-graph/module-scope";
 import type { Node, ClassProperty, ObjectProperty, ClassMethod, ObjectMethod } from "@babel/parser";
 
 export function getPropertyName(node: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod) {
-  const isPrivate = node.type === NODE.CLASS_PRIVATE_METHOD;
+  const isPrivate = node.type === NODE.CLASS_PRIVATE_METHOD || node.type === NODE.CLASS_PRIVATE_PROPERTY;
   if (isPrivate) {
     return `#${node.key.id.name}`;
   }
   if (node.kind === "constructor") {
     return CONSTRUCTABLE;
   }
-  const propertyName = node.key.name || `${node.key.value}`;
-  if (node.type === NODE.CLASS_PRIVATE_PROPERTY) {
-    return `#${propertyName}`;
-  }
-  return propertyName;
+  return node.key.name || `${node.key.value}`;;
 }
 
 export function getVariableInfoFromDelcaration(

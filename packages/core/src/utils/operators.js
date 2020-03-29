@@ -44,20 +44,44 @@ const mixBaseOperators = moduleScope => {
   const operators = [
     [
       "+",
-      FunctionType.term(
-        "(number) => number",
-        { parent: typeScope },
-        [Type.Number],
-        Type.Number
+      genericFunction(
+        typeScope,
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", { parent: typeScope }, [
+                Type.BigInt,
+                Type.Number
+              ])
+            )
+          ]
+        ],
+        l => [l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
       "-",
-      FunctionType.term(
-        "(number) => number",
-        { parent: typeScope },
-        [Type.Number],
-        Type.Number
+      genericFunction(
+        typeScope,
+        parent => [
+          [
+            "T",
+            TypeVar.term(
+              "T",
+              { parent },
+              UnionType.term("bigint | number", { parent: typeScope }, [
+                Type.BigInt,
+                Type.Number
+              ])
+            )
+          ]
+        ],
+        l => [l.body.get("T")],
+        l => l.body.get("T")
       )
     ],
     [
