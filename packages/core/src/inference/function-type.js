@@ -14,6 +14,7 @@ import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
+import { $PropertyType } from "../type-graph/types/property-type";
 import { $ThrowsResult } from "../type-graph/types/throws-type";
 import { VariableScope } from "../type-graph/variable-scope";
 import { CollectionType } from "../type-graph/types/collection-type";
@@ -610,7 +611,7 @@ export function getInvocationType(
     returnType instanceof TypeVar ? Type.getTypeRoot(returnType) : returnType;
   returnType =
     returnType instanceof $BottomType &&
-    returnType.genericArguments.every(t => !(t instanceof TypeVar))
+    (returnType.genericArguments.every(t => !(t instanceof TypeVar)) || returnType.subordinateMagicType instanceof $PropertyType)
       ? returnType.unpack()
       : returnType;
   return returnType instanceof TypeVar

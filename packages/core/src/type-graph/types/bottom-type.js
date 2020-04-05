@@ -25,6 +25,7 @@ export class $BottomType extends Type {
   }
 
   static getName(name, parameters) {
+    name = name.replace(/<.+>/g, "");
     if (parameters.length === 0) {
       return String(name);
     }

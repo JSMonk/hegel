@@ -93,7 +93,7 @@ connection.onDidChangeWatchedFiles(change =>
 
 async function validateTextDocument(textDocument) {
   const text = textDocument.getText();
-  const path = textDocument.uri.replace("file://", "");
+  const path = decodeURIComponent(textDocument.uri).replace("file://", "");
   [types, errors, ast] = await getHegelTypings(text, path);
   const diagnostics = [];
   for (let i = 0; i < errors.length; i++) {
@@ -123,9 +123,8 @@ async function getHegelTypings(source, path) {
     );
     return [types, errors];
   } catch (e) {
-    
     e.source = e.source || path;
-     return [, [e]];
+    return [, [e]];
   }
 }
 

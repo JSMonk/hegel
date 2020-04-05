@@ -10,9 +10,9 @@ import { getConfig, createConfig } from "./lib/config";
 import { getErrorsPrint, getVerdictPrint } from "./lib/printer";
 import type { ErrorWithLocation } from "./lib/printer"; 
 import type { ExtendedFile, HegelError } from "@hegel/core"; 
-
+  
 const logger = getLogger();
- 
+
 const CLI = meow(
   `
 Usage
