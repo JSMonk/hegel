@@ -609,7 +609,10 @@ export function getInvocationType(
   returnType =
     returnType instanceof TypeVar ? Type.getTypeRoot(returnType) : returnType;
   returnType =
-    returnType instanceof $BottomType ? returnType.unpack() : returnType;
+    returnType instanceof $BottomType &&
+    returnType.genericArguments.every(t => !(t instanceof TypeVar))
+      ? returnType.unpack()
+      : returnType;
   return returnType instanceof TypeVar
     ? Type.getTypeRoot(returnType)
     : returnType;

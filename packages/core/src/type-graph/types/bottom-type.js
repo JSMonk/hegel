@@ -74,6 +74,7 @@ export class $BottomType extends Type {
         : [...this._changeStack, currentSelf];
     let includedUndefined = false;
     let includedBottom = false;
+    let includedTypeVar = false;
     const includedSelfIndex = sourceTypes.findIndex(t => this.equalsTo(t));
     if (includedSelfIndex !== -1) {
       return this.endChanges(targetTypes[includedSelfIndex]);
@@ -96,6 +97,9 @@ export class $BottomType extends Type {
           argumentIndex === -1 ? undefined : targetTypes[argumentIndex];
         if (result === undefined) {
           includedUndefined = true;
+        }
+        if (result instanceof TypeVar && !TypeVar.isSelf(result)) {
+          includedTypeVar = true;
         }
         return result;
       }
@@ -125,7 +129,7 @@ export class $BottomType extends Type {
           new $BottomType({}, type, type.genericArguments, this.loc)
         );
       }
-      if (includedBottom) {
+      if (includedBottom || includedTypeVar) {
         return this.endChanges(
           new $BottomType(
             {},

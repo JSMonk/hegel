@@ -117,21 +117,19 @@ const numbers: Array<number> = [];
 // Error: Type "Array<number>" is incompatible with type "Array<number | string>"
 const numbersOrStrings: Array<string | number> = numbers;
 numbersOrStrings.push("Hello, TypeError!");
-const integers = numbers.map(num => Number(num.toFixed(0)));
-// Error: Property "toLocaleString" does not exist in "Number | undefined"
-const helloOneMoreTypeError = integers[1].toLocaleString();`;
+// Error: Property "toFixed" does not exist in "Number | undefined" 
+numbers[1].toFixed(1);`;
 
-const STRONG_TYPE_SYSTEM_CODE = `function provideNumber(providedData: ?number) {
+const STRONG_TYPE_SYSTEM_CODE = `function assertNumber(num: ?number) {
   // Error: Type "number | undefined" is incompatible with type "boolean"
-  if (!providedData) {
+  if (!num) {
     // Oops you lost "0"
     throw new TypeError("Number was not provided");
   }
-  return providedData;
+  return num;
 }
 
-provideNumber(0);
-`;
+assertNumber(0);`;
 
 const TYPE_INFERENCE_CODE = `// Hegel will inference "promisify" as "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
 const promisify = fn => arg => Promise.resolve(fn(arg));
@@ -142,22 +140,18 @@ const upperStr = id("It will be inferenced").then(str => str.toUpperCase());
 // Finally, "twiceNum" will be inferenced as "Promise<number>"
 const twicedNum = id(42).then(num => num ** 2);`;
 
-const TYPED_ERRORS_CODE = `// Inferenced type will be "(unknown) => undefined throws TypeError"
-function assertNumber(arg) {
-  if (typeof arg !== "number") {
-    throw new TypeError("Given arg is not a number");
+const TYPED_ERRORS_CODE = `
+function assert(age) {
+  if (typeof age !== "number") {
+    throw new TypeError("Age is not number.");
+  } 
+  if (age <= 0) {
+    throw new ReferenceError("Age can't be less or equals zero.");
   }
-}
-// And there, Inferenced type will be "(unknown) => undefined throws ReferenceError | TypeError"
-function assertField(obj) {
-  if (typeof obj === "object" && obj !== null && "value" in obj) {
-    assertNumber(obj.value)
-  }
-  throw new ReferenceError('"value" property doesn\\'t exist');
 }
 
 try {
-  assertField({});
+  assert(0);
 } catch(error) {
   // So, as result, "error" variable type will be "ReferenceError | TypeError | unknown"
 }`;
@@ -171,7 +165,7 @@ export function KillerFeatures() {
           <Container>
             <Title>Soundness</Title>
             <Wrapped>
-              <Errored error=".token-line:nth-child(3),.token-line:nth-child(7)">
+              <Errored error=".token-line:nth-child(3),.token-line:nth-child(6)">
                 <Code className="language-typescript">{SOUNDNESS_CODE}</Code>
               </Errored>
             </Wrapped>
