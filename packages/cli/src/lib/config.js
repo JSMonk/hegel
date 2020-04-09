@@ -3,7 +3,7 @@ import { writeFileSync, existsSync } from "fs";
 import { join, dirname, isAbsolute } from "path";
 import type { ParserOptions } from "@babel/parser";
 
-const BABELRC: ParserOptions = {
+const BABELRC: ParserOptions = { 
   sourceType: "module",
   plugins: [
     "bigInt",
@@ -26,8 +26,7 @@ const DEFAULT_CONFIG = {
     exclude: ["./node_modules/**"],
     workingDirectory: CWD,
     babel: BABELRC,
-    typings: ["./@types", "./node_modules/@types"],
-    environment: []
+    typings: ["./@types", "./node_modules/@types"]
   },
   filepath: join(CWD, CONFIG_NAME)
 };
@@ -46,7 +45,7 @@ export type Config = {
   include: ?Array<string>,
   exclude: ?Array<string>,
   workingDirectory: string,
-  environment: Array<Environment>,
+  environment: ?Environment,
   typings: Array<string>,
   babel: ParserOptions
 };

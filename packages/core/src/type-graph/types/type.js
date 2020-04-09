@@ -12,7 +12,7 @@ export type TypeMeta = {
   shouldBeUsedAsGeneric?: boolean
 };
 
-const BOUNDARY = "[\\(\\)\\[\\]\\{\\}\\<\\>\\s\\n,]";
+const BOUNDARY = "[\\[\\]\\{\\}\\<\\>\\s\\n,]";
 
 export class Type {
   static get name() {
@@ -116,7 +116,7 @@ export class Type {
   getChangedName(sourceTypes: Array<Type>, targetTypes: Array<Type>) {
     let pattern = "";
     const map = sourceTypes.reduce((map, type, index) => {
-      const name = String(type.name);
+      const name = String(type.name).replace(/[()]/g, bracket => `\\${bracket}`);
       map.set(name, String(targetTypes[index].name));
       pattern += (pattern && "|") + name.replace(/\|/g, "\\|");
       return map;

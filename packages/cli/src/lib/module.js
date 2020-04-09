@@ -45,7 +45,7 @@ async function findTypingsInsideNodeModules(importPath, config: Config) {
     }
     return existsSync(typingsPath) ? typingsPath : path;
   }
-  if (config.environment.includes("nodejs")) { 
+  if (config.environment === "nodejs") { 
     return join(typings, "nodejs", `${path}.d.ts`);
   }
   return null; 

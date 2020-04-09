@@ -28,12 +28,12 @@ The `.hegelrc` consists of 4 sections:
 
 ## environment
 
-Array of string, which defines specific environment that should be used. For now only "nodejs" and "browser" options existed. With default Hegel configuration none environment will be included.
+String, which defines specific environment that should be used. For now only "nodejs" and "browser" options existed. With default Hegel configuration will not include any environment.
 
 ```yaml
-environment:
-  - browser
-  - nodejs
+environment: browser
+# or
+environment: nodejs
 ```
 
 ## exclude
