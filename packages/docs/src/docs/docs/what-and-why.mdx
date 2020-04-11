@@ -60,7 +60,7 @@ But, we need to answer at this question differently for different audience. So, 
 First of all, static analysis means that your code will be analyzed without actually running. So, static type analysis will analyze your code for any type errors.
 
 Actually, there are 2 major benefits of static type analysis:
-1. Static type analysis find and provide to you information about a type error which existed in your code during code writing. It not only gives you garantees that you code will work without runtime type errors but in addition it realy economs a lot of time for finding and fixing errors, especially in big projects which contains a realy long build step. 
+1. Static type analysis find and provide to you information about a type error which existed in your code during code writing. It not only gives you garantees that you code will work without runtime type errors but in addition it really economs a lot of time for finding and fixing errors, especially in big projects which contains a really long build step. 
 2. When you use instrument which provide type information of your variables, functions, methods, classes and etc - you have got a documentation of method usage without any additional efforts.
 
 ```typescript
@@ -107,7 +107,7 @@ const result = id(42).then(x => x + x);
 
 2. No unexpected runtime errors
 
-One of the non-goals of TypeScript is: "Apply a sound or "provably correct" type system. Instead, strike a balance between correctness and productivity.". It means that TypeScript never will guarantee that you will not have a Type Error at Runtime. Hegel is at opposite side. We try to implement strong type system which will guarantee that your program is valid.
+One of the non-goals of TypeScript is: "Apply a sound or "probably correct" type system. Instead, strike a balance between correctness and productivity.". It means that TypeScript never will guarantee that you will not have a Type Error at Runtime. Hegel is at opposite side. We try to implement strong type system which will guarantee that your program is valid.
 
 ```typescript
 const doubles: Array<number> = [Math.PI, Math.E];
@@ -245,11 +245,11 @@ try {
 
 3. No custom library definition language
 
-Flow.js has custom library definition languages and doesn't support the most popular TypeScript "d.ts" format. But for Hegel TypeScript "d.ts" it the only way to create type definition for library. So, every library which has TypeScript defintions should work with Hegel.
+Flow.js has custom library definition languages and doesn't support the most popular TypeScript "d.ts" format. But for Hegel TypeScript "d.ts" it the only way to create type definition for library. So, every library which has TypeScript definitions should work with Hegel.
 
 4. No OCaml in source code
 
-[OCaml](https://ocaml.org/) is realy great language and this language inspired us to implement the same type inference in Hegel, but the problem is that it's not common language (especially for developer who works with JavaScript stack) and as result it's hard for JavaScript community to contribute into the Flow.js.
+[OCaml](https://ocaml.org/) is really great language and this language inspired us to implement the same type inference in Hegel, but the problem is that it's not common language (especially for developer who works with JavaScript stack) and as result it's hard for JavaScript community to contribute into the Flow.js.
 We decided to implement Hegel in JavaScript.
 
 ### Disadvantages 
