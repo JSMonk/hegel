@@ -13,6 +13,15 @@ const {
   mixTypeDefinitions
 } = require("./preparation");
 
+test("separate export notation", async () => {
+  const sourceAST = prepareAST(`
+    function hello() {}
+    export {hello}
+  `);
+  const [, errors] = await createTypeGraph([sourceAST]);
+  expect(errors.length).toEqual(0);
+});
+
 describe("Simple global variable nodes", () => {
   test("Creating global module variable with number type", async () => {
     const sourceAST = prepareAST(`
