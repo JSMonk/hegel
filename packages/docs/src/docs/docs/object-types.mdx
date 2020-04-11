@@ -23,12 +23,12 @@ Defined object type is strict by default, it means that you cannot define additi
 
 ```typescript
 /* Error: Type "{
-  name: 'any.user@gmail.com',
+  email: 'any.user@gmail.com',
   password: 'qwerty',
   status: 'offline'
 }" is incompatible with type "{ email: string, password: string }" */
 const strictUser: { email: string, password: string } = {
-  name: "any.user@gmail.com",
+  email: "any.user@gmail.com",
   password: "qwerty",
   status: "offline"
 };
@@ -37,7 +37,7 @@ const strictUser: { email: string, password: string } = {
 To make defined object type as soft you can add special statement `...` (three dots). This statement will give Hegel information that you want to include additional properties inside object type.
 ```typescript
 const softUser: { email: string, password: string, ... } = { // 👌!
-  name: "any.user@gmail.com",
+  email: "any.user@gmail.com",
   password: "qwerty",
   status: "offline"
 };
