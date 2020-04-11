@@ -149,6 +149,26 @@ export class $PropertyType extends GenericType {
     if (isPropertyVariable) {
       return new $BottomType({}, this, [realTarget, realProperty], loc);
     }
+    if (realProperty instanceof UnionType) {
+      try {
+        const variants = realProperty.variants.map(p =>
+          this.applyGeneric(
+            [realTarget, p],
+            loc,
+            shouldBeMemoize,
+            isCalledAsBottom
+          )
+        );
+        return UnionType.term(UnionType.getName(variants), {}, variants);
+      } catch {
+        throw new HegelError(
+          `Property "${propertyName}" does not exist in "${
+            currentTarget.name
+          }"`,
+          loc
+        );
+      }
+    }
     if (realTarget instanceof UnionType) {
       try {
         const variants = realTarget.variants.map(v =>

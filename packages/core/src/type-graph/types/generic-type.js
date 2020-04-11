@@ -241,8 +241,12 @@ export class GenericType<T: Type> extends Type {
     shouldBeMemoize?: boolean = true
   ): T {
     this.assertParameters(appliedParameters, loc);
+    let isBottomPresented = false;
     const parameters: Array<Type> = this.genericArguments.map((t, i) => {
       const appliedType = appliedParameters[i];
+      if (appliedType instanceof $BottomType) {
+        isBottomPresented = true;
+      }
       if (appliedType === undefined) {
         if (t.defaultType === undefined) {
           throw new Error("Never!");
@@ -303,6 +307,14 @@ export class GenericType<T: Type> extends Type {
     );
     if (!(appliedSelf instanceof TypeVar)) {
       return appliedSelf;
+    }
+    if (isBottomPresented) {
+      return new $BottomType(
+        { parent: theMostPriorityParent },
+        this,
+        parameters,
+        loc
+      );
     }
     try {
       const result = this.subordinateType.changeAll(

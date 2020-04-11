@@ -732,7 +732,13 @@ interface ObjectConstructor {
   //       * Returns the names of the enumerable string properties and methods of an object.
   //       * @param o Object that contains the properties and methods. This can be an object that you created or an existing Document Object Model (DOM) object.
   //       */
-  keys(o: object): string[];
+  keys<T extends object>(o: T): Array<$Keys<T>>;
+
+  //     /**
+  //       * Returns the names of the enumerable string properties and methods of an object.
+  //       * @param o Object that contains the properties and methods. This can be an object that you created or an existing Document Object Model (DOM) object.
+  //       */
+  values<T extends object>(o: T): Array<$Values<T>>;
 
   /**
    * Copy the values of all of the enumerable own properties from one or more source objects to a
