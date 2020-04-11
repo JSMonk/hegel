@@ -278,12 +278,12 @@ for (const empire of empires) {
 
 ## Needless refinement
 
-Sometimes (especially after refactoring) you may do refinement which does not do something usefull. As example is provement that type of variable is `number` while variable type is always `number`. In this case Hegel try to notify you about it.
+Sometimes (especially after refactoring) you may do refinement which does not do something useful. As example is provement that type of variable is `number` while variable type is always `number`. In this case Hegel try to notify you about it.
 
 ```typescript
 const calculatedSum = 42 + 14;
 
-// Error: Type number can't be "string" type
+// Error: Variable is always "number"
 if (typeof calculatedSum === "number") {
   
 }
