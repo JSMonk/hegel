@@ -198,6 +198,13 @@ function mixExportInfo(currentNode: Node) {
   ) {
     return currentNode;
   }
+  if (currentNode.declaration == null) {
+    return {
+      type: NODE.EXPORT_LIST,
+      exportKind: currentNode.exportKind,
+      specifiers: currentNode.specifiers
+    };
+  }
   return currentNode.declaration.type !== NODE.VARIABLE_DECLARATION
     ? {
         ...currentNode.declaration,

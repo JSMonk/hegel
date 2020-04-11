@@ -4,6 +4,7 @@ const { Type } = require("../build/type-graph/types/type");
 const { UnionType } = require("../build/type-graph/types/union-type");
 const { ObjectType } = require("../build/type-graph/types/object-type");
 const { GenericType } = require("../build/type-graph/types/generic-type");
+const { VariableInfo } = require("../build/type-graph/variable-info");
 const { FunctionType } = require("../build/type-graph/types/function-type");
 const { CollectionType } = require("../build/type-graph/types/collection-type");
 const { CONSTRUCTABLE } = require("../build/type-graph/constants");
@@ -12,15 +13,6 @@ const {
   getModuleAST,
   mixTypeDefinitions
 } = require("./preparation");
-
-test("separate export notation", async () => {
-  const sourceAST = prepareAST(`
-    function hello() {}
-    export {hello}
-  `);
-  const [, errors] = await createTypeGraph([sourceAST]);
-  expect(errors.length).toEqual(0);
-});
 
 describe("Simple global variable nodes", () => {
   test("Creating global module variable with number type", async () => {
@@ -71,7 +63,9 @@ describe("Simple global variable nodes", () => {
     expect(errors.length).toBe(1);
     const [error] = errors;
     expect(error).toBeInstanceOf(HegelError);
-    expect(error.message).toEqual('There is no "any" type in Hegel. Use "unknown" instead.');
+    expect(error.message).toEqual(
+      'There is no "any" type in Hegel. Use "unknown" instead.'
+    );
     expect(error.loc).toEqual({
       start: { line: 2, column: 15 },
       end: { line: 2, column: 18 }
@@ -487,7 +481,9 @@ describe("Simple objects with property typing", () => {
     const actualAScope = actual.scopes.get("[[Scope3-8]]");
     expect(errors.length).toBe(0);
     expect(actualAScope.declaration.type).toBeInstanceOf(FunctionType);
-    expect(actualAScope.declaration.type === Type.find("() => number")).toBe(true);
+    expect(actualAScope.declaration.type === Type.find("() => number")).toBe(
+      true
+    );
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(0);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
@@ -511,8 +507,12 @@ describe("Simple objects with property typing", () => {
       Type.find("(string) => undefined")
     );
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(1);
-    expect(actualAScope.declaration.type.argumentsTypes[0] === Type.String).toBe(true);
-    expect(actualAScope.declaration.type.returnType === Type.Undefined).toBe(true);
+    expect(
+      actualAScope.declaration.type.argumentsTypes[0] === Type.String
+    ).toBe(true);
+    expect(actualAScope.declaration.type.returnType === Type.Undefined).toBe(
+      true
+    );
     expect(obj.type).toBeInstanceOf(ObjectType);
     expect(obj.type === Type.find("{ a: (string) => undefined }")).toBe(true);
     expect(obj.type.properties.get("a").type).toBe(
@@ -530,7 +530,9 @@ describe("Simple objects with property typing", () => {
     const actualAScope = actual.scopes.get("[[Scope3-11]]");
     expect(errors.length).toBe(0);
     expect(actualAScope.declaration.type).toBeInstanceOf(FunctionType);
-    expect(actualAScope.declaration.type === Type.find("() => number")).toBe(true);
+    expect(actualAScope.declaration.type === Type.find("() => number")).toBe(
+      true
+    );
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(0);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
@@ -554,11 +556,17 @@ describe("Simple objects with property typing", () => {
       Type.find("(number, string) => number")
     );
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(2);
-    expect(actualAScope.declaration.type.argumentsTypes[0] === Type.Number).toBe(true);
-    expect(actualAScope.declaration.type.argumentsTypes[1] === Type.String).toBe(true);
+    expect(
+      actualAScope.declaration.type.argumentsTypes[0] === Type.Number
+    ).toBe(true);
+    expect(
+      actualAScope.declaration.type.argumentsTypes[1] === Type.String
+    ).toBe(true);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ a: (number, string) => number }")).toBe(true);
+    expect(obj.type === Type.find("{ a: (number, string) => number }")).toBe(
+      true
+    );
     expect(obj.type.properties.get("a").type).toBe(
       actualAScope.declaration.type
     );
@@ -576,7 +584,9 @@ describe("Simple objects with property typing", () => {
     const actualAScope = actual.scopes.get("[[Scope3-11]]");
     expect(errors.length).toBe(0);
     expect(actualAScope.declaration.type).toBeInstanceOf(FunctionType);
-    expect(actualAScope.declaration.type === Type.find("() => number")).toBe(true);
+    expect(actualAScope.declaration.type === Type.find("() => number")).toBe(
+      true
+    );
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(0);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
@@ -600,11 +610,19 @@ describe("Simple objects with property typing", () => {
       Type.find("(number, string) => undefined")
     );
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(2);
-    expect(actualAScope.declaration.type.argumentsTypes[0] === Type.Number).toBe(true);
-    expect(actualAScope.declaration.type.argumentsTypes[1] === Type.String).toBe(true);
-    expect(actualAScope.declaration.type.returnType === Type.Undefined).toBe(true);
+    expect(
+      actualAScope.declaration.type.argumentsTypes[0] === Type.Number
+    ).toBe(true);
+    expect(
+      actualAScope.declaration.type.argumentsTypes[1] === Type.String
+    ).toBe(true);
+    expect(actualAScope.declaration.type.returnType === Type.Undefined).toBe(
+      true
+    );
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ a: (number, string) => undefined }")).toBe(true);
+    expect(obj.type === Type.find("{ a: (number, string) => undefined }")).toBe(
+      true
+    );
     expect(obj.type.properties.get("a").type).toBe(
       actualAScope.declaration.type
     );
@@ -624,7 +642,9 @@ describe("Simple objects with property typing", () => {
     const actualAScope = actual.scopes.get("[[Scope4-10]]");
     expect(errors.length).toBe(0);
     expect(actualAScope.declaration.type).toBeInstanceOf(FunctionType);
-    expect(actualAScope.declaration.type === Type.find("() => number")).toBe(true);
+    expect(actualAScope.declaration.type === Type.find("() => number")).toBe(
+      true
+    );
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(0);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
@@ -744,7 +764,9 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ f: (string, number) => number }")).toBe(true);
+    expect(a.type === Type.find("{ f: (string, number) => number }")).toBe(
+      true
+    );
     const f = a.type.properties.get("f").type;
     expect(f).toBeInstanceOf(FunctionType);
     expect(f.argumentsTypes.length).toBe(2);
@@ -909,7 +931,9 @@ describe("Type alias", () => {
       expect(errors.length).toBe(0);
       expect(A).toBeInstanceOf(ObjectType);
       expect(A.properties.get("a").type === Type.Number).toBe(true);
-      expect(A.properties.get("b").type === Type.find("() => number")).toBe(true);
+      expect(A.properties.get("b").type === Type.find("() => number")).toBe(
+        true
+      );
     });
   });
   describe("Funciton type alias", () => {
@@ -1094,7 +1118,9 @@ describe("Generic types", () => {
       const actualBArgumentInfo = actualAFunctionScope.body.get("b");
       const actualArgumentDeclarationInfo =
         actualADeclarationInfo.type.argumentsTypes[0];
-      expect(actualBArgumentInfo.type === Type.find("number | string")).toBe(true);
+      expect(actualBArgumentInfo.type === Type.find("number | string")).toBe(
+        true
+      );
       expect(actualArgumentDeclarationInfo).toBe(actualBArgumentInfo.type);
     });
     test("Union type as return type", async () => {
@@ -1244,4 +1270,75 @@ describe("Promises", () => {
     expect(c.type).toBeInstanceOf(Type);
     expect(c.type === Type.find(2)).toBe(true);
   });
-})
+});
+describe("Issues", () => {
+  test("Simple separated export notation", async () => {
+    const sourceAST = prepareAST(`
+      function hello() {}
+      export {hello}
+    `);
+    const [[currentModule], errors] = await createTypeGraph([sourceAST]);
+    const hello = currentModule.exports.get("hello");
+    expect(errors.length).toEqual(0);
+    expect(hello).not.toBe(undefined);
+    expect(hello).toBeInstanceOf(VariableInfo);
+    expect(hello.type).toBeInstanceOf(FunctionType);
+    expect(hello.type === Type.find("() => undefined")).toBe(true);
+    expect(hello.type.argumentsTypes.length).toBe(0);
+    expect(hello.type.returnType === Type.Undefined).toBe(true);
+  });
+  test("Hoisted separated export notation", async () => {
+    const sourceAST = prepareAST(`
+      export {hello}
+      function hello() {}
+    `);
+    const [[currentModule], errors] = await createTypeGraph([sourceAST]);
+    const hello = currentModule.exports.get("hello");
+    expect(errors.length).toEqual(0);
+    expect(hello).not.toBe(undefined);
+    expect(hello).toBeInstanceOf(VariableInfo);
+    expect(hello.type).toBeInstanceOf(FunctionType);
+    expect(hello.type === Type.find("() => undefined")).toBe(true);
+    expect(hello.type.argumentsTypes.length).toBe(0);
+    expect(hello.type.returnType === Type.Undefined).toBe(true);
+  });
+  test("Named separated export notation", async () => {
+    const sourceAST = prepareAST(`
+      function hello() {}
+      export { hello as hello1 }
+    `);
+    const [[currentModule], errors] = await createTypeGraph([sourceAST]);
+    const hello1 = currentModule.exports.get("hello1");
+    expect(errors.length).toEqual(0);
+    expect(hello1).not.toBe(undefined);
+    expect(hello1).toBeInstanceOf(VariableInfo);
+    expect(hello1.type).toBeInstanceOf(FunctionType);
+    expect(hello1.type === Type.find("() => undefined")).toBe(true);
+    expect(hello1.type.argumentsTypes.length).toBe(0);
+    expect(hello1.type.returnType === Type.Undefined).toBe(true);
+  });
+  test("Simple separated type export notation", async () => {
+    const sourceAST = prepareAST(`
+      type Hello = number;
+      export type { Hello }
+    `);
+    const [[currentModule], errors] = await createTypeGraph([sourceAST]);
+    const Hello = currentModule.exportsTypes.get("Hello");
+    expect(errors.length).toEqual(0);
+    expect(Hello).not.toBe(undefined);
+    expect(Hello).toBeInstanceOf(Type);
+    expect(Hello === Type.Number).toBe(true);
+  });
+  test("Simple separated type export notation", async () => {
+    const sourceAST = prepareAST(`
+      type Hello = number;
+      export type { Hello as Renamed }
+    `);
+    const [[currentModule], errors] = await createTypeGraph([sourceAST]);
+    const Renamed = currentModule.exportsTypes.get("Renamed");
+    expect(errors.length).toEqual(0);
+    expect(Renamed).not.toBe(undefined);
+    expect(Renamed).toBeInstanceOf(Type);
+    expect(Renamed === Type.Number).toBe(true);
+  });
+});

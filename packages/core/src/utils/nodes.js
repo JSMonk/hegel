@@ -20,6 +20,8 @@ export const DECLARATION_TYPES = {
   TYPE_PARAMETER_DECLARATION: "TypeParameterDeclaration",
   TS_TYPE_PARAMETER_DECLARATION: "TSTypeParameterDeclaration",
   TS_TYPE_PARAMETER: "TSTypeParameter",
+  EXPORT_LIST: "ExportList",
+  EXPORT_SPECIFIER: "ExportSpecifier",
   EXPORT_NAMED_DECLARATION: "ExportNamedDeclaration",
   EXPORT_DEFAULT_DECLARATION: "ExportDefaultDeclaration",
   IMPORT_DECLARATION: "ImportDeclaration"

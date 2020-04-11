@@ -158,6 +158,12 @@ const fillModuleScope = (
     postcompute: Handler,
     meta?: TraverseMeta = {}
   ) => {
+    if (
+      currentNode.type === NODE.EXPORT_NAMED_DECLARATION ||
+      currentNode.type === NODE.EXPORT_DEFAULT_DECLARATION
+    ) {
+      currentNode = currentNode.declaration;
+    }
     switch (currentNode.type) {
       case NODE.VARIABLE_DECLARATION:
         if (currentNode.init != undefined) {
@@ -351,7 +357,7 @@ const middlefillModuleScope = (
       currentNode.type === NODE.EXPORT_NAMED_DECLARATION ||
       currentNode.type === NODE.EXPORT_DEFAULT_DECLARATION
     ) {
-      currentNode = currentNode.declaration;
+      currentNode = currentNode.declaration || currentNode;
     }
     switch (currentNode.type) {
       case NODE.IMPORT_DECLARATION:
@@ -430,6 +436,12 @@ const afterFillierActions = (
     postcompute: Handler,
     meta?: Object = {}
   ) => {
+    if (
+      currentNode.type === NODE.EXPORT_NAMED_DECLARATION ||
+      currentNode.type === NODE.EXPORT_DEFAULT_DECLARATION
+    ) {
+      currentNode = currentNode.declaration;
+    }
     const currentScope = getParentForNode(currentNode, parentNode, moduleScope);
     const typeScope = findNearestTypeScope(currentScope, moduleScope);
     switch (currentNode.type) {
@@ -493,6 +505,33 @@ const afterFillierActions = (
         }
         break;
       case NODE.VARIABLE_DECLARATION:
+        break;
+      case NODE.EXPORT_LIST:
+        const isTypeExport = currentNode.exportKind === "type";
+        const specifiersSource = isTypeExport ? moduleScope.typeScope : moduleScope;
+        const specifiersTarget = isTypeExport 
+          ? moduleScope.exportsTypes 
+          : moduleScope.exports;
+        currentNode.specifiers.forEach(({ local, exported }) => {
+           const existedVariableOrType = specifiersSource instanceof ModuleScope
+             ? specifiersSource.findVariable(
+                  local,
+                  parentNode,
+                  moduleScope,
+                  precompute,
+                  middlecompute,
+                  postcompute
+               )
+             : specifiersSource.findTypeWithName(
+                  local.name,
+                  parentNode,
+                  moduleScope,
+                  precompute,
+                  middlecompute,
+                  postcompute
+               );
+            specifiersTarget.set(exported.name, existedVariableOrType);
+        });
         break;
       case NODE.VARIABLE_DECLARATOR:
         const variableInfo = currentScope.findVariable(currentNode.id);
