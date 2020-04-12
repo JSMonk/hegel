@@ -211,6 +211,9 @@ interface Array<T> {
   includes(searchElement: T): boolean;
   find(fn: (el: T) => boolean): T | undefined;
   findIndex(fn: (el: T) => boolean): number;
+  // Fills array with [value] from [start] index (0 by default) to [end] (length of array by default).
+  // Returns new changed array.
+  fill(value: T, start?: number, end?: number): T[];
   //     /**
   //       * Returns the index of the last occurrence of a specified value in an array.
   //       * @param searchElement The value to locate in the array.
