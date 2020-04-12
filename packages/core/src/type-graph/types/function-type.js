@@ -146,7 +146,7 @@ export class FunctionType extends Type {
     throws?: Type | void
   ) {
     const asyncPart = this.getAsyncPart(isAsync);
-    const genericPart = this.getGenericPart(
+    let genericPart = this.getGenericPart(
       genericParams,
       this.prettyMode && genericParams.length >= 4
     );
@@ -159,6 +159,9 @@ export class FunctionType extends Type {
     );
     const throwsPart = this.getThrowsPart(throws);
     const returnPart = this.getReturnPart(returnType);
+
+    genericPart = params.length !== 0 ? genericPart : ""
+
     return this.prettyMode
       ? this.multyLine(asyncPart, genericPart, argsPart, throwsPart, returnPart)
       : this.oneLine(asyncPart, genericPart, argsPart, throwsPart, returnPart);
