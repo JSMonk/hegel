@@ -154,32 +154,7 @@ const unknownObj: {...} = {};
 if ("value" in unknownObj) {
 
   // Type of "unknownValue" variable is "unknown"
-  const unknownValue = unknownObj.value; 
-}
-```
-
-## in
-
-In refinement prove that variable or property inside variable has specified property.
-
-```typescript
-class User {}
-class Admin { sayHiToAdmin() {} }
-
-const user: User | Admin = new User();
-
-if ("sayHiToAdmin" in user) {
-  user.sayHiToAdmin();
-}
-```
-
-```typescript
-const unknownObj: {...} = {};
-
-if ("value" in unknownObj) {
-
-  // Type of "unknownValue" variable is "unknown"
-  const unknownValue = unknownObj.value; 
+  const unknownValue = unknownObj.value;
 }
 ```
 
