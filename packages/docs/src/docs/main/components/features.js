@@ -51,7 +51,7 @@ export function Features() {
             <Title>No Runtime TypeErrors</Title>
             <Text>
               Hegel targets to prevent runtime TypeErrors by strong type
-              system, great type inference and notify you about corner cases
+              system, great type inference and notify you about corner cases.
             </Text>
           </ListItem>
           <ListItem>
