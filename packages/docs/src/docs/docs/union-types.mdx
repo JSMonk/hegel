@@ -7,7 +7,7 @@ menu: Type Annotations
 # Union Types
 ---------------------
 
-Sometimes you need more than one type or need to concrete values from any of existed type. A simple example when you need values from two different types is `repeat` function, which is waiting argument as `number` or `string` and reapeat given argument `n` times:
+Sometimes you need more than one type or need to concrete values from any of existed type. A simple example when you need values from two different types is `repeat` function, which is waiting argument as `number` or `string` and repeat given argument `n` times:
 
 ```typescript
 function repeat(target, times) {
@@ -50,7 +50,7 @@ repeat(false, 4);
 
 But, if you put a wrong type (not number or string) you will find an error in runtime.
 
-So, the solution is union types. Actually, union types is a union of all possible values for types which will be provided to union operator `|`. You can define it by declarating sequence of needed types separated by '|':
+So, the solution is union types. Actually, union types is a union of all possible values for types which will be provided to union operator `|`. You can define it by declaring sequence of needed types separated by '|':
 
 ```typescript
 let iCanBeAStringOrNumber: string | number = 2;
