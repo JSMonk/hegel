@@ -475,7 +475,11 @@ export function implicitApplyGeneric(
           (!(root instanceof TypeVar && !root.isUserDefined) &&
             root.isSuperTypeFor(existed)));
       if (!shouldSetNewRoot) {
-        continue;
+        const principal = existed && existed.findPrincipal(root);
+        if (principal === undefined) {
+          continue;
+        }
+        root = principal;
       }
       appliedArgumentsTypes.set(variable, root);
     }

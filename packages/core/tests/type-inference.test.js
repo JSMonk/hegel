@@ -3105,4 +3105,25 @@ describe("Other", () => {
     ).toBe(true);
     expect(lambda.returnType === Type.Number).toBe(true);
   });
+  test("Inference generic params for param usage function", async () => {
+    const sourceAST = prepareAST(`
+      const fn = (a) => a.a + a.b;
+      const res = fn({a: 1, b: 2}); 
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const fn = actual.body.get("fn");
+    const res = actual.body.get("res");
+    expect(errors.length).toBe(0);
+    expect(fn.type).toBeInstanceOf(GenericType);
+    expect(
+      fn.type ===
+      Type.find("<_a: { a: T, b: T, ... }, T: bigint | number | string>(_a) => T"))
+    .toBe(true);
+    expect(res.type === Type.Number).toBe(true);
+  });
 });

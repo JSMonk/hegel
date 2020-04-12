@@ -208,6 +208,14 @@ export class Type {
       return [];
     }
     if ("root" in type && type.isSubtypeOf === null) {
+      if (type.constraint !== undefined) {
+        return type.constraint.isPrincipalTypeFor(this)
+          ? [
+              { root: this, variable: type },
+              ...this.getDifference(type.constraint)
+            ]
+          : []
+      }
       return [{ root: this, variable: type }];
     }
     if ("subordinateMagicType" in type) {
@@ -305,5 +313,15 @@ export class Type {
 
   getNextParent(typeScope: TypeScope) {
     return Type.GlobalTypeScope;
+  }
+
+  findPrincipal(type: Type) {
+    let principal = { isSubtypeOf: this };
+    let isPrincipalFound = false;
+    while (principal.isSubtypeOf != undefined && !isPrincipalFound) {
+      principal = principal.isSubtypeOf;
+      isPrincipalFound = principal.isPrincipalTypeFor(type);
+    }
+    return isPrincipalFound ? principal : undefined;
   }
 }
