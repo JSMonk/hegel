@@ -61,7 +61,7 @@ let anyNumber: number = decimal + hex + binary + octal;
 `BigInt` was added in ES2019 and presents any integer number without bits limitations. 
 
 ```typescript
-let realyBigNumber: bigint = 2n**255n;
+let reallyBigNumber: bigint = 2n**255n;
 ```
 
 **Warning**: `BigInt` is not subtype or super type for `Number` data type. Hegel will show you an error if you try to use bigint as number or number as bigint. Also, in JavaScript you can't mix number and bigint in math operators, so, Hegel will show you an error too.
