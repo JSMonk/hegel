@@ -212,7 +212,7 @@ interface Array<T> {
   find(fn: (el: T) => boolean): T | undefined;
   findIndex(fn: (el: T) => boolean): number;
   // Fills array with [value] from [start] index (0 by default) to [end] (length of array by default).
-  // Returns new changed array.
+  // Changes source array and returns it.
   fill(value: T, start?: number, end?: number): T[];
   //     /**
   //       * Returns the index of the last occurrence of a specified value in an array.
