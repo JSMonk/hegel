@@ -589,6 +589,28 @@ describe("Simple inference for module functions", () => {
         a.type.subordinateType.argumentsTypes[0]
     ).toBe(true);
   });
+  test("Inference global module const function type", async () => {
+    const sourceAST = prepareAST(`
+      function CONST(x) {
+      	return () => x;
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const CONST = actual.body.get("CONST");
+    expect(errors.length).toBe(0);
+    expect(CONST.type).toBeInstanceOf(GenericType);
+    expect(CONST.type === Type.find("<_a>(_a) => () => _a")).toBe(true);
+    expect(CONST.type.subordinateType.argumentsTypes.length).toBe(1);
+    expect(CONST.type.subordinateType.argumentsTypes[0]).toBeInstanceOf(TypeVar);
+    expect(CONST.type.subordinateType.returnType).toBeInstanceOf(FunctionType);
+    expect(CONST.type.subordinateType.returnType.argumentsTypes.length).toBe(0);
+    expect(CONST.type.subordinateType.returnType.returnType).toBeInstanceOf(TypeVar);
+    expect(
+      CONST.type.subordinateType.returnType.returnType.equalsTo(
+        CONST.type.subordinateType.argumentsTypes[0]
+      )
+    ).toBe(true);
+  });
   test("Inference global module function type by arguments usage", async () => {
     const sourceAST = prepareAST(`
       function a(x) {

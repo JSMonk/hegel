@@ -872,10 +872,12 @@ export function inferenceFunctionTypeByScope(
     newGenericArguments.add(root);
   }
   shouldBeCleaned.forEach(clearRoot);
-  const newGenericArgumentsTypes = [...newGenericArguments].map(t => {
-    t.isUserDefined = true;
-    return t;
-  });
+  const newGenericArgumentsTypes = [...newGenericArguments]
+    .filter(t => !isReachableType(t, localTypeScope.parent))
+    .map(t => {
+      t.isUserDefined = true;
+      return t;
+    });
   const newFunctionTypeName = FunctionType.getName(
     newArgumentsTypes,
     newReturnType,
