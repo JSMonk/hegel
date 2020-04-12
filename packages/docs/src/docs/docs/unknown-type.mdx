@@ -24,14 +24,14 @@ const anything: unknown = class User {};
 
 > If you already familiar with TypeScript or Flow.js, this type has the same semantic as `unknown` in TS or `mixed` in Flow.js
 
-But, as you can understand, you can assign concret type to wider type, but you can't assign wider type to a concrete type.
+But, as you can understand, you can assign concrete type to wider type, but you can't assign wider type to a concrete type.
 
 ```typescript
-const concretType: string = "I'm good for unknown";
+const concreteType: string = "I'm good for unknown";
 const wideType: unknown = "I'm too wide for string";
 
-const iCanBeUnknown: unknown = concretType;
-const andICanBeString: string = concretType;
+const iCanBeUnknown: unknown = concreteType;
+const andICanBeString: string = concreteType;
 
 const andICanBeUnknownToo: unknown = wideType;
 const butCantBeString: string = wideType;
