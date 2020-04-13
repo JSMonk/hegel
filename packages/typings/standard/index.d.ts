@@ -5032,6 +5032,11 @@ interface ArrayConstructor {
    * @param iterable An iterable object to convert to an array.
    */
   from<T>(iterable: Iterable<T> | ArrayLike<T>): T[];
+  /**
+   * Returns a new array from a set of elements.
+   * @param items A set of elements to include in the new array object.
+   */
+  of<T>(...items: T[]): T[];
 }
 
 declare var Array: ArrayConstructor;
