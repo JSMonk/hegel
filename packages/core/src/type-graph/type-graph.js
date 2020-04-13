@@ -35,6 +35,7 @@ import {
   getTypeFromTypeAnnotation
 } from "../utils/type-utils";
 import {
+  isSideEffectCall,
   addFunctionToTypeGraph,
   addFunctionNodeToTypeGraph
 } from "../utils/function-utils";
@@ -508,29 +509,32 @@ const afterFillierActions = (
         break;
       case NODE.EXPORT_LIST:
         const isTypeExport = currentNode.exportKind === "type";
-        const specifiersSource = isTypeExport ? moduleScope.typeScope : moduleScope;
-        const specifiersTarget = isTypeExport 
-          ? moduleScope.exportsTypes 
+        const specifiersSource = isTypeExport
+          ? moduleScope.typeScope
+          : moduleScope;
+        const specifiersTarget = isTypeExport
+          ? moduleScope.exportsTypes
           : moduleScope.exports;
         currentNode.specifiers.forEach(({ local, exported }) => {
-           const existedVariableOrType = specifiersSource instanceof ModuleScope
-             ? specifiersSource.findVariable(
+          const existedVariableOrType =
+            specifiersSource instanceof ModuleScope
+              ? specifiersSource.findVariable(
                   local,
                   parentNode,
                   moduleScope,
                   precompute,
                   middlecompute,
                   postcompute
-               )
-             : specifiersSource.findTypeWithName(
+                )
+              : specifiersSource.findTypeWithName(
                   local.name,
                   parentNode,
                   moduleScope,
                   precompute,
                   middlecompute,
                   postcompute
-               );
-            specifiersTarget.set(exported.name, existedVariableOrType);
+                );
+          specifiersTarget.set(exported.name, existedVariableOrType);
         });
         break;
       case NODE.VARIABLE_DECLARATOR:
@@ -614,16 +618,16 @@ const afterFillierActions = (
           { isForInit: parentNode.kind === "constructor" }
         ).result;
 
-        if (
-          currentNode.expression &&                                   //
-          currentNode.expression.type === NODE.CALL_EXPRESSION &&     // if we call a function like a side effect.
-          currentNode.type === NODE.EXPRESSION_STATEMENT &&           // i.e we don't assign a return value of it to any variable
-          !resultOfCall.equalsTo(Type.Undefined)                      // but call of this function actually return something.
-        ) {
-          const functionName = currentNode.expression.callee.name
-          throw new HegelError(
-            `You use function "${functionName}" as side effect function, but it returns a ${resultOfCall.name} type`,
-            currentNode.loc
+        if (isSideEffectCall(currentNode, resultOfCall)) {
+          const functionName =
+            currentNode.expression.callee.name || "Anonymous Function";
+          errors.push(
+            new HegelError(
+              `You use function "${functionName}" as side effect function, but it returns a ${
+                resultOfCall.name
+              } type`,
+              currentNode.loc
+            )
           );
         }
 

@@ -125,14 +125,14 @@ export function addFunctionToTypeGraph(
       }
     }
     const expectedReturnType = expectedType.returnType;
-      if (
-        functionType.returnType instanceof TypeVar &&
-        !functionType.returnType.isUserDefined &&
-        expectedReturnType.parent.priority <= 1
-      ) {
-        functionType.returnType = expectedReturnType;
-        variableInfo.isInferenced = false;
-      }
+    if (
+      functionType.returnType instanceof TypeVar &&
+      !functionType.returnType.isUserDefined &&
+      expectedReturnType.parent.priority <= 1
+    ) {
+      functionType.returnType = expectedReturnType;
+      variableInfo.isInferenced = false;
+    }
   }
   const withPositions = moduleScope instanceof PositionedModuleScope;
   currentNode.params.forEach((param, index) => {
@@ -170,6 +170,18 @@ export function isCallableType(a: Type) {
     a = a.subordinateType;
   }
   return a instanceof FunctionType;
+}
+
+export function isSideEffectCall(
+  node: Node,
+  invocationResult: Type
+) {
+  return (
+    node.type === NODE.EXPRESSION_STATEMENT && // i.e we don't assign a return value of it to any variable
+    node.expression != null && //
+    node.expression.type === NODE.CALL_EXPRESSION && // if we call a function like a side effect.
+    !invocationResult.equalsTo(Type.Undefined) // but call of this function actually return something.
+  );
 }
 
 export function functionWithReturnType(
