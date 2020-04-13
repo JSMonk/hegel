@@ -613,6 +613,20 @@ const afterFillierActions = (
           postcompute,
           { isForInit: parentNode.kind === "constructor" }
         ).result;
+
+        if (
+          currentNode.expression &&                                   //
+          currentNode.expression.type === NODE.CALL_EXPRESSION &&     // if we call a function like a side effect.
+          currentNode.type === NODE.EXPRESSION_STATEMENT &&           // i.e we don't assign a return value of it to any variable
+          !resultOfCall.equalsTo(Type.Undefined)                      // but call of this function actually return something.
+        ) {
+          const functionName = currentNode.expression.callee.name
+          throw new HegelError(
+            `You use function "${functionName}" as side effect function, but it returns a ${resultOfCall.name} type`,
+            currentNode.loc
+          );
+        }
+
         if (currentNode.exportAs) {
           const exportVar =
             resultOfCall instanceof VariableInfo

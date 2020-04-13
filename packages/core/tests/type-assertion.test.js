@@ -618,6 +618,26 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
       start: { column: 10, line: 3 }
     });
   });
+  test("Call function which return a value like a side effect function", async () => {
+    const sourceAST = prepareAST(`
+      function fn() {
+        return 1;
+      }
+
+      fn()
+    `);
+
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+      'You use function \"fn\" as side effect function, but it returns a number type'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 10, line: 6 },
+      start: { column: 6, line: 6 }
+    });
+  });
   test("Function without return", async () => {
     const sourceAST = prepareAST(`
        function fn(a: number): number {}
