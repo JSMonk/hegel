@@ -131,13 +131,13 @@ const STRONG_TYPE_SYSTEM_CODE = `function assertNumber(num: ?number) {
 
 assertNumber(0);`;
 
-const TYPE_INFERENCE_CODE = `// Hegel will inference "promisify" as "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
+const TYPE_INFERENCE_CODE = `// Hegel will infer "promisify" as "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
 const promisify = fn => arg => Promise.resolve(fn(arg));
-// There, Hegel will inference "<_c>(_c) => Promise<_c>"
+// There, Hegel will infer "<_c>(_c) => Promise<_c>"
 const id = promisify(x => x);
-// And "upperStr" will be inferenced as "Promise<string>"
-const upperStr = id("It will be inferenced").then(str => str.toUpperCase());
-// Finally, "twiceNum" will be inferenced as "Promise<number>"
+// And "upperStr" will be inferred as "Promise<string>"
+const upperStr = id("It will be inferred").then(str => str.toUpperCase());
+// Finally, "twiceNum" will be inferred as "Promise<number>"
 const twicedNum = id(42).then(num => num ** 2);`;
 
 const TYPED_ERRORS_CODE = `
@@ -153,7 +153,7 @@ function assert(age) {
 try {
   assert(0);
 } catch(error) {
-  // So, as result, "error" variable type will be "ReferenceError | TypeError | unknown"
+  // So, as a result, "error" variable type will be "ReferenceError | TypeError | unknown"
 }`;
 
 export function KillerFeatures() {
