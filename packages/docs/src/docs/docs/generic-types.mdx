@@ -7,7 +7,7 @@ menu: Type Annotations
 # Generic Types
 ----------------
 
-Sometimes you can have a different types for the same logic. The easiest example of this case is `identity` function:
+Sometimes you can have different types for the same logic. The easiest example of this case is `identity` function:
 
 ```typescript
 function identity(value) {
@@ -40,7 +40,7 @@ let str = identityString("2");
 let bool = identityBoolean(false);
 ```
 
-As you can see, you need to define function only for type safety. This functions do not add a new business value to your code. You can try to solve this problem with [Unknown Type](/docs/unknown-type), but you will lose needed types.
+As you can see, you need to redefine the `identity` function only for type safety. These functions do not add new business value to your code. You can try to solve this problem with [Unknown Type](/docs/unknown-type), but you will lose the type of the return value.
 ```typescript
 function identity(value: unknown): unknown {
   return value;
@@ -57,7 +57,7 @@ let bool = identity(false);
 ```
 And then Generic Types appear.
 
-Generic Types is the way to create something like "type function". You can define "type arguments" which can be applied to this "type function" and new type will be returned.
+Generic Types are the way to create something like a "type function". You can define "type arguments" which can be applied to this "type function" and a new type will be returned.
 
 ```typescript
 // "T" is type variable
@@ -122,11 +122,11 @@ const bodyOfResponse2 = response2.body;
 ## Generic Syntax
 
 As was mentioned before, generics can be used within functions, function types, classes and type aliases.
-So, there are different syntax in different places.
+So, there are different syntaxes in different places.
 
 ### Functions
 
-To define generic parameters for function you need to add sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) before arguments list
+To define generic parameters for a function you need to add a sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) before arguments list
 
 ```typescript
 // Function Declaration Generic Syntax
@@ -191,7 +191,7 @@ const container2 = new Container(value);
 
 ### Type Alias
 
-To define generic parameters for type alias you need to add sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) after type alias identifier
+To define generic parameters for type aliases you need to add a sequence of needed type variables wrapped in `<` `>` (angle brackets) separated by `,` (comma) after type alias identifier.
 ```typescript
 type Container<T> = { value: T }
 
