@@ -6,7 +6,7 @@ route: /docs/configuration
 # Configuration
 ---------------------
 
-Hegel initialy uses default configuration, but if you want to ignore some files inside your project or say to Hegel that you have specific environment ([Node.js](https://nodejs.org/en/) for example) then you need to configure Hegel manually.
+Hegel initialy uses default configuration, but if you want to ignore some files inside your project or tell Hegel that you have a specific environment ([Node.js](https://nodejs.org/en/) for example) then you need to configure Hegel manually.
 
 To eject default configuration run:
 
@@ -15,9 +15,9 @@ $ hegel init
 Project initialized.
 ```
 
-After command will be executed `.hegelrc` file will be created.
+After the command is executed `.hegelrc` file will be created.
 
-By default `.hegelrc` uses [YAML](https://yaml.org/) format. But you have ability to choose between YAML and JSON.
+By default `.hegelrc` uses [YAML](https://yaml.org/) format. But you have the ability to choose between YAML and JSON.
 
 The `.hegelrc` consists of 4 sections:
 
@@ -28,7 +28,7 @@ The `.hegelrc` consists of 4 sections:
 
 ## environment
 
-String, which defines specific environment that should be used. For now only "nodejs" and "browser" options existed. With default Hegel configuration will not include any environment.
+String, which defines the specific environment that should be used. For now only "nodejs" and "browser" options exist. By default Hegel  will not include any environment.
 
 ```yaml
 environment: browser
@@ -38,7 +38,7 @@ environment: nodejs
 
 ## exclude
 
-Array of [glob-pattern string](https://commandbox.ortusbooks.com/usage/parameters/globbing-patterns) that defines which files should be ignored for analysis. With default Hegel configuration all "node_modules" files will be excluded.
+Array of [glob-pattern strings](https://commandbox.ortusbooks.com/usage/parameters/globbing-patterns) that match files to be excluded from analysis. By default Hegel excludes all files in the "node_modules" directory.
 
 ```yaml
 exclude:
@@ -49,7 +49,7 @@ exclude:
 
 ## include
 
-Array of [glob-pattern string](https://commandbox.ortusbooks.com/usage/parameters/globbing-patterns) that defines which files should be analyzed. With default Hegel configuration all .js files will analyzed.
+Array of [glob-pattern strings](https://commandbox.ortusbooks.com/usage/parameters/globbing-patterns) that match files that should be analyzed. By default Hegel will analyze all files that end in `.js`.
 
 ```yaml
 include:
@@ -60,9 +60,9 @@ include:
 
 ## typings
 
-Array of paths that defines folder in which Hegel should search for typings. Order is metter because Hegel will try to find typings for specific library firstly inside first defined folder, after inside second and after one by one. With default Hegel configuration Hegel will try to find firstly inside local directory "@types" and after inside "./node_modules/@types".
+Array of paths where Hegel should search for typings. Order is important because Hegel will try to find typings for specific libraries in the order they are defined. By default Hegel will first look inside the local directory "@types" and then inside "./node_modules/@types".
 
-> If type definitions are placed inside specific package you should not to define this package path inside this configuration section.
+> If type definitions are placed inside a specific package you should not define this package path inside this configuration section.
 
 ```yaml
 types:
@@ -72,4 +72,4 @@ types:
   - ./node_modules/custom-types
 ```
 
-> Hegel firstly will try to find type definitions inside directories which are defined inside `types` configuration section and if type definitons will not be founded, after that Hegel will try to find it inside node_modules package directory, and if Hegel didn't find it will try to infer type of module automatically.
+> Hegel will first try to find type definitions in the directories specified in the `types` configuration section. If type definitons are not found Hegel will search the `node_modules` directory. If Hegel can't find type definitions it will infer the types automatically.
