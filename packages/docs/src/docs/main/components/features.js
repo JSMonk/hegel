@@ -50,8 +50,8 @@ export function Features() {
           <ListItem>
             <Title>No Runtime TypeErrors</Title>
             <Text>
-              Hegel targets to prevent runtime TypeErrors by strong type
-              system, great type inference and notify you about corner cases.
+              Hegel attempts to prevent runtime TypeErrors with a strong type
+              system, great type inference and notifying you about corner cases.
             </Text>
           </ListItem>
           <ListItem>
@@ -64,7 +64,7 @@ export function Features() {
           <ListItem>
             <Title>Community-friendly</Title>
             <Text>
-              Hegel is developing by community for community. So, your PRs and
+              Hegel is developed by community for community. So, your PRs and
               issues will not be ignored or skipped.
             </Text>
           </ListItem>
