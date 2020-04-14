@@ -7,7 +7,7 @@ menu: Type Annotations
 # Class Types
 ----------------
 
-The same as in other "analyzers" Hegel doesn't provide a special syntax for class (only type syntax for properties and methods), you can define class the same as in JavaScript, but Hegel will create a type for this class and his constructor.
+The same as in other "analyzers" Hegel doesn't provide a special syntax for class (only type syntax for properties and methods). You can define class the same as in JavaScript, but Hegel will create a type for this class and it's constructor.
 
 ```typescript
 class User {
@@ -28,7 +28,7 @@ const UserConstructor = User;
 
 ## Class Methods
 
-The same as for [Function Types](/docs/function-types), Hegel provides syntax for argument types and return type;
+As with [Function Types](/docs/function-types), Hegel provides syntax for argument types and return type;
 ```typescript
 class Fighter {
   tellTheRules(isNewbee: boolean): string {
@@ -52,8 +52,8 @@ If you want to use a class field you must define it first and give it an annotat
 ```typescript
 class Fighter {
   tellTheRules(): string {
-    // Error: Property "isNewbee" does not exist in "Fighter"
-    return this.isNewbee ? "I don't know the rules." : `
+    // Error: Property "isNewbie" does not exist in "Fighter"
+    return this.isNewbie ? "I don't know the rules." : `
       1. You do not talk about Fight Club.
       2. You DO NOT talk about Fight Club.
       3. If someone yells “stop!”, goes limp, or taps out, the fight is over.
@@ -66,14 +66,14 @@ class Fighter {
 }
 ```
 
-You can define class field inside the body of class.
+You can define class fields inside the body of class.
 
 ```typescript
 class Fighter {
-  isNewbee: boolean;
+  isNewbie: boolean;
 
   tellTheRules(): string {
-    return this.isNewbee ? "I don't know the rules." : `
+    return this.isNewbie ? "I don't know the rules." : `
       1. You do not talk about Fight Club.
       2. You DO NOT talk about Fight Club.
       3. If someone yells “stop!”, goes limp, or taps out, the fight is over.
@@ -86,11 +86,11 @@ class Fighter {
 }
 ```
 
-> If you already familiar with TypeScript. Hegel does not provide an accessibility modifiers like `public`, `private` or `protected`. 
+> If you are already familiar with TypeScript, Hegel does not provide accessibility modifiers like `public`, `private` or `protected`. 
 
 ## Static Members
 
-The same as in JavaScript, static members of class will be inside class constructor and not inside class instance.
+The same as in JavaScript, static members of class will be inside the class constructor and not inside the class instance.
 
 ```typescript
 class FightClub {
