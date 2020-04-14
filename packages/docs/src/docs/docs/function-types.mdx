@@ -39,7 +39,7 @@ sum3("1", "2");
 
 ## Function Returns
 
-As you understand, arguments types will be checked when you will try to apply arguments to a function. But return type will be checked when you implement function logic. 
+As you understand, arguments types will be checked when you try to apply arguments to a function, but return type will be checked when you implement function logic. 
 
 ```typescript
 function awesome(name: string): string {
@@ -53,7 +53,7 @@ Return types ensure that every `return` will be called with the same type. This 
 
 ## Optional and Default Argument
 
-All arguments are required by default. But, (as was mentioned in [Optional Types](/docs/optiona-types) if you annotate some argument as optional type then this argument will become optional:
+All arguments are required by default, but as was mentioned in [Optional Types](/docs/optional-types), if you annotate some argument as optional type then this argument will become optional:
 
 ```typescript
 function awesome(name: ?string) {
@@ -65,7 +65,7 @@ awesome()             // 👌!
 awesome("JavaScript") // 👌!
 ```
 
-In JavaScript, we can also set a default value for optional argument like this:
+In JavaScript, we can also set a default value for optional arguments like this:
 
 ```typescript
 function awesome(name = "you") {
@@ -73,8 +73,8 @@ function awesome(name = "you") {
 }
 ```
 
-So, with which type should be annotated for `name` argument?
-If you set `string` type to name and firstly hover on (in [Hegel Playground](/try#GYVwdgxgLglg9mABAQwO4FMDOcC26AUYyeAXIplAE4xgDmiAvIgEQCecIzAlIgN4BQiRJXRQQlJAAMAghmx4ANIgAkvIngC+AOkkBufhqA)) function name and after on argument name, you will see some kind of magic: function argument is optional outside the function but strict inside.
+So, which type should the `name` argument be annotated with? You can see this demonstrated in the [Hegel Playground](/try#GYVwdgxgLglg9mABAQwO4FMDOcC26AUYyeAXIplAE4xgDmiAvIgEQCecIzAlIgN4BQiRJXRQQlJAAMAghmx4ANIgAkvIngC+AOkkBufhqA). 
+If you hover over the function name and then on the argument name, you will see some magic; the function argument is `string | undefined` outside the function but `string` inside.
 
 ```typescript
 // awesome: (string | undefined) => string
@@ -88,7 +88,7 @@ awesome("JavaScript") // 👌!
 
 ## Rest Argument
 
-Sometimes, you don't know how many arguments will be applied to the function. JavaScript supports rest arguments. The rest operator '...' group all applied arguments in array of arguments.
+Sometimes, you don't know how many arguments will be applied to the function. JavaScript supports rest arguments. The rest operator '...' groups all applied arguments in an array of arguments.
 
 ```typescript
 function sum(...numbers) {
@@ -126,9 +126,9 @@ sum(1, 2, 3); // 👌!
 sum(1, 2, 3, 4);
 ```
 
-## Function Type
+## Function Types
 
-Sometimes, you need to annotate argument or return type as function. Hegel has syntax for function type annotation `(type1, type2) => returnType`. For example:
+Sometimes, you need to annotate arguments or return types as a function. Hegel has syntax for function type annotation `(type1, type2) => returnType`. For example:
 
 ```typescript
 function twice(fn: (number) => number, arg: number) {
@@ -151,10 +151,10 @@ twice((a: number): string => String(a), 4);
 twice((a: number): number | string => a, 4);
 ```
 
-> If you play with previous example you will see the next rule with function type:
-You can assign function to another only if actual arguments types wider then declared and return type is more specific then declared. This rule sounds like: function is [contravariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by arguments and [covariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by return.
+> If you play with the previous example you will see the next rule of the function type:
+You can assign one function to another only if the actual argument types are wider than declared and the return type is more specific than declared. This rule sounds like: function is [contravariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by arguments and [covariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by return.
 
-More classical and easy example of this rule:
+A more classical and simple example of this rule:
 
 ```typescript
 class Animal {
@@ -185,7 +185,7 @@ presentMyDog(nickolay, (goodBoy: Dog): Corgi => nickolay);  // 👌!
 presentMyDog(nickolay, (goodBoy: Dog): Animal => nickolay);
 ```
 
-## Function
+## `Function` type
 
 Also, Hegel supports `Function` type which represents any possible function in JavaScript:
 
