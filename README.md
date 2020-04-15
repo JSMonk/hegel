@@ -4,7 +4,7 @@
 </p>
 
 Hegel is a static type checker for JavaScript with strong typings, high inference level and a lot of additional goodies.
-To read more about Hegel, check out [Docs](https://jsmonk.github.io/hegel/).
+To read more about Hegel, check out [Docs](https://hegel.js.org).
 
 The main features:
 
