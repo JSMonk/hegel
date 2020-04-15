@@ -1341,4 +1341,25 @@ describe("Issues", () => {
     expect(Renamed).toBeInstanceOf(Type);
     expect(Renamed === Type.Number).toBe(true);
   });
+  test("Issue #116: Partial type should not be soft", async () => {
+    const sourceAST = prepareAST(`
+      const obj: { a: ?number } = { test: 3 }; 
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      'Type "{ test: 3 }" is incompatible with type "{ a: number | undefined }"'
+    );
+    expect(errors[0].loc).toEqual({
+       end:  {
+         column: 45,
+         line: 2,
+       },
+       start: {
+         column: 12,
+         line: 2,
+       },
+    });
+  });
 });

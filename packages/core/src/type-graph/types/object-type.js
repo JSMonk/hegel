@@ -330,13 +330,21 @@ export class ObjectType extends Type {
     const result =
       anotherType instanceof ObjectType && !this.isNominal
         ? anotherType.properties.size >= requiredProperties.length &&
-          (!this.isStrict ||
-            anotherType.properties.size <= this.properties.size) &&
+          (!this.isStrict || this.hasTheSameKeysAs(anotherType)) &&
           this.isAllProperties("isPrincipalTypeFor", anotherType)
         : anotherType.isSubtypeOf != undefined &&
           this.isPrincipalTypeFor(anotherType.isSubtypeOf);
     this._alreadyProcessedWith = null;
     return result;
+  }
+
+  hasTheSameKeysAs(anotherType: ObjectType) {
+    for (const [key] of anotherType.properties) {
+      if (!this.properties.has(key)) {
+        return false;
+      } 
+    }
+    return true;
   }
 
   getDifference(type: Type, withReverseUnion?: boolean = false) {

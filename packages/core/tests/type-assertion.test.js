@@ -327,7 +327,7 @@ describe("Variable declrataion and assignment", () => {
       const a: { a: ?number } = { b: 3 }; 
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
-    expect(errors.length).toEqual(0);
+    expect(errors.length).toEqual(1);
   });
   test("Simple typed const declaration with function type without argument", async () => {
     const sourceAST = prepareAST(`
