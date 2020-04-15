@@ -1,7 +1,7 @@
 {
   "name": "@hegel/core",
   "author": "Artem Kobzar",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "description": "",
   "main": "index.js",
   "scripts": {
