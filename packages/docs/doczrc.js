@@ -2,7 +2,6 @@ export default {
   title: "Hegel",
   description: "Feel power of types",
   indexHtml: "public/index.html",
-  base: '/hegel',
   typescript: false,
   propsParser: false,
   mdPlugins: [],
