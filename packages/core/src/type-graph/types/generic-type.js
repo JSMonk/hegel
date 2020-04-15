@@ -235,6 +235,19 @@ export class GenericType<T: Type> extends Type {
     }
   }
 
+  bottomizeWith(
+    parameters: Array<Type>,
+    parent?: TypeScope, 
+    loc?: SourceLocation,
+  ) {
+    return new $BottomType(
+      { parent },
+      this,
+      parameters,
+      loc
+    );
+  }
+
   applyGeneric(
     appliedParameters: Array<Type>,
     loc?: SourceLocation,
@@ -309,12 +322,7 @@ export class GenericType<T: Type> extends Type {
       return appliedSelf;
     }
     if (isBottomPresented) {
-      return new $BottomType(
-        { parent: theMostPriorityParent },
-        this,
-        parameters,
-        loc
-      );
+      return this.bottomizeWith(parameters, theMostPriorityParent, loc); 
     }
     try {
       const result = this.subordinateType.changeAll(

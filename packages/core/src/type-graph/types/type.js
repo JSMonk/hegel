@@ -208,7 +208,10 @@ export class Type {
       return [];
     }
     if ("root" in type && type.isSubtypeOf === null) {
-      if (type.constraint !== undefined) {
+      if (
+        type.constraint !== undefined &&
+        !("subordinateMagicType" in type.constraint)
+      ) {
         return type.constraint.isPrincipalTypeFor(this)
           ? [
               { root: this, variable: type },

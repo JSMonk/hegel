@@ -44,7 +44,10 @@ export class $Exclude extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [target, whichShouldBeExclude] = parameters;
-    const realTarget = target.constraint || target;
+    const realTarget = this.getOponentType(target);
+    if (realTarget instanceof TypeVar) {
+      return this.bottomizeWith(parameters, realTarget.parent, loc);
+    }
     if (!(realTarget instanceof UnionType)) {
       throw new HegelError("First parameter should be an union type", loc);
     }

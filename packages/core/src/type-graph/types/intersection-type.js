@@ -36,10 +36,15 @@ export class $Intersection extends GenericType {
       );
     }
     let containsVariable = false;
+    let theMostPriorityParent = objects[0].parent;
     const objectTypes = objects.map((obj, i) => {
       const isVar = obj instanceof TypeVar;
       if (isVar) {
         containsVariable = true;
+        theMostPriorityParent =
+          theMostPriorityParent.priority < obj.parent.priority 
+            ? obj.parent
+            : theMostPriorityParent;
         if (!obj.isUserDefined) {
           obj.constraint = ObjectType.Object;
         }
@@ -47,7 +52,7 @@ export class $Intersection extends GenericType {
       return i !== 0 && "readonly" in obj ? obj.readonly : obj;
     });
     if (containsVariable) {
-      return new $BottomType({}, this, objects);
+      return this.bottomizeWith(objects, theMostPriorityParent, loc);
     }
     const wrongIndex = objectTypes.findIndex(a => !(a instanceof ObjectType));
     if (wrongIndex !== -1) {

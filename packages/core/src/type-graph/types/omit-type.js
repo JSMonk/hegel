@@ -45,7 +45,10 @@ export class $Omit extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [target, properties] = parameters;
-    const realTarget = target.constraint || target;
+    const realTarget = this.getOponentType(target);
+    if (realTarget instanceof TypeVar) {
+      return this.bottomizeWith(parameters, realTarget.parent, loc);
+    }
     if (!(realTarget instanceof ObjectType)) {
       throw new HegelError("First parameter should be an object type", loc);
     }

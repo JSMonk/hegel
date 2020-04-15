@@ -147,7 +147,7 @@ export class $PropertyType extends GenericType {
       return realTarget.constraint.properties.get(propertyName).type;
     }
     if (isPropertyVariable) {
-      return new $BottomType({}, this, [realTarget, realProperty], loc);
+      return this.bottomizeWith([realTarget, realProperty], realTarget.parent, loc);
     }
     if (realProperty instanceof UnionType) {
       try {

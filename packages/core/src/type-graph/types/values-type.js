@@ -33,6 +33,9 @@ export class $Values extends GenericType {
     super.assertParameters(parameters, loc);
     const [currentTarget] = parameters;
     const realTarget = this.getOponentType(currentTarget);
+    if (realTarget instanceof TypeVar) {
+      return this.bottomizeWith(parameters, realTarget.parent, loc);
+    }
     if (
       !(realTarget instanceof ObjectType) &&
       !(realTarget instanceof TupleType) &&

@@ -3127,3 +3127,43 @@ describe("Other", () => {
     expect(res.type === Type.Number).toBe(true);
   });
 });
+describe("Issues", () => {
+  test("Issue #70: inference property type without error", async () => {
+    const sourceAST = prepareAST(`
+      function prop(a, b) {
+        return a[b];
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const prop = actual.body.get("prop");
+    expect(errors.length).toBe(0);
+    expect(prop.type).toBeInstanceOf(GenericType);
+    expect(
+      prop.type ===
+      Type.find("<_a: Object, _b: $Keys<_a>>(_a, _b) => $PropertyType<_a, _b>"))
+    .toBe(true);
+  });
+  test("Issue #115: inference property type without error", async () => {
+    const sourceAST = prepareAST(`
+      function prop(a, b) {
+        return a[b];
+      }
+      const admin = { name: "Maurice Moss", age: 33 };
+      const age = prop(admin, "age");
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const age = actual.body.get("age");
+    expect(errors.length).toBe(0);
+    expect(age.type === Type.Number).toBe(true);
+  });
+});

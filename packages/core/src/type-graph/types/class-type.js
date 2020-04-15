@@ -35,11 +35,15 @@ export class $Class extends GenericType {
     applyGeneric(parameters, loc) {
         super.assertParameters(parameters, loc);
         const [target] = parameters;
+        const realTarget = this.getOponentType(target);
+        if (realTarget instanceof TypeVar) {
+          return this.bottomizeWith(parameters, realTarget.parent, loc);
+        }
         if (
-            !(target instanceof ObjectType && target.classType !== null)
+            !(realTarget instanceof ObjectType && realTarget.classType !== null)
         ) {
             throw new HegelError("Cannot apply $Class to non-class instance type", loc);
         }
-        return target.classType;
+        return realTarget.classType;
     }
 }

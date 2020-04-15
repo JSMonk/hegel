@@ -36,6 +36,10 @@ export class $InstanceOf extends GenericType {
 
   applyGeneric(parameters, loc) {
     let [target, ...genericParameters] = parameters;
+    target = this.getOponentType(target);
+    if (target instanceof TypeVar) {
+      return this.bottomizeWith(parameters, target.parent, loc);
+    }
     const oldGenericArguments = this.genericArguments;
     if (!(target instanceof ObjectType && target.instanceType !== null)) {
       throw new HegelError("Cannot apply $InstanceOf to non-class type", loc);

@@ -186,6 +186,9 @@ export class $BottomType extends Type {
     }
     this._alreadyProcessedWith = other;
     const self = this.unpack();
+    if (self instanceof $BottomType) {
+      return super.isPrincipalTypeFor(other);
+    }
     const result = self.isPrincipalTypeFor(other);
     this._alreadyProcessedWith = null;
     return result;

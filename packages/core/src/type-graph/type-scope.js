@@ -6,13 +6,18 @@ import type { ModuleScope } from "./module-scope";
 import type { Node, TSInterfaceDeclaration } from "@babel/core";
 
 export class TypeScope {
+  static GLOBAL_SCOPE_PRIORITY = 0;
+  static MODULE_SCOPE_PRIORITY = 0;
+
   priority: number;
   parent: TypeScope | null;
   body: Map<mixed, Type | TSInterfaceDeclaration> = new Map();
 
   constructor(parent?: TypeScope) {
     this.parent = parent === undefined ? null : parent;
-    this.priority = parent === undefined ? 0 : parent.priority + 1;
+    this.priority = parent === undefined 
+      ? TypeScope.GLOBAL_SCOPE_PRIORITY 
+      : parent.priority + 1;
   }
 
   makeCustom() {
