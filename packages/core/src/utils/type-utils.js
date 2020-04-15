@@ -173,6 +173,7 @@ export function getTypeFromTypeAnnotation(
     case NODE.VOID_TYPE_ANNOTATION:
     case NODE.TS_VOID_TYPE_ANNOTATION:
       return Type.Undefined;
+    case NODE.TYPE_GUARD:
     case NODE.BOOLEAN_TYPE_ANNOTATION:
     case NODE.TS_BOOLEAN_TYPE_ANNOTATION:
       return Type.Boolean;

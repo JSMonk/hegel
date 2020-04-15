@@ -155,7 +155,8 @@ export const ANNOTATION_TYPES = {
   ARRAY_TYPE_ANNOTATION: "ArrayTypeAnnotation",
   TS_INTERSECTION_TYPE: "TSIntersectionType",
   TYPEOF_TYPE_ANNOTATION: "TypeofTypeAnnotation",
-  TYPE_CAST: "TypeCastExpression"
+  TYPE_CAST: "TypeCastExpression",
+  TYPE_GUARD: "TSTypePredicate"
 };
 
 export const INITIALIZATION_TYPES = {
