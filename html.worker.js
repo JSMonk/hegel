@@ -77,7 +77,7 @@
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/hegel/";
+/******/ 	__webpack_require__.p = "/";
 /******/
 /******/
 /******/ 	// Load entry module and return exports
@@ -97,7 +97,7 @@
 				var addMethods = __webpack_require__(/*! ../../../../../workerize-loader/dist/rpc-wrapper.js */ "../node_modules/workerize-loader/dist/rpc-wrapper.js")
 				var methods = []
 				module.exports = function() {
-					var w = new Worker(__webpack_require__.p + "feefa9fb116551292a69.worker.js", { name: "[hash].worker.js" })
+					var w = new Worker(__webpack_require__.p + "a674751d19d1430d7efd.worker.js", { name: "[hash].worker.js" })
 					addMethods(w, methods)
 					
 					return w
