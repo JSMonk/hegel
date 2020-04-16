@@ -56,8 +56,8 @@ export class $Partial extends GenericType {
       return [name, new VariableInfo(newType, property.parent, property.meta)];
     });
     return ObjectType.term(
-      ObjectType.getName(newProperties),
-      {},
+      ObjectType.getName(newProperties, undefined, !realTarget.isStrict),
+      { isSoft: !realTarget.isStrict },
       newProperties
     );
   }

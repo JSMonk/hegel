@@ -268,3 +268,39 @@ describe("Test $InstanceOf", () => {
     );
   });
 });
+describe("Issues", () => {
+  test("Issue #135: Soft object type should stay soft object after $Partial", async () => {
+    const sourceAST = prepareAST(`
+      type StillSoft = $Partial<{ test: number, ... }>;
+    `);
+    const [[module], errors] = await createTypeGraph([sourceAST]);
+    const StillSoft = module.typeScope.body.get("StillSoft");
+    expect(errors.length).toEqual(0);
+    expect(StillSoft).toBeInstanceOf(ObjectType);
+    expect(StillSoft.isStrict).toBe(false);
+    expect(StillSoft.isNominal).toBe(false);
+    expect(
+      StillSoft.properties.get("test").type === Type.term("number | undefined")
+    ).toBe(true);
+    expect(
+      StillSoft === Type.term("{ test: number | undefined, ... }")
+    ).toBe(true);
+  });
+  test("Issue #135: Strict object type should stay strict object after $Partial", async () => {
+    const sourceAST = prepareAST(`
+      type StillStrict = $Partial<{ test: number }>;
+    `);
+    const [[module], errors] = await createTypeGraph([sourceAST]);
+    const StillStrict = module.typeScope.body.get("StillStrict");
+    expect(errors.length).toEqual(0);
+    expect(StillStrict).toBeInstanceOf(ObjectType);
+    expect(StillStrict.isStrict).toBe(true);
+    expect(StillStrict.isNominal).toBe(false);
+    expect(
+      StillStrict.properties.get("test").type === Type.term("number | undefined")
+    ).toBe(true);
+    expect(
+      StillStrict === Type.term("{ test: number | undefined }")
+    ).toBe(true);
+  });
+});
