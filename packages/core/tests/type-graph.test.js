@@ -1135,6 +1135,85 @@ describe("Generic types", () => {
   });
 });
 
+describe("Switch statement", () => {
+  test("Returns an error if switch is not exhaustive", async () => {
+    const sourceAST = prepareAST(`
+      type Fruit = 'apple' | 'banana' | 1
+
+      function test(fruit: Fruit) {
+        switch(fruit) {
+          case 'apple': return 1;
+        }
+      }
+    `)
+
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(1)
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      "This switch case statement is not exhaustive. Here is an example of a case that is not matched: 'banana' | 1"
+    );
+  });
+
+  test("Returns an error if one of switch cases has union type", async () => {
+    const sourceAST = prepareAST(`
+      let treeFruit: 'apple' | 'banana' = 'apple'
+      type Fruit = 'apple' | 'banana' | 'pineapple'
+
+      function test(fruit: Fruit) {
+        switch(fruit) {
+          case 'pineapple': return 1;
+          case treeFruit: return 2;
+        }
+      }
+    `)
+
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(2)
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      "It is not safe to use variable which type is Union as case matcher, you should infer it value first"
+    );
+    expect(errors[1]).toBeInstanceOf(HegelError);
+    expect(errors[1].message).toBe(
+      "This switch case statement is not exhaustive. Here is an example of a case that is not matched: 'apple' | 'banana'"
+    );
+  });
+
+  test("Should not return any errors if switch statement has default case", async () => {
+    const sourceAST = prepareAST(`
+      type Type = 'apple' | 1 | 2
+
+      function test(fruit: Type) {
+        switch(fruit) {
+          case 'apple': return 1;
+          default: return 2;
+        }
+      }
+    `)
+
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
+  });
+
+  test("Should not return any errors if switch statement completely exhaustive", async () => {
+    const sourceAST = prepareAST(`
+      type FruitAndThee = 'apple' | 'banana' | 3
+
+      function test(fruit: FruitAndThee) {
+        switch(fruit) {
+          case 'apple': return 1;
+          case 'banana': return 1;
+          case 3: return 1;
+        }
+      }
+    `)
+
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toBe(0);
+  });
+});
+
 describe("Classes", () => {
   test("Simple class declaration", async () => {
     const sourceAST = prepareAST(`
