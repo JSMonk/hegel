@@ -349,9 +349,12 @@ export class FunctionType extends Type {
         (anotherType.throwable !== undefined &&
           this.throwable.isPrincipalTypeFor(anotherType.throwable))) &&
       this.argumentsTypes.length >= anotherType.argumentsTypes.length &&
-      anotherType.argumentsTypes.every((arg, i) =>
-        arg.isPrincipalTypeFor(this.argumentsTypes[i] || Type.Undefined)
-      );
+      anotherType.argumentsTypes.every((arg, i) => {
+        const anotherArgument = this.argumentsTypes[i] || Type.Undefined;
+        return arg.onlyLiteral 
+          ? arg.equalsTo(anotherArgument)
+          : arg.isPrincipalTypeFor(anotherArgument)
+      });
     this._alreadyProcessedWith = null;
     return result;
   }

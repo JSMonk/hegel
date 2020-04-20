@@ -119,9 +119,6 @@ export class Type {
       pattern += (pattern && "|") + name.replace(/\|/g, "\\|");
       return map;
     }, new Map());
-    if (String(this.name).includes("Array")) {
-  debugger;
-    }
     const template = new RegExp(
       `\\b(${pattern})`,
       "gm"

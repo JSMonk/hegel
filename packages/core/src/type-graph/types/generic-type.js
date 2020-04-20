@@ -335,7 +335,7 @@ export class GenericType<T: Type> extends Type {
       result.priority = this.subordinateType.priority + 1;
       return result.save();
     } catch (e) {
-      e.loc = e.loc || loc;
+      e.loc = loc;
       throw e;
     }
   }

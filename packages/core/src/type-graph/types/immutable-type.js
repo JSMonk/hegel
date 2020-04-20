@@ -54,13 +54,13 @@ export class $AppliedImmutable extends Type {
     ) {
       return true;
     }
-    if (type.onlyLiteral || type instanceof $AppliedImmutable) {
+    if (type instanceof $AppliedImmutable) {
       return (
         type instanceof $AppliedImmutable &&
         this.readonly.equalsTo(type.readonly)
       );
     }
-    return this.readonly.equalsTo(type);
+    return this.readonly.isPrincipalTypeFor(type);
   }
 
   isSuperTypeFor(type) {
