@@ -219,10 +219,18 @@ export function inferenceFunctionLiteralType(
             paramType.variants.every(
               variant =>
                 variant instanceof CollectionType ||
-                variant instanceof TupleType
+                variant instanceof TupleType ||
+                (
+                  variant instanceof $BottomType &&
+                  variant.getRootedSubordinateType().isPrincipalTypeFor(CollectionType.Array)
+                )
             )) ||
           paramType instanceof CollectionType ||
-          paramType instanceof TupleType
+          paramType instanceof TupleType ||
+          (
+            paramType instanceof $BottomType &&
+            paramType.getRootedSubordinateType().isPrincipalTypeFor(CollectionType.Array)
+          )
         )
       ) {
         throw new HegelError(
