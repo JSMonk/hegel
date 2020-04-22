@@ -10,9 +10,11 @@ const STD_LIB_CONTENT = fs
   .readFileSync(require.resolve(STD_LIB_PATH), "utf8")
   .replace(/`/g, "");
 
-const resolve = NODE_ENV !== 'production' ?  {
+const LOCAL_CORE_BUILD = path.resolve(__dirname, '../../core/build/')
+
+const resolve = NODE_ENV !== 'production' && fs.existsSync(LOCAL_CORE_BUILD)?  {
   alias: {
-    '@hegel/core': path.resolve(__dirname, '../../core/build/'),
+    '@hegel/core': LOCAL_CORE_BUILD,
   },
 } : {};
 
