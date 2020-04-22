@@ -143,6 +143,10 @@ const addTypeAlias = (
   if (node.exportAs) {
     typeGraph.exportsTypes.set(node.exportAs, typeAlias);
   }
+  
+  if (typeGraph instanceof PositionedModuleScope) {
+    typeGraph.addPosition(node.id, type);
+  }
 };
 
 const fillModuleScope = (

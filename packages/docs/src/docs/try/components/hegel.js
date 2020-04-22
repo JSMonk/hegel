@@ -22,7 +22,7 @@ export function getTypeByLocation(location) {
     return;
   }
   const varInfo = module.getVarAtPosition(location);
-  return varInfo && varInfo.type;
+  return varInfo && (varInfo.type || varInfo);
 }
 
 let stdLibTypeGraph;
