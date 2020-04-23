@@ -49,8 +49,9 @@ export class $AppliedImmutable extends Type {
 
   equalsTo(type) {
     if (
-      type instanceof CollectionType &&
-      type.equalsTo(TupleType.ReadonlyArray.root.applyGeneric([type.valueType]))
+      type.referenceEqualsTo(this) || 
+      (type instanceof CollectionType &&
+       type.equalsTo(TupleType.ReadonlyArray.root.applyGeneric([type.valueType])))
     ) {
       return true;
     }
