@@ -21,6 +21,7 @@ import { VariableInfo } from "./variable-info";
 import { VariableScope } from "./variable-scope";
 import { getVariableType } from "../utils/variable-utils";
 import { addVariableToGraph } from "../utils/variable-utils";
+import { findUnhandledCases } from "../inference/switch-refinement";
 import { inferenceErrorType } from "../inference/error-type";
 import { findNearestTypeScope } from "../utils/scope-utils";
 import { ModuleScope, PositionedModuleScope } from "./module-scope";
@@ -469,6 +470,18 @@ const afterFillierActions = (
           postcompute
         );
         break;
+      case NODE.SWITCH_STATEMENT:
+         findUnhandledCases(
+          currentNode,
+          errors,
+          moduleScope,
+          currentScope,
+          parentNode,
+          precompute,
+          middlecompute,
+          postcompute
+        );
+        break;
       case NODE.CLASS_DECLARATION:
       case NODE.CLASS_EXPRESSION:
         const classConstructor = addClassToTypeGraph(
@@ -602,45 +615,6 @@ const afterFillierActions = (
         if (moduleScope instanceof PositionedModuleScope) {
           moduleScope.addPosition(currentNode.catchBlock.param, errorVariable);
         }
-        break;
-      case NODE.SWITCH_STATEMENT:
-        const { discriminant, cases } = currentNode;
-        let hasDefaultCase = cases.some(switchCase => switchCase.test === null); // test equals null only if it's default case
-        let matchedVariants = [...currentScope.findVariable(discriminant).type.variants]
-
-        if (!hasDefaultCase) { // if switch statement doesn't have default case, we should check whether cases exhaustive or not
-          cases.forEach((switchCase) => {
-            let matcherValue = switchCase.test.value; // by default we can take raw value, it works for NUMER_LITERAL
-
-            switch(switchCase.test.type) {
-              case NODE.STRING_LITERAL: // to match string value with variant type we have to add single quotes around a value
-                matcherValue = `'${switchCase.test.value}'`;
-                break;
-              case NODE.IDENTIFIER:
-                matcherValue = currentScope.findVariable(switchCase.test).type;
-
-                if (matcherValue instanceof UnionType) {
-                  errors.push(
-                    new HegelError('It is not safe to use variable which type is Union as case matcher, you should infer it value first', switchCase.loc)
-                  );
-                }
-                break;
-              // TODO add suport for CallExpression, TemplateLiteral, ...
-            }
-
-            matchedVariants = matchedVariants.filter(variant => variant.name !== matcherValue)
-          })
-
-          if (matchedVariants.length !== 0 && !hasDefaultCase) {
-            const notMatchedCases = matchedVariants.map(variants => variants.name).join(" | ")
-
-            errors.push(new HegelError(
-              `This switch case statement is not exhaustive. Here is an example of a case that is not matched: ${notMatchedCases}`,
-              currentNode.loc
-            ));
-          }
-        }
-
         break;
       case NODE.IF_STATEMENT:
       case NODE.RETURN_STATEMENT:

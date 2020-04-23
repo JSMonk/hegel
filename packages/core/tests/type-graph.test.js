@@ -1147,7 +1147,7 @@ describe("Switch statement", () => {
       }
     `)
 
-    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1)
     expect(errors[0]).toBeInstanceOf(HegelError);
     expect(errors[0].message).toBe(
