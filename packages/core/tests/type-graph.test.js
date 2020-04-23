@@ -1197,8 +1197,8 @@ describe("Classes", () => {
 
   test("Get concat method of tuple", async () => {
     const sourceAST = prepareAST(`
-      const a: [number, string] = [2, '2']; 
-      const b = a.concat([2]); 
+      const a: [number, string] = [2, '2'];
+      const b = a.concat([2]);
     `);
     const [[module], errors] = await createTypeGraph(
       [sourceAST],
@@ -1247,7 +1247,7 @@ describe("Promises", () => {
       const a = Promise.resolve(2);
       async function b() {
         const c = await a;
-      } 
+      }
     `);
     const [[module], errors] = await createTypeGraph(
       [sourceAST],
@@ -1343,7 +1343,7 @@ describe("Issues", () => {
   });
   test("Issue #116: Partial type should not be soft", async () => {
     const sourceAST = prepareAST(`
-      const obj: { a: ?number } = { test: 3 }; 
+      const obj: { a: ?number } = { test: 3 };
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
@@ -1361,5 +1361,65 @@ describe("Issues", () => {
          line: 2,
        },
     });
+  });
+  test("Issue #113: Rest arguments don't work with generics 01", async () => {
+    const sourceAST = prepareAST(`
+      function a<T>(...items: Array<T>) {
+        return items;
+      }
+
+      const arr01: Array<string> = a('str01', 'str03')
+      const arr02: Array<number> = a(2, 1, 3)
+      const arr03: Array<boolean> = a(false, true, false, true)
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+  });
+  test("Issue #113: Rest arguments don't work with generics 02", async () => {
+    const sourceAST = prepareAST(`
+      function a<T>(...items: [T, T]) {
+        return items;
+      }
+
+      const arr01: Array<string> = a('str01', 'str03')
+      const arr02: Array<number> = a(2, 1)
+      const arr03: Array<boolean> = a(true, false)
+      const arr11: [string, string] = a('str01', 'str03')
+      const arr12: [number, number] = a(2, 1)
+      const arr13: [boolean, boolean] = a(true, false)
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+  });
+  test("Issue #113: Rest arguments don't work with generics 03", async () => {
+    const sourceAST = prepareAST(`
+      function a<T>(...items: [T, T] | [T, T, T]) {
+        return items;
+      }
+
+      const arr01: Array<string> = a('str01', 'str03')
+      const arr02: Array<number> = a(2, 1, 5)
+      const arr03: Array<boolean> = a(true, false)
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
   });
 });
