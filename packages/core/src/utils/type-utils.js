@@ -17,6 +17,7 @@ import { VariableScope } from "../type-graph/variable-scope";
 import { $Intersection } from "../type-graph/types/intersection-type";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { getDeclarationName } from "./common";
+import { PositionedModuleScope } from "../type-graph/module-scope";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../type-graph/constants";
 import type { Handler } from "./traverse";
@@ -532,8 +533,8 @@ export function getTypeFromTypeAnnotation(
       const target = typeNode.typeAnnotation || typeNode;
       const genericArguments =
         target.typeParameters && target.typeParameters.params;
-      const genericName = (target.id || target.typeName || target.expression)
-        .name;
+      const genericId = target.id || target.typeName || target.expression;
+      const genericName = genericId.name;
       if (genericArguments != undefined) {
         const typeInScope = Type.find(
           genericName,
@@ -638,9 +639,11 @@ export function getTypeFromTypeAnnotation(
           target.loc
         );
       }
-      return typeInScope instanceof TypeVar && typeInScope.root != undefined
-        ? typeInScope.root
-        : typeInScope;
+      const applicationResultType = Type.getTypeRoot(typeInScope);
+      if (typeGraph instanceof PositionedModuleScope) {
+        typeGraph.addPosition(genericId, applicationResultType);
+      }
+      return applicationResultType;
     case NODE.TS_OBJECT_METHOD:
     case NODE.FUNCTION_TYPE_ANNOTATION:
     case NODE.TS_CALL_SIGNATURE_DECLARATION:
