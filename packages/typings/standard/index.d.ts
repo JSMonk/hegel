@@ -1920,7 +1920,7 @@ interface DataView {
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getUint8(byteOffset: number): number;
+  getUint8(byteOffset: number): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Uint16 value at the specified byte offset from the start of the view. There is
