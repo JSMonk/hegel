@@ -5228,7 +5228,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<TypeError | RangeError>;
   /**
    * Replaces the value at the given position in the array if the original value equals the given
    * expected value, returning the original value. Until this atomic operation completes, any
