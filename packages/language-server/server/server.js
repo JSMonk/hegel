@@ -1,19 +1,13 @@
 const path = require("path");
-const utils = require("util");
 const babylon = require("@babel/parser");
-const HegelError = require("@hegel/core/utils/errors").default;
 const { getConfig } = require("@hegel/cli/lib/config");
 const { importModule } = require("@hegel/cli/lib/module");
+const { promises: { readFile } } = require("fs");
 const {
-  PositionedModuleScope
-} = require("@hegel/core/type-graph/module-scope");
-const {
-  default: createTypeGraph,
-  createModuleScope
-} = require("@hegel/core/type-graph/type-graph");
-const {
-  promises: { readFile }
-} = require("fs");
+  createGlobalScope,
+  createModuleScope,
+  PositionedModuleScope,
+} = require("@hegel/core");
 const {
   TextDocuments,
   IPCMessageReader,
@@ -71,7 +65,10 @@ connection.onInitialize(() => ({
 connection.onHover(meta => {
   const location = convertRangeToLoc(meta.position);
   if (types instanceof PositionedModuleScope) {
-    const varInfo = types.getVarAtPosition(location, types);
+  const varInfoOrType = types.getVarAtPosition(location);
+  if (varInfoOrType  === undefined) {
+    return;
+  }
     return varInfo === undefined
       ? undefined
       : {
@@ -114,7 +111,7 @@ async function validateTextDocument(textDocument) {
 async function getHegelTypings(source, path) {
   try {
     const ast = babylon.parse(source, babelrc);
-    const [[types], errors] = await createTypeGraph(
+    const [[types], errors] = await createGlobalScope(
       [Object.assign(ast, { path })],
       await getModuleAST(path),
       false,

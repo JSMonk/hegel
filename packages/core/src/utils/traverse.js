@@ -308,7 +308,6 @@ const getBody = (currentNode: any) =>
     currentNode.argument,
     currentNode.expression && currentNode.expression.callee,
     currentNode.expression,
-    currentNode.discriminant,
     currentNode.callee,
     ...(currentNode.elements || []),
     ...(currentNode.cases || []),

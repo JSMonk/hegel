@@ -38,7 +38,9 @@ export class GenericType<T: Type> extends Type {
   }
 
   static getNameWithoutApplying(name: mixed) {
-    return String(name).replace(/<[\w\W]+>/g, "");
+    const match = /^(\$Immutable<)?([\w_$]+)</gi.exec(String(name));
+    const matchedName = match !== null ? match[2] : name;
+    return matchedName || name;
   }
 
   static getName<T: Type>(name: mixed, parameters: Array<T>) {
@@ -335,7 +337,7 @@ export class GenericType<T: Type> extends Type {
       result.priority = this.subordinateType.priority + 1;
       return result.save();
     } catch (e) {
-      e.loc = e.loc || loc;
+      e.loc = loc;
       throw e;
     }
   }

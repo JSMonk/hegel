@@ -21,6 +21,7 @@ import { VariableInfo } from "./variable-info";
 import { VariableScope } from "./variable-scope";
 import { getVariableType } from "../utils/variable-utils";
 import { addVariableToGraph } from "../utils/variable-utils";
+import { findUnhandledCases } from "../inference/switch-refinement";
 import { inferenceErrorType } from "../inference/error-type";
 import { findNearestTypeScope } from "../utils/scope-utils";
 import { ModuleScope, PositionedModuleScope } from "./module-scope";
@@ -142,6 +143,10 @@ const addTypeAlias = (
   typeScope.body.set(typeName, typeAlias);
   if (node.exportAs) {
     typeGraph.exportsTypes.set(node.exportAs, typeAlias);
+  }
+  
+  if (typeGraph instanceof PositionedModuleScope) {
+    typeGraph.addPosition(node.id, type);
   }
 };
 
@@ -460,6 +465,18 @@ const afterFillierActions = (
           parentNode,
           typeScope,
           moduleScope,
+          precompute,
+          middlecompute,
+          postcompute
+        );
+        break;
+      case NODE.SWITCH_STATEMENT:
+         findUnhandledCases(
+          currentNode,
+          errors,
+          moduleScope,
+          currentScope,
+          parentNode,
           precompute,
           middlecompute,
           postcompute

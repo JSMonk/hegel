@@ -1,5 +1,9 @@
 import { parse } from "@babel/parser";
-import { createModuleScope, createGlobalScope } from "@hegel/core";
+import {
+  VariableInfo,
+  createModuleScope,
+  createGlobalScope
+} from "@hegel/core";
 
 let module = undefined;
 
@@ -21,8 +25,13 @@ export function getTypeByLocation(location) {
   if (module === undefined) {
     return;
   }
-  const varInfo = module.getVarAtPosition(location);
-  return varInfo && varInfo.type;
+  const varInfoOrType = module.getVarAtPosition(location);
+  if (varInfoOrType  === undefined) {
+    return;
+  }
+  return varInfoOrType instanceof VariableInfo 
+    ? varInfoOrType.type
+    : varInfoOrType;
 }
 
 let stdLibTypeGraph;

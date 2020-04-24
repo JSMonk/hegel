@@ -1078,4 +1078,56 @@ describe("Rest parameter typing", () => {
       start: { column: 6, line: 3 }
     });
   });
+  test("Issue #74: Function should not be compared with contravariance usage", async () => {
+    const sourceAST = prepareAST(`
+      function foo(obj: { a : number | string }) {
+        obj.a = 'foo';
+      }
+
+      const f: ({ a: number }) => undefined = foo;  
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0].constructor).toEqual(HegelError);
+    expect(errors[0].message).toEqual(
+     'Type "({ a: number | string }) => undefined" is incompatible with type "({ a: number }) => undefined"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 49, line: 6 },
+      start: { column: 12, line: 6 }
+    });
+  });
+  test("Issue #74: Function should be compared with covariance usage of property", async () => {
+    const sourceAST = prepareAST(`
+      function foo(obj: { a: $Immutable<number | string> }) {}
+
+      const f: ({ a: number }) => undefined = foo;  
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+  });
+  test("Issue #74: Function should be compared with covariance usage of whole object", async () => {
+    const sourceAST = prepareAST(`
+      function foo(obj: $Immutable<{ a: number | string }>) {}
+
+      const f: ({ a: number }) => undefined = foo;  
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+  })
 });

@@ -104,6 +104,7 @@ export class ObjectType extends Type {
   classType: Type | null = null;
   isStrict: boolean = true;
   priority = 2;
+  onlyLiteral = true;
 
   constructor(
     name: ?string,
@@ -278,9 +279,8 @@ export class ObjectType extends Type {
     }
     if (
       !(anotherType instanceof ObjectType) ||
-      (this.isStrict &&
-        (anotherType.properties.size !== this.properties.size ||
-          !super.equalsTo(anotherType))) ||
+      (this.isStrict && anotherType.properties.size !== this.properties.size) ||
+      (this.isNominal && !super.equalsTo(anotherType)) ||
       !this.canContain(anotherType)
     ) {
       return false;

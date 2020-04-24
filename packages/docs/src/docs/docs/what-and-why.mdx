@@ -7,7 +7,7 @@ route: /docs
 
 ## What is Hegel?
 
-Hegel is a static type checker for JavaScript. It means that it is not a new one language which compiles to JavaScript. No. it's only a tool which analyzes your code ahead of time and show you results of the analysis. Also it means that you don't need to learn a new language to use static strong type system - JavaScript is enough. But, additionaly, this tool provide a type syntax for your variable and function arguments, analysis of your types (even if you don't use type syntax), which gives you an ability to find bugs faster without actually running your program.
+Hegel is a static type checker for JavaScript. It means that it is not a new language which compiles to JavaScript. No, it's only a tool which analyzes your code ahead of time and shows you results of the analysis. Also, it means that you don't need to learn a new language to use a static strong type system - JavaScript is enough. But, additionally, this tool provides a type syntax for your variable and function arguments, analysis of your types (even if you don't use type syntax), which gives you an ability to find bugs faster without actually running your program.
 
 ```typescript
 // Example from real life 😭
@@ -31,7 +31,7 @@ setupE2E(db);
 // Congratulations, you became a DropDatabase Engineer 
 ```
 
-But if you have added only one thing in your code with Hegel, you would not have droped the DataBase.
+But if you have added only one thing in your code with Hegel, you would not have dropped the DataBase.
 
 ```typescript
 // ...
@@ -49,7 +49,7 @@ First of all, lets explore the main goals of Hegel:
 - Strong type system
 - Powerful type inference
 
-But, we need to answer at this question differently for different audience. So, choose list item which describe your experience:
+But, we need to answer this question differently for different audiences. So, choose list item which describes your experience:
 
 - [You have never worked with typed languages or type checkers](#why-actually-do-we-need-static-analysis)
 - [You work with TypeScript](#benefits-and-disadvantages-over-typescript)
@@ -57,11 +57,11 @@ But, we need to answer at this question differently for different audience. So, 
 
 ## Why actually do we need static analysis?
 
-First of all, static analysis means that your code will be analyzed without actually running. So, static type analysis will analyze your code for any type errors.
+First of all, static analysis means that your code will be analyzed without actually running. So, static type analysis will analyze your code for any type of errors.
 
 Actually, there are 2 major benefits of static type analysis:
-1. Static type analysis find and provide to you information about a type error which existed in your code during code writing. It not only gives you garantees that you code will work without runtime type errors but in addition it really economs a lot of time for finding and fixing errors, especially in big projects which contains a really long build step. 
-2. When you use instrument which provide type information of your variables, functions, methods, classes and etc - you have got a documentation of method usage without any additional efforts.
+1. Static type analysis finds and provides you information about a type error that exists in your code during code writing. It not only gives you guarantees that your code will work without runtime type errors but in addition, it really saves a lot of time for finding and fixing errors, especially in big projects that contain a really long build step. 
+2. When you use an instrument that provides type information of your variables, functions, methods, classes and etc - you have got a documentation of method usage without any additional efforts.
 
 ```typescript
 function deserializeUser(stringifiedUserJson) {
@@ -107,7 +107,7 @@ const result = id(42).then(x => x + x);
 
 2. No unexpected runtime errors
 
-One of the non-goals of TypeScript is: "Apply a sound or "probably correct" type system. Instead, strike a balance between correctness and productivity.". It means that TypeScript never will guarantee that you will not have a Type Error at Runtime. Hegel is at opposite side. We try to implement strong type system which will guarantee that your program is valid.
+One of the non-goals of TypeScript is: "Apply a sound or "probably correct" type system. Instead, strike a balance between correctness and productivity.". It means that TypeScript never will guarantee that you will not have a Type Error at Runtime. Hegel is on the opposite side. We try to implement a strong type system which will guarantee that your program is valid.
 
 ```typescript
 const doubles: Array<number> = [Math.PI, Math.E];
@@ -122,7 +122,7 @@ doubles.map(double => double.toFixed());
 
 3. Typed Errors
 
-Hegel implements inference and annotation for functions which gives ability to understand which error type is inside catch block and which errors will be, by a function.
+Hegel implements inference and annotation for functions which gives an ability to understand which error type is inside the catch block and which errors will be, by a function.
 
 ```typescript
 // Type of "assertIsTrue" function is "(boolean) => undefined throws TypeError"
@@ -224,7 +224,7 @@ let anotherId = id(id);
 
 2. Typed Errors
 
-Hegel implements inference and annotation for functions which gives ability to understand which error type is inside catch block and which errors will be, by a function.
+Hegel implements inference and annotation for functions which gives an ability to understand which error type is inside catch block and which errors will be, by a function.
 
 ```typescript
 // Type of "assertIsTrue" function is "(boolean) => undefined throws TypeError"

@@ -12,8 +12,6 @@ export type TypeMeta = {
   shouldBeUsedAsGeneric?: boolean
 };
 
-const BOUNDARY = "[\\[\\]\\{\\}\\<\\>\\s\\n,]";
-
 export class Type {
   static get name() {
     return "Type";
@@ -122,7 +120,7 @@ export class Type {
       return map;
     }, new Map());
     const template = new RegExp(
-      `(?<=^|${BOUNDARY})(${pattern})(?=$|${BOUNDARY})`,
+      `\\b(${pattern})`,
       "gm"
     );
     return String(this.name).replace(

@@ -89,7 +89,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
     if (
       "readonly" in anotherType &&
       this.equalsTo(
-        TupleType.ReadonlyArray.root.applyGeneric([this.valueType])
+        TupleType.ReadonlyArray.root.applyGeneric([this.valueType]).readonly
       ) &&
       this === anotherType.readonly
     ) {

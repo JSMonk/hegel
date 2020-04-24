@@ -93,8 +93,8 @@ const admin: $Immutable<{ name: string }> = { name: "Roy Trenneman" };
 // Error: Attempt to mutate immutable type
 admin.name = "Maurice Moss";
 
-// Error: First parameter should be a mutable object type
-Object.assign(admin, { name: "Maurice Moss" });
+// Error: All parameters should be an object type. Only first parameter should mutable object type. 0 is not.
+const resultAdmin = Object.assign(admin, { name: "Maurice Moss" });
 ```
 
 3. Prevent mutation of specific property.
@@ -107,10 +107,10 @@ admin.name = "Maurice Moss"; // 👌!
 // Error: Attempt to mutate immutable type
 admin.age = 33;
 
-Object.assign(admin, { name: "Maurice Moss" }); // 👌!
+const maurice = Object.assign(admin, { name: "Maurice Moss" }); // 👌!
 
 // Error: Attempt to mutate immutable property "age" in "{ age: $Immutable<number>, name: string }" type
-Object.assign(admin, { age: 12 });
+const twelveAgeAdmin = Object.assign(admin, { age: 12 });
 ```
 
 4. Prevent array mutation.
@@ -446,7 +446,7 @@ const _: $TypeOf<a> = []
 
 > If you familiar with TypeScript or Flow.js then you can be familiar with "typeof" operator.
 [TypeScript typeof operator](http://www.typescriptlang.org/play/index.html?ssl=2&ssc=10&pln=2&pc=16#code/MYewdgzgLgBGCuBbARgUwE4QFwwILvQEMBPAHgRQwD4YBeGAbQEYAaGAJjYGYBdAbgBQoSLEI4oxAA6oQAMzhI0mOgsqY+QA)
-[Flofw.js typeof operator](https://flow.org/en/docs/types/typeof/#toc-typeof-type-syntax)
+[Flow.js typeof operator](https://flow.org/en/docs/types/typeof/#toc-typeof-type-syntax)
 
 ## $Values<Obj\>
 

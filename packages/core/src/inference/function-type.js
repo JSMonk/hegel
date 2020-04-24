@@ -78,6 +78,14 @@ const typeVarNames = [
   "__p"
 ];
 
+const isValidRestArgumentType = (type: Type) => 
+  type instanceof CollectionType ||
+  type instanceof TupleType ||
+  (
+    type instanceof $BottomType &&
+    type.getRootedSubordinateType().isPrincipalTypeFor(CollectionType.Array)
+  )
+
 export function inferenceFunctionLiteralType(
   currentNode: Function,
   typeScope: TypeScope,
@@ -216,13 +224,8 @@ export function inferenceFunctionLiteralType(
         !isWithoutAnnotation &&
         !(
           (paramType instanceof UnionType &&
-            paramType.variants.every(
-              variant =>
-                variant instanceof CollectionType ||
-                variant instanceof TupleType
-            )) ||
-          paramType instanceof CollectionType ||
-          paramType instanceof TupleType
+           paramType.variants.every(isValidRestArgumentType)) ||
+          isValidRestArgumentType(paramType)
         )
       ) {
         throw new HegelError(
