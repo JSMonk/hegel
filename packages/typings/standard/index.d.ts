@@ -5261,7 +5261,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<TypeError | RangeError>;
   /**
    * Returns a value indicating whether high-performance algorithms can use atomic operations
    * (`true`) or must use locks (`false`) for the given number of bytes-per-element of a typed
