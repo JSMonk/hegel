@@ -1597,7 +1597,7 @@ interface JSON {
   parse(
     text: string,
     reviver?: (this: any, key: string, value: any) => any
-  ): unknown;
+  ): unknown | $Throws<SyntaxError>;
   //     /**
   //       * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
   //       * @param value A JavaScript value, usually an object or array, to be converted.
