@@ -5340,7 +5340,7 @@ interface Atomics {
     index: number,
     value: number,
     timeout?: number
-  ): "ok" | "not-equal" | "timed-out";
+  ): "ok" | "not-equal" | "timed-out" | $Throws<TypeError | RangeError>;
   /**
    * Wakes up sleeping agents that are waiting on the given index of the array, returning the
    * number of agents that were awoken.
