@@ -5328,7 +5328,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<TypeError | RangeError>;
   /**
    * If the value at the given position in the array is equal to the provided value, the current
    * agent is put to sleep causing execution to suspend until the timeout expires (returning
