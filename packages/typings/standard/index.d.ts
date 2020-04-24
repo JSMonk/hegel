@@ -5281,7 +5281,7 @@ interface Atomics {
       | Int32Array
       | Uint32Array,
     index: number
-  ): number;
+  ): number | $Throws<TypeError | RangeError>;
   /**
    * Stores the bitwise OR of a value with the value at the given position in the array,
    * returning the original value. Until this atomic operation completes, any other read or write
