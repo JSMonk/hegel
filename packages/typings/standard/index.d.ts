@@ -2047,7 +2047,7 @@ interface DataViewConstructor {
     buffer: ArrayBufferLike,
     byteOffset?: number,
     byteLength?: number
-  ): DataView;
+  ): DataView | $Throws<RangeError>;
 }
 
 declare var DataView: DataViewConstructor;
