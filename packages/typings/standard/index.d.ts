@@ -1961,7 +1961,7 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setFloat32(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setFloat32(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Float64 value at the specified byte offset from the start of the view.
@@ -1970,14 +1970,14 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setFloat64(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setFloat64(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Int8 value at the specified byte offset from the start of the view.
   //       * @param byteOffset The place in the buffer at which the value should be set.
   //       * @param value The value to set.
   //       */
-  setInt8(byteOffset: number, value: number): void;
+  setInt8(byteOffset: number, value: number): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Int16 value at the specified byte offset from the start of the view.
@@ -1986,7 +1986,7 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setInt16(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setInt16(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Int32 value at the specified byte offset from the start of the view.
@@ -1995,14 +1995,14 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setInt32(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setInt32(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Uint8 value at the specified byte offset from the start of the view.
   //       * @param byteOffset The place in the buffer at which the value should be set.
   //       * @param value The value to set.
   //       */
-  setUint8(byteOffset: number, value: number): void;
+  setUint8(byteOffset: number, value: number): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Uint16 value at the specified byte offset from the start of the view.
@@ -2011,7 +2011,7 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setUint16(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setUint16(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Uint32 value at the specified byte offset from the start of the view.
@@ -2020,7 +2020,26 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setUint32(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setUint32(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
+
+  //     /**
+  //       * Stores an BigInt64 value at the specified byte offset from the start of the view.
+  //       * @param byteOffset The place in the buffer at which the value should be set.
+  //       * @param value The value to set.
+  //       * @param littleEndian If false or undefined, a big-endian value should be written,
+  //       * otherwise a little-endian value should be written.
+  //       */
+  setBigInt64(byteOffset: number, value: BigInt, littleEndian?: boolean): void | $Throws<RangeError>;
+
+  //     /**
+  //       * The setBigUint64() method stores an unsigned 64-bit integer (unsigned long long) 
+  //       * value at the specified byte offset from the start of the DataView.
+  //       * @param byteOffset The place in the buffer at which the value should be set.
+  //       * @param value The value to set.
+  //       * @param littleEndian If false or undefined, a big-endian value should be written,
+  //       * otherwise a little-endian value should be written.
+  //       */
+  setBigUint64(byteOffset: number, value: BigInt, littleEndian?: boolean): void | $Throws<RangeError>;
 }
 
 interface DataViewConstructor {
