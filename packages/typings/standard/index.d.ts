@@ -5345,7 +5345,7 @@ interface Atomics {
    * Wakes up sleeping agents that are waiting on the given index of the array, returning the
    * number of agents that were awoken.
    */
-  notify(typedArray: Int32Array, index: number, count: number): number;
+  notify(typedArray: Int32Array, index: number, count: number): number | $Throws<TypeError | RangeError>;
   /**
    * Stores the bitwise XOR of a value with the value at the given position in the array,
    * returning the original value. Until this atomic operation completes, any other read or write
