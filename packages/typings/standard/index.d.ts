@@ -1839,7 +1839,7 @@ interface ArrayBuffer {
   //     /**
   //       * Returns a section of an ArrayBuffer.
   //       */
-  slice(begin: number, end?: number): ArrayBuffer | $Throws<TypeError>;
+  slice(begin: number, end?: number): ArrayBuffer;
 }
 
 // /**
@@ -5198,7 +5198,7 @@ interface SharedArrayBuffer {
   /**
    * Returns a section of an SharedArrayBuffer.
    */
-  slice(begin: number, end?: number): SharedArrayBuffer | $Throws<TypeError>;
+  slice(begin: number, end?: number): SharedArrayBuffer;
   //readonly [Symbol.species]: SharedArrayBuffer;
   //readonly [Symbol.toStringTag]: "SharedArrayBuffer";
 }
@@ -5230,7 +5230,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number | $Throws<TypeError | RangeError>;
+  ): number | $Throws<RangeError>;
   /**
    * Stores the bitwise AND of a value with the value at the given position in the array,
    * returning the original value. Until this atomic operation completes, any other read or
@@ -5246,7 +5246,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number | $Throws<TypeError | RangeError>;
+  ): number | $Throws<RangeError>;
   /**
    * Replaces the value at the given position in the array if the original value equals the given
    * expected value, returning the original value. Until this atomic operation completes, any
@@ -5263,7 +5263,7 @@ interface Atomics {
     index: number,
     expectedValue: number,
     replacementValue: number
-  ): number | $Throws<TypeError | RangeError>;
+  ): number | $Throws<RangeError>;
   /**
    * Replaces the value at the given position in the array, returning the original value. Until
    * this atomic operation completes, any other read or write operation against the array will
@@ -5279,7 +5279,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number | $Throws<TypeError | RangeError>;
+  ): number | $Throws<RangeError>;
   /**
    * Returns a value indicating whether high-performance algorithms can use atomic operations
    * (`true`) or must use locks (`false`) for the given number of bytes-per-element of a typed
@@ -5299,7 +5299,7 @@ interface Atomics {
       | Int32Array
       | Uint32Array,
     index: number
-  ): number | $Throws<TypeError | RangeError>;
+  ): number | $Throws<RangeError>;
   /**
    * Stores the bitwise OR of a value with the value at the given position in the array,
    * returning the original value. Until this atomic operation completes, any other read or write
@@ -5315,7 +5315,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number | $Throws<TypeError | RangeError>;
+  ): number | $Throws<RangeError>;
   /**
    * Stores a value at the given position in the array, returning the new value. Until this
    * atomic operation completes, any other read or write operation against the array will block.
@@ -5330,7 +5330,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number | $Throws<TypeError | RangeError>;
+  ): number | $Throws<RangeError>;
   /**
    * Subtracts a value from the value at the given position in the array, returning the original
    * value. Until this atomic operation completes, any other read or write operation against the
@@ -5346,7 +5346,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number | $Throws<TypeError | RangeError>;
+  ): number | $Throws<RangeError>;
   /**
    * If the value at the given position in the array is equal to the provided value, the current
    * agent is put to sleep causing execution to suspend until the timeout expires (returning
@@ -5358,12 +5358,12 @@ interface Atomics {
     index: number,
     value: number,
     timeout?: number
-  ): "ok" | "not-equal" | "timed-out" | $Throws<TypeError | RangeError>;
+  ): "ok" | "not-equal" | "timed-out" | $Throws<RangeError>;
   /**
    * Wakes up sleeping agents that are waiting on the given index of the array, returning the
    * number of agents that were awoken.
    */
-  notify(typedArray: Int32Array, index: number, count: number): number | $Throws<TypeError | RangeError>;
+  notify(typedArray: Int32Array, index: number, count: number): number | $Throws<RangeError>;
   /**
    * Stores the bitwise XOR of a value with the value at the given position in the array,
    * returning the original value. Until this atomic operation completes, any other read or write
@@ -5379,7 +5379,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number | $Throws<TypeError | RangeError>;
+  ): number | $Throws<RangeError>;
   //readonly [Symbol.toStringTag]: "Atomics";
 }
 
