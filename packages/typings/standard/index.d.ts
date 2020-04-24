@@ -5361,7 +5361,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<TypeError | RangeError>;
   //readonly [Symbol.toStringTag]: "Atomics";
 }
 
