@@ -5245,7 +5245,7 @@ interface Atomics {
     index: number,
     expectedValue: number,
     replacementValue: number
-  ): number;
+  ): number | $Throws<TypeError | RangeError>;
   /**
    * Replaces the value at the given position in the array, returning the original value. Until
    * this atomic operation completes, any other read or write operation against the array will
