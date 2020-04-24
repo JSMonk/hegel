@@ -1886,7 +1886,7 @@ interface DataView {
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getFloat32(byteOffset: number, littleEndian?: boolean): number;
+  getFloat32(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Float64 value at the specified byte offset from the start of the view. There is
