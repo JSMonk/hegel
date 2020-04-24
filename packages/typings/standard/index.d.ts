@@ -148,8 +148,9 @@ interface Array<T> {
   //     /**
   //       * Appends new elements to an array, and returns the new length of the array.
   //       * @param items New elements of the Array.
+  //       * @throws {TypeError} in case len + argCount > (2**53)-1
   //       */
-  push(...items: T[]): number;
+  push(...items: T[]): number | $Throws<TypeError>;
   //     /**
   //       * Combines two or more arrays.
   //       * @param items Additional items to add to the end of array1.
