@@ -1937,6 +1937,24 @@ interface DataView {
   getUint32(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
 
   //     /**
+  //       * The getBigInt64() method gets a signed 64-bit integer (long long)
+  //       * at the specified byte offset from the start of the DataView.
+  //       * @param byteOffset The offset, in bytes, from the start of the view to read the data from.
+  //       * @param littleEndian (optional) Indicates whether the 64-bit int
+  //       * is stored in little- or big-endian format. If false or undefined, a big-endian value is read.
+  //       */
+  getBigInt64(byteOffset: number, littleEndian?: boolean): BigInt | $Throws<RangeError>;
+
+  //     /**
+  //       * The getBigUint64() method gets a unsigned 64-bit integer (long long)
+  //       * at the specified byte offset from the start of the DataView.
+  //       * @param byteOffset The offset, in bytes, from the start of the view to read the data from.
+  //       * @param littleEndian (optional) Indicates whether the 64-bit int
+  //       * is stored in little- or big-endian format. If false or undefined, a big-endian value is read.
+  //       */
+  getBigUint64(byteOffset: number, littleEndian?: boolean): BigInt | $Throws<RangeError>;
+
+  //     /**
   //       * Stores an Float32 value at the specified byte offset from the start of the view.
   //       * @param byteOffset The place in the buffer at which the value should be set.
   //       * @param value The value to set.
