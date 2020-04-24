@@ -5297,7 +5297,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<TypeError | RangeError>;
   /**
    * Stores a value at the given position in the array, returning the new value. Until this
    * atomic operation completes, any other read or write operation against the array will block.
