@@ -1608,7 +1608,7 @@ interface JSON {
     value: any,
     replacer?: (this: any, key: string, value: any) => any,
     space?: string | number
-  ): string;
+  ): string | $Throws<TypeError>;
   //     /**
   //       * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
   //       * @param value A JavaScript value, usually an object or array, to be converted.
@@ -1619,7 +1619,7 @@ interface JSON {
     value: any,
     replacer?: (number | string)[] | null,
     space?: string | number
-  ): string;
+  ): string | $Throws<TypeError>;
 }
 
 // /**
