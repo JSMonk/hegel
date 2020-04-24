@@ -5180,7 +5180,7 @@ interface SharedArrayBuffer {
   /**
    * Returns a section of an SharedArrayBuffer.
    */
-  slice(begin: number, end?: number): SharedArrayBuffer;
+  slice(begin: number, end?: number): SharedArrayBuffer | $Throws<TypeError>;
   //readonly [Symbol.species]: SharedArrayBuffer;
   //readonly [Symbol.toStringTag]: "SharedArrayBuffer";
 }
