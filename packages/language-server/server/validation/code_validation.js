@@ -2,6 +2,7 @@ const { getHegelTypings } = require("./typings");
 const { formatErrorRange } = require("../utils/range");
 const { DiagnosticSeverity } = require("vscode-languageserver");
 
+/** Holds Hegel typings of currently opened file. */
 let types = {};
 let errors = [];
 
