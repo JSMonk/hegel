@@ -5061,7 +5061,10 @@ interface Float64ArrayConstructor {
 declare var Float64Array: Float64ArrayConstructor;
 
 interface ArrayConstructor {
-  new <T = unknown>(...args: [] | [number] | Array<T[]> | T[]): (T | undefined)[];
+  // new creates an instance of Array<T>
+  // @throws {TypeError} in case len + argCount > 2**53 - 1
+  // @throws {RangeError} in case len + argCount > 2**32 - 1
+  new <T = unknown>(...args: [] | [number] | Array<T[]> | T[]): (T | undefined)[] | $Throws<TypeError | RangeError>;
   <T>(...items: T[]): T[];
   isArray(arg: any): arg is Array<any>;
   readonly prototype: Array<any>;
