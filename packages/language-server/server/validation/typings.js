@@ -53,6 +53,7 @@ async function getModuleAST(currentModulePath) {
   );
 }
 
+/** Used in hover feature for describing type of node. */
 function getTypeName(type) {
   return type.constraint !== undefined
     ? `${type.name}: ${type.constraint.name}`

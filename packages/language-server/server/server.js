@@ -1,8 +1,6 @@
-const { getTypeName } = require("./validation/typings");
+const { onHover } = require("./hover/hover");
 const { TextDocument } = require("vscode-languageserver-textdocument");
-const { convertRangeToLoc } = require("./utils/range");
-const { PositionedModuleScope } = require("@hegel/core");
-const { validateTextDocument, types } = require("./validation/code_validation");
+const { validateTextDocument } = require("./validation/code_validation");
 const {
   TextDocuments,
   IPCMessageReader,
@@ -23,23 +21,7 @@ connection.onInitialize(() => ({
   },
 }));
 
-connection.onHover((meta) => {
-  const location = convertRangeToLoc(meta.position);
-  if (types instanceof PositionedModuleScope) {
-    const varInfoOrType = types.getVarAtPosition(location);
-
-    return varInfoOrType === undefined
-      ? undefined
-      : {
-          contents: [
-            {
-              language: "typescript",
-              value: getTypeName(varInfoOrType.type || varInfoOrType),
-            },
-          ],
-        };
-  }
-});
+connection.onHover(onHover);
 
 /** Is used for preventing every time re-analyzation at every keyboard button pressing. */
 let timeoutId;
