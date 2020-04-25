@@ -201,15 +201,15 @@ export const isScopeCreator = (node: Node) =>
     EXPRESSIONS_TYPES.ARROW_FUNCTION_EXPRESSION
   ].includes(node.type);
 
-export const isFunction = (node: ?Node) =>
-  node !== undefined ? [
+export const isFunction = (node: Node) =>
+  [
     DECLARATION_TYPES.FUNCTION_DECLARATION,
     EXPRESSIONS_TYPES.FUNCTION_EXPRESSION,
     EXPRESSIONS_TYPES.ARROW_FUNCTION_EXPRESSION,
     ANNOTATION_TYPES.FUNCTION_TYPE_ANNOTATION,
     OBJECT_PROPERTIES.OBJECT_METHOD,
     CLASS_PROPERTIES.CLASS_METHOD
-  ].includes(node.type) : false;
+  ].includes(node.type);
 
 export const isImport = (node: Node) =>
   node.type === DECLARATION_TYPES.IMPORT_DECLARATION;
