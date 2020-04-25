@@ -1883,7 +1883,8 @@ interface ArrayBufferView {
 interface ArrayBufferConstructor {
   readonly prototype: ArrayBuffer;
   // @throws {RangeError} in case byteLength > 2**32 - 1
-  new (byteLength: number): ArrayBuffer | $Throws<RangeError>;
+  // @throws {TypeError} in case byteLength > 2**53 - 1
+  new (byteLength: number): ArrayBuffer | $Throws<TypeError | RangeError>;
   isView(arg: ArrayBufferView): true;
   isView(arg: any): false;
 }
