@@ -1,7 +1,6 @@
 // @flow
 import { Type } from "./type";
 import { THIS_TYPE } from "../constants";
-import { GenericType } from "./generic-type";
 import type { TypeMeta } from "./type";
 import type { TypeScope } from "../type-scope";
 
@@ -74,9 +73,7 @@ export class TypeVar extends Type {
     ) {
       return (
         (super.equalsTo(anotherType) &&
-          // $FlowIssue
           this.constraint.equalsTo(anotherType.constraint)) ||
-        // $FlowIssue
         this.constraint.equalsTo(anotherType)
       );
     }
@@ -211,7 +208,8 @@ export class TypeVar extends Type {
   }
 
   applyGeneric(...args: Array<any>) {
-    return this.root !== undefined && this.root instanceof GenericType 
+    return this.root !== undefined && typeof "applyGeneric" in this.root
+      // $FlowIssue GenericType by duck typing, can't import GenericType because of cycled dependecy
       ? this.root.applyGeneric(...args)
       : this;
   }

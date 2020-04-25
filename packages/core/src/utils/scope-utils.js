@@ -2,9 +2,9 @@
 import NODE from "../utils/nodes";
 import { TypeScope } from "../type-graph/type-scope";
 import { ModuleScope } from "../type-graph/module-scope";
+import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
 import type { Node } from "@babel/parser";
-import type { VariableInfo } from "../type-graph/variable-info";
 import type { ObjectType } from "../type-graph/types/object-type";
 import type { GenericType } from "../type-graph/types/generic-type";
 import type { FunctionType } from "../type-graph/types/function-type";

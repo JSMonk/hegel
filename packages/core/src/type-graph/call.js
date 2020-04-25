@@ -316,13 +316,13 @@ export function addCallToTypeGraph(
       isFinal =
         nearestFn instanceof ModuleScope ||
         currentScope === nearestFn ||
-        // $FlowIssue
         currentScope
           .getParentsUntil(nearestFn)
           .every(
             parent => parent.creator === "block" || parent.creator === "catch"
           );
       const nearestThrowableScope = findThrowableBlock(currentScope);
+      addToThrowable(args[0], nearestThrowableScope);
       const throwableDeclaration = nearestThrowableScope && nearestThrowableScope.declaration;
       if (
         nearestThrowableScope == null ||
@@ -345,7 +345,6 @@ export function addCallToTypeGraph(
           declarationType.throwable
         ]);
       }
-      addToThrowable(args[0], nearestThrowableScope);
       break;
     case NODE.AWAIT_EXPRESSION:
       args = [
