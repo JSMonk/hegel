@@ -43,7 +43,7 @@ function isReturnTypeOfTypeof(node: Node) {
 function getTypeofAndLiteral(
   left: Node,
   right: Node,
-  typeofOperator: VariableInfo
+  typeofOperator: VariableInfo<Type>
 ): ?{ typeofNode: Node, stringNode: Node } {
   let typeofNode: ?Node = null;
   if (isTypeofOperator(left)) {

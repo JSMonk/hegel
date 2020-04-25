@@ -276,6 +276,7 @@ const fillModuleScope = (
           isTypeDefinitions
         );
         if (currentNode.exportAs) {
+          // $FlowIssue In Flow VariableInfo<ObjectType> is incompatible with VariableInfo<Type> even if you don't mutate argument
           typeGraph.exports.set(currentNode.exportAs, functionVariable);
         }
         break;
@@ -495,6 +496,7 @@ const afterFillierActions = (
           isTypeDefinitions
         );
         if (currentNode.exportAs) {
+          // $FlowIssue In Flow VariableInfo<ObjectType> is incompatible with VariableInfo<Type> even if you don't mutate argument
           moduleScope.exports.set(currentNode.exportAs, classConstructor);
           moduleScope.exportsTypes.set(
             currentNode.exportAs,
@@ -551,6 +553,7 @@ const afterFillierActions = (
                   middlecompute,
                   postcompute
                 );
+          // $FlowIssue
           specifiersTarget.set(exported.name, existedVariableOrType);
         });
         break;
@@ -634,14 +637,17 @@ const afterFillierActions = (
           postcompute,
           { isForInit: parentNode.kind === "constructor" }
         ).result;
-
-        if (isSideEffectCall(currentNode, resultOfCall)) {
+        
+        const invocationResultType = resultOfCall instanceof VariableInfo 
+          ? resultOfCall.type 
+          : resultOfCall;
+        if (isSideEffectCall(currentNode, invocationResultType)) {
           const functionName =
             currentNode.expression.callee.name || "Anonymous Function";
           errors.push(
             new HegelError(
               `You use function "${functionName}" as side effect function, but it returns a ${
-                resultOfCall.name
+                String(invocationResultType.name)
               } type`,
               currentNode.loc
             )
@@ -672,13 +678,17 @@ const afterFillierActions = (
         if (declaration === undefined) {
           throw new Error("Never!!!");
         }
-        const declarationType: any =
+        const declarationType: FunctionType | ObjectType =
           declaration.type instanceof GenericType
             ? declaration.type.subordinateType
             : declaration.type;
+        if (declarationType instanceof ObjectType) {
+          throw new Error("Never!!!");
+        }
         if (
           !isTypeDefinitions &&
-          functionScope.throwable.length === 0 &&
+          (functionScope.throwable == undefined ||
+          functionScope.throwable.length === 0) &&
           declarationType.throwable !== undefined
         ) {
           throw new HegelError(
@@ -691,15 +701,15 @@ const afterFillierActions = (
           );
         }
         if (
+          functionScope.throwable != undefined &&
           functionScope.throwable.length !== 0 &&
           declarationType.throwable === undefined
         ) {
           const throwableType = inferenceErrorType(currentNode, moduleScope);
-          const isGeneric = declaration.type instanceof GenericType;
           const fnName = FunctionType.getName(
             declarationType.argumentsTypes,
             declarationType.returnType,
-            isGeneric ? declaration.type.genericArguments : [],
+            declaration.type instanceof GenericType ? declaration.type.genericArguments : [],
             declarationType.isAsync,
             throwableType
           );
@@ -711,7 +721,7 @@ const afterFillierActions = (
             declarationType.isAsync
           );
           newFunctionType.throwable = throwableType;
-          if (isGeneric && newFunctionType instanceof FunctionType) {
+          if (declaration.type instanceof GenericType && newFunctionType instanceof FunctionType) {
             newFunctionType = GenericType.new(
               fnName,
               {},
@@ -722,7 +732,7 @@ const afterFillierActions = (
           }
           declaration.type = newFunctionType;
         }
-        const fnType = functionScope.declaration.type;
+        const fnType = functionScope.declaration && functionScope.declaration.type;
         if (
           fnType instanceof GenericType &&
           functionScope.type === VariableScope.FUNCTION_TYPE &&
@@ -740,6 +750,7 @@ const afterFillierActions = (
           }
         }
         if (currentNode.exportAs) {
+          // $FlowIssue In Flow VariableInfo<ObjectType> is incompatible with VariableInfo<Type> even if you don't mutate argument
           moduleScope.exports.set(currentNode.exportAs, declaration);
         }
         break;
@@ -805,7 +816,7 @@ export async function createModuleScope(
   isTypeDefinitions: boolean,
   withPositions?: boolean = true
 ): Promise<ModuleScope> {
-  const errors = IgnorableArray.from(file.comments);
+  const errors: IgnorableArray<HegelError> = IgnorableArray.withIgnoring(file.comments);
   const ast = file.program;
   const typeScope = new TypeScope(globalModule.typeScope);
   const module = new (withPositions ? PositionedModuleScope : ModuleScope)(

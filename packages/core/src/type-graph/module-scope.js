@@ -18,7 +18,7 @@ import type {
 export type GraphElement =
   | ClassMethod
   | ObjectMethod
-  | VariableInfo
+  | VariableInfo<Type>
   | ClassProperty
   | ObjectProperty
   | FunctionDeclaration;
@@ -30,7 +30,7 @@ export class ModuleScope extends Scope {
   typeScope: TypeScope;
   parent: ModuleScope | null;
   calls: Array<CallMeta> = [];
-  exports: Map<string, VariableInfo>;
+  exports: Map<string, VariableInfo<Type>>;
   exportsTypes: Map<string, Type>;
   scopes: Map<string, VariableScope>;
   path: string;
@@ -54,7 +54,7 @@ export class ModuleScope extends Scope {
 }
 
 export class PositionedModuleScope extends ModuleScope {
-  positions: Map<string, Map<string, VariableInfo | Type>>;
+  positions: Map<string, Map<string, VariableInfo<Type> | Type>>;
 
   constructor(
     path: string,
@@ -66,14 +66,14 @@ export class PositionedModuleScope extends ModuleScope {
     this.positions = new Map();
   }
 
-  addPosition(node: Node, variableInfo: VariableInfo) {
+  addPosition<T: Type>(node: Node, variableInfoOrType: VariableInfo<T> | T) {
     const line: any = this.positions.get(node.loc.start.line) || new Map();
-    line.set(`${node.loc.start.column},${node.loc.end.column}`, variableInfo);
+    line.set(`${node.loc.start.column},${node.loc.end.column}`, variableInfoOrType);
     this.positions.set(node.loc.start.line, line);
   }
 
   getVarAtPosition(loc: SourceLocation, typeGraph: ModuleScope) {
-    const line: Map<string, VariableInfo | Type> | void = this.positions.get(
+    const line: Map<string, VariableInfo<Type> | Type> | void = this.positions.get(
       loc.line
     );
     if (line === undefined) {

@@ -52,7 +52,7 @@ export function getVariableInfoFromDelcaration(
     middlecompute,
     postcompute
   );
-  return new VariableInfo(
+  return new VariableInfo<Type>(
     annotatedType,
     parentScope,
     new Meta(currentNode.loc),
@@ -85,6 +85,7 @@ export function getSuperTypeOf(
     return type;
   }
   if (type instanceof TupleType) {
+    // $FlowIssue Array is always GenericType
     return CollectionType.Array.root.applyGeneric([
       getSuperTypeOf(
         type.items.length === 0
@@ -121,7 +122,7 @@ export function getSuperTypeOf(
 }
 
 export function getVariableType(
-  variable: VariableInfo | void,
+  variable: VariableInfo<Type> | void,
   newType: Type,
   typeScope: TypeScope,
   inferenced: boolean = false,

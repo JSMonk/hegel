@@ -5,6 +5,9 @@ import { VariableInfo } from "./variable-info";
 import type { Type } from "./types/type";
 import type { Handler } from "../utils/traverse";
 import type { TypeGraph } from "./module-scope";
+import type { ObjectType} from "./types/object-type";
+import type { GenericType } from "./types/generic-type";
+import type { FunctionType } from "./types/function-type";
 import type { ModuleScope } from "./module-scope";
 import type { VariableScope } from "./variable-scope";
 import type {
@@ -36,7 +39,7 @@ export class Scope {
     precompute: Handler,
     middlecompute: Handler,
     postcompute: Handler
-  ) {
+  ): VariableInfo<ObjectType> | VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>> | void {
     currentNode.expected =
       definedType != undefined && "variants" in definedType
         ? // $FlowIssue
@@ -55,7 +58,6 @@ export class Scope {
     if (scope === undefined || scope.type !== "function") {
       return;
     }
-    // $FlowIssue
     const declaration = scope.declaration;
     if (!(declaration instanceof VariableInfo)) {
       throw new Error("Never!!!");
@@ -73,11 +75,11 @@ export class Scope {
   findVariable(
     { name, loc }: Identifier,
     ...rest: [] | [Node, ModuleScope, Handler, Handler, Handler]
-  ): VariableInfo {
+  ): VariableInfo<Type> {
     let parent = this;
     do {
-      const variableInfo = parent.body.get(name);
-      if (variableInfo) {
+      const variableInfo: VariableInfo<Type> | void = parent.body.get(name);
+      if (variableInfo !== undefined) {
         if (variableInfo instanceof VariableInfo) {
           return variableInfo;
         }
@@ -86,15 +88,18 @@ export class Scope {
           Scope.canTraverseFunction(rest)
         ) {
           // $FlowIssue
-          const result = Scope.addAndTraverseNodeWithType(
+          let result: VariableInfo<Type> | void = (Scope.addAndTraverseNodeWithType(
             // $FlowIssue
             undefined,
             variableInfo,
             ...rest
-          );
-          return result === undefined
-            ? this.findVariable({ name, loc })
-            : result;
+          ): any);
+          if (result === undefined) {
+            result = this.findVariable({ name, loc });
+          }
+          if (result !== undefined) {
+            return result;
+          }
         }
       }
       parent = parent.parent;
@@ -106,7 +111,7 @@ export class Scope {
     name,
     loc
   }: Identifier):
-    | VariableInfo
+    | VariableInfo<Type>
     | FunctionDeclaration
     | ClassMethod
     | ObjectMethod {

@@ -243,7 +243,7 @@ function mixParentToClassObjectAndFunction(
     typeof currentNode === "object" &&
     currentNode !== null &&
     (currentNode.type === NODE.CLASS_DECLARATION ||
-      currentNode.type === NODE.FUNCITON_DECLARATION)
+      currentNode.type === NODE.FUNCTION_DECLARATION)
   ) {
     currentNode.parentNode = parentNode;
   }

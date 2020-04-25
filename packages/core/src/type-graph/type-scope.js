@@ -38,15 +38,18 @@ export class TypeScope {
         }
         if (Scope.canTraverseFunction(rest)) {
           // $FlowIssue
-          const result = Scope.addAndTraverseNodeWithType(
+          let result = Scope.addAndTraverseNodeWithType(
             // $FlowIssue
-            undefined,
+            undefined, 
             existedType,
             ...rest
           );
-          return Type.getTypeRoot(
-            result === undefined ? this.findTypeWithName(name) : result
-          );
+          result = result === undefined
+            ? this.findTypeWithName(name)
+            : result.type;
+          if (result !== undefined) {
+            return Type.getTypeRoot(result);
+          }
         }
       }
       currentTypeScope = currentTypeScope.parent;

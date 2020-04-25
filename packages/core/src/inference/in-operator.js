@@ -68,7 +68,7 @@ function inIdentifier(
       targetNode.name,
       ObjectType.term(null, { isSoft: true }, [
         ...type.properties,
-        [propertyName, new VariableInfo(Type.Unknown)]
+        [propertyName, new VariableInfo(Type.Unknown, currentScope)]
       ]),
       type
     ];
@@ -91,22 +91,23 @@ function refinementProperty(
     if (property === undefined) {
       return;
     }
+    const propertyType = property.type;
     if (isLast) {
       if (
-        !(property.type instanceof UnionType) &&
-        !(property.type instanceof ObjectType)
+        !(propertyType instanceof UnionType) &&
+        !(propertyType instanceof ObjectType)
       ) {
         throw new HegelError(
           `Property has not "${propertyName}" property`,
           refinementNode.loc
         );
       }
-      if (property.type instanceof ObjectType) {
-        const existed = property.type.getPropertyType(propertyName);
-        if (!property.type.isStrict && !existed) {
+      if (propertyType instanceof ObjectType) {
+        const existed = propertyType.getPropertyType(propertyName);
+        if (!propertyType.isStrict && !existed) {
           return [
             mergeObjectsTypes(
-              property.type,
+              propertyType,
               createObjectWith(propertyName, Type.Unknown, typeScope),
               typeScope
             ),
@@ -114,13 +115,13 @@ function refinementProperty(
           ];
         }
         return existed
-          ? [property.type, undefined]
-          : [undefined, property.type];
+          ? [propertyType, undefined]
+          : [undefined, propertyType];
       }
       const [
         refinementedVariants,
         alternateVariants
-      ] = property.type.variants.reduce(
+      ] = propertyType.variants.reduce(
         ([refinementedVariants, alternateVariants], variant) =>
           variant instanceof ObjectType && variant.getPropertyType(propertyName)
             ? [refinementedVariants.concat([variant]), alternateVariants]

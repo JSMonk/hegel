@@ -8,6 +8,7 @@ import { VariableInfo } from "../type-graph/variable-info";
 import { ModuleScope, PositionedModuleScope } from "../type-graph/module-scope";
 import type { TypeScope } from "../type-graph/type-scope";
 import type { TypeGraph } from "../type-graph/module-scope";
+import type { IgnorableArray } from "./ignore";
 import type {
   Program,
   SourceLocation,
@@ -28,12 +29,12 @@ function getImportName(specifier: ImportSpecifier): ?string {
 export function importDependencies(
   modulePath: string,
   importNode: ImportDeclaration,
-  moduleTypeGraph: ModuleScope,
+  sourceModuleTypeGraph: ModuleScope,
   currentModuleTypeGraph: ModuleScope | PositionedModuleScope,
   currentModuleTypeScope: TypeScope,
   isTypeDefinitions: boolean
 ) {
-  const { exports, exportsTypes } = moduleTypeGraph;
+  const { exports, exportsTypes } = sourceModuleTypeGraph;
   const importSource =
     importNode.importKind === "type" || isTypeDefinitions
       ? exportsTypes
@@ -44,7 +45,7 @@ export function importDependencies(
       : currentModuleTypeGraph;
   const importEntries = [...importSource.entries()].map(([key, a]) => [
     key,
-    a instanceof VariableInfo ? a : new VariableInfo(a)
+    a instanceof VariableInfo ? a : new VariableInfo(a, sourceModuleTypeGraph)
   ]);
   const withPositions = currentModuleTypeGraph instanceof PositionedModuleScope;
   const shouldBeVariable = importTarget instanceof ModuleScope;
@@ -55,7 +56,7 @@ export function importDependencies(
       : ObjectType.term(
           ObjectType.getName(importEntries),
           { typeScope: currentModuleTypeScope },
-          importEntries
+          (importEntries: any)
         );
     if (importElement === undefined) {
       throw new HegelError(
@@ -108,7 +109,7 @@ export function importDependencies(
 export default async function mixImportedDependencies(
   ast: Program,
   path: string,
-  errors: Array<HegelError>,
+  errors: IgnorableArray<HegelError>,
   currentModuleScope: ModuleScope,
   currentTypeScope: TypeScope,
   getModuleTypeGraph: (string, string, SourceLocation) => Promise<ModuleScope>,

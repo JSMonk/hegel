@@ -27,7 +27,7 @@ export class ObjectType extends Type {
   static term(
     name: mixed,
     meta?: TypeMeta = {},
-    properties: Array<[string, VariableInfo]>,
+    properties: Array<[string, VariableInfo<Type>]>,
     ...args: Array<any>
   ) {
     name =
@@ -99,7 +99,7 @@ export class ObjectType extends Type {
   }
 
   isNominal: boolean;
-  properties: Map<string, VariableInfo>;
+  properties: Map<string, VariableInfo<Type>>;
   instanceType: Type | null = null;
   classType: Type | null = null;
   isStrict: boolean = true;
@@ -109,7 +109,7 @@ export class ObjectType extends Type {
   constructor(
     name: ?string,
     options: ExtendedTypeMeta = {},
-    properties: Array<[string, VariableInfo]>
+    properties: Array<[string, VariableInfo<Type>]>
   ) {
     name =
       name == undefined
@@ -130,12 +130,13 @@ export class ObjectType extends Type {
   }
 
   getPropertyType(
-    propertyName: mixed,
+    property: mixed,
     _: boolean = false,
     isForInit: boolean = false
   ): ?Type | ClassProperty | ObjectProperty | ClassMethod | ObjectMethod {
+    const propertyName = String(property);
     let fieldOwner = this;
-    let field = null;
+    let field = undefined;
     while (fieldOwner) {
       // $FlowIssue
       field = fieldOwner.properties.get(propertyName);
@@ -210,8 +211,10 @@ export class ObjectType extends Type {
   ): Type {
     if (sourceTypes.every(type => !this.canContain(type))) {
       const newName = this.getChangedName(sourceTypes, targetTypes);
-      return this.name[0] === "{" || newName === this.name
+      const name = String(this.name);
+      return name[0] === "{" || newName === name
         ? this
+        // $FlowIssue
         : Object.assign(new ObjectType("", {}, this.properties), this, {
             name: newName
           });
@@ -232,7 +235,7 @@ export class ObjectType extends Type {
         : [...this._changeStack, currentSelf];
     let isAnyPropertyChanged = false;
     try {
-      const newProperties: Array<[string, VariableInfo]> = [];
+      const newProperties: Array<[string, VariableInfo<Type>]> = [];
       this.properties.forEach((vInfo, key) => {
         if (!(vInfo instanceof VariableInfo)) {
           return;
