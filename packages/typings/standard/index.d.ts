@@ -162,7 +162,9 @@ interface Array<T> {
   //       * @param items Additional items to add to the end of array1.
   //       */
 //  concat<T1>(...items: Array<T1>): Array<T | T1>;
-  concat(...items: Array<T[]>): T[];
+  // @throws {TypeError} in case n + len > 2**53 - 1
+  // @throws {RangeError} in case n + len > 2**32 - 1
+  concat(...items: Array<T[]>): T[] | $Throws<TypeError | RangeError>;
   //     /**
   //       * Adds all the elements of an array separated by the specified separator string.
   //       * @param separator A string used to separate one element of an array from the next in the resulting String. If omitted, the array elements are separated with a comma.
@@ -198,13 +200,17 @@ interface Array<T> {
   //       * @param start The zero-based location in the array from which to start removing elements.
   //       * @param deleteCount The number of elements to remove.
   //       * @param items Elements to insert into the array in place of the deleted elements.
+  //       * @throws {TypeError} in case len + insertCount - actualDeleteCount > 2**53 - 1
+  //       * @throws {RangeError} in case len + insertCount - actualDeleteCount > 2**32 - 1
   //       */
-  splice(start: number, deleteCount: number, ...items: T[]): T[];
+  splice(start: number, deleteCount: number, ...items: T[]): T[] | $Throws<TypeError | RangeError>;
   //     /**
   //       * Inserts new elements at the start of an array.
   //       * @param items  Elements to insert at the start of the Array.
+  //       * @throws {TypeError} in case len + argCount > 2**53 - 1
+  //       * @throws {RangeError} in case len + argCount > 2**32 - 1
   //       */
-  unshift(...items: T[]): number;
+  unshift(...items: T[]): number | $Throws<TypeError | RangeError>;
   //     /**
   //       * Returns the index of the first occurrence of a value in an array.
   //       * @param searchElement The value to locate in the array.
@@ -284,6 +290,7 @@ interface Array<T> {
   //       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -293,7 +300,7 @@ interface Array<T> {
       array: T[]
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
@@ -305,6 +312,7 @@ interface Array<T> {
   //       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -314,7 +322,7 @@ interface Array<T> {
       array: T[]
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   /** Iterator */
   //[Symbol.iterator](): IterableIterator<T>;
