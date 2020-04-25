@@ -11,6 +11,7 @@ import { $Immutable } from "../type-graph/types/immutable-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
+import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { $ThrowsResult } from "../type-graph/types/throws-type";
 import { VariableScope } from "../type-graph/variable-scope";
@@ -21,7 +22,6 @@ import { PositionedModuleScope } from "../type-graph/module-scope";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../type-graph/constants";
 import type { Handler } from "./traverse";
-import type { ModuleScope } from "../type-graph/module-scope";
 import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
 
 export function addTypeNodeToTypeGraph(
@@ -32,7 +32,10 @@ export function addTypeNodeToTypeGraph(
   typeGraph.typeScope.body.set(name, currentNode);
 }
 
-export function isReachableType(type: Type, typeScope: TypeScope) {
+export function isReachableType(type: Type, typeScope: TypeScope | null) {
+  if (typeScope === null) {
+    return false;
+  }
   let reachableType = null;
   try {
     reachableType = Type.find(type.name, { parent: typeScope });
@@ -767,12 +770,18 @@ export function createObjectWith(
   typeScope: TypeScope,
   meta?: Meta
 ): ObjectType {
-  const properties = [[key, new VariableInfo(type, undefined, meta)]];
+  const properties = [[
+    key,
+    new VariableInfo(
+      type,
+      new VariableScope(VariableScope.OBJECT_TYPE, new ModuleScope("Hegel works wrong if you see this path. Please send us an issue.")
+    ), meta)
+  ]];
   return ObjectType.term(ObjectType.getName(properties), {}, properties);
 }
 
 export function get(
-  variable: VariableInfo,
+  variable: VariableInfo<Type>,
   propertyChaining: ?Array<string>,
   memberExpressionLoc: SourceLocation
 ): ?Type {
@@ -858,7 +867,7 @@ function getPropertiesForType(type: ?Type, node: Node) {
 }
 
 export function getWrapperType(
-  argument: VariableInfo | Type,
+  argument: VariableInfo<Type> | Type,
   typeGraph: ModuleScope
 ) {
   const type = argument instanceof VariableInfo ? argument.type : argument;

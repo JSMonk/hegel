@@ -1,11 +1,14 @@
 // @flow
 import { Scope } from "./scope";
-import { VariableInfo } from "./variable-info";
 import type { Type } from "./types/type";
 import type { Handler } from "../utils/traverse";
 import type { CallMeta } from "./meta/call-meta";
 import type { TypeGraph } from "./module-scope";
+import type { ObjectType } from "./types/object-type";
+import type { GenericType } from "./types/generic-type";
 import type { ModuleScope } from "./module-scope";
+import type { FunctionType } from "./types/function-type";
+import type { VariableInfo } from "./variable-info";
 
 export type VariableScopeType = "block" | "function" | "object" | "class";
 
@@ -19,17 +22,17 @@ export class VariableScope extends Scope {
   type: VariableScopeType;
   parent: ModuleScope | VariableScope;
   calls: Array<CallMeta> = [];
-  throwable: Array<VariableInfo | Type> | void;
-  declaration: VariableInfo | void;
+  throwable: Array<VariableInfo<Type> | Type> | void;
+  declaration: VariableInfo<ObjectType> | VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>> | void;
   skipCalls: boolean;
   isProcessed: boolean = false;
-  body: Map<string, VariableInfo>;
+  body: Map<string, VariableInfo<Type>>;
   creator: string | void;
 
   constructor(
     type: VariableScopeType,
     parent: ModuleScope | VariableScope,
-    declaration?: VariableInfo,
+    declaration?: VariableInfo<ObjectType> | VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>>,
     creator?: string,
     skipCalls?: boolean = false
   ) {

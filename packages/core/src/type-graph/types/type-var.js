@@ -24,7 +24,7 @@ export class TypeVar extends Type {
   constraint: Type | void;
   root: Type | void;
   defaultType: Type | void;
-  _isUserDefined: ?boolean;
+  _isUserDefined: boolean;
   priority = 0;
 
   get isUserDefined() {
@@ -73,9 +73,7 @@ export class TypeVar extends Type {
     ) {
       return (
         (super.equalsTo(anotherType) &&
-          // $FlowIssue
           this.constraint.equalsTo(anotherType.constraint)) ||
-        // $FlowIssue
         this.constraint.equalsTo(anotherType)
       );
     }
@@ -210,9 +208,9 @@ export class TypeVar extends Type {
   }
 
   applyGeneric(...args: Array<any>) {
-    if (this.root !== undefined) {
-      return this.root.applyGeneric(...args);
-    }
-    return this;
+    return this.root !== undefined && typeof "applyGeneric" in this.root
+      // $FlowIssue GenericType by duck typing, can't import GenericType because of cycled dependecy
+      ? this.root.applyGeneric(...args)
+      : this;
   }
 }

@@ -143,13 +143,13 @@ export function addThisToClassScope(
     const $super = new ObjectType(
       String(superClass.name),
       { isSubtypeOf: superType },
-      [[CALLABLE, new VariableInfo(superFunctionType)]]
+      [[CALLABLE, new VariableInfo(superFunctionType, classScope)]]
     );
     const genericParams = (currentNode.superTypeParameters || []).map(arg =>
       getTypeFromTypeAnnotation(
         { typeAnnotation: arg },
         typeScope,
-        localTypeScope,
+        classScope.parent,
         true,
         null,
         parentNode,
@@ -185,9 +185,9 @@ export function addThisToClassScope(
       // $FlowIssue
       options.isSubtypeOf = superClass;
     }
-    // $FlowIssue
     const staticSelfObject = ObjectType.term(staticName, options, []);
-    const staticSelfVar = new VariableInfo(staticSelfObject, classScope.parent);
+    const staticSelfVar = new VariableInfo<ObjectType>(staticSelfObject, classScope.parent);
+    // $FlowIssue In Flow VariableInfo<ObjectType> is incompatible with VariableInfo<Type> even if you don't mutate argument
     classScope.parent.body.set(name, staticSelfVar);
     classScope.declaration = staticSelfVar;
     staticSelfObject.instanceType = self;
@@ -197,10 +197,15 @@ export function addThisToClassScope(
     );
     if (!isConstructorPresented) {
       const $super = classScope.body.get("super");
-      const constructor: VariableInfo =
-        // $FlowIssue
-        ($super && $super.type.properties.get(CALLABLE)) ||
-        new VariableInfo(
+      const parentConstructor = $super !== undefined && $super.type instanceof ObjectType 
+        ? $super.type.properties.get(CALLABLE)
+        : undefined;
+      const constructor: VariableInfo<FunctionType | GenericType<FunctionType>> =
+        parentConstructor &&
+        (parentConstructor.type instanceof FunctionType || 
+        (parentConstructor.type instanceof GenericType && parentConstructor.type.subordinateType instanceof FunctionType))
+        ? (parentConstructor: any)
+        : new VariableInfo(
           FunctionType.new(`() => ${name}`, { parent: self.parent }, [], self),
           classScope,
           new Meta(currentNode.loc)
@@ -208,8 +213,7 @@ export function addThisToClassScope(
       if (!constructor.hasInitializer) {
         constructor.hasInitializer = true;
       }
-      // $FlowIssue
-      let type: FunctionType =
+      let type =
         constructor.type instanceof GenericType
           ? constructor.type.subordinateType
           : constructor.type;
@@ -220,17 +224,13 @@ export function addThisToClassScope(
           ? type.returnType
           : self;
       if (self instanceof $BottomType) {
-        const isConstructorGeneric = constructor.type instanceof GenericType;
-        const localTypeScope = isConstructorGeneric
+        const localTypeScope = constructor.type instanceof GenericType
           ? constructor.type.localTypeScope
           : self.subordinateMagicType.localTypeScope;
-        const genericArguments = [
-          ...new Set(
-            self.genericArguments.concat(
-              isConstructorGeneric ? constructor.type.genericArguments : []
-            )
-          )
-        ];
+        const addition =  constructor.type instanceof GenericType
+          ? constructor.type.genericArguments 
+          : [];
+        const genericArguments = Array.from(new Set([...self.genericArguments, addition]));
         type = GenericType.new(
           `constructor ${String(self.name)}`,
           {},
@@ -398,11 +398,13 @@ export function addObjectToTypeGraph(
   if (!(self instanceof VariableInfo)) {
     throw new Error("Never!!!");
   }
-  // $FlowIssue
-  let selfType: ObjectType =
+  let selfType =
     self.type instanceof $BottomType
       ? self.type.subordinateMagicType.subordinateType
       : self.type;
+   if (!(selfType instanceof ObjectType)) {
+     throw new Error("Never!!!");
+   }
   const properties = [];
   for (const [key, property] of selfType.properties.entries()) {
     if (property.hasInitializer) {
@@ -425,7 +427,7 @@ export function addClassToTypeGraph(
   middle: Handler,
   post: Handler,
   isTypeDefinitions: boolean
-): VariableInfo {
+): VariableInfo<ObjectType> {
   const classScope = typeGraph.scopes.get(VariableScope.getName(classNode));
   const name =
     classNode.id != undefined
@@ -461,6 +463,9 @@ export function addClassToTypeGraph(
     self.type instanceof $BottomType
       ? self.type.subordinateMagicType.subordinateType
       : self.type;
+  if (!(selfObject instanceof ObjectType)) {
+    throw new Error("Never!!!")
+  }
   selfObject.parent = [...selfObject.properties].reduce(
     (parent, [_, { type }]) =>
       type !== undefined && parent.priority < type.parent.priority
@@ -526,9 +531,10 @@ export function addClassToTypeGraph(
       }
     });
   }
-  if (!isTypeDefinitions) {
+  const { declaration } = classScope;
+  if (!isTypeDefinitions && declaration !== undefined && declaration.type instanceof ObjectType) {
     const errors = [];
-    [...properties, ...classScope.declaration.type.properties].forEach(([key, property]) => {
+    [...properties, ...declaration.type.properties].forEach(([key, property]) => {
       if (
         !property.hasInitializer &&
         !property.type.contains(Type.Undefined)

@@ -1,17 +1,18 @@
 // @flow
+import type { Locationable } from "./errors";
 import type { Program, CommentLine, SourceLocation } from "@babel/parser";
 
 const IGNORE_COMMENT = "@hegel-issue";
 
-export class IgnorableArray<T: { loc: SourceLocation }> extends Array<T> {
+export class IgnorableArray<T: Locationable> extends Array<T> {
 
-   static from(comments: Array<CommentLine>) {
+   static withIgnoring<T: Locationable>(comments: Array<CommentLine>): IgnorableArray<T> {
      const ignored = new Set(
        comments
          .filter(comment => comment.value.trim() === IGNORE_COMMENT)
          .map(comment => comment.loc.end.line + 1)
     );
-    return new IgnorableArray(ignored);
+    return new IgnorableArray<T>(ignored);
    }
 
   _ignored: Set<number>;
@@ -27,5 +28,7 @@ export class IgnorableArray<T: { loc: SourceLocation }> extends Array<T> {
         super.push(element);
       }
     });
+    // It's needed for backward compatibility with Array
+    return 0;
   }
 }

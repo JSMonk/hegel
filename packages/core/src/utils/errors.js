@@ -1,7 +1,11 @@
 // @flow
 import type { SourceLocation } from "@babel/parser";
 
-export default class HegelError extends Error {
+export interface Locationable {
+  loc: SourceLocation;
+}
+
+export default class HegelError extends Error implements Locationable {
   loc: SourceLocation;
   source: string;
 
@@ -15,7 +19,7 @@ export default class HegelError extends Error {
   }
 }
 
-export class UnreachableError extends Error {
+export class UnreachableError extends Error implements Locationable {
   loc: SourceLocation;
 
   constructor(loc: SourceLocation) {

@@ -4,7 +4,10 @@ import HegelError from "../utils/errors";
 import { UnionType } from "../type-graph/types/union-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { addCallToTypeGraph } from "../type-graph/call";
+import type { Handler } from "../utils/traverse";
 import type { SwitchStatement } from "@babel/parser";
+import type { VariableScope } from "../type-graph/variable-scope";
+import type { ModuleScope, PositionedModuleScope } from "../type-graph/module-scope";
 
 export function findUnhandledCases(
   node: SwitchStatement,

@@ -2,9 +2,12 @@
 import NODE from "../utils/nodes";
 import { TypeScope } from "../type-graph/type-scope";
 import { ModuleScope } from "../type-graph/module-scope";
+import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
 import type { Node } from "@babel/parser";
-import type { VariableInfo } from "../type-graph/variable-info";
+import type { ObjectType } from "../type-graph/types/object-type";
+import type { GenericType } from "../type-graph/types/generic-type";
+import type { FunctionType } from "../type-graph/types/function-type";
 import type { VariableScopeType } from "../type-graph/variable-scope";
 
 export function getScopeType(node: Node): VariableScopeType {
@@ -51,15 +54,15 @@ export function findNearestTypeScope(
     currentScope
   );
   do {
-    // $FlowIssue
-    if (scope.declaration) {
+    if (scope.declaration instanceof VariableInfo) {
       if ("localTypeScope" in scope.declaration.type) {
         // $FlowIssue
         return scope.declaration.type.localTypeScope;
       }
       if (
-        scope.declaration.type.instanceType &&
-        scope.declaration.type.instanceType.subordinateMagicType &&
+        scope.declaration.type.instanceType != undefined &&
+        scope.declaration.type.instanceType.subordinateMagicType != undefined &&
+        // $FlowIssue
         "localTypeScope" in scope.declaration.type.instanceType.subordinateMagicType
       ) {
         // $FlowIssue
@@ -104,7 +107,7 @@ export function getScopeFromNode(
   currentNode: Node,
   parentNode: Node | ModuleScope | VariableScope,
   typeGraph: ModuleScope,
-  declaration?: VariableInfo,
+  declaration?: VariableInfo<ObjectType> | VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>>,
   scopeCreator?: string
 ) {
   return new VariableScope(

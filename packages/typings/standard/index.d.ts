@@ -1597,29 +1597,31 @@ interface JSON {
   parse(
     text: string,
     reviver?: (this: any, key: string, value: any) => any
-  ): unknown;
+  ): unknown | $Throws<SyntaxError>;
   //     /**
   //       * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
   //       * @param value A JavaScript value, usually an object or array, to be converted.
   //       * @param replacer A function that transforms the results.
   //       * @param space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+  //       * @throws {TypeError} because of hegel could not detect circular dependency inside objects
   //       */
   stringify(
     value: any,
     replacer?: (this: any, key: string, value: any) => any,
     space?: string | number
-  ): string;
+  ): string | $Throws<TypeError>;
   //     /**
   //       * Converts a JavaScript value to a JavaScript Object Notation (JSON) string.
   //       * @param value A JavaScript value, usually an object or array, to be converted.
   //       * @param replacer An array of strings and numbers that acts as a approved list for selecting the object properties that will be stringified.
   //       * @param space Adds indentation, white space, and line break characters to the return-value JSON text to make it easier to read.
+  //       * @throws {TypeError} because of hegel could not detect circular dependency inside objects
   //       */
   stringify(
     value: any,
     replacer?: (number | string)[] | null,
     space?: string | number
-  ): string;
+  ): string | $Throws<TypeError>;
 }
 
 // /**
@@ -1870,7 +1872,8 @@ interface ArrayBufferView {
 
 interface ArrayBufferConstructor {
   readonly prototype: ArrayBuffer;
-  new (byteLength: number): ArrayBuffer;
+  // @throws {RangeError} in case byteLength > 2**32 - 1
+  new (byteLength: number): ArrayBuffer | $Throws<RangeError>;
   isView(arg: ArrayBufferView): true;
   isView(arg: any): false;
 }
@@ -1886,55 +1889,73 @@ interface DataView {
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getFloat32(byteOffset: number, littleEndian?: boolean): number;
+  getFloat32(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Float64 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getFloat64(byteOffset: number, littleEndian?: boolean): number;
+  getFloat64(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Int8 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getInt8(byteOffset: number): number;
+  getInt8(byteOffset: number): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Int16 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getInt16(byteOffset: number, littleEndian?: boolean): number;
+  getInt16(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
   //     /**
   //       * Gets the Int32 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getInt32(byteOffset: number, littleEndian?: boolean): number;
+  getInt32(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Uint8 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getUint8(byteOffset: number): number;
+  getUint8(byteOffset: number): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Uint16 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getUint16(byteOffset: number, littleEndian?: boolean): number;
+  getUint16(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Uint32 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getUint32(byteOffset: number, littleEndian?: boolean): number;
+  getUint32(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
+
+  //     /**
+  //       * The getBigInt64() method gets a signed 64-bit integer (long long)
+  //       * at the specified byte offset from the start of the DataView.
+  //       * @param byteOffset The offset, in bytes, from the start of the view to read the data from.
+  //       * @param littleEndian (optional) Indicates whether the 64-bit int
+  //       * is stored in little- or big-endian format. If false or undefined, a big-endian value is read.
+  //       */
+  getBigInt64(byteOffset: number, littleEndian?: boolean): BigInt | $Throws<RangeError>;
+
+  //     /**
+  //       * The getBigUint64() method gets a unsigned 64-bit integer (long long)
+  //       * at the specified byte offset from the start of the DataView.
+  //       * @param byteOffset The offset, in bytes, from the start of the view to read the data from.
+  //       * @param littleEndian (optional) Indicates whether the 64-bit int
+  //       * is stored in little- or big-endian format. If false or undefined, a big-endian value is read.
+  //       */
+  getBigUint64(byteOffset: number, littleEndian?: boolean): BigInt | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Float32 value at the specified byte offset from the start of the view.
@@ -1943,7 +1964,7 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setFloat32(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setFloat32(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Float64 value at the specified byte offset from the start of the view.
@@ -1952,14 +1973,14 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setFloat64(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setFloat64(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Int8 value at the specified byte offset from the start of the view.
   //       * @param byteOffset The place in the buffer at which the value should be set.
   //       * @param value The value to set.
   //       */
-  setInt8(byteOffset: number, value: number): void;
+  setInt8(byteOffset: number, value: number): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Int16 value at the specified byte offset from the start of the view.
@@ -1968,7 +1989,7 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setInt16(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setInt16(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Int32 value at the specified byte offset from the start of the view.
@@ -1977,14 +1998,14 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setInt32(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setInt32(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Uint8 value at the specified byte offset from the start of the view.
   //       * @param byteOffset The place in the buffer at which the value should be set.
   //       * @param value The value to set.
   //       */
-  setUint8(byteOffset: number, value: number): void;
+  setUint8(byteOffset: number, value: number): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Uint16 value at the specified byte offset from the start of the view.
@@ -1993,7 +2014,7 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setUint16(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setUint16(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Uint32 value at the specified byte offset from the start of the view.
@@ -2002,7 +2023,26 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setUint32(byteOffset: number, value: number, littleEndian?: boolean): void;
+  setUint32(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
+
+  //     /**
+  //       * Stores an BigInt64 value at the specified byte offset from the start of the view.
+  //       * @param byteOffset The place in the buffer at which the value should be set.
+  //       * @param value The value to set.
+  //       * @param littleEndian If false or undefined, a big-endian value should be written,
+  //       * otherwise a little-endian value should be written.
+  //       */
+  setBigInt64(byteOffset: number, value: BigInt, littleEndian?: boolean): void | $Throws<RangeError>;
+
+  //     /**
+  //       * The setBigUint64() method stores an unsigned 64-bit integer (unsigned long long) 
+  //       * value at the specified byte offset from the start of the DataView.
+  //       * @param byteOffset The place in the buffer at which the value should be set.
+  //       * @param value The value to set.
+  //       * @param littleEndian If false or undefined, a big-endian value should be written,
+  //       * otherwise a little-endian value should be written.
+  //       */
+  setBigUint64(byteOffset: number, value: BigInt, littleEndian?: boolean): void | $Throws<RangeError>;
 }
 
 interface DataViewConstructor {
@@ -2010,7 +2050,7 @@ interface DataViewConstructor {
     buffer: ArrayBufferLike,
     byteOffset?: number,
     byteLength?: number
-  ): DataView;
+  ): DataView | $Throws<RangeError>;
 }
 
 declare var DataView: DataViewConstructor;
@@ -5212,7 +5252,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<RangeError>;
   /**
    * Stores the bitwise AND of a value with the value at the given position in the array,
    * returning the original value. Until this atomic operation completes, any other read or
@@ -5228,7 +5268,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<RangeError>;
   /**
    * Replaces the value at the given position in the array if the original value equals the given
    * expected value, returning the original value. Until this atomic operation completes, any
@@ -5245,7 +5285,7 @@ interface Atomics {
     index: number,
     expectedValue: number,
     replacementValue: number
-  ): number;
+  ): number | $Throws<RangeError>;
   /**
    * Replaces the value at the given position in the array, returning the original value. Until
    * this atomic operation completes, any other read or write operation against the array will
@@ -5261,7 +5301,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<RangeError>;
   /**
    * Returns a value indicating whether high-performance algorithms can use atomic operations
    * (`true`) or must use locks (`false`) for the given number of bytes-per-element of a typed
@@ -5281,7 +5321,7 @@ interface Atomics {
       | Int32Array
       | Uint32Array,
     index: number
-  ): number;
+  ): number | $Throws<RangeError>;
   /**
    * Stores the bitwise OR of a value with the value at the given position in the array,
    * returning the original value. Until this atomic operation completes, any other read or write
@@ -5297,7 +5337,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<RangeError>;
   /**
    * Stores a value at the given position in the array, returning the new value. Until this
    * atomic operation completes, any other read or write operation against the array will block.
@@ -5312,7 +5352,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<RangeError>;
   /**
    * Subtracts a value from the value at the given position in the array, returning the original
    * value. Until this atomic operation completes, any other read or write operation against the
@@ -5328,7 +5368,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<RangeError>;
   /**
    * If the value at the given position in the array is equal to the provided value, the current
    * agent is put to sleep causing execution to suspend until the timeout expires (returning
@@ -5340,12 +5380,12 @@ interface Atomics {
     index: number,
     value: number,
     timeout?: number
-  ): "ok" | "not-equal" | "timed-out";
+  ): "ok" | "not-equal" | "timed-out" | $Throws<RangeError>;
   /**
    * Wakes up sleeping agents that are waiting on the given index of the array, returning the
    * number of agents that were awoken.
    */
-  notify(typedArray: Int32Array, index: number, count: number): number;
+  notify(typedArray: Int32Array, index: number, count: number): number | $Throws<RangeError>;
   /**
    * Stores the bitwise XOR of a value with the value at the given position in the array,
    * returning the original value. Until this atomic operation completes, any other read or write
@@ -5361,7 +5401,7 @@ interface Atomics {
       | Uint32Array,
     index: number,
     value: number
-  ): number;
+  ): number | $Throws<RangeError>;
   //readonly [Symbol.toStringTag]: "Atomics";
 }
 

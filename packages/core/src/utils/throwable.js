@@ -21,7 +21,7 @@ export function findThrowableBlock(
 }
 
 export function addToThrowable(
-  throwType: Type | VariableInfo,
+  throwType: Type | VariableInfo<Type>,
   currentScope: null | VariableScope | ModuleScope
 ) {
   const throwableScope = findThrowableBlock(currentScope);

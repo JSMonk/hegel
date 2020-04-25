@@ -14,7 +14,7 @@ export type CallableTarget =
       type: CallableType
     };
 
-export type CallableArguments = Type | VariableInfo;
+export type CallableArguments = Type | VariableInfo<Type>;
 
 export class CallMeta extends Meta {
   target: ?CallableTarget;

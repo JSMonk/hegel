@@ -43,7 +43,7 @@ function isReturnTypeOfTypeof(node: Node) {
 function getTypeofAndLiteral(
   left: Node,
   right: Node,
-  typeofOperator: VariableInfo
+  typeofOperator: VariableInfo<Type>
 ): ?{ typeofNode: Node, stringNode: Node } {
   let typeofNode: ?Node = null;
   if (isTypeofOperator(left)) {
@@ -75,6 +75,8 @@ function getRefinmentType(stringNode: Node): Type {
       return Type.BigInt;
     case "undefined":
       return Type.Undefined;
+    case "symbol":
+      return Type.Symbol;  
     case "function":
       return FunctionType.Function;
     case "object":

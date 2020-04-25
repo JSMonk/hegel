@@ -18,7 +18,7 @@ import type { CallableType } from "../type-graph/meta/call-meta";
 import type { SourceLocation } from "@babel/parser";
 
 function getActualType(
-  actual: ?Type | VariableInfo | Array<Type | VariableInfo>,
+  actual: ?Type | VariableInfo<Type> | Array<Type | VariableInfo<Type>>,
   typeScope: TypeScope
 ) {
   if (actual === undefined || actual === null) {
@@ -44,7 +44,7 @@ function isAssign(call: CallMeta) {
 function isValidTypes(
   targetName: mixed,
   declaratedType: Type | RestArgument,
-  actual: ?Type | VariableInfo | Array<VariableInfo | Type>,
+  actual: ?Type | VariableInfo<Type> | Array<VariableInfo<Type> | Type>,
   typeScope: TypeScope
 ): boolean {
   let declaratedRootType =
@@ -71,7 +71,7 @@ function isValidTypes(
     }
     if (
       declaratedRootType.onlyLiteral &&
-      !declaratedRootType.isNominal &&
+      !(declaratedRootType instanceof ObjectType && declaratedRootType.isNominal) &&
       declaratedRootType !== ObjectType.Object &&
       declaratedRootType !== ObjectType.Object.root &&
       declaratedRootType !== FunctionType.Function &&

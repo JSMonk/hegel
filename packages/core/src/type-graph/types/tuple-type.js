@@ -62,6 +62,7 @@ export class TupleType extends Type {
     const isSubtypeOf =
       TupleType.ReadonlyArray.root === undefined
         ? new $BottomType({}, TupleType.ReadonlyArray, arrayValue)
+        // $FlowIssue ReadonlyArray is always GenericType
         : TupleType.ReadonlyArray.root.applyGeneric(arrayValue);
     super(name, { ...meta, isSubtypeOf });
     this.items = items;

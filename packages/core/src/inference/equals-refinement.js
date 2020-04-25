@@ -206,14 +206,9 @@ export function refinePropertyWithConstraint(
   variableType: Type,
   typeScope: TypeScope
 ): [?Type, ?Type] {
-  const refinementedType: Type = chaining.reduceRight((res: Type, property) => {
-    const propertiesForObjectType = [[property, new VariableInfo(res)]];
-    return ObjectType.term(
-      ObjectType.getName(propertiesForObjectType),
-      {},
-      propertiesForObjectType
-    );
-  }, refinementType);
+  const refinementedType: Type = chaining.reduceRight((res: Type, property) =>
+    createObjectWith(property, res, typeScope)
+  , refinementType);
   return [refinementedType, variableType];
 }
 
@@ -434,26 +429,27 @@ function equalsProperty(
   if (refinmentedAndAlternate == undefined) {
     return;
   }
+  const [refinemented, alternate] = refinmentedAndAlternate;
   if (
-    refinmentedAndAlternate[0] !== undefined &&
-    refinmentedAndAlternate[1] === undefined &&
+    refinemented != undefined &&
+    alternate == undefined &&
     isSwitch
   ) {
-    return [variableName, refinmentedAndAlternate[0], Type.Never];
+    return [variableName, refinemented, Type.Never];
   }
   if (
-    refinmentedAndAlternate[0] == undefined ||
-    (refinmentedAndAlternate[1] == undefined && !isSwitch)
+    refinemented == undefined ||
+    (alternate == undefined && !isSwitch)
   ) {
     const typeName = String(refinementType.name);
     throw new HegelError(
       `Property ${
-        refinmentedAndAlternate[0] === undefined ? "can't be" : "is always"
+        refinemented === undefined ? "can't be" : "is always"
       } "${typeName}"`,
       refinementNode.loc
     );
   }
-  return [variableName, refinmentedAndAlternate[0], refinmentedAndAlternate[1]];
+  return [variableName, refinemented, alternate || Type.Never];
 }
 export function equalsRefinement(
   currentRefinementNode: Node,

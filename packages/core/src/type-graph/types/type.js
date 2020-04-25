@@ -111,7 +111,7 @@ export class Type {
     this.shouldBeUsedAsGeneric = shouldBeUsedAsGeneric;
   }
 
-  getChangedName(sourceTypes: Array<Type>, targetTypes: Array<Type>) {
+  getChangedName<T: Type>(sourceTypes: Array<T>, targetTypes: Array<Type>) {
     let pattern = "";
     const map = sourceTypes.reduce((map, type, index) => {
       const name = String(type.name).replace(/[()]/g, bracket => `\\${bracket}`);
@@ -205,15 +205,14 @@ export class Type {
       }
       return [];
     }
-    if ("root" in type && type.isSubtypeOf === null) {
-      if (
-        type.constraint !== undefined &&
-        !("subordinateMagicType" in type.constraint)
-      ) {
-        return type.constraint.isPrincipalTypeFor(this)
+    if ("constraint" in type && type.isSubtypeOf === null) {
+      // $FlowIssue
+      const constraint = type.constraint instanceof Type ? type.constraint : undefined;
+      if (constraint !== undefined && !("subordinateMagicType" in constraint)) {
+        return constraint.isPrincipalTypeFor(this)
           ? [
               { root: this, variable: type },
-              ...this.getDifference(type.constraint)
+              ...this.getDifference(constraint)
             ]
           : []
       }
@@ -306,7 +305,7 @@ export class Type {
     // $FlowIssue
     last.root = result;
     last.name = result.name;
-    if (this._changeStack.length === 0) {
+    if (this._changeStack !== null && this._changeStack.length === 0) {
       this._changeStack = null;
     }
     return result;

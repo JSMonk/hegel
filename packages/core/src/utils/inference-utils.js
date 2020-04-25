@@ -52,7 +52,7 @@ export function getPropertyChaining(node: MemberExpression): ?Array<string> {
 export function mergeRefinementsVariants(
   refinementedType: ?Type,
   alternateType: ?Type,
-  originalProperty: VariableInfo,
+  originalProperty: VariableInfo<Type>,
   propertyName: string,
   typeScope: TypeScope
 ): [?Type, ?Type] {

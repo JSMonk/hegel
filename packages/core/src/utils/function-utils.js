@@ -31,7 +31,7 @@ export function addFunctionScopeToTypeGraph(
   currentNode: Node,
   parentNode: Node | VariableScope | ModuleScope,
   moduleScope: ModuleScope,
-  variableInfo: VariableInfo
+  variableInfo: VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>>
 ) {
   const scope = getScopeFromNode(
     currentNode,
@@ -42,6 +42,7 @@ export function addFunctionScopeToTypeGraph(
   scope.throwable = [];
   moduleScope.scopes.set(VariableScope.getName(currentNode), scope);
   if (currentNode.type === NODE.FUNCTION_EXPRESSION && currentNode.id) {
+    // $FlowIssue In Flow VariableInfo<ObjectType> is incompatible with VariableInfo<Type> even if you don't mutate argument
     scope.body.set(getDeclarationName(currentNode), variableInfo);
   }
   return scope;
@@ -65,13 +66,13 @@ export function addFunctionToTypeGraph(
   middle: Handler,
   post: Handler,
   isTypeDefinitions: boolean
-) {
+): VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>> {
   const name =
     currentNode.type === NODE.FUNCTION_DECLARATION ||
     currentNode.type === NODE.TS_FUNCTION_DECLARATION
       ? getDeclarationName(currentNode)
       : getAnonymousKey(currentNode);
-  const variableInfo = addVariableToGraph(
+  const variableInfo: VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>> = (addVariableToGraph(
     currentNode,
     parentNode,
     moduleScope,
@@ -79,7 +80,7 @@ export function addFunctionToTypeGraph(
     middle,
     post,
     name
-  );
+  ): any);
   variableInfo.isInferenced = currentNode.returnType === undefined;
   const currentTypeScope = findNearestTypeScope(
     variableInfo.parent,
@@ -93,7 +94,7 @@ export function addFunctionToTypeGraph(
         moduleScope,
         variableInfo
       );
-  variableInfo.type = inferenceTypeForNode(
+  variableInfo.type = (inferenceTypeForNode(
     currentNode,
     currentTypeScope,
     variableInfo.parent,
@@ -103,14 +104,13 @@ export function addFunctionToTypeGraph(
     middle,
     post,
     isTypeDefinitions
-  );
+  ): any);
   const expectedType = currentNode.expected;
   const functionType =
     variableInfo.type instanceof GenericType
       ? variableInfo.type.subordinateType
       : variableInfo.type;
   if (expectedType instanceof FunctionType) {
-    // $FlowIssue
     const inferencedArgumentsTypes = functionType.argumentsTypes;
     const expectedArgumentsTypes = expectedType.argumentsTypes;
     for (let i = 0; i < inferencedArgumentsTypes.length; i++) {
