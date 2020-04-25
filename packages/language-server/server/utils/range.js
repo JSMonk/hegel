@@ -17,10 +17,10 @@ function convertLocToRange(loc) {
   };
 }
 
-function convertRangeToLoc(loc) {
+function convertRangeToLoc(range) {
   return {
-    line: loc.line + 1,
-    column: loc.character,
+    line: range.line + 1,
+    column: range.character,
   };
 }
 

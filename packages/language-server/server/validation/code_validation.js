@@ -26,5 +26,9 @@ async function validateTextDocument(textDocument) {
   return { uri: textDocument.uri, diagnostics };
 }
 
+function getPositionedModuleScopeTypes() {
+  return types;
+}
+
 exports.validateTextDocument = validateTextDocument;
-exports.types = types;
+exports.getPositionedModuleScopeTypes = getPositionedModuleScopeTypes;
