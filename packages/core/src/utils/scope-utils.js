@@ -54,15 +54,15 @@ export function findNearestTypeScope(
     currentScope
   );
   do {
-    // $FlowIssue
     if (scope.declaration instanceof VariableInfo) {
       if ("localTypeScope" in scope.declaration.type) {
         // $FlowIssue
         return scope.declaration.type.localTypeScope;
       }
       if (
-        scope.declaration.type.instanceType &&
-        scope.declaration.type.instanceType.subordinateMagicType &&
+        scope.declaration.type.instanceType != undefined &&
+        scope.declaration.type.instanceType.subordinateMagicType != undefined &&
+        // $FlowIssue
         "localTypeScope" in scope.declaration.type.instanceType.subordinateMagicType
       ) {
         // $FlowIssue

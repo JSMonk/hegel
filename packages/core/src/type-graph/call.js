@@ -322,8 +322,10 @@ export function addCallToTypeGraph(
             parent => parent.creator === "block" || parent.creator === "catch"
           );
       const nearestThrowableScope = findThrowableBlock(currentScope);
-      addToThrowable(args[0], nearestThrowableScope);
       const throwableDeclaration = nearestThrowableScope && nearestThrowableScope.declaration;
+      if (nearestThrowableScope != null) {
+        addToThrowable(args[0], nearestThrowableScope);
+      }
       if (
         nearestThrowableScope == null ||
         nearestThrowableScope.type !== VariableScope.FUNCTION_TYPE ||
