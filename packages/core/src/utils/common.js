@@ -65,3 +65,10 @@ export function getMemberExressionTarget(node: MemberExpression): Node {
   } while (target.type === NODE.MEMBER_EXPRESSION);
   return target;
 }
+
+export function ensureArray<T>(value: T | Array<T> | null | undefined): Array<T> {
+  if (value === undefined || value === null) {
+    return []
+  }
+  return Array.isArray(value) ? value : [value];
+}
