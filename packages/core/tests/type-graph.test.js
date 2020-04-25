@@ -1501,4 +1501,36 @@ describe("Issues", () => {
 
     expect(errors.length).toBe(0);
   });
+
+  test("Issue #100: error procesing while statement with logical condition", async () => {
+    const sourceAST = prepareAST(`
+      function a(x) { return true; }
+      let id
+      while (id === undefined || a(id)) {	}
+    `);
+    const [, errors] = await createTypeGraph( [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+  });
+
+  test("Issue #153: type interence for symbol without errors", async () => {
+    const sourceAST = prepareAST(`
+      const unknownValue: symbol | boolean = true;
+      if(typeof unknownValue === "symbol") {
+          
+      }
+    `);
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+  });
 });
