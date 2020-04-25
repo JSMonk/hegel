@@ -173,7 +173,7 @@ export function inferenceFunctionLiteralType(
     const isWithoutAnnotation = typeNode == undefined;
     functionScope.body.set(
       name,
-      new VariableInfo(paramType, localTypeScope, new Meta(param.loc))
+      new VariableInfo(paramType, functionScope, new Meta(param.loc))
     );
     if (param.left !== undefined) {
       if (
@@ -201,7 +201,7 @@ export function inferenceFunctionLiteralType(
       paramType = !isWithoutAnnotation
         ? paramType
         : getVariableType(
-            new VariableInfo(paramType),
+            new VariableInfo(paramType, functionScope),
             newType,
             typeScope,
             callResultType.inferenced
@@ -420,7 +420,7 @@ function resolveOuterTypeVarsFromCall(
 
 export function implicitApplyGeneric(
   fn: GenericType<FunctionType>,
-  argumentsTypes: Array<Type | VariableInfo>,
+  argumentsTypes: Array<Type | VariableInfo<Type>>,
   localTypeScope: TypeScope,
   loc: SourceLocation,
   withClean?: boolean = true,
@@ -506,7 +506,11 @@ export function implicitApplyGeneric(
     ) {
       unreachableTypes.add(resultType);
     }
-    if (resultType === t && resultType.defaultType !== undefined) {
+    if (
+      resultType instanceof TypeVar &&
+      resultType === t &&
+      resultType.defaultType !== undefined
+    ) {
       return resultType.defaultType;
     }
     return resultType;
@@ -538,7 +542,7 @@ let iterator = 0;
 
 export function getRawFunctionType(
   fn: FunctionType | GenericType<FunctionType> | TypeVar,
-  args: Array<Type | VariableInfo>,
+  args: Array<Type | VariableInfo<Type>>,
   genericArguments?: Array<Type> | null,
   localTypeScope: TypeScope,
   loc: SourceLocation,
@@ -594,7 +598,7 @@ export function getRawFunctionType(
 
 export function getInvocationType(
   fn: FunctionType | GenericType<FunctionType> | TypeVar,
-  argumentsTypes: Array<Type | VariableInfo>,
+  argumentsTypes: Array<Type | VariableInfo<Type>>,
   genericArguments?: Array<Type> | null,
   localTypeScope: TypeScope,
   loc: SourceLocation,
@@ -626,7 +630,7 @@ export function getInvocationType(
     : returnType;
 }
 
-export function clearRoot(type: Type) {
+export function clearRoot(type: TypeVar) {
   type.root = undefined;
 }
 
@@ -724,13 +728,16 @@ export function inferenceFunctionTypeByScope(
     returnType instanceof TypeVar &&
     !returnType.isUserDefined
   ) {
+    const variants = returnType.root !== undefined 
+     ? [Type.getTypeRoot(returnType)]
+     : [];
     returnType.root = UnionType.term(
       null,
       {},
       [
-        returnType.root,
+        ...variants,
         isAsync ? Type.Undefined.promisify() : Type.Undefined
-      ].filter(a => a !== undefined)
+      ]
     );
   }
   const created: Map<TypeVar, TypeVar> = new Map();

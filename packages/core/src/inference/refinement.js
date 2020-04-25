@@ -205,8 +205,8 @@ function intersectionOfTypes(
   if (type1 instanceof UnionType || type2 instanceof UnionType) {
     // $FlowIssue
     const [unionType, notUnion]: [UnionType, Type] =
+      // $FlowIssue
       type1 instanceof UnionType ? [type1, type2] : [type2, type1];
-    // $FlowIssue
     const isTypeExisting = unionType.variants.some(t => t.equalsTo(notUnion));
     return isTypeExisting ? notUnion : Type.Never;
   }
@@ -309,6 +309,9 @@ function refinementByCondition(
         const previousCaseScope = moduleScope.scopes.get(
           VariableScope.getName(previousCase.consequent)
         );
+        if (previousCaseScope === undefined) {
+          throw new Error("Never!!!");
+        }
         const previousPrimaryRefinement = previousCaseScope.body.get(name);
         if (previousPrimaryRefinement === undefined) {
           return;
@@ -492,7 +495,7 @@ export function refinement(
       !primaryScope.body.has(varName) ||
       condition.type === NODE.SWITCH_CASE
     ) {
-      primaryScope.body.set(varName, new VariableInfo(refinementedType));
+      primaryScope.body.set(varName, new VariableInfo(refinementedType, currentScope));
     }
     if (alternateType && alternateScopes) {
       alternateScopes.forEach(alternateScope => {
@@ -500,7 +503,7 @@ export function refinement(
           !alternateScope.body.has(varName) ||
           condition.type === NODE.SWITCH_CASE
         ) {
-          alternateScope.body.set(varName, new VariableInfo(alternateType));
+          alternateScope.body.set(varName, new VariableInfo(alternateType, currentScope));
         }
       });
     }

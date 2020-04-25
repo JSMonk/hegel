@@ -4,9 +4,9 @@ import type { Type } from "./types/type";
 import type { ModuleScope } from "./module-scope";
 import type { VariableScope } from "./variable-scope";
 
-export class VariableInfo {
-  type: Type;
-  parent: VariableScope | ModuleScope | void;
+export class VariableInfo<T: Type> {
+  type: T;
+  parent: VariableScope | ModuleScope;
   isConstant: boolean = false;
   hasInitializer: boolean = false;
   isInferenced: boolean = false;
@@ -14,8 +14,8 @@ export class VariableInfo {
   meta: Meta;
 
   constructor(
-    type: Type,
-    parent: VariableScope | ModuleScope | void,
+    type: T,
+    parent: VariableScope | ModuleScope,
     meta?: Meta = new Meta(),
     isConstant: boolean = false,
     isInferenced: boolean = false,

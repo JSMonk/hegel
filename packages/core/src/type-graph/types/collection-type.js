@@ -89,6 +89,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
     if (
       "readonly" in anotherType &&
       this.equalsTo(
+        // $FlowIssue ReadonlyArray is always GenericType
         TupleType.ReadonlyArray.root.applyGeneric([this.valueType]).readonly
       ) &&
       this === anotherType.readonly
@@ -125,9 +126,11 @@ export class CollectionType<K: Type, V: Type> extends Type {
         this.valueType.isPrincipalTypeFor(anotherType.valueType)) ||
       (anotherType instanceof TupleType &&
         (this.equalsTo(
+          // $FlowIssue Array is always GenericType
           CollectionType.Array.root.applyGeneric([this.valueType])
         ) ||
           this.equalsTo(
+            // $FlowIssue ReadonlyArray is always GenericType
             TupleType.ReadonlyArray.root.applyGeneric([this.valueType])
           )) &&
         anotherType.items.every(t => this.valueType.isPrincipalTypeFor(t)));
