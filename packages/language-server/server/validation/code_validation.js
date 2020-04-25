@@ -1,7 +1,6 @@
-const { DiagnosticSeverity } = require("vscode-languageserver");
-
 const { getHegelTypings } = require("./typings");
 const { formatErrorRange } = require("../utils/range");
+const { DiagnosticSeverity } = require("vscode-languageserver");
 
 let types = {};
 let errors = [];

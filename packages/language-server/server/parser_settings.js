@@ -1,8 +1,14 @@
+/** Settings for reading TypeScript's .d.ts files. */
 const dtsrc = {
   sourceType: "module",
   strictMode: false,
   plugins: ["typescript"]
 };
+
+/** 
+ * Settings for processing JavaScript files with up to ECMAScript 2020 version and some
+ * proposals at stage 3 and 4.
+ */
 const babelrc = {
   sourceType: "module",
   plugins: [

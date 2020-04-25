@@ -4,7 +4,7 @@ const { TransportKind, LanguageClient } = require("vscode-languageclient");
 
 let client;
 
-exports.activate = context => {
+exports.activate = (context) => {
   const serverModule = context.asAbsolutePath(path.join("server", "server.js"));
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
 
@@ -13,15 +13,15 @@ exports.activate = context => {
     debug: {
       module: serverModule,
       transport: TransportKind.ipc,
-      options: debugOptions
-    }
+      options: debugOptions,
+    },
   };
 
   const clientOptions = {
     documentSelector: ["javascript"],
     synchronize: {
-      fileEvents: workspace.createFileSystemWatcher("**/.clientrc")
-    }
+      fileEvents: workspace.createFileSystemWatcher("**/.hegelrc"),
+    },
   };
 
   client = new LanguageClient(

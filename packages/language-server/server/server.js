@@ -1,16 +1,14 @@
-const {
-  PositionedModuleScope,
-} = require("@hegel/core/type-graph/module-scope");
+const { getTypeName } = require("./validation/typings");
+const { TextDocument } = require("vscode-languageserver-textdocument");
+const { convertRangeToLoc } = require("./utils/range");
+const { PositionedModuleScope } = require("@hegel/core");
+const { validateTextDocument, types } = require("./validation/code_validation");
 const {
   TextDocuments,
   IPCMessageReader,
   IPCMessageWriter,
   createConnection,
 } = require("vscode-languageserver");
-const { TextDocument } = require("vscode-languageserver-textdocument");
-
-const { validateTextDocument, types } = require("./validation/code_validation");
-const { convertRangeToLoc } = require("./utils/range");
 
 const documents = new TextDocuments(TextDocument);
 const connection = createConnection(
@@ -26,41 +24,36 @@ connection.onInitialize(() => ({
 }));
 
 connection.onHover((meta) => {
-  let varInfo; // TODO: this variable was never defined.
   const location = convertRangeToLoc(meta.position);
   if (types instanceof PositionedModuleScope) {
-  const varInfoOrType = types.getVarAtPosition(location);
-  if (varInfoOrType  === undefined) {
-    return;
-  }
-    return varInfo === undefined
+    const varInfoOrType = types.getVarAtPosition(location);
+
+    return varInfoOrType === undefined
       ? undefined
       : {
           contents: [
             {
               language: "typescript",
-              value: getTypeName(varInfo.type || varInfo),
+              value: getTypeName(varInfoOrType.type || varInfoOrType),
             },
           ],
         };
   }
 });
 
-documents.onDidChangeContent(async (change) => {
-  const diagnostics = await validateTextDocument(change.document);
-  connection.sendDiagnostics(diagnostics);
-});
+/** Is used for preventing every time re-analyzation at every keyboard button pressing. */
+let timeoutId;
+function onDidChange(change) {
+  clearTimeout(timeoutId);
+  timeoutId = setTimeout(async () => {
+    const diagnostics = await validateTextDocument(change.document);
+    connection.sendDiagnostics(diagnostics);
+  }, 200);
+}
 
-connection.onDidChangeWatchedFiles(async (change) => {
-  const diagnostics = await validateTextDocument(change.document);
-  connection.sendDiagnostics(diagnostics);
-});
+documents.onDidChangeContent(onDidChange);
+
+connection.onDidChangeWatchedFiles(onDidChange);
 
 documents.listen(connection);
 connection.listen();
-
-function getTypeName(type) {
-  return type.constraint !== undefined
-    ? `${type.name}: ${type.constraint.name}`
-    : String(type.name);
-}

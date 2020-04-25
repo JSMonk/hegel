@@ -1,11 +1,10 @@
 const path = require("path");
+const babylon = require("@babel/parser");
+const { dtsrc } = require("../parser_settings");
 const {
   promises: { readFile },
 } = require("fs");
-const babylon = require("@babel/parser");
-const { createModuleScope } = require("@hegel/core/type-graph/type-graph");
-
-const { dtsrc } = require("../parser_settings");
+const { createModuleScope } = require("@hegel/core");
 
 let stdLibTypeGraph;
 let browserGlobalTypeGraph;
@@ -19,15 +18,15 @@ function mixTypeDefinitions(config) {
     mixSomeTypeDefinitions(globalScope, stdLibTypeGraph);
 
     /**
-     * By default Hegel will think that code is acceptable for both
-     * platforms: "nodejs" and "browser". If other options is not set in config file.
+     * By default platform specific types will not be used if this options
+     * does not set in config file.
      */
     const shouldIncludeNodeJS = config.environment
       ? config.environment.includes("nodejs")
-      : true;
+      : false;
     const shouldIncludeBrowser = config.environment
       ? config.environment.includes("browser")
-      : true;
+      : false;
 
     const waitingTypes = [
       shouldIncludeNodeJS && nodeJsGlobalTypeGraph === undefined
