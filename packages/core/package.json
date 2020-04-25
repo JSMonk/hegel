@@ -5,10 +5,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": " npm run build:clean && npm run build:start && npm run build:copy",
-    "build:start": "babel src -d build",
+    "prebuild": "npm run build:clean",
+    "build": "babel src -d build",
+    "postbuild": "npm run build:copy",
+
+    "build:dev": "npm run build -- -s",
+
     "build:copy": "cp ./package.json ./build/package.json && cp ./src/index.d.ts ./build/index.d.ts",
     "build:clean": "rm -rf build && mkdir build",
+    
+    "pretest": "npm run build",
     "test": "jest"
   },
   "license": "MIT",
