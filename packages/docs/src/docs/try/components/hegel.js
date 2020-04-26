@@ -81,6 +81,15 @@ export async function getDiagnostics(sourceCode) {
       true
     );
   } catch (e) {
+    e.message = `AnalyzationError: ${e.message}`
+    e.loc.start = {
+      line: 0,
+      column: 0
+    }
+    e.loc.end = {
+      line: Number.MAX_VALUE,
+      column: Number.MAX_VALUE,
+    }
     errors = [e];
   }
   return errors.map(toTransferableObject);
