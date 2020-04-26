@@ -1,9 +1,5 @@
 const path = require("path");
-const babylon = require("@babel/parser");
-const { dtsrc } = require("../parser_settings");
-const {
-  promises: { readFile },
-} = require("fs");
+const { getBabylonAST } = require("../utils/document_ast");
 const { createModuleScope } = require("@hegel/core");
 
 let stdLibTypeGraph;
@@ -93,10 +89,9 @@ async function getBrowserTypeDefinitions(globalScope) {
 }
 
 async function getTypeGraphFor(path, globalScope) {
-  const content = await readFile(path, "utf8");
   const errors = [];
   const graph = await createModuleScope(
-    babylon.parse(content, dtsrc),
+    await getBabylonAST(path, null, true),
     errors,
     () => {},
     globalScope,

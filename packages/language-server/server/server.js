@@ -1,11 +1,14 @@
 const { onHover } = require("./hover/hover");
+const { onCompletion } = require("./completion/completion");
 const { TextDocument } = require("vscode-languageserver-textdocument");
+const { onCompletionResolve } = require("./completion/completion_resolve");
 const { validateTextDocument } = require("./validation/code_validation");
 const {
   TextDocuments,
   IPCMessageReader,
   IPCMessageWriter,
   createConnection,
+  TextDocumentSyncKind
 } = require("vscode-languageserver");
 
 const documents = new TextDocuments(TextDocument);
@@ -16,12 +19,19 @@ const connection = createConnection(
 
 connection.onInitialize(() => ({
   capabilities: {
-    textDocumentSync: documents.syncKind,
+    textDocumentSync: TextDocumentSyncKind.Full,
     hoverProvider: true,
+    completionProvider: {
+      resolveProvider: true
+    },
   },
 }));
 
 connection.onHover(onHover);
+
+connection.onCompletion(onCompletion);
+
+connection.onCompletionResolve(onCompletionResolve);
 
 /** Is used for preventing every time re-analyzation at every keyboard button pressing. */
 let timeoutId;
