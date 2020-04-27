@@ -1,91 +1,177 @@
-# Hegel
 <p align="center">
   <a href="#" target="blank"><img src="./logo-dark.svg" width="300" alt="Hegel Logo" /></a>
 </p>
+-----------------------------------------
 
-Hegel is a static type checker for JavaScript with strong typings, high inference level and a lot of additional goodies.
-To read more about Hegel, check out [Docs](https://hegel.js.org).
+[Getting Started](https://hegel.js.org/docs/install) |
+[Documentation](https://hegel.js.org/docs/type-annotations)
 
-The main features:
+Hegel is a type checker for JavaScript with optional type annotations and preventing runtime type errors.
 
-1. Soundness
+- [**No Runtime Type Errors**](#soundness). Hegel has a strong type system and soundness checks.
+This means that he finds any `TypeError` that may be thrown in runtime.
+- [**Optional Type Annotation**](#high-level-type-inference). Hegel has a high-level type inference which gives you the ability to drop a type annotation.
+- [**Typed Errors**](#typed-errors). Hegel has a mechanism to inference and annotates which errors should be thrown by functions.
+- [**Using d.ts as libraries definitions**]. Hegel has not a custom language for library typings description. We use a lot of existed `.d.ts` files as the source of typings for any libraries.
+- [**Only JavaScript with types**](https://hegel.js.org/docs/type-annotations). Hegel has only type syntax, without any additional hard syntax sugar.
 
+To read more about Hegel, check out [Docs](https://hegel.js.org/docs).
+
+## Benefits over (TypeScript)[https://www.typescriptlang.org/index.html]
+
+1. [**No unexpected runtime errors**]
+
+TypeScript never will guarantee that you will not have a Type Error at Runtime. Check [TypeScript non-goals](https://github.com/microsoft/TypeScript/wiki/TypeScript-Design-Goals#non-goals)
+point 3. Hegel is on the opposite side. We try to implement a strong and sound type system that will guarantee that your program is valid.
+
+As example ([You can try it in our playground](https://hegel.js.org/try#MYewdgzgLgBADgJxAWwJYVQMwJ4wLwyZj4B8MAhggOakwAKSaEApgHQLMQgA2AbswAoiAylQCUYgNwAoUJFioAJvniN0WbAIAetLVOkB6AzACCYZQCIArnDjMEAZSgILMAO6pu3GACNmMVDBMew5lcggYCwYUdGYAHmgEQKoSC1lwaBgbO0dnFSUBCwBJWA8vX39A4IRQizFWKAALZjABRNpEhpAAVVt7AGFwwQlJIA)):
 ```typescript
 const numbers: Array<number> = [];
-// Error: Type "Array<number>" is incompatible with type "Array<number | string>"
+
+// HegelError: Type "Array<number>" is incompatible with type "Array<number | string>"
 const numbersOrStrings: Array<string | number> = numbers;
-// Error: Property "toLocaleString" does not exist in "Number | undefined"
-const localeString = numbers[1].toLocaleString();
+
+numbersOrStrings[1] = "Hello, TypeError!";
+
+// HegelError: Property "toFixed" does not exist in "Number | undefined" 
+numbers[1].toFixed(1);
 ```
 
-2. Strong Type System
+[The same example with TypeScript (v3.8.3)](https://www.typescriptlang.org/play/index.html?ssl=1&ssc=1&pln=6&pc=75#code/MYewdgzgLgBGCuBbARgUwE4QFwwILvQEMBPAHgRQwD4YBeGAbQF0BuAKAHoOYBRAkdDgAqxAA6oYAInxEyFNOiqSYASwiqwoRKMJQVyADYSA7iqgALGFDETpBEuSQKYAHxjR0KsAHMlbUJCw8hgQAPLoAMpQnj7YePZkHl7ernBO1HRplJjswZjhUTHeEAwAjEyZkgASqAYGIAA0MCLifOgCAISS7Fy8-IIwAArt4ujWUlAgAGIqAB6oACbKCyCo6mAgsKizarBeUgBy6eip8GALqABmXovKbHkl5QB0kzPzCwAUpQCULEA)
+compiles without any error, but you will have 2 `TypeError` in runtime.
 
-```typescript
-function provideNumber(providedData: ?number) {
-  // Error: Type "number | undefined" is incompatible with type "boolean"
-  if (!providedData) {
-    // Oops you lost "0"
-    throw new TypeError("Number was not provided");
-  }
-  return providedData;
-}
-```
+2. [**Ability to skip type annotation**]
 
-3. High level type Inference
+Hegel is targeting at really powerful type inference which gives an ability to write fewer type annotations.
 
-```typescript
-// Inferenced as "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
+As example ([You can try it in our playground](https://hegel.js.org/try#MYewdgzgLgBADgJxAWwJYVQMwJ4wLwyZj4B8MAhggOakwAKSaEApgHQLMQgA2AbswAoiAylQCUYgNwAoUJFioAJvniN0WbAIAetLVOkB6AzACCYZQCIArnDjMEAZSgILMAO6pu3GACNmMVDBMew5lcggYCwYUdGYAHmgEQKoSC1lwaBgbO0dnFSUBCwBJWA8vX39A4IRQizFWKAALZjABRNpEhpAAVVt7AGFwwQlJIA)):
+```javascript
 const promisify = fn => arg => Promise.resolve(fn(arg));
-// Inferenced as "<_c>(_c) => Promise<_c>"
+
 const id = promisify(x => x);
-// Inferenced as "Promise<string>"
-const upperStr = id("It will be inferenced").then(str => str.toUpperCase());
-// Inferenced as "Promise<number>"
-const twicedNum = id(42).then(num => num ** 2);
+
+// And "upperStr" will be inferred as "Promise<string>"
+const upperStr = id("It will be inferred").then(str => str.toUpperCase());
+```
+[The same example with TypeScript (v3.8.3)](https://www.typescriptlang.org/play/index.html?ssl=6&ssc=75&pln=6&pc=45#code/PTAEAkFMHNIG1AdwJZwcgdgM0gJ1AEQAOuA9gLbIDOyWAngaAIZWEA8A+gI4A0oHAYwB8AChGCAlKAC8Q-lymzQ4gYrkAFMpSqROXIQQBQA0hioAXUCQrVadGaCwYZcprmgvQmmzoB0uSCpSOAA3SBEnETdoCQkAbkMQUAAVAAs8SD4oWAQUNFBMHHwCTmEVNS8tal1BA2NTCwKAEwdrbTsRAA9PTvjEsABBDBaCAFciIjwAZXNcRjyEACNIAuw8AJaWQm9tXQtcTGg6kzNLccncGfxpZpECAElLBdBl1aKNgglfc3SMEX3PPtvqQAKoTPAAYRY4VicSAA)
+will throw 2 errors and inference `upperStr` as `Promise<any>`.
+
+3. [**Typed Errors**]
+
+Hegel gives you information about errors that may be thrown by functions/methods.
+
+[Example of error type inference](https://hegel.js.org/try#GYVwdgxgLglg9mABAQwM6oKYCcoAU6oywBuGAciALYBG2AFMcgDYgYCUiA3gFCJ+IxgiOlACeABwxwhjFhkQBCALxLEAIjBVaWNRx78DiKAAsscAO6IwGSwBUJGAKJYzWOmoDiMUkmRYA5lQYYFACqFZwochWWtgKugDcvPwAvsl8gsKyrIgAPIgADHrphiZmltaWAErIYP5OLnBunt7BMTTYYRFRiOIERK3t2vFsSQZpKUA)
+```javascript
+// If you hover at function name you will see it type as "(unknown) => undefined throws RangeError | TypeError"
+function assertPositiveNumber(value) {
+    if (typeof value !== "number") {
+        throw new TypeError("Given argument is not a number!");
+    }
+    if (value < 0) {
+        throw new RangeError("Given number is not a positive number!");
+    }
+}
 ```
 
-4. Typed Errors
-
-```typescript
-// Inferenced type "(unknown) => undefined throws TypeError"
-function assertNumber(arg) {
-  if (typeof arg !== "number") {
-    throw new TypeError("Given arg is not a number");
-  }
-}
-// Inferenced type "(unknown) => undefined throws ReferenceError | TypeError"
-function assertField(obj) {
-  if (typeof obj === "object" && obj !== null && "value" in obj) {
-    assertNumber(obj.value)
-  }
-  throw new ReferenceError('"value" property doesn\'t exist');
-}
+As you understand, you will have the same error type in `try-catch` block.
+[Example](https://hegel.js.org/try#GYVwdgxgLglg9mABAQwM6oKYCcoAU6oywBuGAciALYBG2AFMcgDYgYCUiA3gFCJ+IxgiOlACeABwxwhjFhkQBCALxLEAIjBVaWNRx78DiKAAsscAO6IwGSwBUJGAKJYzWOmoDiMUkmRYA5lQYYFACqFZwochWWtgKugDcvPwAvsl8gsKyrIgAPIgADHrphiZmltaWAErIYP5OLnBunt7BMTTYYRFRiOIERK3t2vFsSQZpadxQWKJcJWiYOPiEJOSxbgAso9wpiBDIUBDGdOxzBgD054gAEhj1TAJgwNjBEPIABhjvRg4o4Wo1OoNVyIAA+iHskmcIPB4AA1mALGA1DsgA):
+```javascript
 try {
-  assertField({});
-} catch(error) {
-  // error type is "ReferenceError | TypeError | unknown"
+    assertPositiveNumber(4);
+} catch(e) {
+    // Hegel inference `e` type as "RangeError | TypeError | unknown"
 }
 ```
 
-## Installation
+[The same example with TypeScript (v3.8.3)](https://www.typescriptlang.org/play/index.html#code/GYVwdgxgLglg9mABAQwM6oKYCcoAU6oywBuGAciALYBG2AFMcgDYgYCUiA3gFCJ+IxgiOlACeABwxwhjFhkQBCALxLEAIjBVaWNRx78DiKAAsscAO6IwGSwBUJGAKJYzWOmoDiMUkmRYA5lQYYFACqFZwochWWtgKugDcvPwAvsl8gsKyrIgAPIgADHrphiZmltaWAErIYP5OLnBunt7BMTTYYRFRiOIERK3t2vFsSQZpadxQWKJcJWiYOPiEJOSxbgAso9wpiBDIUBDGdOxzBgD054gAEhj1TAJgwNjBEPIABhjvRg4o4Wq1URqHZAA)
+will throw one error and `e` type will be `any`.
 
-You can install Hegel CLI using npm or yarn:
+## Benefits over (Flow)[https://flow.org/en/]
+
+1. [**No custom library definition language**]
+
+Flow.js has custom library definition languages and doesn't support the most popular TypeScript "d.ts" format. But for Hegel TypeScript "d.ts" it the only way to create type definition for library. So, every library which has TypeScript definitions should work with Hegel.
+
+2. [**Better type inference**]
+
+Hegel inferences function type by function declaration when Flow inferences function type by usage.
+As example ([You can try it in our playground](https://hegel.js.org/try#MYewdgzgLgBAlgExgXhgDxQPnQbgFAD0BMAKgJ4AOApjCAGYwBEYArgLaMwBuAhgE5weAIwA2NOBCas2Qqn0Z4xsaSngIAFABYAlPiKlKNek2jzu-QaPGTGpuGADmCpTFOrE6xpsa68QA)):
+```javascript
+const id = x => x;
+// Hegel inference type of "num" variable is "number"
+let num = id(4);
+// And type of "str" as "string"
+let str = id("4");
+```
+[The same example with Flow (v0.123.0)](https://flow.org/try/#0PQKgBAAgZgNg9gdzCYAoVBjOA7AzgFzAEsATMAXjAA8KA+agblWGDABUBPABwFMw4oYAETYArgFshYAG4BDAE5FZAIxh8iuYWPHKe8oajWFtFYiQAUAFgCUTFu258BwgvpkKlq9ZqGui2AHMDIzBXU1JzIUshW1QgA)
+will inference both `num` and `str` as `number | string`.
+
+3. [**Typed Errors**]
+
+Hegel gives you information about errors that may be thrown by functions/methods.
+
+[Example of error type inference](https://hegel.js.org/try#GYVwdgxgLglg9mABAQwM6oKYCcoAU6oywBuGAciALYBG2AFMcgDYgYCUiA3gFCJ+IxgiOlACeABwxwhjFhkQBCALxLEAIjBVaWNRx78DiKAAsscAO6IwGSwBUJGAKJYzWOmoDiMUkmRYA5lQYYFACqFZwochWWtgKugDcvPwAvsl8gsKyrIgAPIgADHrphiZmltaWAErIYP5OLnBunt7BMTTYYRFRiOIERK3t2vFsSQZpKUA)
+```javascript
+// If you hover at function name you will see it type as "(unknown) => undefined throws RangeError | TypeError"
+function assertPositiveNumber(value) {
+    if (typeof value !== "number") {
+        throw new TypeError("Given argument is not a number!");
+    }
+    if (value < 0) {
+        throw new RangeError("Given number is not a positive number!");
+    }
+}
+```
+
+As you understand, you will have the same error type in `try-catch` block.
+[Example](https://hegel.js.org/try#GYVwdgxgLglg9mABAQwM6oKYCcoAU6oywBuGAciALYBG2AFMcgDYgYCUiA3gFCJ+IxgiOlACeABwxwhjFhkQBCALxLEAIjBVaWNRx78DiKAAsscAO6IwGSwBUJGAKJYzWOmoDiMUkmRYA5lQYYFACqFZwochWWtgKugDcvPwAvsl8gsKyrIgAPIgADHrphiZmltaWAErIYP5OLnBunt7BMTTYYRFRiOIERK3t2vFsSQZpadxQWKJcJWiYOPiEJOSxbgAso9wpiBDIUBDGdOxzBgD054gAEhj1TAJgwNjBEPIABhjvRg4o4Wo1OoNVyIAA+iHskmcIPB4AA1mALGA1DsgA):
+```javascript
+try {
+    assertPositiveNumber(4);
+} catch(e) {
+    // Hegel inference `e` type as "RangeError | TypeError | unknown"
+}
+```
+
+[The same example with Flow (v0.123.0)](https://flow.org/try/#0PQKgBAAgZgNg9gdzCYAoVUCuA7AxgFwEs5swBDAZwoFMAnfABTgsKIDdqA5TAWwCM6ACjZkYmagEowAb1Rh5YQlDCD8ATwAO1OMpFjqYAIQBeY2ABE2XgNrmpshY7D4AFrURhs1JABVN1AFFad1pBcwBxQg5SMloAc15qbHxFCk84FLJPazpDOwBuOQUAXyL5JRU9cTAAHjAABnsyp1d3JC8kACUybDjA4LhQiKik7P46VPTMsA1mVhGxmzyJQsdS0tR8WjUZZsoaeiYWdi4c0IBaACYV1GKwXDJ8XBdBSV3HYGAwAAlqPphFNgoHQkrgDAADajg5z+chpczUHgadTmW5AA)
+will inference `e` type as `empty`.
+
+## Installing 
+
+**Step 1**: check your [Node.js](https://nodejs.org/en/) version:
 
 ```bash
+$ node -v
+v12.0.0
+```
+
+Hegel was developed for current LTS version of [Node.js (12.16.1)](https://nodejs.org/en/). So, you need to have at least 12 version.
+
+If you have less than 12 version of [Node.js](https://nodejs.org/en/) you may change it to 12 or latest by [`nvm`](https://github.com/nvm-sh/nvm).
+
+**Step 2**: install `@hegel/cli` with npm globally or locally:
+
+```bash
+# globally
 $ npm install -g @hegel/cli
-# or
-$ yarn global add @hegel/cli
+
+# locally
+$ npm install -D @hegel/cli
 ```
 
-Or install localy only for your project:
+**Finally**. You already can use it into your JavaScript project:
 
 ```bash
-$ npm install -D @hegel/cli
-# or
-$ yarn add -D @hegel/cli
+# globally
+$ hegel
+No errors!
+
+o locally
+$ npx hegel
+No errors!
 ```
 
-> Hegel was developed for current LTS version of [Node.js (12.16.1)](https://nodejs.org/en/). So, you need to have at least 12 version.
+> Hegel has a zero-configuration, but if you want to change settings see [Configuration Section](https://hegel.js.org/docs/configuration).
 
 ## Project Overview
 
@@ -123,7 +209,7 @@ $ npm i
 ```sh
 npm run build
 ```
-The result code will be compiled into build directory.
+The resulting code will be compiled into the `build` directory.
 And you can debug it with default Node.js debugger:
 
 ```sh
@@ -132,7 +218,7 @@ node --inspect-brk ./build/index.js
 
 ## Tests
 
-Currently all tests are written for [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core), so, if you will change code inside [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core) package, you can run tests by:
+Currently, all tests are written for [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core), so, if you will change code inside [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core) package, you can run tests by:
 
 ```sh
 npm run test
