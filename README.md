@@ -1,6 +1,7 @@
 <p align="center">
   <a href="#" target="blank"><img src="./logo-dark.svg" width="300" alt="Hegel Logo" /></a>
 </p>
+
 -----------------------------------------
 
 [Getting Started](https://hegel.js.org/docs/install) |
@@ -8,18 +9,18 @@
 
 Hegel is a type checker for JavaScript with optional type annotations and preventing runtime type errors.
 
-- [**No Runtime Type Errors**](#soundness). Hegel has a strong type system and soundness checks.
+- **No Runtime Type Errors**. Hegel has a strong type system and soundness checks.
 This means that he finds any `TypeError` that may be thrown in runtime.
-- [**Optional Type Annotation**](#high-level-type-inference). Hegel has a high-level type inference which gives you the ability to drop a type annotation.
-- [**Typed Errors**](#typed-errors). Hegel has a mechanism to inference and annotates which errors should be thrown by functions.
-- [**Using d.ts as libraries definitions**]. Hegel has not a custom language for library typings description. We use a lot of existed `.d.ts` files as the source of typings for any libraries.
-- [**Only JavaScript with types**](https://hegel.js.org/docs/type-annotations). Hegel has only type syntax, without any additional hard syntax sugar.
+- **Optional Type Annotation**. Hegel has a high-level type inference which gives you the ability to drop a type annotation.
+- **Typed Errors**. Hegel has a mechanism to inference and annotates which errors should be thrown by functions.
+- **Using d.ts as libraries definitions**. Hegel has not a custom language for library typings description. We use a lot of existed `.d.ts` files as the source of typings for any libraries.
+- **Only JavaScript with types**. Hegel has only type syntax, without any additional hard syntax sugar.
 
 To read more about Hegel, check out [Docs](https://hegel.js.org/docs).
 
 ## Benefits over (TypeScript)[https://www.typescriptlang.org/index.html]
 
-1. [**No unexpected runtime errors**]
+1. **No unexpected runtime errors**
 
 TypeScript never will guarantee that you will not have a Type Error at Runtime. Check [TypeScript non-goals](https://github.com/microsoft/TypeScript/wiki/TypeScript-Design-Goals#non-goals)
 point 3. Hegel is on the opposite side. We try to implement a strong and sound type system that will guarantee that your program is valid.
@@ -40,7 +41,7 @@ numbers[1].toFixed(1);
 [The same example with TypeScript (v3.8.3)](https://www.typescriptlang.org/play/index.html?ssl=1&ssc=1&pln=6&pc=75#code/MYewdgzgLgBGCuBbARgUwE4QFwwILvQEMBPAHgRQwD4YBeGAbQF0BuAKAHoOYBRAkdDgAqxAA6oYAInxEyFNOiqSYASwiqwoRKMJQVyADYSA7iqgALGFDETpBEuSQKYAHxjR0KsAHMlbUJCw8hgQAPLoAMpQnj7YePZkHl7ernBO1HRplJjswZjhUTHeEAwAjEyZkgASqAYGIAA0MCLifOgCAISS7Fy8-IIwAArt4ujWUlAgAGIqAB6oACbKCyCo6mAgsKizarBeUgBy6eip8GALqABmXovKbHkl5QB0kzPzCwAUpQCULEA)
 compiles without any error, but you will have 2 `TypeError` in runtime.
 
-2. [**Ability to skip type annotation**]
+2. **Ability to skip type annotation**
 
 Hegel is targeting at really powerful type inference which gives an ability to write fewer type annotations.
 
@@ -56,7 +57,7 @@ const upperStr = id("It will be inferred").then(str => str.toUpperCase());
 [The same example with TypeScript (v3.8.3)](https://www.typescriptlang.org/play/index.html?ssl=6&ssc=75&pln=6&pc=45#code/PTAEAkFMHNIG1AdwJZwcgdgM0gJ1AEQAOuA9gLbIDOyWAngaAIZWEA8A+gI4A0oHAYwB8AChGCAlKAC8Q-lymzQ4gYrkAFMpSqROXIQQBQA0hioAXUCQrVadGaCwYZcprmgvQmmzoB0uSCpSOAA3SBEnETdoCQkAbkMQUAAVAAs8SD4oWAQUNFBMHHwCTmEVNS8tal1BA2NTCwKAEwdrbTsRAA9PTvjEsABBDBaCAFciIjwAZXNcRjyEACNIAuw8AJaWQm9tXQtcTGg6kzNLccncGfxpZpECAElLBdBl1aKNgglfc3SMEX3PPtvqQAKoTPAAYRY4VicSAA)
 will throw 2 errors and inference `upperStr` as `Promise<any>`.
 
-3. [**Typed Errors**]
+3. **Typed Errors**
 
 Hegel gives you information about errors that may be thrown by functions/methods.
 
@@ -88,11 +89,11 @@ will throw one error and `e` type will be `any`.
 
 ## Benefits over (Flow)[https://flow.org/en/]
 
-1. [**No custom library definition language**]
+1. **No custom library definition language**
 
 Flow.js has custom library definition languages and doesn't support the most popular TypeScript "d.ts" format. But for Hegel TypeScript "d.ts" it the only way to create type definition for library. So, every library which has TypeScript definitions should work with Hegel.
 
-2. [**Better type inference**]
+2. **Better type inference**
 
 Hegel inferences function type by function declaration when Flow inferences function type by usage.
 As example ([You can try it in our playground](https://hegel.js.org/try#MYewdgzgLgBAlgExgXhgDxQPnQbgFAD0BMAKgJ4AOApjCAGYwBEYArgLaMwBuAhgE5weAIwA2NOBCas2Qqn0Z4xsaSngIAFABYAlPiKlKNek2jzu-QaPGTGpuGADmCpTFOrE6xpsa68QA)):
@@ -106,7 +107,7 @@ let str = id("4");
 [The same example with Flow (v0.123.0)](https://flow.org/try/#0PQKgBAAgZgNg9gdzCYAoVBjOA7AzgFzAEsATMAXjAA8KA+agblWGDABUBPABwFMw4oYAETYArgFshYAG4BDAE5FZAIxh8iuYWPHKe8oajWFtFYiQAUAFgCUTFu258BwgvpkKlq9ZqGui2AHMDIzBXU1JzIUshW1QgA)
 will inference both `num` and `str` as `number | string`.
 
-3. [**Typed Errors**]
+3. **Typed Errors**
 
 Hegel gives you information about errors that may be thrown by functions/methods.
 
