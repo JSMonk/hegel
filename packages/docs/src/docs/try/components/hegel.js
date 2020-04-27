@@ -2,7 +2,8 @@ import { parse } from "@babel/parser";
 import {
   VariableInfo,
   createModuleScope,
-  createGlobalScope
+  createGlobalScope,
+  HegelError,
 } from "@hegel/core";
 
 let module = undefined;
@@ -81,16 +82,20 @@ export async function getDiagnostics(sourceCode) {
       true
     );
   } catch (e) {
-    e.message = `AnalyzationError: ${e.message}`
-    e.loc.start = {
-      line: 0,
-      column: 0
-    }
-    e.loc.end = {
-      line: Number.MAX_VALUE,
-      column: Number.MAX_VALUE,
-    }
-    errors = [e];
+    const error = new HegelError(
+      `AnalyzationError: ${e.message}`,
+      {
+        start: {
+          line: 0,
+          column: 0,
+        },
+        end: {
+          line: Number.MAX_VALUE,
+          column: Number.MAX_VALUE,
+        }
+      }
+    )
+    errors = [error];
   }
   return errors.map(toTransferableObject);
 }
