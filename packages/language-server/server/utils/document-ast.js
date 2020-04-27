@@ -1,7 +1,7 @@
 const babylon = require("@babel/parser");
 const { extname } = require("path");
-const { wrapJSON } = require("../utils/wrap");
-const { babelrc, dtsrc } = require("../parser_settings");
+const { wrapJSON } = require("./wrap");
+const { babelrc, dtsrc } = require("../parser-settings");
 const {
   promises: { readFile },
 } = require("fs");

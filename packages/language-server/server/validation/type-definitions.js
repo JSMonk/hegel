@@ -1,5 +1,5 @@
 const path = require("path");
-const { getBabylonAST } = require("../utils/document_ast");
+const { getBabylonAST } = require("../utils/document-ast");
 const { createModuleScope } = require("@hegel/core");
 
 let stdLibTypeGraph;

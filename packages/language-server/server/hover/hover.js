@@ -1,7 +1,7 @@
 const { getTypeName } = require("../validation/typings");
 const { convertRangeToLoc } = require("../utils/range");
 const { PositionedModuleScope } = require("@hegel/core");
-const { getPositionedModuleScopeTypes } = require("../validation/code_validation");
+const { getPositionedModuleScopeTypes } = require("../validation/code-validation");
 
 function onHover(hoverParams) {
   const location = convertRangeToLoc(hoverParams.position);

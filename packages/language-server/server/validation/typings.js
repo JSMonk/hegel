@@ -1,8 +1,8 @@
 const { getConfig } = require("@hegel/cli/lib/config");
 const { importModule } = require("@hegel/cli/lib/module");
-const { getBabylonAST } = require("../utils/document_ast");
+const { getBabylonAST } = require("../utils/document-ast");
 const { createGlobalScope } = require("@hegel/core");
-const { mixTypeDefinitions } = require("./type_definitions");
+const { mixTypeDefinitions } = require("./type-definitions");
 
 /**
  * Config for Hegel to file analysis. Here will be content from .hegelrc, if exists,
@@ -34,9 +34,7 @@ async function getModuleAST(currentModulePath) {
   }
   return importModule(
     config,
-    (modulePath, isTypings) => {
-      return getBabylonAST(modulePath, null, isTypings);
-    },
+    (modulePath, isTypings) => getBabylonAST(modulePath, null, isTypings),
     true
   );
 }
