@@ -25,7 +25,7 @@ To read more about Hegel, check out [Docs](https://hegel.js.org/docs).
 TypeScript never will guarantee that you will not have a Type Error at Runtime. Check [TypeScript non-goals](https://github.com/microsoft/TypeScript/wiki/TypeScript-Design-Goals#non-goals)
 point 3. Hegel is on the opposite side. We try to implement a strong and sound type system that will guarantee that your program is valid.
 
-As example ([You can try it in our playground](https://hegel.js.org/try#MYewdgzgLgBADgJxAWwJYVQMwJ4wLwyZj4B8MAhggOakwAKSaEApgHQLMQgA2AbswAoiAylQCUYgNwAoUJFioAJvniN0WbAIAetLVOkB6AzACCYZQCIArnDjMEAZSgILMAO6pu3GACNmMVDBMew5lcggYCwYUdGYAHmgEQKoSC1lwaBgbO0dnFSUBCwBJWA8vX39A4IRQizFWKAALZjABRNpEhpAAVVt7AGFwwQlJIA)):
+As example ([You can try it in our playground](https://hegel.js.org/try#MYewdgzgLgBGCuBbARgUwE4QFwwILvQEMBPAHgRQwD4YBeGAbQF0BuAKDYHpOYAJVAOaoANgFECIdDgAqxAA6oYAInxEyFNOipKYASwh6woRHMJRdyYYoDuuqAAsYUeYpUES5JJpgAfGNHRdMAFtNlBIWA0MCAB5dABlKEDg7Dx3MgCggV84L2o6XMpMdjYozDjE5IEIBgBGJgKlfmFhEAAaGFkFcXRJAEIlEu4+QREeyRwABV6FdGdlKBAAMV0AD1QAEx0NkFQDMBBYVFX9WCDlADk89Bz4MA3UADMgzZ1S65r6gDpFlfWNgAUtQAlCwgA)):
 ```typescript
 const numbers: Array<number> = [];
 
@@ -178,11 +178,11 @@ No errors!
 
 There are few separated packages in Hegel project: 
 
-- The main logic of analysis is placed in [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core)
-- CLI interfaces is placed in [@hegel/cli](https://github.com/JSMonk/hegel/tree/master/packages/cli)
-- The main typings (typings for browser or node.js environment and for default global environment) are placed in [@hegel/typings](https://github.com/JSMonk/hegel/tree/master/packages/typings)
-- Language Server (which currently work with VS Code) is placed in [@hegel/language-server](https://github.com/JSMonk/hegel/tree/master/packages/language-server)
-- Documentation is placed in [@hegel/docs](https://github.com/JSMonk/hegel/tree/master/packages/docs)
+- [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core): the main logic of analysis.
+- [@hegel/cli](https://github.com/JSMonk/hegel/tree/master/packages/cli): CLI logic.
+- [@hegel/typings](https://github.com/JSMonk/hegel/tree/master/packages/typings): typings for browser or node.js environment and for default global environment
+- [@hegel/language-server](https://github.com/JSMonk/hegel/tree/master/packages/language-server): language Server (which currently work with VS Code)
+- [@hegel/docs](https://github.com/JSMonk/hegel/tree/master/packages/docs): documentation
 
 ## Building Hegel from source
 
