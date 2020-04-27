@@ -18,7 +18,7 @@ This means that he finds any `TypeError` that may be thrown in runtime.
 
 To read more about Hegel, check out [Docs](https://hegel.js.org/docs).
 
-## Benefits over (TypeScript)[https://www.typescriptlang.org/index.html]
+## Benefits over TypeScript
 
 1. **No unexpected runtime errors**
 
@@ -87,7 +87,7 @@ try {
 [The same example with TypeScript (v3.8.3)](https://www.typescriptlang.org/play/index.html#code/GYVwdgxgLglg9mABAQwM6oKYCcoAU6oywBuGAciALYBG2AFMcgDYgYCUiA3gFCJ+IxgiOlACeABwxwhjFhkQBCALxLEAIjBVaWNRx78DiKAAsscAO6IwGSwBUJGAKJYzWOmoDiMUkmRYA5lQYYFACqFZwochWWtgKugDcvPwAvsl8gsKyrIgAPIgADHrphiZmltaWAErIYP5OLnBunt7BMTTYYRFRiOIERK3t2vFsSQZpadxQWKJcJWiYOPiEJOSxbgAso9wpiBDIUBDGdOxzBgD054gAEhj1TAJgwNjBEPIABhjvRg4o4Wq1URqHZAA)
 will throw one error and `e` type will be `any`.
 
-## Benefits over (Flow)[https://flow.org/en/]
+## Benefits over Flow
 
 1. **No custom library definition language**
 
