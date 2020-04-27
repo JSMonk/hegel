@@ -1524,8 +1524,43 @@ describe("Issues", () => {
           
       }
     `);
-    const [[actual], errors] = await createTypeGraph(
+    const [, errors] = await createTypeGraph(
       [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+  });
+
+  test("Issue #153: type interence for symbol without errors", async () => {
+    const sourceAST = prepareAST(`
+      const unknownValue: symbol | boolean = true;
+      if(typeof unknownValue === "symbol") {
+          
+      }
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+  });
+
+  test("Issue #177: Union of the boolean literals should be a subtype of boolean", async () => {
+    const sourceAST = prepareAST(`
+      function foo(a: true | false): undefined {}
+      function bar(): boolean {
+          return true
+      }
+
+      foo(bar());
+    `);
+    const [, errors] = await createTypeGraph( [sourceAST],
       getModuleAST,
       false,
       mixTypeDefinitions()

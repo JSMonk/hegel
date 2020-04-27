@@ -66,9 +66,10 @@ export function getMemberExressionTarget(node: MemberExpression): Node {
   return target;
 }
 
-export function ensureArray<T>(value: T | Array<T> | null | undefined): Array<T> {
+export function ensureArray<T>(value: T | Array<T> | null | void): Array<T> {
   if (value === undefined || value === null) {
-    return []
+    return [];
   }
+  // $FlowIssue
   return Array.isArray(value) ? value : [value];
 }
