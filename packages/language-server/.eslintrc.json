@@ -9,9 +9,11 @@
 		"ecmaFeatures": {
 			"jsx": true
 		},
-		"sourceType": "module"
+		"sourceType": "module",
+		"ecmaVersion": 2018
 	},
 	"rules": {
+		"semi": "error",
 		"no-const-assign": "warn",
 		"no-this-before-super": "warn",
 		"no-undef": "warn",

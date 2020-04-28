@@ -23,18 +23,18 @@ const sum2 = function (a: number, b: number): number {
 // Arrow Function Expression
 const sum3 = (a: number, b: number): number => a + b;
 
-sum1(1, 2) // 👌!
-sum2(1, 2) // 👌!
-sum3(1, 2) // 👌!
+let result = sum1(1, 2) // 👌!
+result     = sum2(1, 2) // 👌!
+result     = sum3(1, 2) // 👌!
 
 // Error: Type "false" is incompatible with type "number"
-sum1(false, "");
+result = sum1(false, "");
 
 // Error: Type "''" is incompatible with type "number"
-sum2("", 4);
+result = sum2("", 4);
 
 // Error: Type "'1'" is incompatible with type "number"
-sum3("1", "2");
+result = sum3("1", "2");
 ```
 
 ## Function Returns
@@ -61,8 +61,8 @@ function awesome(name: ?string) {
   return `Awesome, ${actualName}.`;
 }
 
-awesome()             // 👌!
-awesome("JavaScript") // 👌!
+let result = awesome()             // 👌!
+result     = awesome("JavaScript") // 👌!
 ```
 
 In JavaScript, we can also set a default value for optional arguments like this:
@@ -82,8 +82,8 @@ function awesome(name: string = "you") {
   return `Awesome, ${name}.`;
 }
 
-awesome()             // 👌!
-awesome("JavaScript") // 👌!
+let result = awesome()             // 👌!
+result     = awesome("JavaScript") // 👌!
 ```
 
 ## Rest Argument
@@ -103,11 +103,11 @@ function sum(...numbers: Array<number>) {
   return numbers.reduce((a, b) => a + b, 0);
 }
 
-sum();             // 👌!
-sum(1);            // 👌!
-sum(1, 2);         // 👌!
-sum(1, 2, 42);     // 👌!
-sum(1, 2, 42, 14); // 👌!
+let result = sum();             // 👌!
+result     = sum(1);            // 👌!
+result     = sum(1, 2);         // 👌!
+result     = sum(1, 2, 42);     // 👌!
+result     = sum(1, 2, 42, 14); // 👌!
 // ...
 ```
 
@@ -117,13 +117,13 @@ function sum(...numbers: [number] | [number, number] | [number, number, number])
 }
 
 // Error: Type "[]" is incompatible with type "...[number, number, number] | [number, number] | [number]"
-sum();
-sum(1);       // 👌!
-sum(1, 2);    // 👌!
-sum(1, 2, 3); // 👌!
+let result = sum();
+result     = sum(1);       // 👌!
+result     = sum(1, 2);    // 👌!
+result     = sum(1, 2, 3); // 👌!
 
 // Error Type "[1, 2, 3, 4]" is incompatible with type "...[number, number, number] | [number, number] | [number]"
-sum(1, 2, 3, 4);
+result = sum(1, 2, 3, 4);
 ```
 
 ## Function Types
@@ -135,20 +135,22 @@ function twice(fn: (number) => number, arg: number) {
    return fn(fn(arg)); 
 }
 
-twice((a: number): number => a + 4, 4); // 👌!
-twice(                                  // 👌!
+let result: number = 0;
+
+result = twice((a: number): number => a + 4, 4); // 👌!
+result = twice(                                  // 👌!
   (a: number | string): number => (typeof a === "string" ? parseInt(a) : a) + 4,
   4
 ); 
 
 // Error: Type "(string) => number" is incompatible with type "(number) => number"
-twice((a: string): number => parseInt(a), 4);
+result = twice((a: string): number => parseInt(a), 4);
 
 // Error: Type "(number) => string" is incompatible with type "(number) => number"
-twice((a: number): string => String(a), 4);
+result = twice((a: number): string => String(a), 4);
 
 // Error: Type "(number) => number | string" is incompatible with type "(number) => number"
-twice((a: number): number | string => a, 4);
+result = twice((a: number): number | string => a, 4);
 ```
 
 > If you play with the previous example you will see the next rule of the function type:
@@ -173,16 +175,18 @@ function presentMyDog(goodBoy: Dog, dogPresenter: (Dog) => Dog): string {
 
 const nickolay = new Corgi("Nickolay");
 
-presentMyDog(nickolay, (goodBoy: Dog): Dog => goodBoy);     // 👌!
-presentMyDog(nickolay, (goodBoy: Animal): Dog => nickolay); // 👌!
+let result = '';
+
+result = presentMyDog(nickolay, (goodBoy: Dog): Dog => goodBoy);     // 👌!
+result = presentMyDog(nickolay, (goodBoy: Animal): Dog => nickolay); // 👌!
 
 // Error: Type "(Corgi) => Dog" is incompatible with type "(Dog) => Dog"
-presentMyDog(nickolay, (goodBoy: Corgi): Dog => nickolay);
+result = presentMyDog(nickolay, (goodBoy: Corgi): Dog => nickolay);
 
-presentMyDog(nickolay, (goodBoy: Dog): Corgi => nickolay);  // 👌!
+result = presentMyDog(nickolay, (goodBoy: Dog): Corgi => nickolay);  // 👌!
 
 // Error: Type "(Dog) => Animal" is incompatible with type "(Dog) => Dog"
-presentMyDog(nickolay, (goodBoy: Dog): Animal => nickolay);
+result = presentMyDog(nickolay, (goodBoy: Dog): Animal => nickolay);
 ```
 
 ## `Function` type
@@ -194,13 +198,15 @@ function argsLength(fn: Function) {
   return fn.length;
 }
 
-argsLength(() => 2);
-argsLength((a: number) => a);
-argsLength(parseFloat);
+let length = 0;
+
+length = argsLength(() => 2);
+length = argsLength((a: number) => a);
+length = argsLength(parseFloat);
 
 // Error: Type "2" is incompatible with type "Function"
-argsLength(2);
+length = argsLength(2);
 
 // Error: Type "[]" is incompatible with type "Function"
-argsLength([]);
+length = argsLength([]);
 ```

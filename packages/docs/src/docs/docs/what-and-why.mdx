@@ -77,7 +77,7 @@ function deserializeUser(stringifiedUserJson) {
   throw new TypeError("Provided serialized user is invalid!");
 }
 
-deserializeUser("42");
+const user = deserializeUser("42");
 ```
 
 If you open this example in [Hegel Playground](/try#GYVwdgxgLglg9mABAEwKYGdUCcYEMA2MAXqgKqZYAU6UOYA5jMDKsudgFLoICUiA3gChEiCAhqIAtrgCeAIzIVEAXkQcAygHkAcgDoADriyZqtGAyYs2FLrwDcwxE0SVHIqDP2o4wKbIXsWCrKqgBEcHIAVqjQoYgAZPFufvKK2IgAhCGIYCD4+AlJIiKhYLiSqHHmKQFKickeXj41aVi6ZRXBYTR09KGOfELFiFioUCBYSNKpgQ4iAL6OUAAWWHAA7jmomwAqnqgAolhrVKEACmsAbjBoyIgUeIQkdyBKMOhOYJcENxmhPA5FoI0A8fiRApRQgAWABM-zsQA) and hover at `deserializeUser` function invocation, then you will see arguments types of the function, return type of the function and which error this funcation may throw. And you've got it free.
@@ -115,7 +115,7 @@ const doubles: Array<number> = [Math.PI, Math.E];
 // Error: Type "Array<number>" is incompatible with type "Array<number | string>"
 const numbersToShow: Array<number | string> = doubles;
 numbersToShow.push(42..toString(2));
-doubles.map(double => double.toFixed());
+const rounded = doubles.map(double => double.toFixed());
 ```
 
 > The same example in TypeScript (tested at version 3.7.5) will be valid, but uncaught type error will be thrown at runtime [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=4&ssc=11&pln=4&pc=4#code/MYewdgzgLgBAJiArgIwDYFMIC4YEEBO+AhgJ4A8YiAtsuvgHwwC8MA2gLJFQAWAdAAoBJADQxOPXgFEAugG4AUKEixKNOhAAqIAMrcQAdxwFi5VbXwwAPjGj4AlmADmjFghQYICs+q26DvAAdECG4ACgAWACZeXigdKHsnUMiAShSFAHoMmABVMGAiREduWA0SAPRJQhB8HDc0dFiQADE7AA90OBg7CBgwEFgiGAAzRHyoO3B5eo9eKiIA0Jn0ZkZlptaOuFC02SA).

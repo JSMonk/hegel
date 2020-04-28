@@ -258,13 +258,15 @@ function length<T: { length: number, ... }>(somethingWithLength: T) {
   return somethingWithLength.length; // 👌!
 }
 
-length([1, 2, 3]);
-length({ length: 4 });
-length(() => 2);
+let result = 0;
+
+result = length([1, 2, 3]);     // 👌!
+result = length({ length: 4 }); // 👌!
+result = length(() => 2);       // 👌!
 
 // Error: Parameter "Set<number>" is incompatible with restriction "{ length: number, ... }"
 // Because Set, WeakSet, Map and WeakMap has "size" property instead "length"
-length(new Set<number>());
+result = length(new Set<number>());
 ```
 
 Also, it works for primitive types
@@ -273,14 +275,16 @@ function plus<T: number | bigint>(a: T, b: T): T {
   return a + b;
 }
 
-plus(1, 2);   // 👌!
-plus(1n, 2n); // 👌!
+let result: bigint | number = 0;
+
+result = plus(1, 2);   // 👌!
+result = plus(1n, 2n); // 👌!
 
 // Error: Parameter "'1'" is incompatible with restriction "bigint | number"
-plus("1", "2");
+result = plus("1", "2");
 
 // Error: Type "2n" is incompatible with type "number"
-plus(1, 2n);
+result = plus(1, 2n);
 ```
 
 ## Default Type

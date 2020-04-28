@@ -687,7 +687,7 @@ const afterFillierActions = (
         }
         if (
           !isTypeDefinitions &&
-          (functionScope.throwable === undefined ||
+          (functionScope.throwable == undefined ||
           functionScope.throwable.length === 0) &&
           declarationType.throwable !== undefined
         ) {
@@ -701,7 +701,7 @@ const afterFillierActions = (
           );
         }
         if (
-          functionScope.throwable !== undefined &&
+          functionScope.throwable != undefined &&
           functionScope.throwable.length !== 0 &&
           declarationType.throwable === undefined
         ) {

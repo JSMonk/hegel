@@ -1,5 +1,6 @@
 // @flow
 import NODE from "./nodes";
+import { ensureArray } from "../utils/common";
 import HegelError, { UnreachableError } from "./errors";
 import type { Node, Declaration, Block, SourceLocation } from "@babel/parser";
 
@@ -289,10 +290,10 @@ function mixElseIfReturnOrThrowExisted(currentNode: Node, parentNode: Node) {
 }
 
 const getBody = (currentNode: any) =>
-  currentNode.body ||
-  currentNode.declarations ||
-  currentNode.properties ||
   [
+    ...ensureArray(currentNode.body),
+    ...ensureArray(currentNode.declarations),
+    ...ensureArray(currentNode.properties),
     currentNode.block,
     currentNode.handler,
     currentNode.test,
@@ -309,13 +310,11 @@ const getBody = (currentNode: any) =>
     currentNode.expression && currentNode.expression.callee,
     currentNode.expression,
     currentNode.callee,
-    ...(currentNode.elements || []),
-    ...(currentNode.cases || []),
-    ...(currentNode.expressions || []),
-    ...(currentNode.arguments || []).filter(a => !NODE.isFunction(a)),
-    ...(Array.isArray(currentNode.consequent)
-      ? currentNode.consequent
-      : [currentNode.consequent])
+    ...ensureArray(currentNode.elements),
+    ...ensureArray(currentNode.cases),
+    ...ensureArray(currentNode.expressions),
+    ...ensureArray(currentNode.arguments).filter(a => !NODE.isFunction(a)),
+    ...ensureArray(currentNode.consequent)
   ].filter(Boolean);
 
 const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
@@ -369,32 +368,25 @@ function traverseTree(
     return;
   }
   const body = getBody(currentNode);
-  if (!body) {
-    return;
-  }
   const nextParent = getNextParent(currentNode, parentNode);
-  if (Array.isArray(body)) {
-    let i = 0;
-    try {
-      for (i = 0; i < body.length; i++) {
-        middle(body[i], nextParent, pre, middle, post, meta);
-      }
-      for (i = 0; i < body.length; i++) {
-        traverseTree(body[i], pre, middle, post, nextParent, {
-          ...meta,
-          kind: currentNode.kind
-        });
-      }
-    } catch (e) {
-      if (!(e instanceof UnreachableError)) {
-        throw e;
-      }
-      if (i < body.length - 1) {
-        throw new HegelError("Unreachable code after this line", e.loc);
-      }
+  let i = 0;
+  try {
+    for (i = 0; i < body.length; i++) {
+      middle(body[i], nextParent, pre, middle, post, meta);
     }
-  } else {
-    traverseTree(body, pre, middle, post, nextParent, meta);
+    for (i = 0; i < body.length; i++) {
+      traverseTree(body[i], pre, middle, post, nextParent, {
+        ...meta,
+        kind: currentNode.kind
+      });
+    }
+  } catch (e) {
+    if (!(e instanceof UnreachableError)) {
+      throw e;
+    }
+    if (i < body.length - 1) {
+      throw new HegelError("Unreachable code after this line", e.loc);
+    }
   }
   post(currentNode, parentNode, pre, middle, post, meta);
 }

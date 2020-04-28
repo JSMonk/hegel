@@ -47,7 +47,7 @@ function waitingFor(value: string) {
 const anything: unknown = 4;
 
 // Error: Type "unknown" is incompatible with type "string"
-waitingFor(anything);
+const result = waitingFor(anything);
 ```
 
 Or operator:
@@ -59,7 +59,7 @@ function waitingFor(value: unknown) {
   return `Awesome ${value}`;
 }
 
-waitingFor(class User {});
+const result = waitingFor(class User {});
 ```
 
 > Actually, Hegel provides ability to [refine type](/docs/type-refinement).

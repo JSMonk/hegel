@@ -70,7 +70,7 @@ You can define class fields inside the body of class.
 
 ```typescript
 class Fighter {
-  isNewbie: boolean;
+  isNewbie: boolean = true;
 
   tellTheRules(): string {
     return this.isNewbie ? "I don't know the rules." : `
