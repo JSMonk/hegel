@@ -45,7 +45,7 @@ function repeat(target, times) {
   throw new TypeError(`Expected string or number, got '${typeof target}'.`);
 } 
 
-repeat(false, 4);
+const result = repeat(false, 4);
 ```
 
 But, if you put a wrong type (not number or string) you will find an error in runtime.
@@ -68,7 +68,7 @@ const iCanBeAStringOrNumber: string | number = 2;
 // Error: Type "number | string" is incompatible with type "number"
 const value: number = iCanBeAStringOrNumber;
 
-// Error: Parameter "number | string" is incompatible with restriction "bigint | number"
+// Error: Parameter "number | string" is incompatible with type "bigint | number"
 iCanBeAStringOrNumber * 4;
 ```
 
@@ -83,7 +83,7 @@ function repeat(target: string | number, times: number): string | number {
 } 
 
 // Error: Type "false" is incompatible with type "number | string"
-repeat(false, 4);
+const result = repeat(false, 4);
 ```
 
 And you will see wrong execution in static time (while you are writing code in editor).
@@ -95,9 +95,9 @@ function createResponse(status: "Success" | "Failed") {
   return { status }
 }
 
-createResponse("Success");
-createResponse("Failed");
+let response = createResponse("Success");
+response     = createResponse("Failed");
 
 // Error: Type "'Custom String'" is incompatible with type "'Failed' | 'Success'"
-createResponse("Custom String");
+response     = createResponse("Custom String");
 ```
