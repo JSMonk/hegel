@@ -167,7 +167,7 @@ $ npm install -D @hegel/cli
 $ hegel
 No errors!
 
-o locally
+# locally
 $ npx hegel
 No errors!
 ```
