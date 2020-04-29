@@ -13,7 +13,7 @@ Type Annotation is an ability to declare values that are valid for the variable.
 
 First of all, lets write a simple function in pure JavaScript.
 
-```typescript
+```javascript
 function mul(a, b) {
   return a * b;
 }
@@ -21,7 +21,7 @@ function mul(a, b) {
 
 So, you can apply this function with different values:
 
-```typescript
+```javascript
 mul(42, 42);               // 1764
 mul(42, "42");             // 1764
 mul(true, "42");           // 42
@@ -44,14 +44,14 @@ function mul(a: number, b: number) {
   return a * b;
 }
 
-mul(42, 42); // 👌!
+let result = mul(42, 42); // 👌!
 
 // Error: Type "'42'" is incompatible with type "number"
-mul(42, "42");            
+result     = mul(42, "42");            
 
 // Error: Type "true" is incompatible with type "number"
-mul(true, "42");      
+result     = mul(true, "42");      
 
 // Error: Type "class User" is incompatible with type "number"
-mul(class User {}, "42");
+result     = mul(class User {}, "42");
 ```

@@ -7,30 +7,40 @@ menu: Setup
 # Installation
 ---------------------
 
-You can install Hegel CLI using npm or yarn:
+**Step 1**: check your [Node.js](https://nodejs.org/en/) version:
 
 ```bash
+$ node -v
+v12.0.0
+```
+
+Hegel was developed for current LTS version of [Node.js (12.16.1)](https://nodejs.org/en/). So, you need to have at least 12 version.
+
+If you have less than 12 version of [Node.js](https://nodejs.org/en/) you may change it to 12 or latest by [`nvm`](https://github.com/nvm-sh/nvm).
+
+**Step 2**: install `@hegel/cli` with npm globally or locally:
+
+```bash
+# globally
 $ npm install -g @hegel/cli
-# or
-$ yarn global add @hegel/cli
-```
 
-Or install locally only for your project:
-
-```bash
+# locally
 $ npm install -D @hegel/cli
-# or
-$ yarn add -D @hegel/cli
 ```
 
-> Hegel was developed for current LTS version of [Node.js (12.16.1)](https://nodejs.org/en/). So, you need to have at least version 12.
-
-And run Hegel inside your project:
+**Finally**. You already can use it into your JavaScript project:
 
 ```bash
+# globally
 $ hegel
 No errors!
+
+o locally
+$ npx hegel
+No errors!
 ```
+
+> Hegel has a zero-configuration, but if you want to change settings see [Configuration Section](https://hegel.js.org/docs/configuration).
 
 ## Setup Project
 
