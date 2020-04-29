@@ -1,11 +1,14 @@
 const { onHover } = require("./hover/hover");
+const { onCompletion } = require("./completion/completion");
 const { TextDocument } = require("vscode-languageserver-textdocument");
-const { validateTextDocument } = require("./validation/code_validation");
+const { onCompletionResolve } = require("./completion/completion-resolve");
+const { validateTextDocument } = require("./validation/code-validation");
 const {
   TextDocuments,
   IPCMessageReader,
   IPCMessageWriter,
   createConnection,
+  TextDocumentSyncKind
 } = require("vscode-languageserver");
 
 const documents = new TextDocuments(TextDocument);
@@ -16,12 +19,14 @@ const connection = createConnection(
 
 connection.onInitialize(() => ({
   capabilities: {
-    textDocumentSync: documents.syncKind,
+    textDocumentSync: TextDocumentSyncKind.Full,
     hoverProvider: true,
+    completionProvider: {
+      resolveProvider: true,
+      triggerCharacters: ['.']
+    },
   },
 }));
-
-connection.onHover(onHover);
 
 /** Is used for preventing every time re-analyzation at every keyboard button pressing. */
 let timeoutId;
@@ -33,9 +38,11 @@ function onDidChange(change) {
   }, 200);
 }
 
-documents.onDidChangeContent(onDidChange);
-
+connection.onHover(onHover);
+connection.onCompletion(onCompletion);
+connection.onCompletionResolve(onCompletionResolve);
 connection.onDidChangeWatchedFiles(onDidChange);
+documents.onDidChangeContent(onDidChange);
 
 documents.listen(connection);
 connection.listen();
