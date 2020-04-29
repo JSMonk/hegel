@@ -1,7 +1,6 @@
-const { convertRangeToLoc } = require("../utils/range");
+const { narrowDownTypes } = require("./narrow-types");
 const { CompletionItemKind } = require("vscode-languageserver");
 const { removeLanguageTokens } = require("./remove-scope-variables");
-const { PositionedModuleScope } = require("@hegel/core");
 const {
   getPositionedModuleScopeTypes,
 } = require("../validation/code-validation");
@@ -66,7 +65,7 @@ function buildCompletionItem(scope, dataIndex) {
       data: dataIndex + index,
     }));
 
-  return scope.parent !== null && scope.parent !== undefined
+  return scope.parent !== null
     ? [
         ...completionItems,
         ...buildCompletionItem(
@@ -81,27 +80,7 @@ function onCompletion(completionParams) {
   const types = getPositionedModuleScopeTypes();
   const maybeNarrowedTypes = narrowDownTypes(types, completionParams.position);
 
-  return maybeNarrowedTypes !== undefined &&
-    maybeNarrowedTypes.body !== undefined
-    ? buildCompletionItem(maybeNarrowedTypes, 0)
-    : [];
-}
-
-/**
- * Narrow scope to smaller one of objects, constructors, functions.
- */
-function narrowDownTypes(scope, position) {
-  if (scope instanceof PositionedModuleScope) {
-    const cursorLocation = convertRangeToLoc(position);
-    const variable = scope.getVarAtPosition({
-      ...cursorLocation,
-      column: cursorLocation.column - 1,
-    });
-
-    return variable !== undefined ? { body: variable.type.properties } : scope;
-  } else {
-    return scope;
-  }
+  return buildCompletionItem(maybeNarrowedTypes, 0);
 }
 
 exports.onCompletion = onCompletion;

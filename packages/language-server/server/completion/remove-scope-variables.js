@@ -69,17 +69,30 @@ const LANGUAGE_KEYWORDS = [
   "volatile",
 ];
 
+/**
+ * Holds filtered variables of global scope (global classes, functions like Array, Map, parseInt).
+ */
+let globalVariablesCache;
+
 function removeLanguageTokens(scope) {
-  return {
-    ...scope,
-    body: new Map(
-      Array.from(scope.body.entries()).filter(
-        ([name, info]) =>
-          !OPERATOR_SYMBOLS_REGEXP.test(name) &&
-          !LANGUAGE_KEYWORDS.includes(name)
-      )
-    ),
-  };
+  if (globalVariablesCache !== undefined) {
+    return globalVariablesCache;
+  } else {
+    if (scope.parent === null) {
+      return (globalVariablesCache = {
+        ...scope,
+        body: new Map(
+          Array.from(scope.body.entries()).filter(
+            ([name, info]) =>
+              !OPERATOR_SYMBOLS_REGEXP.test(name) &&
+              !LANGUAGE_KEYWORDS.includes(name)
+          )
+        ),
+      });
+    } else {
+      return removeLanguageTokens(scope.parent);
+    }
+  }
 }
 
 exports.removeLanguageTokens = removeLanguageTokens;
