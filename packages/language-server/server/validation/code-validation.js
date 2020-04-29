@@ -11,7 +11,11 @@ async function validateTextDocument(textDocument) {
 
   const [types, errors] = await getHegelTypings(text, path);
 
-  /** This is used for preventing assigning to moduleTypes "undefined" if file contains errors. */
+  /**
+   * This is used for preventing assigning to moduleTypes "undefined" if file contains errors.
+   * In this case moduleTypes will always contains valid types before any errors occur.
+   * Type completion will work.
+   */
   if (errors.length === 0 && types !== undefined) {
     moduleTypes = types;
   }
