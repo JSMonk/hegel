@@ -2,8 +2,16 @@ const { getHegelTypings } = require("./typings");
 const { formatErrorRange } = require("../utils/range");
 const { DiagnosticSeverity } = require("vscode-languageserver");
 
-/** Holds Hegel typings of currently opened file. */
-let moduleTypes = {};
+/**
+ * Holds Hegel typings of currently opened file.
+ * Server will validate content of file after first change, so [moduleTypes]
+ * must be initialised with default properties. After successfull analyzing
+ * they will be replaced with actual types.
+ */
+let moduleTypes = {
+  parent: null,
+  body: new Map(),
+};
 
 async function validateTextDocument(textDocument) {
   const text = textDocument.getText();
