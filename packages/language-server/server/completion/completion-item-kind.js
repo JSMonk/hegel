@@ -15,17 +15,24 @@ const kinds = [
         ? CompletionItemKind.Constant
         : CompletionItemKind.Variable;
     },
-    matcher(name) {
+    matcher(type) {
       return (
-        !name.includes(CLASS_MATCHER) &&
-        !name.includes(FUNCTION_MATCHER) &&
-        !name.includes(CONSTRUCTOR_MATCHER)
+        !String(type.name).includes(CLASS_MATCHER) &&
+        !String(type.name).includes(FUNCTION_MATCHER) &&
+        !String(type.name).includes(CONSTRUCTOR_MATCHER) &&
+        type.properties === undefined
       );
     },
   },
   {
     itemKind: CompletionItemKind.Class,
-    matcher: CLASS_MATCHER,
+    matcher(type) {
+      return (
+        (String(type.name).includes(CLASS_MATCHER) ||
+        type.properties !== undefined) &&
+        !String(type.name).includes(CONSTRUCTOR_MATCHER)
+      );
+    },
   },
   {
     itemKind: CompletionItemKind.Constructor,
@@ -40,7 +47,7 @@ function getCompletionKind(variableInfo) {
   const possibleKind = kinds.find(({ matcher }) => {
     return typeof matcher === "string"
       ? String(variableInfo.type.name).includes(matcher)
-      : matcher(`${variableInfo.type.name}`);
+      : matcher(variableInfo.type);
   });
 
   return possibleKind
