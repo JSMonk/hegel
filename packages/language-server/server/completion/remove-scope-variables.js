@@ -21,6 +21,7 @@ const LANGUAGE_KEYWORDS = [
   "extends",
   "finally",
   "for",
+  "from",
   "function",
   "if",
   "import",
