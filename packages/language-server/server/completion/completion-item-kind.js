@@ -20,7 +20,8 @@ const kinds = [
         !String(type.name).includes(CLASS_MATCHER) &&
         !String(type.name).includes(FUNCTION_MATCHER) &&
         !String(type.name).includes(CONSTRUCTOR_MATCHER) &&
-        type.properties === undefined
+        type.properties === undefined &&
+        !type.isVariableTypeAlias
       );
     },
   },
@@ -29,7 +30,7 @@ const kinds = [
     matcher(type) {
       return (
         (String(type.name).includes(CLASS_MATCHER) ||
-        type.properties !== undefined) &&
+          type.properties !== undefined) &&
         !String(type.name).includes(CONSTRUCTOR_MATCHER)
       );
     },
@@ -38,16 +39,29 @@ const kinds = [
     itemKind: CompletionItemKind.Constructor,
     matcher: CONSTRUCTOR_MATCHER,
   },
+  {
+    itemKind: CompletionItemKind.Interface,
+    matcher(variableInfo) {
+      return variableInfo.isVariableTypeAlias;
+    }
+  }
 ];
 
 /**
  * Find type kind of variable.
  */
 function getCompletionKind(variableInfo) {
+  const isVariableTypeAlias = variableInfo.type === undefined;
+
   const possibleKind = kinds.find(({ matcher }) => {
     return typeof matcher === "string"
-      ? String(variableInfo.type.name).includes(matcher)
-      : matcher(variableInfo.type);
+      ? String(
+          isVariableTypeAlias ? variableInfo.name : variableInfo.type.name
+        ).includes(matcher)
+      : matcher({
+          isVariableTypeAlias,
+          ...(isVariableTypeAlias ? variableInfo : variableInfo.type),
+        });
   });
 
   return possibleKind

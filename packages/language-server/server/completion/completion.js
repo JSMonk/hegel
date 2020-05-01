@@ -1,4 +1,5 @@
 const { narrowDownTypes } = require("./narrow-types");
+const { getTypeAliasNames } = require("./type-aliases");
 const { getCompletionKind } = require("./completion-item-kind");
 const { removeLanguageTokens } = require("./remove-scope-variables");
 const {
@@ -7,7 +8,9 @@ const {
 
 function buildCompletionItem(scope, dataIndex) {
   const completionItems = Array.from(scope.body.entries())
-    // Rid of [[ScopeName01]] variables.
+    /** Add type aliases to autocompletion */
+    .concat(getTypeAliasNames(scope))
+    /** Rid of [[ScopeName01]] variables. */
     .filter(([varName, varInfo]) => !varName.startsWith("[["))
     .map(([varName, varInfo], index) => ({
       label: varName,
