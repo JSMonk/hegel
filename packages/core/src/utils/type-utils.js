@@ -7,7 +7,6 @@ import { TypeVar } from "../type-graph/types/type-var";
 import { TypeScope } from "../type-graph/type-scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
-import { $Immutable } from "../type-graph/types/immutable-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
@@ -20,6 +19,10 @@ import { CollectionType } from "../type-graph/types/collection-type";
 import { getDeclarationName } from "./common";
 import { PositionedModuleScope } from "../type-graph/module-scope";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
+import {
+  $Immutable,
+  $AppliedImmutable
+} from "../type-graph/types/immutable-type";
 import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../type-graph/constants";
 import type { Handler } from "./traverse";
 import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
@@ -884,7 +887,8 @@ export function getWrapperType(
   argument: VariableInfo<Type> | Type,
   typeGraph: ModuleScope
 ) {
-  const type = argument instanceof VariableInfo ? argument.type : argument;
+  let type = argument instanceof VariableInfo ? argument.type : argument;
+  type = type instanceof $AppliedImmutable ? type.readonly : type;
   if (type instanceof UnionType) {
     const variants = type.variants.map(t => getWrapperType(t, typeGraph));
     // $FlowIssue

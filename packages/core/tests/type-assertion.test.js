@@ -631,7 +631,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'You use function \"fn\" as side effect function, but it returns a number type'
+      'You use function "fn" as side effect function, but it returns a number type'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 10, line: 6 },
@@ -1095,7 +1095,7 @@ describe("Rest parameter typing", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-     'Type "({ a: number | string }) => undefined" is incompatible with type "({ a: number }) => undefined"'
+      'Type "({ a: number | string }) => undefined" is incompatible with type "({ a: number }) => undefined"'
     );
     expect(errors[0].loc).toEqual({
       end: { column: 49, line: 6 },
@@ -1129,5 +1129,5 @@ describe("Rest parameter typing", () => {
       mixTypeDefinitions()
     );
     expect(errors.length).toBe(0);
-  })
+  });
 });

@@ -122,29 +122,29 @@ describe("TypeScript type defitions", () => {
       expect(actualType.subordinateType).toBeInstanceOf(CollectionType);
       expect(actualType.name).toBe("Array");
       expect(
-        actualType.subordinateType.isSubtypeOf.properties.get("test").type === Type.String
+        actualType.subordinateType.isSubtypeOf.properties.get("test").type ===
+          Type.String
       ).toBe(true);
     });
   });
 });
 describe("Issues", () => {
-    test("Issue #80: Type guards should have boolean return type", async () => {
-      const sourceAST = prepareAST(
-        `declare function isNumber(x: any): x is number`,
-        true
-      );
-      const [[actual], errors] = await createTypeGraph(
-        [sourceAST],
-        () => {},
-        true
-      );
-      const isNumber = actual.body.get("isNumber");
-      expect(errors.length).toBe(0);
-      expect(isNumber.type).toBeInstanceOf(FunctionType);
-      expect(isNumber.type === Type.find("(unknown) => boolean")).toBe(true);
-      expect(isNumber.type.argumentsTypes.length).toBe(1);
-      expect(isNumber.type.argumentsTypes[0] === Type.Unknown).toBe(true);
-      expect(isNumber.type.returnType === Type.Boolean).toBe(true);
-    });
-  
+  test("Issue #80: Type guards should have boolean return type", async () => {
+    const sourceAST = prepareAST(
+      `declare function isNumber(x: any): x is number`,
+      true
+    );
+    const [[actual], errors] = await createTypeGraph(
+      [sourceAST],
+      () => {},
+      true
+    );
+    const isNumber = actual.body.get("isNumber");
+    expect(errors.length).toBe(0);
+    expect(isNumber.type).toBeInstanceOf(FunctionType);
+    expect(isNumber.type === Type.find("(unknown) => boolean")).toBe(true);
+    expect(isNumber.type.argumentsTypes.length).toBe(1);
+    expect(isNumber.type.argumentsTypes[0] === Type.Unknown).toBe(true);
+    expect(isNumber.type.returnType === Type.Boolean).toBe(true);
+  });
 });

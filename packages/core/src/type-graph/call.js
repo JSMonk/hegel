@@ -16,6 +16,7 @@ import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { $PropertyType } from "./types/property-type";
 import { VariableScope } from "./variable-scope";
+import { $Refinemented } from "./types/refinemented-type";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { isCallableType } from "../utils/function-utils";
 import { getAnonymousKey } from "../utils/common";
@@ -488,12 +489,13 @@ export function addCallToTypeGraph(
         meta
       );
       inferenced = arg.inferenced;
-      const argType =
+      let argType =
         arg.result instanceof VariableInfo ? arg.result.type : arg.result;
+      argType = argType instanceof $Refinemented ? argType.from : argType;
       let fType = fn.declaration.type;
       fType = fType instanceof GenericType ? fType.subordinateType : fType;
       args = [
-        fType.isAsync && !argType.isPromise() ? argType.promisify() : arg.result
+        fType.isAsync && !argType.isPromise() ? argType.promisify() : argType
       ];
       const declaration =
         fn.declaration.type instanceof GenericType
@@ -781,7 +783,8 @@ export function addCallToTypeGraph(
             ? target
             : // $FlowIssue
               new VariableInfo(target, currentScope);
-        targetType = /*::target.type !== undefined ?*/target.type/*:: : targetType*/;
+        targetType =
+          /*::target.type !== undefined ?*/ target.type /*:: : targetType*/;
       }
       let fnType =
         targetType instanceof GenericType
