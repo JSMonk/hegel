@@ -1145,10 +1145,10 @@ describe("Switch statement", () => {
           case 'apple': return 1;
         }
       }
-    `)
+    `);
 
     const [, errors] = await createTypeGraph([sourceAST]);
-    expect(errors.length).toBe(1)
+    expect(errors.length).toBe(1);
     expect(errors[0]).toBeInstanceOf(HegelError);
     expect(errors[0].message).toBe(
       "This switch case statement is not exhaustive. Here is an example of a case that is not matched: 'banana' | 1"
@@ -1166,10 +1166,10 @@ describe("Switch statement", () => {
           case treeFruit: return 2;
         }
       }
-    `)
+    `);
 
     const [[actual], errors] = await createTypeGraph([sourceAST]);
-    expect(errors.length).toBe(2)
+    expect(errors.length).toBe(2);
     expect(errors[0]).toBeInstanceOf(HegelError);
     expect(errors[0].message).toBe(
       "It is not safe to use variable which type is Union as case matcher, you should infer it value first"
@@ -1190,7 +1190,7 @@ describe("Switch statement", () => {
           default: return 2;
         }
       }
-    `)
+    `);
 
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(0);
@@ -1207,7 +1207,7 @@ describe("Switch statement", () => {
           case 3: return 1;
         }
       }
-    `)
+    `);
 
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(0);
@@ -1366,6 +1366,7 @@ describe("Issues", () => {
     expect(hello.type.argumentsTypes.length).toBe(0);
     expect(hello.type.returnType === Type.Undefined).toBe(true);
   });
+
   test("Hoisted separated export notation", async () => {
     const sourceAST = prepareAST(`
       export {hello}
@@ -1381,6 +1382,7 @@ describe("Issues", () => {
     expect(hello.type.argumentsTypes.length).toBe(0);
     expect(hello.type.returnType === Type.Undefined).toBe(true);
   });
+
   test("Named separated export notation", async () => {
     const sourceAST = prepareAST(`
       function hello() {}
@@ -1408,6 +1410,7 @@ describe("Issues", () => {
     expect(Hello).toBeInstanceOf(Type);
     expect(Hello === Type.Number).toBe(true);
   });
+
   test("Simple separated type export notation", async () => {
     const sourceAST = prepareAST(`
       type Hello = number;
@@ -1420,6 +1423,25 @@ describe("Issues", () => {
     expect(Renamed).toBeInstanceOf(Type);
     expect(Renamed === Type.Number).toBe(true);
   });
+
+  test("Issue #66: Reduce should be inferenced with right type arguments ", async () => {
+    const sourceAST = prepareAST(`
+      function sum(...numbers: Array<number>) {
+        return numbers.reduce((a, b) => a + b, 0);
+      }
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const sum = module.body.get("sum");
+    expect(errors.length).toBe(0);
+    expect(sum.type).toBeInstanceOf(FunctionType);
+    expect(sum.type === Type.find("(...Array<number>) => number")).toBe(true);
+  });
+
   test("Issue #116: Partial type should not be soft", async () => {
     const sourceAST = prepareAST(`
       const obj: { a: ?number } = { test: 3 };
@@ -1431,14 +1453,14 @@ describe("Issues", () => {
       'Type "{ test: 3 }" is incompatible with type "{ a: number | undefined }"'
     );
     expect(errors[0].loc).toEqual({
-       end:  {
-         column: 45,
-         line: 2,
-       },
-       start: {
-         column: 12,
-         line: 2,
-       },
+      end: {
+        column: 45,
+        line: 2
+      },
+      start: {
+        column: 12,
+        line: 2
+      }
     });
   });
   test("Issue #113: Rest arguments don't work with generics 01", async () => {
@@ -1508,7 +1530,8 @@ describe("Issues", () => {
       let id
       while (id === undefined || a(id)) {	}
     `);
-    const [, errors] = await createTypeGraph( [sourceAST],
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
       getModuleAST,
       false,
       mixTypeDefinitions()
@@ -1560,7 +1583,8 @@ describe("Issues", () => {
 
       foo(bar());
     `);
-    const [, errors] = await createTypeGraph( [sourceAST],
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
       getModuleAST,
       false,
       mixTypeDefinitions()

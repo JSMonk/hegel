@@ -42,7 +42,7 @@ export class $Intersection extends GenericType {
       if (isVar) {
         containsVariable = true;
         theMostPriorityParent =
-          theMostPriorityParent.priority < obj.parent.priority 
+          theMostPriorityParent.priority < obj.parent.priority
             ? obj.parent
             : theMostPriorityParent;
         if (!obj.isUserDefined) {

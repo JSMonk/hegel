@@ -31,7 +31,9 @@ describe("Test $PropertyType", () => {
     );
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("B") === Type.find("number | undefined")).toBe(true);
+    expect(typeScope.body.get("B") === Type.find("number | undefined")).toBe(
+      true
+    );
   });
   test("Should throw error with non-object property", async () => {
     const sourceAST = prepareAST(`
@@ -282,9 +284,9 @@ describe("Issues", () => {
     expect(
       StillSoft.properties.get("test").type === Type.term("number | undefined")
     ).toBe(true);
-    expect(
-      StillSoft === Type.term("{ test: number | undefined, ... }")
-    ).toBe(true);
+    expect(StillSoft === Type.term("{ test: number | undefined, ... }")).toBe(
+      true
+    );
   });
   test("Issue #135: Strict object type should stay strict object after $Partial", async () => {
     const sourceAST = prepareAST(`
@@ -297,10 +299,11 @@ describe("Issues", () => {
     expect(StillStrict.isStrict).toBe(true);
     expect(StillStrict.isNominal).toBe(false);
     expect(
-      StillStrict.properties.get("test").type === Type.term("number | undefined")
+      StillStrict.properties.get("test").type ===
+        Type.term("number | undefined")
     ).toBe(true);
-    expect(
-      StillStrict === Type.term("{ test: number | undefined }")
-    ).toBe(true);
+    expect(StillStrict === Type.term("{ test: number | undefined }")).toBe(
+      true
+    );
   });
 });

@@ -206,9 +206,10 @@ export function refinePropertyWithConstraint(
   variableType: Type,
   typeScope: TypeScope
 ): [?Type, ?Type] {
-  const refinementedType: Type = chaining.reduceRight((res: Type, property) =>
-    createObjectWith(property, res, typeScope)
-  , refinementType);
+  const refinementedType: Type = chaining.reduceRight(
+    (res: Type, property) => createObjectWith(property, res, typeScope),
+    refinementType
+  );
   return [refinementedType, variableType];
 }
 
@@ -430,17 +431,10 @@ function equalsProperty(
     return;
   }
   const [refinemented, alternate] = refinmentedAndAlternate;
-  if (
-    refinemented != undefined &&
-    alternate == undefined &&
-    isSwitch
-  ) {
+  if (refinemented != undefined && alternate == undefined && isSwitch) {
     return [variableName, refinemented, Type.Never];
   }
-  if (
-    refinemented == undefined ||
-    (alternate == undefined && !isSwitch)
-  ) {
+  if (refinemented == undefined || (alternate == undefined && !isSwitch)) {
     const typeName = String(refinementType.name);
     throw new HegelError(
       `Property ${

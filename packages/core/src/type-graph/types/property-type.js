@@ -81,12 +81,9 @@ export class $PropertyType extends GenericType {
             [
               propertyName,
               new VariableInfo(
-                TypeVar.term(
-                  `${realTarget.name}0`,
-                  {
-                    parent: realTarget.parent
-                  }
-                )
+                TypeVar.term(`${realTarget.name}0`, {
+                  parent: realTarget.parent
+                })
               )
             ]
           ];
@@ -107,9 +104,7 @@ export class $PropertyType extends GenericType {
             propertyName,
             new VariableInfo(
               TypeVar.term(
-                `${realTarget.name}${
-                  realTarget.constraint.properties.size
-                }`,
+                `${realTarget.name}${realTarget.constraint.properties.size}`,
                 { parent: realTarget.parent }
               )
             )
@@ -147,7 +142,11 @@ export class $PropertyType extends GenericType {
       return realTarget.constraint.properties.get(propertyName).type;
     }
     if (isPropertyVariable) {
-      return this.bottomizeWith([realTarget, realProperty], realTarget.parent, loc);
+      return this.bottomizeWith(
+        [realTarget, realProperty],
+        realTarget.parent,
+        loc
+      );
     }
     if (realProperty instanceof UnionType) {
       try {
@@ -189,7 +188,11 @@ export class $PropertyType extends GenericType {
         );
       }
     }
-    const fieldType = realTarget.getPropertyType(propertyName, initializing, this.isForInit);
+    const fieldType = realTarget.getPropertyType(
+      propertyName,
+      initializing,
+      this.isForInit
+    );
     if (!realProperty.isSubtypeOf && !isCalledAsBottom) {
       throw new HegelError("Second parameter should be an literal", loc);
     }

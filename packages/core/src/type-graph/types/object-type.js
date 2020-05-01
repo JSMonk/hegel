@@ -159,7 +159,7 @@ export class ObjectType extends Type {
       this.properties.has(propertyName) &&
       !field.hasInitializer
     ) {
-       field.hasInitializer = true;
+      field.hasInitializer = true;
     }
     if (!(field.type instanceof Type)) {
       return field;
@@ -214,8 +214,8 @@ export class ObjectType extends Type {
       const name = String(this.name);
       return name[0] === "{" || newName === name
         ? this
-        // $FlowIssue
-        : Object.assign(new ObjectType("", {}, this.properties), this, {
+        : // $FlowIssue
+          Object.assign(new ObjectType("", {}, this.properties), this, {
             name: newName
           });
     }
@@ -322,8 +322,9 @@ export class ObjectType extends Type {
     this._alreadyProcessedWith = anotherType;
     const requiredProperties = [...this.properties.values()].filter(
       ({ type }) => {
-        // $FlowIssue
-        type = typeof type === "object" && "readonly" in type ? type.readonly : type;
+        type =
+          // $FlowIssue
+          typeof type === "object" && "readonly" in type ? type.readonly : type;
         return (
           !(type instanceof UnionType) ||
           !type.variants.some(t => t.equalsTo(Type.Undefined))
@@ -345,7 +346,7 @@ export class ObjectType extends Type {
     for (const [key] of anotherType.properties) {
       if (!this.properties.has(key)) {
         return false;
-      } 
+      }
     }
     return true;
   }

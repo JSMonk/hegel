@@ -5,7 +5,7 @@ import { VariableInfo } from "./variable-info";
 import type { Type } from "./types/type";
 import type { Handler } from "../utils/traverse";
 import type { TypeGraph } from "./module-scope";
-import type { ObjectType} from "./types/object-type";
+import type { ObjectType } from "./types/object-type";
 import type { GenericType } from "./types/generic-type";
 import type { FunctionType } from "./types/function-type";
 import type { ModuleScope } from "./module-scope";
@@ -39,7 +39,11 @@ export class Scope {
     precompute: Handler,
     middlecompute: Handler,
     postcompute: Handler
-  ): VariableInfo<ObjectType> | VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>> | void {
+  ):
+    | VariableInfo<ObjectType>
+    | VariableInfo<FunctionType>
+    | VariableInfo<GenericType<FunctionType>>
+    | void {
     currentNode.expected =
       definedType != undefined && "variants" in definedType
         ? // $FlowIssue

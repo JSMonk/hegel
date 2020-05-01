@@ -31,7 +31,9 @@ export function addFunctionScopeToTypeGraph(
   currentNode: Node,
   parentNode: Node | VariableScope | ModuleScope,
   moduleScope: ModuleScope,
-  variableInfo: VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>>
+  variableInfo:
+    | VariableInfo<FunctionType>
+    | VariableInfo<GenericType<FunctionType>>
 ) {
   const scope = getScopeFromNode(
     currentNode,
@@ -72,7 +74,9 @@ export function addFunctionToTypeGraph(
     currentNode.type === NODE.TS_FUNCTION_DECLARATION
       ? getDeclarationName(currentNode)
       : getAnonymousKey(currentNode);
-  const variableInfo: VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>> = (addVariableToGraph(
+  const variableInfo:
+    | VariableInfo<FunctionType>
+    | VariableInfo<GenericType<FunctionType>> = (addVariableToGraph(
     currentNode,
     parentNode,
     moduleScope,
@@ -105,33 +109,81 @@ export function addFunctionToTypeGraph(
     post,
     isTypeDefinitions
   ): any);
-  const expectedType = currentNode.expected;
-  const functionType =
+  const expected = currentNode.expected;
+  const expectedType =
+    expected instanceof GenericType ? expected.subordinateType : expected;
+  let functionType =
     variableInfo.type instanceof GenericType
       ? variableInfo.type.subordinateType
       : variableInfo.type;
+  let genericArgumentsTypes =
+    variableInfo.type instanceof GenericType
+      ? variableInfo.type.genericArguments
+      : [];
+  if (expected instanceof GenericType) {
+    genericArgumentsTypes = [
+      ...genericArgumentsTypes,
+      ...expected.genericArguments
+    ];
+  }
   if (expectedType instanceof FunctionType) {
     const inferencedArgumentsTypes = functionType.argumentsTypes;
     const expectedArgumentsTypes = expectedType.argumentsTypes;
-    for (let i = 0; i < inferencedArgumentsTypes.length; i++) {
-      const inferenced = inferencedArgumentsTypes[i];
-      const expected = expectedArgumentsTypes[i];
+    const argumentsTypes = Array.from({
+      length: Math.max(
+        inferencedArgumentsTypes.length,
+        expectedArgumentsTypes.length
+      )
+    });
+    let wereArgumentsChanged = false;
+    const newArgumentsTypes = argumentsTypes.reduce((res, _, i) => {
+      const expectedArgumentType = expectedArgumentsTypes[i];
+      const inferencedArgumentType = inferencedArgumentsTypes[i];
       if (
-        inferenced instanceof TypeVar &&
-        !inferenced.isUserDefined &&
-        expected !== undefined
+        inferencedArgumentType instanceof TypeVar &&
+        !inferencedArgumentType.isUserDefined &&
+        expectedArgumentType !== undefined
       ) {
-        inferencedArgumentsTypes[i] = expected;
+        wereArgumentsChanged = true;
+        return [...res, expectedArgumentType];
       }
-    }
-    const expectedReturnType = expectedType.returnType;
-    if (
+      if (inferencedArgumentType !== undefined) {
+        return [...res, inferencedArgumentType];
+      }
+      return res;
+    }, []);
+    const newReturnType =
       functionType.returnType instanceof TypeVar &&
       !functionType.returnType.isUserDefined &&
-      expectedReturnType.parent.priority <= 1
-    ) {
-      functionType.returnType = expectedReturnType;
+      expectedType.returnType.parent.priority <= 1
+        ? expectedType.returnType
+        : functionType.returnType;
+    if (wereArgumentsChanged || newReturnType !== functionType.returnType) {
+      const functionTypeName = FunctionType.getName(
+        newArgumentsTypes,
+        newReturnType,
+        genericArgumentsTypes,
+        currentNode.async,
+        functionType.throwable
+      );
+      functionType = FunctionType.term(
+        functionTypeName,
+        {},
+        newArgumentsTypes,
+        newReturnType
+      );
       variableInfo.isInferenced = false;
+      variableInfo.type =
+        genericArgumentsTypes.length > 0
+          ? GenericType.new(
+              functionTypeName,
+              {},
+              genericArgumentsTypes,
+              // $FlowIssue
+              variableInfo.type.localTypeScope,
+              functionType
+            )
+          : functionType;
     }
   }
   const withPositions = moduleScope instanceof PositionedModuleScope;
@@ -172,10 +224,7 @@ export function isCallableType(a: Type) {
   return a instanceof FunctionType;
 }
 
-export function isSideEffectCall(
-  node: Node,
-  invocationResult: Type
-) {
+export function isSideEffectCall(node: Node, invocationResult: Type) {
   return (
     node.type === NODE.EXPRESSION_STATEMENT && // i.e we don't assign a return value of it to any variable
     node.expression != null && //

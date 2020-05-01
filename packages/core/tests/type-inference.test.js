@@ -7,6 +7,9 @@ const { UnionType } = require("../build/type-graph/types/union-type");
 const { ObjectType } = require("../build/type-graph/types/object-type");
 const { GenericType } = require("../build/type-graph/types/generic-type");
 const { FunctionType } = require("../build/type-graph/types/function-type");
+const {
+  $Refinemented
+} = require("../build/type-graph/types/refinemented-type");
 const { CollectionType } = require("../build/type-graph/types/collection-type");
 const {
   prepareAST,
@@ -601,10 +604,14 @@ describe("Simple inference for module functions", () => {
     expect(CONST.type).toBeInstanceOf(GenericType);
     expect(CONST.type === Type.find("<_a>(_a) => () => _a")).toBe(true);
     expect(CONST.type.subordinateType.argumentsTypes.length).toBe(1);
-    expect(CONST.type.subordinateType.argumentsTypes[0]).toBeInstanceOf(TypeVar);
+    expect(CONST.type.subordinateType.argumentsTypes[0]).toBeInstanceOf(
+      TypeVar
+    );
     expect(CONST.type.subordinateType.returnType).toBeInstanceOf(FunctionType);
     expect(CONST.type.subordinateType.returnType.argumentsTypes.length).toBe(0);
-    expect(CONST.type.subordinateType.returnType.returnType).toBeInstanceOf(TypeVar);
+    expect(CONST.type.subordinateType.returnType.returnType).toBeInstanceOf(
+      TypeVar
+    );
     expect(
       CONST.type.subordinateType.returnType.returnType.equalsTo(
         CONST.type.subordinateType.argumentsTypes[0]
@@ -2928,7 +2935,10 @@ describe("Type refinement", () => {
     expect(a.type === Type.find("{ a: { b: string } | { c: string } }")).toBe(
       true
     );
-    expect(b.type === Type.find("{ a: { b: string } }")).toBe(true);
+    expect(b.type).toBeInstanceOf($Refinemented);
+    expect(b.type.refinemented === Type.find("{ a: { b: string } }")).toBe(
+      true
+    );
   });
   test("In refinement for property in union variable", async () => {
     const sourceAST = prepareAST(`
@@ -3122,8 +3132,10 @@ describe("Other", () => {
     expect(fn.type).toBeInstanceOf(GenericType);
     expect(
       fn.type ===
-      Type.find("<_a: { a: T, b: T, ... }, T: bigint | number | string>(_a) => T"))
-    .toBe(true);
+        Type.find(
+          "<_a: { a: T, b: T, ... }, T: bigint | number | string>(_a) => T"
+        )
+    ).toBe(true);
     expect(res.type === Type.Number).toBe(true);
   });
 });
@@ -3145,8 +3157,50 @@ describe("Issues", () => {
     expect(prop.type).toBeInstanceOf(GenericType);
     expect(
       prop.type ===
-      Type.find("<_a: Object, _b: $Keys<_a>>(_a, _b) => $PropertyType<_a, _b>"))
-    .toBe(true);
+        Type.find(
+          "<_a: Object, _b: $Keys<_a>>(_a, _b) => $PropertyType<_a, _b>"
+        )
+    ).toBe(true);
+  });
+  test("Issue #75: sound return type", async () => {
+    const sourceAST = prepareAST(`
+      function test(x: { a: string | number }) {
+          if (typeof x.a === 'string') {
+              const b = x;
+              return b;
+          }
+      }
+
+      const a:  { a: string | number } = { a: 'foo' };
+      const b = test(a);
+
+      a.a = 1;
+
+      if (b !== undefined) { 
+         const a = b.a.toUpperCase(); // runtime error
+      }
+    `);
+    const [[], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      'Property "toUpperCase" does not exist in "Number | String"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: {
+        column: 34,
+        line: 15
+      },
+      start: {
+        column: 19,
+        line: 15
+      }
+    });
   });
   test("Issue #115: inference property type without error", async () => {
     const sourceAST = prepareAST(`

@@ -78,13 +78,11 @@ const typeVarNames = [
   "__p"
 ];
 
-const isValidRestArgumentType = (type: Type) => 
+const isValidRestArgumentType = (type: Type) =>
   type instanceof CollectionType ||
   type instanceof TupleType ||
-  (
-    type instanceof $BottomType &&
-    type.getRootedSubordinateType().isPrincipalTypeFor(CollectionType.Array)
-  )
+  (type instanceof $BottomType &&
+    type.getRootedSubordinateType().isPrincipalTypeFor(CollectionType.Array));
 
 export function inferenceFunctionLiteralType(
   currentNode: Function,
@@ -224,7 +222,7 @@ export function inferenceFunctionLiteralType(
         !isWithoutAnnotation &&
         !(
           (paramType instanceof UnionType &&
-           paramType.variants.every(isValidRestArgumentType)) ||
+            paramType.variants.every(isValidRestArgumentType)) ||
           isValidRestArgumentType(paramType)
         )
       ) {
@@ -291,7 +289,10 @@ export function inferenceFunctionLiteralType(
 
   if (currentNode.async) {
     const unknownPromise = Type.Unknown.promisify();
-    if (!unknownPromise.isPrincipalTypeFor(returnType) && currentNode.returnType != undefined) {
+    if (
+      !unknownPromise.isPrincipalTypeFor(returnType) &&
+      currentNode.returnType != undefined
+    ) {
       throw new HegelError(
         `Return type of async function should be an promise`,
         currentNode.returnType.loc
@@ -404,7 +405,8 @@ function resolveOuterTypeVarsFromCall(
       const shouldSetNewRoot =
         variable instanceof TypeVar &&
         !root.contains(variable) &&
-        (variable.constraint === undefined || variable.constraint.isPrincipalTypeFor(root)) &&
+        (variable.constraint === undefined ||
+          variable.constraint.isPrincipalTypeFor(root)) &&
         (variable.root === undefined ||
           variable.root.isSuperTypeFor(variable.root));
       if (!genericArguments.includes(variable)) {
@@ -622,7 +624,8 @@ export function getInvocationType(
     returnType instanceof TypeVar ? Type.getTypeRoot(returnType) : returnType;
   returnType =
     returnType instanceof $BottomType &&
-    (returnType.genericArguments.every(t => !(t instanceof TypeVar)) || returnType.subordinateMagicType instanceof $PropertyType)
+    (returnType.genericArguments.every(t => !(t instanceof TypeVar)) ||
+      returnType.subordinateMagicType instanceof $PropertyType)
       ? returnType.unpack()
       : returnType;
   return returnType instanceof TypeVar
@@ -728,17 +731,12 @@ export function inferenceFunctionTypeByScope(
     returnType instanceof TypeVar &&
     !returnType.isUserDefined
   ) {
-    const variants = returnType.root !== undefined 
-     ? [Type.getTypeRoot(returnType)]
-     : [];
-    returnType.root = UnionType.term(
-      null,
-      {},
-      [
-        ...variants,
-        isAsync ? Type.Undefined.promisify() : Type.Undefined
-      ]
-    );
+    const variants =
+      returnType.root !== undefined ? [Type.getTypeRoot(returnType)] : [];
+    returnType.root = UnionType.term(null, {}, [
+      ...variants,
+      isAsync ? Type.Undefined.promisify() : Type.Undefined
+    ]);
   }
   const created: Map<TypeVar, TypeVar> = new Map();
   for (let i = 0; i < genericArguments.length; i++) {

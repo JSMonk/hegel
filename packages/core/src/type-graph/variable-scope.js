@@ -23,7 +23,11 @@ export class VariableScope extends Scope {
   parent: ModuleScope | VariableScope;
   calls: Array<CallMeta> = [];
   throwable: Array<VariableInfo<Type> | Type> | void;
-  declaration: VariableInfo<ObjectType> | VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>> | void;
+  declaration:
+    | VariableInfo<ObjectType>
+    | VariableInfo<FunctionType>
+    | VariableInfo<GenericType<FunctionType>>
+    | void;
   skipCalls: boolean;
   isProcessed: boolean = false;
   body: Map<string, VariableInfo<Type>>;
@@ -32,7 +36,10 @@ export class VariableScope extends Scope {
   constructor(
     type: VariableScopeType,
     parent: ModuleScope | VariableScope,
-    declaration?: VariableInfo<ObjectType> | VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>>,
+    declaration?:
+      | VariableInfo<ObjectType>
+      | VariableInfo<FunctionType>
+      | VariableInfo<GenericType<FunctionType>>,
     creator?: string,
     skipCalls?: boolean = false
   ) {

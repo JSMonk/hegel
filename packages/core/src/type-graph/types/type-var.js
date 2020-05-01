@@ -209,8 +209,8 @@ export class TypeVar extends Type {
 
   applyGeneric(...args: Array<any>) {
     return this.root !== undefined && typeof "applyGeneric" in this.root
-      // $FlowIssue GenericType by duck typing, can't import GenericType because of cycled dependecy
-      ? this.root.applyGeneric(...args)
+      ? // $FlowIssue GenericType by duck typing, can't import GenericType because of cycled dependecy
+        this.root.applyGeneric(...args)
       : this;
   }
 }

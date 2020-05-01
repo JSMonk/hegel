@@ -114,9 +114,7 @@ function refinementProperty(
             property.type
           ];
         }
-        return existed
-          ? [propertyType, undefined]
-          : [undefined, propertyType];
+        return existed ? [propertyType, undefined] : [undefined, propertyType];
       }
       const [
         refinementedVariants,

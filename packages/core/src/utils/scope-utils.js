@@ -62,11 +62,15 @@ export function findNearestTypeScope(
       if (
         scope.declaration.type.instanceType != undefined &&
         scope.declaration.type.instanceType.subordinateMagicType != undefined &&
-        // $FlowIssue
-        "localTypeScope" in scope.declaration.type.instanceType.subordinateMagicType
+        "localTypeScope" in
+          // $FlowIssue
+          scope.declaration.type.instanceType.subordinateMagicType
       ) {
-        // $FlowIssue
-        return scope.declaration.type.instanceType.subordinateMagicType.localTypeScope;
+        return (
+          scope.declaration.type.instanceType.subordinateMagicType
+            // $FlowIssue
+            .localTypeScope
+        );
       }
     }
     const parent = scope.parent;
@@ -107,7 +111,10 @@ export function getScopeFromNode(
   currentNode: Node,
   parentNode: Node | ModuleScope | VariableScope,
   typeGraph: ModuleScope,
-  declaration?: VariableInfo<ObjectType> | VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>>,
+  declaration?:
+    | VariableInfo<ObjectType>
+    | VariableInfo<FunctionType>
+    | VariableInfo<GenericType<FunctionType>>,
   scopeCreator?: string
 ) {
   return new VariableScope(
