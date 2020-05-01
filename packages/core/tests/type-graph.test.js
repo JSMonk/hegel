@@ -1366,6 +1366,7 @@ describe("Issues", () => {
     expect(hello.type.argumentsTypes.length).toBe(0);
     expect(hello.type.returnType === Type.Undefined).toBe(true);
   });
+  
   test("Hoisted separated export notation", async () => {
     const sourceAST = prepareAST(`
       export {hello}
@@ -1381,6 +1382,7 @@ describe("Issues", () => {
     expect(hello.type.argumentsTypes.length).toBe(0);
     expect(hello.type.returnType === Type.Undefined).toBe(true);
   });
+  
   test("Named separated export notation", async () => {
     const sourceAST = prepareAST(`
       function hello() {}
@@ -1408,6 +1410,7 @@ describe("Issues", () => {
     expect(Hello).toBeInstanceOf(Type);
     expect(Hello === Type.Number).toBe(true);
   });
+  
   test("Simple separated type export notation", async () => {
     const sourceAST = prepareAST(`
       type Hello = number;
@@ -1420,6 +1423,24 @@ describe("Issues", () => {
     expect(Renamed).toBeInstanceOf(Type);
     expect(Renamed === Type.Number).toBe(true);
   });
+
+  test("Issue #66: Reduce should be inferenced with right type arguments ", async () => {
+    const sourceAST = prepareAST(`
+      function sum(...numbers: Array<number>) {
+        return numbers.reduce((a, b) => a + b, 0);
+      }
+    `);
+    const [[module], errors] = await createTypeGraph( [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const sum = module.body.get("sum");
+    expect(errors.length).toBe(0);
+    expect(sum.type).toBeInstanceOf(FunctionType);
+    expect(sum.type === Type.find("(...Array<number>) => number")).toBe(true);
+  });
+
   test("Issue #116: Partial type should not be soft", async () => {
     const sourceAST = prepareAST(`
       const obj: { a: ?number } = { test: 3 };

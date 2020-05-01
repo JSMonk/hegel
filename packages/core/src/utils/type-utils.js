@@ -398,8 +398,11 @@ export function getTypeFromTypeAnnotation(
       );
     case NODE.OBJECT_TYPE_ANNOTATION:
       if (typeNode.typeAnnotation.exact) {
-        throw new HegelError("Hegel has another syntax for strict (exact) object type. You should use pure object literal type for strict (exact)\
-         object and object liter with three dots (...) for soft (inexact) object type", typeNode.typeAnnotation.loc);
+        throw new HegelError(
+          "Hegel has another syntax for strict (exact) object type. You should use pure object literal type for strict (exact)\
+         object and object liter with three dots (...) for soft (inexact) object type",
+          typeNode.typeAnnotation.loc
+        );
       }
     case NODE.TS_OBJECT_TYPE_ANNOTATION:
     case NODE.TS_INTERFACE_DECLARATION:
@@ -708,7 +711,10 @@ export function getTypeFromTypeAnnotation(
         middlecompute,
         postcompute
       );
-      if (returnType instanceof $ThrowsResult || returnType instanceof UnionType) {
+      if (
+        returnType instanceof $ThrowsResult ||
+        returnType instanceof UnionType
+      ) {
         if (returnType instanceof UnionType) {
           const [returnTypes, errors] = returnType.variants.reduce(
             ([result, errors], type) =>
@@ -770,13 +776,21 @@ export function createObjectWith(
   typeScope: TypeScope,
   meta?: Meta
 ): ObjectType {
-  const properties = [[
-    key,
-    new VariableInfo(
-      type,
-      new VariableScope(VariableScope.OBJECT_TYPE, new ModuleScope("Hegel works wrong if you see this path. Please send us an issue.")
-    ), meta)
-  ]];
+  const properties = [
+    [
+      key,
+      new VariableInfo(
+        type,
+        new VariableScope(
+          VariableScope.OBJECT_TYPE,
+          new ModuleScope(
+            "Hegel works wrong if you see this path. Please send us an issue."
+          )
+        ),
+        meta
+      )
+    ]
+  ];
   return ObjectType.term(ObjectType.getName(properties), {}, properties);
 }
 

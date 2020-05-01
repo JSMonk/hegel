@@ -239,15 +239,10 @@ export class GenericType<T: Type> extends Type {
 
   bottomizeWith(
     parameters: Array<Type>,
-    parent?: TypeScope, 
-    loc?: SourceLocation,
+    parent?: TypeScope,
+    loc?: SourceLocation
   ) {
-    return new $BottomType(
-      { parent },
-      this,
-      parameters,
-      loc
-    );
+    return new $BottomType({ parent }, this, parameters, loc);
   }
 
   applyGeneric(
@@ -324,7 +319,7 @@ export class GenericType<T: Type> extends Type {
       return appliedSelf;
     }
     if (isBottomPresented) {
-      return this.bottomizeWith(parameters, theMostPriorityParent, loc); 
+      return this.bottomizeWith(parameters, theMostPriorityParent, loc);
     }
     try {
       const result = this.subordinateType.changeAll(
@@ -421,5 +416,18 @@ export class GenericType<T: Type> extends Type {
     return (
       this.subordinateType !== null && this.subordinateType.canContain(type)
     );
+  }
+
+  asUserDefined() {
+    this.genericArguments.forEach(t => {
+      t._isUserDefined = true;
+      t.root = undefined;
+    });
+    return this;
+  }
+
+  asNotUserDefined() {
+    this.genericArguments.forEach(t => (t._isUserDefined = false));
+    return this;
   }
 }

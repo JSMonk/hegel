@@ -495,7 +495,10 @@ export function refinement(
       !primaryScope.body.has(varName) ||
       condition.type === NODE.SWITCH_CASE
     ) {
-      primaryScope.body.set(varName, new VariableInfo(refinementedType, currentScope));
+      primaryScope.body.set(
+        varName,
+        new VariableInfo(refinementedType, currentScope)
+      );
     }
     if (alternateType && alternateScopes) {
       alternateScopes.forEach(alternateScope => {
@@ -503,7 +506,10 @@ export function refinement(
           !alternateScope.body.has(varName) ||
           condition.type === NODE.SWITCH_CASE
         ) {
-          alternateScope.body.set(varName, new VariableInfo(alternateType, currentScope));
+          alternateScope.body.set(
+            varName,
+            new VariableInfo(alternateType, currentScope)
+          );
         }
       });
     }

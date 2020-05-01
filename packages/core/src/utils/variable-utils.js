@@ -17,17 +17,27 @@ import { getParentForNode, findNearestTypeScope } from "./scope-utils";
 import type { Handler } from "./traverse";
 import type { TypeScope } from "../type-graph/type-scope";
 import type { ModuleScope } from "../type-graph/module-scope";
-import type { Node, ClassProperty, ObjectProperty, ClassMethod, ObjectMethod } from "@babel/parser";
+import type {
+  Node,
+  ClassProperty,
+  ObjectProperty,
+  ClassMethod,
+  ObjectMethod
+} from "@babel/parser";
 
-export function getPropertyName(node: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod) {
-  const isPrivate = node.type === NODE.CLASS_PRIVATE_METHOD || node.type === NODE.CLASS_PRIVATE_PROPERTY;
+export function getPropertyName(
+  node: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod
+) {
+  const isPrivate =
+    node.type === NODE.CLASS_PRIVATE_METHOD ||
+    node.type === NODE.CLASS_PRIVATE_PROPERTY;
   if (isPrivate) {
     return `#${node.key.id.name}`;
   }
   if (node.kind === "constructor") {
     return CONSTRUCTABLE;
   }
-  return node.key.name || `${node.key.value}`;;
+  return node.key.name || `${node.key.value}`;
 }
 
 export function getVariableInfoFromDelcaration(

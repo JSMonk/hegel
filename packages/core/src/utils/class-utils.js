@@ -76,8 +76,8 @@ export function addThisToClassScope(
     currentNode.id != undefined ? getDeclarationName(currentNode) : "{ }";
   const isGenericType = genericArguments != undefined;
   const typeName = isGenericType
-      ? GenericType.getName(name, genericArguments)
-      : name;
+    ? GenericType.getName(name, genericArguments)
+    : name;
   const selfObject = ObjectType.term(
     typeName,
     {
@@ -186,7 +186,10 @@ export function addThisToClassScope(
       options.isSubtypeOf = superClass;
     }
     const staticSelfObject = ObjectType.term(staticName, options, []);
-    const staticSelfVar = new VariableInfo<ObjectType>(staticSelfObject, classScope.parent);
+    const staticSelfVar = new VariableInfo<ObjectType>(
+      staticSelfObject,
+      classScope.parent
+    );
     // $FlowIssue In Flow VariableInfo<ObjectType> is incompatible with VariableInfo<Type> even if you don't mutate argument
     classScope.parent.body.set(name, staticSelfVar);
     classScope.declaration = staticSelfVar;
@@ -197,19 +200,28 @@ export function addThisToClassScope(
     );
     if (!isConstructorPresented) {
       const $super = classScope.body.get("super");
-      const parentConstructor = $super !== undefined && $super.type instanceof ObjectType 
-        ? $super.type.properties.get(CALLABLE)
-        : undefined;
-      const constructor: VariableInfo<FunctionType | GenericType<FunctionType>> =
+      const parentConstructor =
+        $super !== undefined && $super.type instanceof ObjectType
+          ? $super.type.properties.get(CALLABLE)
+          : undefined;
+      const constructor: VariableInfo<
+        FunctionType | GenericType<FunctionType>
+      > =
         parentConstructor &&
-        (parentConstructor.type instanceof FunctionType || 
-        (parentConstructor.type instanceof GenericType && parentConstructor.type.subordinateType instanceof FunctionType))
-        ? (parentConstructor: any)
-        : new VariableInfo(
-          FunctionType.new(`() => ${name}`, { parent: self.parent }, [], self),
-          classScope,
-          new Meta(currentNode.loc)
-        );
+        (parentConstructor.type instanceof FunctionType ||
+          (parentConstructor.type instanceof GenericType &&
+            parentConstructor.type.subordinateType instanceof FunctionType))
+          ? (parentConstructor: any)
+          : new VariableInfo(
+              FunctionType.new(
+                `() => ${name}`,
+                { parent: self.parent },
+                [],
+                self
+              ),
+              classScope,
+              new Meta(currentNode.loc)
+            );
       if (!constructor.hasInitializer) {
         constructor.hasInitializer = true;
       }
@@ -224,13 +236,17 @@ export function addThisToClassScope(
           ? type.returnType
           : self;
       if (self instanceof $BottomType) {
-        const localTypeScope = constructor.type instanceof GenericType
-          ? constructor.type.localTypeScope
-          : self.subordinateMagicType.localTypeScope;
-        const addition =  constructor.type instanceof GenericType
-          ? constructor.type.genericArguments 
-          : [];
-        const genericArguments = Array.from(new Set([...self.genericArguments, addition]));
+        const localTypeScope =
+          constructor.type instanceof GenericType
+            ? constructor.type.localTypeScope
+            : self.subordinateMagicType.localTypeScope;
+        const addition =
+          constructor.type instanceof GenericType
+            ? constructor.type.genericArguments
+            : [];
+        const genericArguments = Array.from(
+          new Set([...self.genericArguments, addition])
+        );
         type = GenericType.new(
           `constructor ${String(self.name)}`,
           {},
@@ -277,16 +293,22 @@ export function addThisToClassScope(
           node.type !== NODE.CLASS_METHOD &&
           node.type !== NODE.CLASS_PRIVATE_METHOD
         ) {
-          return
+          return;
         }
         const propertyName = getPropertyName(node);
-        const existedProperty = typeForImplementation.properties.get(propertyName);
+        const existedProperty = typeForImplementation.properties.get(
+          propertyName
+        );
         if (existedProperty === undefined) {
           return;
         }
         node.expected = existedProperty.type;
       });
-      return { loc: typeAnnotation.loc, id: typeAnnotation.id, typeForImplementation }; 
+      return {
+        loc: typeAnnotation.loc,
+        id: typeAnnotation.id,
+        typeForImplementation
+      };
     });
   }
 }
@@ -402,9 +424,9 @@ export function addObjectToTypeGraph(
     self.type instanceof $BottomType
       ? self.type.subordinateMagicType.subordinateType
       : self.type;
-   if (!(selfType instanceof ObjectType)) {
-     throw new Error("Never!!!");
-   }
+  if (!(selfType instanceof ObjectType)) {
+    throw new Error("Never!!!");
+  }
   const properties = [];
   for (const [key, property] of selfType.properties.entries()) {
     if (property.hasInitializer) {
@@ -464,7 +486,7 @@ export function addClassToTypeGraph(
       ? self.type.subordinateMagicType.subordinateType
       : self.type;
   if (!(selfObject instanceof ObjectType)) {
-    throw new Error("Never!!!")
+    throw new Error("Never!!!");
   }
   selfObject.parent = [...selfObject.properties].reduce(
     (parent, [_, { type }]) =>
@@ -532,21 +554,27 @@ export function addClassToTypeGraph(
     });
   }
   const { declaration } = classScope;
-  if (!isTypeDefinitions && declaration !== undefined && declaration.type instanceof ObjectType) {
+  if (
+    !isTypeDefinitions &&
+    declaration !== undefined &&
+    declaration.type instanceof ObjectType
+  ) {
     const errors = [];
-    [...properties, ...declaration.type.properties].forEach(([key, property]) => {
-      if (
-        !property.hasInitializer &&
-        !property.type.contains(Type.Undefined)
-      ) {
-        errors.push(
-          new HegelError(
-            `Property "${key}" has a type, but doesn't have an initializer!`,
-            property.meta.loc
-          )
-        );
+    [...properties, ...declaration.type.properties].forEach(
+      ([key, property]) => {
+        if (
+          !property.hasInitializer &&
+          !property.type.contains(Type.Undefined)
+        ) {
+          errors.push(
+            new HegelError(
+              `Property "${key}" has a type, but doesn't have an initializer!`,
+              property.meta.loc
+            )
+          );
+        }
       }
-    });
+    );
     if (errors.length !== 0) {
       throw errors;
     }

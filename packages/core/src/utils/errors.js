@@ -14,7 +14,7 @@ export default class HegelError extends Error implements Locationable {
     this.source = source;
     this.loc = loc && {
       end: loc.end,
-      start: loc.start,
+      start: loc.start
     };
   }
 }
@@ -26,7 +26,7 @@ export class UnreachableError extends Error implements Locationable {
     super("");
     this.loc = {
       end: loc.end,
-      start: loc.start,
+      start: loc.start
     };
   }
 }

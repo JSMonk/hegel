@@ -114,15 +114,15 @@ export class Type {
   getChangedName<T: Type>(sourceTypes: Array<T>, targetTypes: Array<Type>) {
     let pattern = "";
     const map = sourceTypes.reduce((map, type, index) => {
-      const name = String(type.name).replace(/[()]/g, bracket => `\\${bracket}`);
+      const name = String(type.name).replace(
+        /[()]/g,
+        bracket => `\\${bracket}`
+      );
       map.set(name, String(targetTypes[index].name));
       pattern += (pattern && "|") + name.replace(/\|/g, "\\|");
       return map;
     }, new Map());
-    const template = new RegExp(
-      `\\b(${pattern})`,
-      "gm"
-    );
+    const template = new RegExp(`\\b(${pattern})`, "gm");
     return String(this.name).replace(
       template,
       typeName => map.get(typeName) || ""
@@ -206,15 +206,13 @@ export class Type {
       return [];
     }
     if ("constraint" in type && type.isSubtypeOf === null) {
-      // $FlowIssue
-      const constraint = type.constraint instanceof Type ? type.constraint : undefined;
+      const constraint =
+        // $FlowIssue
+        type.constraint instanceof Type ? type.constraint : undefined;
       if (constraint !== undefined && !("subordinateMagicType" in constraint)) {
         return constraint.isPrincipalTypeFor(this)
-          ? [
-              { root: this, variable: type },
-              ...this.getDifference(constraint)
-            ]
-          : []
+          ? [{ root: this, variable: type }, ...this.getDifference(constraint)]
+          : [];
       }
       return [{ root: this, variable: type }];
     }
@@ -323,5 +321,13 @@ export class Type {
       isPrincipalFound = principal.isPrincipalTypeFor(type);
     }
     return isPrincipalFound ? principal : undefined;
+  }
+
+  asUserDefined() {
+    return this;
+  }
+
+  asNotUserDefined() {
+    return this;
   }
 }

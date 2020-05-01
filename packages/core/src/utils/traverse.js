@@ -49,7 +49,7 @@ function sortClassMembers(currentNode: Node) {
   ) {
     return currentNode;
   }
-  currentNode.body.body.sort((a, b) => a.kind === "constructor" ? -1 : 1);
+  currentNode.body.body.sort((a, b) => (a.kind === "constructor" ? -1 : 1));
   return currentNode;
 }
 

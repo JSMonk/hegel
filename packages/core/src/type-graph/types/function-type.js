@@ -216,7 +216,7 @@ export class FunctionType extends Type {
         // $FlowIssue
         param = Type.getTypeRoot(isRest ? param.type : param);
         const t = String(param.name);
-        const name = isRest ? `...${t} ` : t;
+        const name = isRest ? `...${t}` : t;
         return isMultyLine ? name.replace(/\n/g, "\n\t") : name;
       })
       .join(isMultyLine ? ",\n\t" : ", ")}${isMultyLine ? "\n" : ""})`;
@@ -351,9 +351,9 @@ export class FunctionType extends Type {
       this.argumentsTypes.length >= anotherType.argumentsTypes.length &&
       anotherType.argumentsTypes.every((arg, i) => {
         const anotherArgument = this.argumentsTypes[i] || Type.Undefined;
-        return arg.onlyLiteral 
+        return arg.onlyLiteral
           ? arg.equalsTo(anotherArgument)
-          : arg.isPrincipalTypeFor(anotherArgument)
+          : arg.isPrincipalTypeFor(anotherArgument);
       });
     this._alreadyProcessedWith = null;
     return result;

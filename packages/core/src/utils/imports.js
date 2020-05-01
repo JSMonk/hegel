@@ -128,23 +128,21 @@ export default async function mixImportedDependencies(
     importRequests.push(
       Promise.all([
         node,
-        getModuleTypeGraph(node.source.value, path, node.loc).then(
-          module => {
-            if (
-              errors.some(error => error.source === module.path) &&
-              currentModuleScope instanceof PositionedModuleScope
-            ) {
-              errors.push(
-                new HegelError(
-                  `There are problems inside "${node.source.value}"`,
-                  node.loc,
-                  currentModuleScope.path
-                )
-              );
-            }
-            return module;
+        getModuleTypeGraph(node.source.value, path, node.loc).then(module => {
+          if (
+            errors.some(error => error.source === module.path) &&
+            currentModuleScope instanceof PositionedModuleScope
+          ) {
+            errors.push(
+              new HegelError(
+                `There are problems inside "${node.source.value}"`,
+                node.loc,
+                currentModuleScope.path
+              )
+            );
           }
-        )
+          return module;
+        })
       ])
     );
   }

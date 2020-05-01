@@ -76,7 +76,7 @@ function getRefinmentType(stringNode: Node): Type {
     case "undefined":
       return Type.Undefined;
     case "symbol":
-      return Type.Symbol;  
+      return Type.Symbol;
     case "function":
       return FunctionType.Function;
     case "object":

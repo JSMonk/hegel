@@ -15,9 +15,10 @@ export class TypeScope {
 
   constructor(parent?: TypeScope) {
     this.parent = parent === undefined ? null : parent;
-    this.priority = parent === undefined 
-      ? TypeScope.GLOBAL_SCOPE_PRIORITY 
-      : parent.priority + 1;
+    this.priority =
+      parent === undefined
+        ? TypeScope.GLOBAL_SCOPE_PRIORITY
+        : parent.priority + 1;
   }
 
   makeCustom() {
@@ -40,13 +41,12 @@ export class TypeScope {
           // $FlowIssue
           let result = Scope.addAndTraverseNodeWithType(
             // $FlowIssue
-            undefined, 
+            undefined,
             existedType,
             ...rest
           );
-          result = result === undefined
-            ? this.findTypeWithName(name)
-            : result.type;
+          result =
+            result === undefined ? this.findTypeWithName(name) : result.type;
           if (result !== undefined) {
             return Type.getTypeRoot(result);
           }
