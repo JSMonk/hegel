@@ -122,7 +122,7 @@ export class Type {
       pattern += (pattern && "|") + name.replace(/\|/g, "\\|");
       return map;
     }, new Map());
-    const template = new RegExp(`\\b(${pattern})`, "gm");
+    const template = new RegExp(`\\b(${pattern})\\b`, "gm");
     return String(this.name).replace(
       template,
       typeName => map.get(typeName) || ""
