@@ -147,7 +147,10 @@ export class UnionType extends Type {
     if (this.referenceEqualsTo(anotherType)) {
       return true;
     }
-    if (this._alreadyProcessedWith === anotherType || (anotherType === Type.Boolean && this.name === "false | true")) {
+    if (
+      this._alreadyProcessedWith === anotherType ||
+      (anotherType === Type.Boolean && this.name === "false | true")
+    ) {
       return true;
     }
     this._alreadyProcessedWith = anotherType;

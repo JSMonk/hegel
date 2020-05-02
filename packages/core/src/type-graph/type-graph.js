@@ -144,7 +144,7 @@ const addTypeAlias = (
   if (node.exportAs) {
     typeGraph.exportsTypes.set(node.exportAs, typeAlias);
   }
-  
+
   if (typeGraph instanceof PositionedModuleScope) {
     typeGraph.addPosition(node.id, type);
   }
@@ -472,7 +472,7 @@ const afterFillierActions = (
         );
         break;
       case NODE.SWITCH_STATEMENT:
-         findUnhandledCases(
+        findUnhandledCases(
           currentNode,
           errors,
           moduleScope,
@@ -637,18 +637,19 @@ const afterFillierActions = (
           postcompute,
           { isForInit: parentNode.kind === "constructor" }
         ).result;
-        
-        const invocationResultType = resultOfCall instanceof VariableInfo 
-          ? resultOfCall.type 
-          : resultOfCall;
+
+        const invocationResultType =
+          resultOfCall instanceof VariableInfo
+            ? resultOfCall.type
+            : resultOfCall;
         if (isSideEffectCall(currentNode, invocationResultType)) {
           const functionName =
             currentNode.expression.callee.name || "Anonymous Function";
           errors.push(
             new HegelError(
-              `You use function "${functionName}" as side effect function, but it returns a ${
-                String(invocationResultType.name)
-              } type`,
+              `You use function "${functionName}" as side effect function, but it returns a ${String(
+                invocationResultType.name
+              )} type`,
               currentNode.loc
             )
           );
@@ -688,7 +689,7 @@ const afterFillierActions = (
         if (
           !isTypeDefinitions &&
           (functionScope.throwable == undefined ||
-          functionScope.throwable.length === 0) &&
+            functionScope.throwable.length === 0) &&
           declarationType.throwable !== undefined
         ) {
           throw new HegelError(
@@ -709,7 +710,9 @@ const afterFillierActions = (
           const fnName = FunctionType.getName(
             declarationType.argumentsTypes,
             declarationType.returnType,
-            declaration.type instanceof GenericType ? declaration.type.genericArguments : [],
+            declaration.type instanceof GenericType
+              ? declaration.type.genericArguments
+              : [],
             declarationType.isAsync,
             throwableType
           );
@@ -721,7 +724,10 @@ const afterFillierActions = (
             declarationType.isAsync
           );
           newFunctionType.throwable = throwableType;
-          if (declaration.type instanceof GenericType && newFunctionType instanceof FunctionType) {
+          if (
+            declaration.type instanceof GenericType &&
+            newFunctionType instanceof FunctionType
+          ) {
             newFunctionType = GenericType.new(
               fnName,
               {},
@@ -732,7 +738,8 @@ const afterFillierActions = (
           }
           declaration.type = newFunctionType;
         }
-        const fnType = functionScope.declaration && functionScope.declaration.type;
+        const fnType =
+          functionScope.declaration && functionScope.declaration.type;
         if (
           fnType instanceof GenericType &&
           functionScope.type === VariableScope.FUNCTION_TYPE &&
@@ -816,7 +823,9 @@ export async function createModuleScope(
   isTypeDefinitions: boolean,
   withPositions?: boolean = true
 ): Promise<ModuleScope> {
-  const errors: IgnorableArray<HegelError> = IgnorableArray.withIgnoring(file.comments);
+  const errors: IgnorableArray<HegelError> = IgnorableArray.withIgnoring(
+    file.comments
+  );
   const ast = file.program;
   const typeScope = new TypeScope(globalModule.typeScope);
   const module = new (withPositions ? PositionedModuleScope : ModuleScope)(

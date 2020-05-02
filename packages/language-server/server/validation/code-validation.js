@@ -24,7 +24,7 @@ async function validateTextDocument(textDocument) {
    * In this case moduleTypes will always contains valid types before any errors occur.
    * Type completion will work.
    */
-  if (errors.length === 0 && types !== undefined) {
+  if (types !== undefined) {
     moduleTypes = types;
   }
 

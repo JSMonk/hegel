@@ -7,7 +7,6 @@ import { TypeVar } from "../type-graph/types/type-var";
 import { TypeScope } from "../type-graph/type-scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { UnionType } from "../type-graph/types/union-type";
-import { $Immutable } from "../type-graph/types/immutable-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { $BottomType } from "../type-graph/types/bottom-type";
 import { GenericType } from "../type-graph/types/generic-type";
@@ -20,6 +19,10 @@ import { CollectionType } from "../type-graph/types/collection-type";
 import { getDeclarationName } from "./common";
 import { PositionedModuleScope } from "../type-graph/module-scope";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
+import {
+  $Immutable,
+  $AppliedImmutable
+} from "../type-graph/types/immutable-type";
 import { CALLABLE, INDEXABLE, CONSTRUCTABLE } from "../type-graph/constants";
 import type { Handler } from "./traverse";
 import type { Node, TypeAnnotation, SourceLocation } from "@babel/parser";
@@ -398,8 +401,11 @@ export function getTypeFromTypeAnnotation(
       );
     case NODE.OBJECT_TYPE_ANNOTATION:
       if (typeNode.typeAnnotation.exact) {
-        throw new HegelError("Hegel has another syntax for strict (exact) object type. You should use pure object literal type for strict (exact)\
-         object and object liter with three dots (...) for soft (inexact) object type", typeNode.typeAnnotation.loc);
+        throw new HegelError(
+          "Hegel has another syntax for strict (exact) object type. You should use pure object literal type for strict (exact)\
+         object and object liter with three dots (...) for soft (inexact) object type",
+          typeNode.typeAnnotation.loc
+        );
       }
     case NODE.TS_OBJECT_TYPE_ANNOTATION:
     case NODE.TS_INTERFACE_DECLARATION:
@@ -708,7 +714,10 @@ export function getTypeFromTypeAnnotation(
         middlecompute,
         postcompute
       );
-      if (returnType instanceof $ThrowsResult || returnType instanceof UnionType) {
+      if (
+        returnType instanceof $ThrowsResult ||
+        returnType instanceof UnionType
+      ) {
         if (returnType instanceof UnionType) {
           const [returnTypes, errors] = returnType.variants.reduce(
             ([result, errors], type) =>
@@ -770,13 +779,21 @@ export function createObjectWith(
   typeScope: TypeScope,
   meta?: Meta
 ): ObjectType {
-  const properties = [[
-    key,
-    new VariableInfo(
-      type,
-      new VariableScope(VariableScope.OBJECT_TYPE, new ModuleScope("Hegel works wrong if you see this path. Please send us an issue.")
-    ), meta)
-  ]];
+  const properties = [
+    [
+      key,
+      new VariableInfo(
+        type,
+        new VariableScope(
+          VariableScope.OBJECT_TYPE,
+          new ModuleScope(
+            "Hegel works wrong if you see this path. Please send us an issue."
+          )
+        ),
+        meta
+      )
+    ]
+  ];
   return ObjectType.term(ObjectType.getName(properties), {}, properties);
 }
 
@@ -870,7 +887,8 @@ export function getWrapperType(
   argument: VariableInfo<Type> | Type,
   typeGraph: ModuleScope
 ) {
-  const type = argument instanceof VariableInfo ? argument.type : argument;
+  let type = argument instanceof VariableInfo ? argument.type : argument;
+  type = type instanceof $AppliedImmutable ? type.readonly : type;
   if (type instanceof UnionType) {
     const variants = type.variants.map(t => getWrapperType(t, typeGraph));
     // $FlowIssue

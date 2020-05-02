@@ -68,14 +68,18 @@ export class PositionedModuleScope extends ModuleScope {
 
   addPosition<T: Type>(node: Node, variableInfoOrType: VariableInfo<T> | T) {
     const line: any = this.positions.get(node.loc.start.line) || new Map();
-    line.set(`${node.loc.start.column},${node.loc.end.column}`, variableInfoOrType);
+    line.set(
+      `${node.loc.start.column},${node.loc.end.column}`,
+      variableInfoOrType
+    );
     this.positions.set(node.loc.start.line, line);
   }
 
   getVarAtPosition(loc: SourceLocation, typeGraph: ModuleScope) {
-    const line: Map<string, VariableInfo<Type> | Type> | void = this.positions.get(
-      loc.line
-    );
+    const line: Map<
+      string,
+      VariableInfo<Type> | Type
+    > | void = this.positions.get(loc.line);
     if (line === undefined) {
       return;
     }

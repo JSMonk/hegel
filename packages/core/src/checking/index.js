@@ -71,7 +71,9 @@ function isValidTypes(
     }
     if (
       declaratedRootType.onlyLiteral &&
-      !(declaratedRootType instanceof ObjectType && declaratedRootType.isNominal) &&
+      !(
+        declaratedRootType instanceof ObjectType && declaratedRootType.isNominal
+      ) &&
       declaratedRootType !== ObjectType.Object &&
       declaratedRootType !== ObjectType.Object.root &&
       declaratedRootType !== FunctionType.Function &&
@@ -95,7 +97,12 @@ function isValidTypes(
   throw new Error("Never!");
 }
 
-function checkSingleCall(path: string, call: CallMeta, typeScope: TypeScope, errors: Array<HegelError>): void {
+function checkSingleCall(
+  path: string,
+  call: CallMeta,
+  typeScope: TypeScope,
+  errors: Array<HegelError>
+): void {
   const givenArgumentsTypes = call.arguments.map(
     t => (t instanceof VariableInfo ? t.type : t)
   );
@@ -110,24 +117,28 @@ function checkSingleCall(path: string, call: CallMeta, typeScope: TypeScope, err
       )
   );
   if (requiredTargetArguments.length > givenArgumentsTypes.length) {
-    errors.push(new HegelError(
-      `${requiredTargetArguments.length} arguments are required. Given ${
-        givenArgumentsTypes.length
-      }.`,
-      call.loc,
-      path
-    ));
+    errors.push(
+      new HegelError(
+        `${requiredTargetArguments.length} arguments are required. Given ${
+          givenArgumentsTypes.length
+        }.`,
+        call.loc,
+        path
+      )
+    );
   } else if (
     targetArguments.length < givenArgumentsTypes.length &&
     !(targetArguments[targetArguments.length - 1] instanceof RestArgument)
   ) {
-    errors.push(new HegelError(
-      `${targetArguments.length} arguments are expected. Given ${
-        givenArgumentsTypes.length
-      }.`,
-      call.loc,
-      path
-    ));
+    errors.push(
+      new HegelError(
+        `${targetArguments.length} arguments are expected. Given ${
+          givenArgumentsTypes.length
+        }.`,
+        call.loc,
+        path
+      )
+    );
   } else {
     let firstArgumentType = call.arguments[0];
     firstArgumentType =
@@ -135,7 +146,9 @@ function checkSingleCall(path: string, call: CallMeta, typeScope: TypeScope, err
         ? firstArgumentType.type
         : firstArgumentType;
     if (isAssign(call) && firstArgumentType instanceof $AppliedImmutable) {
-      errors.push(new HegelError(`Attempt to mutate immutable type`, call.loc, path));
+      errors.push(
+        new HegelError(`Attempt to mutate immutable type`, call.loc, path)
+      );
     }
     for (let i = 0; i < targetArguments.length; i++) {
       const arg1 = targetArguments[i];
@@ -153,15 +166,17 @@ function checkSingleCall(path: string, call: CallMeta, typeScope: TypeScope, err
         const actualTypeName =
           // $FlowIssue
           arg2 === undefined ? "undefined" : TupleType.getName(actualType);
-        errors.push(new HegelError(
-          `Type "${actualTypeName}" is incompatible with type "${String(
-            arg1.name
-          )}"`,
-          arg1 instanceof RestArgument
-            ? call.loc
-            : call.argumentsLocations[i] || call.loc,
+        errors.push(
+          new HegelError(
+            `Type "${actualTypeName}" is incompatible with type "${String(
+              arg1.name
+            )}"`,
+            arg1 instanceof RestArgument
+              ? call.loc
+              : call.argumentsLocations[i] || call.loc,
             path
-        ));
+          )
+        );
       }
     }
   }

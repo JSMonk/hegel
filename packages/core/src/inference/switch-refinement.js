@@ -7,7 +7,10 @@ import { addCallToTypeGraph } from "../type-graph/call";
 import type { Handler } from "../utils/traverse";
 import type { SwitchStatement } from "@babel/parser";
 import type { VariableScope } from "../type-graph/variable-scope";
-import type { ModuleScope, PositionedModuleScope } from "../type-graph/module-scope";
+import type {
+  ModuleScope,
+  PositionedModuleScope
+} from "../type-graph/module-scope";
 
 export function findUnhandledCases(
   node: SwitchStatement,
@@ -17,7 +20,7 @@ export function findUnhandledCases(
   parentNode: Node,
   pre: Handler,
   middle: Handler,
-  post: Handler,
+  post: Handler
 ) {
   const { discriminant, cases } = node;
   // test equals null only if it's default case
@@ -26,7 +29,7 @@ export function findUnhandledCases(
     // if switch statement doesn't have default case, we should check whether cases exhaustive or not
     hasDefaultCase ||
     (discriminant.type !== NODE.IDENTIFIER &&
-     discriminant.type !== NODE.MEMBER_EXPRESSION)
+      discriminant.type !== NODE.MEMBER_EXPRESSION)
   ) {
     return;
   }
@@ -39,13 +42,12 @@ export function findUnhandledCases(
     middle,
     post
   );
-  const switchedValueType = switchedValue instanceof VariableInfo 
-    ? switchedValue.type 
-    : switchedValue;
+  const switchedValueType =
+    switchedValue instanceof VariableInfo ? switchedValue.type : switchedValue;
   if (!(switchedValueType instanceof UnionType)) {
     return;
-  } 
-  let unmatchedVariants = [...switchedValueType.variants]
+  }
+  let unmatchedVariants = [...switchedValueType.variants];
 
   cases.forEach(({ test }) => {
     const { result: matcherValue } = addCallToTypeGraph(
@@ -57,27 +59,30 @@ export function findUnhandledCases(
       middle,
       post
     );
-  const matcherValueType = matcherValue instanceof VariableInfo 
-    ? matcherValue.type 
-    : matcherValue;
+    const matcherValueType =
+      matcherValue instanceof VariableInfo ? matcherValue.type : matcherValue;
     if (matcherValueType instanceof UnionType) {
       errors.push(
         new HegelError(
-          'It is not safe to use variable which type is Union as case matcher, you should infer it value first',
+          "It is not safe to use variable which type is Union as case matcher, you should infer it value first",
           node.loc
         )
       );
     }
 
-    unmatchedVariants = unmatchedVariants.filter(variant => !variant.equalsTo(matcherValueType))
-  })
+    unmatchedVariants = unmatchedVariants.filter(
+      variant => !variant.equalsTo(matcherValueType)
+    );
+  });
 
   if (unmatchedVariants.length !== 0) {
     const notMatchedCases = UnionType.getName(unmatchedVariants);
 
-    errors.push(new HegelError(
-      `This switch case statement is not exhaustive. Here is an example of a case that is not matched: ${notMatchedCases}`,
-      node.loc
-    ));
+    errors.push(
+      new HegelError(
+        `This switch case statement is not exhaustive. Here is an example of a case that is not matched: ${notMatchedCases}`,
+        node.loc
+      )
+    );
   }
 }

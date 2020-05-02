@@ -5,6 +5,7 @@ import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
+import { $Refinemented } from "../type-graph/types/refinemented-type";
 import { VariableScope } from "../type-graph/variable-scope";
 import { inRefinement } from "./in-operator";
 import { equalsRefinement } from "./equals-refinement";
@@ -490,12 +491,24 @@ export function refinement(
     return;
   }
   currentRefinements.forEach(refinement => {
-    const [varName, refinementedType, alternateType] = refinement;
+    let [varName, refinementedType, alternateType] = refinement;
+    const existed = currentScope.findVariable({ name: varName });
+    if (!(existed.type instanceof UnionType)) {
+      if (existed.type !== refinementedType) {
+        refinementedType = new $Refinemented(refinementedType, existed.type);
+      }
+      if (existed.type !== alternateType) {
+        alternateType = new $Refinemented(alternateType, existed.type);
+      }
+    }
     if (
       !primaryScope.body.has(varName) ||
       condition.type === NODE.SWITCH_CASE
     ) {
-      primaryScope.body.set(varName, new VariableInfo(refinementedType, currentScope));
+      primaryScope.body.set(
+        varName,
+        new VariableInfo(refinementedType, currentScope)
+      );
     }
     if (alternateType && alternateScopes) {
       alternateScopes.forEach(alternateScope => {
@@ -503,7 +516,10 @@ export function refinement(
           !alternateScope.body.has(varName) ||
           condition.type === NODE.SWITCH_CASE
         ) {
-          alternateScope.body.set(varName, new VariableInfo(alternateType, currentScope));
+          alternateScope.body.set(
+            varName,
+            new VariableInfo(alternateType, currentScope)
+          );
         }
       });
     }

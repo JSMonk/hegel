@@ -40,18 +40,17 @@ export class $AppliedImmutable extends Type {
     ) {
       type = TupleType.ReadonlyArray.root.applyGeneric([type.valueType]);
     }
-    if (!type.onlyLiteral) {
-      meta.isSubtypeOf = type;
-    }
     super(name, meta);
     this.readonly = type;
   }
 
   equalsTo(type) {
     if (
-      type.referenceEqualsTo(this) || 
+      type.referenceEqualsTo(this) ||
       (type instanceof CollectionType &&
-       type.equalsTo(TupleType.ReadonlyArray.root.applyGeneric([type.valueType])))
+        type.equalsTo(
+          TupleType.ReadonlyArray.root.applyGeneric([type.valueType])
+        ))
     ) {
       return true;
     }
@@ -135,10 +134,6 @@ export class $Immutable extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [target] = parameters;
-    return $AppliedImmutable.term(
-      `$Immutable<${String(target.name)}>`,
-      { parent: target.parent },
-      target
-    );
+    return $AppliedImmutable.term(null, { parent: target.parent }, target);
   }
 }

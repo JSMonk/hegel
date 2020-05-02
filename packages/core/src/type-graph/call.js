@@ -16,6 +16,7 @@ import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { $PropertyType } from "./types/property-type";
 import { VariableScope } from "./variable-scope";
+import { $Refinemented } from "./types/refinemented-type";
 import { CollectionType } from "../type-graph/types/collection-type";
 import { isCallableType } from "../utils/function-utils";
 import { getAnonymousKey } from "../utils/common";
@@ -210,8 +211,8 @@ export function addCallToTypeGraph(
       let selfObject: ObjectType = node.static
         ? // $FlowIssue
           self.parent.declaration.type
-          // $FlowIssue
-        : self.type;
+        : // $FlowIssue
+          self.type;
       selfObject =
         selfObject instanceof $BottomType
           ? selfObject.subordinateMagicType.subordinateType
@@ -322,30 +323,29 @@ export function addCallToTypeGraph(
             parent => parent.creator === "block" || parent.creator === "catch"
           );
       const nearestThrowableScope = findThrowableBlock(currentScope);
-      const throwableDeclaration = nearestThrowableScope && nearestThrowableScope.declaration;
+      const throwableDeclaration =
+        nearestThrowableScope && nearestThrowableScope.declaration;
       if (nearestThrowableScope != null) {
         addToThrowable(args[0], nearestThrowableScope);
       }
       if (
         nearestThrowableScope == null ||
         nearestThrowableScope.type !== VariableScope.FUNCTION_TYPE ||
-        throwableDeclaration == undefined 
+        throwableDeclaration == undefined
       ) {
         break;
       }
       // $FlowIssue
       const currentTargetType: GenericType = target.type;
       const declarationType =
-        throwableDeclaration.type instanceof GenericType 
+        throwableDeclaration.type instanceof GenericType
           ? throwableDeclaration.type.subordinateType
           : throwableDeclaration.type;
       if (declarationType instanceof ObjectType) {
-         throw new Error("Never!!!");
+        throw new Error("Never!!!");
       }
       if (declarationType.throwable !== undefined) {
-        target = currentTargetType.applyGeneric([
-          declarationType.throwable
-        ]);
+        target = currentTargetType.applyGeneric([declarationType.throwable]);
       }
       break;
     case NODE.AWAIT_EXPRESSION:
@@ -489,12 +489,13 @@ export function addCallToTypeGraph(
         meta
       );
       inferenced = arg.inferenced;
-      const argType =
+      let argType =
         arg.result instanceof VariableInfo ? arg.result.type : arg.result;
+      argType = argType instanceof $Refinemented ? argType.from : argType;
       let fType = fn.declaration.type;
       fType = fType instanceof GenericType ? fType.subordinateType : fType;
       args = [
-        fType.isAsync && !argType.isPromise() ? argType.promisify() : arg.result
+        fType.isAsync && !argType.isPromise() ? argType.promisify() : argType
       ];
       const declaration =
         fn.declaration.type instanceof GenericType
@@ -587,8 +588,9 @@ export function addCallToTypeGraph(
         node.property.type === NODE.PRIVATE_NAME
           ? `#${node.property.id.name}`
           : node.property.name;
-      const isNotComputed = (node.property.type === NODE.IDENTIFIER ||
-        node.property.type === NODE.PRIVATE_NAME) &&
+      const isNotComputed =
+        (node.property.type === NODE.IDENTIFIER ||
+          node.property.type === NODE.PRIVATE_NAME) &&
         !node.computed;
       args = [
         getWrapperType(
@@ -746,7 +748,8 @@ export function addCallToTypeGraph(
           meta
         ).result: any);
       }
-      let targetType: Type = target instanceof VariableInfo ? target.type : target;
+      let targetType: Type =
+        target instanceof VariableInfo ? target.type : target;
       targetType =
         targetType instanceof $AppliedImmutable
           ? targetType.readonly
@@ -778,10 +781,10 @@ export function addCallToTypeGraph(
         target =
           target instanceof VariableInfo
             ? target
-            // $FlowIssue
-            : new VariableInfo(target, currentScope);
-        // $FlowIssue
-        targetType = target.type;
+            : // $FlowIssue
+              new VariableInfo(target, currentScope);
+        targetType =
+          /*::target.type !== undefined ?*/ target.type /*:: : targetType*/;
       }
       let fnType =
         targetType instanceof GenericType
@@ -839,6 +842,47 @@ export function addCallToTypeGraph(
             post
           )
         );
+      targetType.asNotUserDefined();
+      args = node.arguments.map((n, i) => {
+        if (
+          n.type !== NODE.FUNCTION_EXPRESSION &&
+          n.type !== NODE.ARROW_FUNCTION_EXPRESSION
+        ) {
+          // $FlowIssue
+          return args[i];
+        }
+        // $FlowIssue
+        let expectedType = fnType.argumentsTypes[i];
+        // We need it for right type inference of the argument function
+        if (targetType instanceof GenericType) {
+          const existedGenericArguments =
+            expectedType instanceof GenericType
+              ? expectedType.genericArguments
+              : [];
+          const subordinateType =
+            expectedType instanceof GenericType
+              ? expectedType.subordinateType
+              : expectedType;
+          expectedType = new GenericType(
+            "",
+            {},
+            [...existedGenericArguments, ...targetType.genericArguments],
+            new TypeScope(),
+            subordinateType
+          );
+        }
+        const result = VariableScope.addAndTraverseNodeWithType(
+          // $FlowIssue
+          expectedType,
+          n,
+          parentNode,
+          moduleScope,
+          pre,
+          middle,
+          post
+        );
+        return result;
+      });
       fnType = getRawFunctionType(
         // $FlowIssue
         targetType,
@@ -847,75 +891,7 @@ export function addCallToTypeGraph(
         localTypeScope,
         node.loc
       );
-      args = node.arguments.map(
-        (n, i) =>
-          n.type === NODE.FUNCTION_EXPRESSION ||
-          n.type === NODE.ARROW_FUNCTION_EXPRESSION
-            ? // $FlowIssue
-              VariableScope.addAndTraverseNodeWithType(
-                // $FlowIssue
-                (fnType.argumentsTypes || [])[i],
-                n,
-                parentNode,
-                moduleScope,
-                pre,
-                middle,
-                post
-              )
-            : // $FlowIssue
-              args[i]
-      );
-      fnType = getRawFunctionType(
-        // $FlowIssue
-        targetType,
-        args,
-        genericArguments,
-        localTypeScope,
-        node.loc
-      );
-      if (fnType.argumentsTypes.length > 1 && args.length > 1) {
-        args = node.arguments.map((n, i) => {
-          const givenArgument =
-            n.type === NODE.FUNCTION_EXPRESSION ||
-            n.type === NODE.ARROW_FUNCTION_EXPRESSION
-              ? // $FlowIssue
-                VariableScope.addAndTraverseNodeWithType(
-                  // $FlowIssue
-                  (fnType.argumentsTypes || [])[i],
-                  n,
-                  parentNode,
-                  moduleScope,
-                  pre,
-                  middle,
-                  post
-                )
-              : // $FlowIssue
-                args[i];
-          // $FlowIssue TODO: Think about UnionType
-          let declaratedArgument = fnType.argumentsTypes[i];
-          declaratedArgument =
-            declaratedArgument instanceof GenericType &&
-            declaratedArgument.subordinateType instanceof FunctionType
-              ? declaratedArgument.subordinateType
-              : declaratedArgument;
-          const givenArgumentType =
-            givenArgument instanceof VariableInfo
-              ? givenArgument.type
-              : givenArgument;
-          return declaratedArgument instanceof FunctionType &&
-            givenArgumentType instanceof GenericType &&
-            givenArgumentType.subordinateType !== declaratedArgument
-            ? getRawFunctionType(
-                givenArgumentType,
-                // $FlowIssue
-                declaratedArgument.argumentsTypes,
-                undefined,
-                localTypeScope,
-                n.loc
-              )
-            : givenArgument;
-        });
-      }
+      targetType.asUserDefined();
       const throwableType: any =
         targetType instanceof GenericType
           ? targetType.subordinateType
@@ -930,18 +906,18 @@ export function addCallToTypeGraph(
           if (nearestThrowableScope.type === VariableScope.FUNCTION_TYPE) {
             const declaration = nearestThrowableScope.declaration;
             if (declaration === undefined) {
-               throw new Error("Never!!!");
+              throw new Error("Never!!!");
             }
             const declarationType =
               declaration.type instanceof GenericType
                 ? declaration.type.subordinateType
                 : declaration.type;
             if (declarationType instanceof ObjectType) {
-               throw new Error("Never!!!");
+              throw new Error("Never!!!");
             }
             const declaratedThrowable = declarationType.throwable;
             if (
-               declaratedThrowable !== undefined &&
+              declaratedThrowable !== undefined &&
               !declaratedThrowable.isPrincipalTypeFor(throwableType.throwable)
             ) {
               throw new HegelError(
@@ -1270,9 +1246,8 @@ export function addPropertyToThis(
     ).result;
     property.hasInitializer = true;
     if (currentNode.typeAnnotation === undefined) {
-      property.type = inferenced instanceof VariableInfo
-        ? inferenced.type
-        : inferenced;
+      property.type =
+        inferenced instanceof VariableInfo ? inferenced.type : inferenced;
     }
   }
   if (moduleScope instanceof PositionedModuleScope) {
@@ -1334,7 +1309,9 @@ export function addMethodToThis(
   const expectedType =
     existedProperty instanceof VariableInfo ? existedProperty.type : undefined;
   currentNode.expected = currentNode.expected || expectedType;
-  let fn: VariableInfo<FunctionType> | VariableInfo<GenericType<FunctionType>> = addFunctionToTypeGraph(
+  let fn:
+    | VariableInfo<FunctionType>
+    | VariableInfo<GenericType<FunctionType>> = addFunctionToTypeGraph(
     currentNode,
     parentNode,
     moduleScope,
@@ -1397,14 +1374,19 @@ export function addMethodToThis(
     );
     if (self.type instanceof $BottomType) {
       const fnType = fn.type;
-      const additionalArray = fnType instanceof GenericType
-        ? fnType.genericArguments.filter(a => a !== fnType.subordinateType.returnType) 
-        : [];
-      const genericArguments =
-        Array.from(new Set([...self.type.genericArguments, ...additionalArray]))
-      const localTypeScope = fn.type instanceof GenericType
-        ? fn.type.localTypeScope
-        : self.type.subordinateMagicType.localTypeScope;
+      const additionalArray =
+        fnType instanceof GenericType
+          ? fnType.genericArguments.filter(
+              a => a !== fnType.subordinateType.returnType
+            )
+          : [];
+      const genericArguments = Array.from(
+        new Set([...self.type.genericArguments, ...additionalArray])
+      );
+      const localTypeScope =
+        fn.type instanceof GenericType
+          ? fn.type.localTypeScope
+          : self.type.subordinateMagicType.localTypeScope;
       constructorType = GenericType.new(
         fnName,
         {},
