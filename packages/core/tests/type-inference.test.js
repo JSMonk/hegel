@@ -3220,4 +3220,36 @@ describe("Issues", () => {
     expect(errors.length).toBe(0);
     expect(age.type === Type.Number).toBe(true);
   });
+  test("Issue #168: PromiseConsructor should conatain constructor", async () => {
+    const sourceAST = prepareAST(`
+      const p = new Promise<2>(resolve => {
+        resolve(2);
+      });
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const p = module.body.get("p");
+    expect(errors.length).toBe(0);
+    expect(p.type === Type.find("Promise<2>")).toBe(true);
+  });
+  test("Issue #168: PromiseConsructor should conatain constructor and right type inferene", async () => {
+    const sourceAST = prepareAST(`
+      const p = new Promise(resolve => {
+        resolve(2);
+      });
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const p = module.body.get("p");
+    expect(errors.length).toBe(0);
+    expect(p.type === Type.find("Promise<2>")).toBe(true);
+  });
 });

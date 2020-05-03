@@ -167,10 +167,19 @@ export class $BottomType extends Type {
         ? Type.getTypeRoot(this.subordinateMagicType)
         : this.subordinateMagicType;
     if ("subordinateType" in target) {
+      const parameters = this.genericArguments.map(
+        t => {
+          if (t instanceof $BottomType) {
+            t = t.unpack();
+          }
+          if (t instanceof TypeVar && t.root !== undefined) {
+            t = Type.getTypeRoot(t);
+          }
+          return t;
+        }
+      );
       return target.applyGeneric(
-        this.genericArguments.map(
-          a => (a instanceof TypeVar && a.root != undefined ? a.root : a)
-        ),
+        parameters,
         this.loc,
         true,
         true,

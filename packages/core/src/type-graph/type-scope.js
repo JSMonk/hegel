@@ -7,7 +7,7 @@ import type { Node, TSInterfaceDeclaration } from "@babel/core";
 
 export class TypeScope {
   static GLOBAL_SCOPE_PRIORITY = 0;
-  static MODULE_SCOPE_PRIORITY = 0;
+  static MODULE_SCOPE_PRIORITY = 1;
 
   priority: number;
   parent: TypeScope | null;
