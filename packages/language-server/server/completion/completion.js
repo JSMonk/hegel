@@ -1,22 +1,26 @@
 const { narrowDownTypes } = require("./narrow-types");
-const { getTypeAliasNames } = require("./type-aliases");
 const { getCompletionKind } = require("./completion-item-kind");
 const { removeLanguageTokens } = require("./remove-scope-variables");
+const { default: LazyIterator } = require("@sweet-monads/iterator");
 const {
   getPositionedModuleScopeTypes,
 } = require("../validation/code-validation");
 
 function buildCompletionItem(scope, dataIndex) {
-  const completionItems = Array.from(scope.body.entries())
-    /** Add type aliases to autocompletion */
-    .concat(getTypeAliasNames(scope))
+  /** This is possible when Hegel tries to find types in unappropriate variables. */
+  if (scope.body === undefined) {
+    return [];
+  }
+
+  const completionItems = LazyIterator.from(scope.body.entries())
     /** Rid of [[ScopeName01]] variables. */
     .filter(([varName, varInfo]) => !varName.startsWith("[["))
     .map(([varName, varInfo], index) => ({
       label: varName,
       kind: getCompletionKind(varInfo),
       data: dataIndex + index,
-    }));
+    }))
+    .collect();
 
   return scope.parent !== null
     ? [
