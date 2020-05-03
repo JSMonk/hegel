@@ -855,7 +855,7 @@ export async function createModuleScope(
       throw e;
     }
     if (Array.isArray(e)) {
-      errors.push(...e.map(e => Object.assign(e, { path: file.path })));
+      errors.push(...e.map(e => Object.assign(e, { source: file.path })));
     } else {
       e.source = file.path;
       errors.push(e);
