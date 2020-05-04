@@ -1589,6 +1589,22 @@ describe("Issues", () => {
 
     expect(errors.length).toBe(0);
   });
+  
+  test("Issue #162: right scoping for 'for-loop'", async () => {
+    const sourceAST = prepareAST(`
+      for (let i = 10; i > 0; i--) {}
+      for (let i = 10; i > 0; i--) {} 
+      for (let i = "10"; i != "1";i += "") {} 
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+  });
 
   test("Issue #177: Union of the boolean literals should be a subtype of boolean", async () => {
     const sourceAST = prepareAST(`
