@@ -1539,6 +1539,22 @@ describe("Issues", () => {
 
     expect(errors.length).toBe(0);
   });
+  
+  test("Issue #101: WeakMap should normaly inferenced", async () => {
+    const sourceAST = prepareAST(`
+      const map = new WeakMap()
+      const result = map.has({});
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+    expect(module.body.get("result").type === Type.Boolean).toBe(true);
+  });
 
   test("Issue #153: type interence for symbol without errors", async () => {
     const sourceAST = prepareAST(`
