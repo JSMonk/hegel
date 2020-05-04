@@ -1,9 +1,9 @@
 // @flow
 import { Type } from "./type";
-import { unique } from "../../utils/common";
 import { TypeVar } from "./type-var";
 import type { TypeMeta } from "./type";
 import type { TypeScope } from "../type-scope";
+import type { $BottomType } from "./bottom-type";
 
 // $FlowIssue
 export class UnionType extends Type {
@@ -18,9 +18,9 @@ export class UnionType extends Type {
     ...args: Array<any>
   ) {
     variants = UnionType.flatten(variants);
-    const principalTypeInside = UnionType.getPrincipalTypeInside(variants);
-    if (principalTypeInside !== undefined) {
-      return principalTypeInside;
+    variants = UnionType.rollup(variants);
+    if (variants.length === 1) {
+      return variants[0];
     }
     name = name == null ? UnionType.getName(variants) : name;
     let parent: TypeScope | void = meta.parent;
@@ -38,18 +38,7 @@ export class UnionType extends Type {
     return super.term(name, newMeta, variants, ...args);
   }
 
-  static getPrincipalTypeInside(variants: any) {
-    return variants.length === 1
-      ? variants[0]
-      : variants.find(
-          variant =>
-            !(variant instanceof TypeVar) &&
-            variants.every(subVariant => variant.equalsTo(subVariant))
-        );
-  }
-
   static getName(params: Array<Type>) {
-    params = unique(params.map(a => Type.getTypeRoot(a)), a => String(a.name));
     const isMultyLine = this.prettyMode && params.length >= 4;
     return `${params
       .sort((t1, t2) => String(t1.name).localeCompare(String(t2.name)))
@@ -82,21 +71,50 @@ export class UnionType extends Type {
       variant =>
         variant instanceof UnionType
           ? this.flatten(variant.variants)
-          : [variant]
+          : [Type.getTypeRoot(variant)]
     );
   }
+
+  static shouldBeSkipped(variant: $BottomType | Type) {
+    return "subordinateMagicType" in variant || variant instanceof TypeVar || variant === Type.Unknown;
+  }
+
+  static uniqueVariants(set: Array<Type>) {
+    const unique: Array<Type> = [];
+    for (let i = 0; i < set.length; i++) {
+      const currentType = set[i];
+      if (
+        this.shouldBeSkipped(currentType) ||
+        !unique.some(
+          existed =>
+            !this.shouldBeSkipped(existed) &&
+            existed.isPrincipalTypeFor(currentType)
+          )
+      ) {
+        unique.push(currentType);
+      }
+    }
+    return unique;
+  }
+  
+  static rollup(variants: any) {
+    return variants.length === 1
+      ? [variants[0]]
+      : this.uniqueVariants(variants);
+  }
+
 
   variants: Array<Type>;
 
   constructor(name: ?string, meta?: TypeMeta = {}, variants: Array<Type>) {
     variants = UnionType.flatten(variants);
+    variants = UnionType.rollup(variants);
+    if (variants.length === 1) {
+      return variants[0];
+    }
     name = name == null ? UnionType.getName(variants) : name;
     super(name, meta);
-    const principalTypeInside = UnionType.getPrincipalTypeInside(variants);
-    if (principalTypeInside) {
-      return principalTypeInside;
-    }
-    this.variants = unique(variants, a => String(a.name)).sort((t1, t2) =>
+    this.variants = variants.sort((t1, t2) =>
       String(t1.name).localeCompare(String(t2.name))
     );
   }

@@ -2795,11 +2795,7 @@ describe("Type refinement", () => {
     expect(a.type.variants.length).toBe(2);
     expect(a.type.variants[0] === Type.Null).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
-    expect(b.type).toBeInstanceOf(UnionType);
-    expect(b.type === Type.find("4 | number")).toBe(true);
-    expect(b.type.variants.length).toBe(2);
-    expect(b.type.variants[0] === Type.find(4)).toBe(true);
-    expect(b.type.variants[1] === Type.Number).toBe(true);
+    expect(b.type === Type.Number).toBe(true);
   });
   test("Typeof refinement for property in nested member expression", async () => {
     const sourceAST = prepareAST(`

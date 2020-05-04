@@ -158,7 +158,7 @@ export class $PropertyType extends GenericType {
             isCalledAsBottom
           )
         );
-        return UnionType.term(UnionType.getName(variants), {}, variants);
+        return UnionType.term(null, {}, variants);
       } catch {
         throw new HegelError(
           `Property "${propertyName}" does not exist in "${
@@ -178,7 +178,7 @@ export class $PropertyType extends GenericType {
             isCalledAsBottom
           )
         );
-        return UnionType.term(UnionType.getName(variants), {}, variants);
+        return UnionType.term(null, {}, variants);
       } catch {
         throw new HegelError(
           `Property "${propertyName}" does not exist in "${

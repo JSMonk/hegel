@@ -67,7 +67,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
         this.valueType.variants.some(a => a.equalsTo(Type.Undefined))
           ? this.valueType
           : UnionType.term(
-              UnionType.getName([this.valueType, Type.Undefined]),
+              null,
               {},
               [this.valueType, Type.Undefined]
             );

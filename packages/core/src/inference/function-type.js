@@ -515,7 +515,7 @@ export function implicitApplyGeneric(
       resultType === t &&
       resultType.defaultType !== undefined
     ) {
-      return resultType.defaultType;
+      return rootFinder(resultType.defaultType) || Type.getTypeRoot(resultType.defaultType);
     }
     return resultType;
   });
@@ -601,7 +601,7 @@ export function getRawFunctionType(
     result = result.subordinateMagicType;
   }
   if (result instanceof GenericType) {
-    result = result.subordinateType;
+    result =  result.subordinateType;
   }
   return result;
 }

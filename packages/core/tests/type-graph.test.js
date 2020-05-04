@@ -1289,7 +1289,7 @@ describe("Classes", () => {
     expect(errors.length).toEqual(0);
     expect(b).not.toBe(undefined);
     expect(b.type).toBeInstanceOf(CollectionType);
-    expect(b.type === Type.find("Array<number | string>")).toBe(true);
+    expect(b.type === Type.find("$Immutable<Array<number | string>>")).toBe(true);
   });
 });
 describe("Promises", () => {
