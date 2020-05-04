@@ -786,14 +786,40 @@ export function addCallToTypeGraph(
         targetType =
           /*::target.type !== undefined ?*/ target.type /*:: : targetType*/;
       }
-      let fnType =
-        targetType instanceof GenericType
-          ? targetType.subordinateType
-          : targetType;
+      genericArguments =
+        node.typeArguments &&
+        node.typeArguments.params.map(arg =>
+          getTypeFromTypeAnnotation(
+            { typeAnnotation: arg },
+            typeScope,
+            currentScope,
+            false,
+            null,
+            parentNode,
+            moduleScope,
+            pre,
+            middle,
+            post
+          )
+        );
       const localTypeScope =
         targetType instanceof GenericType
           ? targetType.localTypeScope
           : typeScope;
+      if (targetType instanceof GenericType && genericArguments != null) {
+        targetType = getRawFunctionType(
+          // $FlowIssue
+          targetType,
+          [],
+          genericArguments,
+          localTypeScope,
+          node.loc
+        );
+      }
+      let fnType =
+        targetType instanceof GenericType
+          ? targetType.subordinateType
+          : targetType;
       if (
         fnType != undefined &&
         !(fnType instanceof FunctionType) &&
@@ -826,22 +852,6 @@ export function addCallToTypeGraph(
               { ...meta, isImmutable: defaultArg instanceof $AppliedImmutable }
             ).result;
       });
-      genericArguments =
-        node.typeArguments &&
-        node.typeArguments.params.map(arg =>
-          getTypeFromTypeAnnotation(
-            { typeAnnotation: arg },
-            typeScope,
-            currentScope,
-            false,
-            null,
-            parentNode,
-            moduleScope,
-            pre,
-            middle,
-            post
-          )
-        );
       targetType.asNotUserDefined();
       args = node.arguments.map((n, i) => {
         if (
