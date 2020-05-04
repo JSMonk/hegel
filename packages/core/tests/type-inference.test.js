@@ -3198,6 +3198,22 @@ describe("Issues", () => {
       }
     });
   });
+  test("Issue #101: function calculation should be inferenced right", async () => {
+    const sourceAST = prepareAST(`
+      const id = x => x
+      const fst = a => b => a
+      const snd = fst(id)
+      const num: 1 = fst(1)('1')
+      const str: '2' = snd(1)('2') 
+    `);
+    const [[], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+  });
   test("Issue #115: inference property type without error", async () => {
     const sourceAST = prepareAST(`
       function prop(a, b) {
