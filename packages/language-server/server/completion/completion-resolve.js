@@ -1,6 +1,8 @@
+let currentVariableName = '';
 
-/** TODO */
 function onCompletionResolve(item) {
+  currentVariableName = item.label;
+
   return {
     ...item,
     detail: 'Type',
@@ -8,4 +10,9 @@ function onCompletionResolve(item) {
   };
 }
 
+function getCurrentVariableName() {
+  return currentVariableName;
+}
+
 exports.onCompletionResolve = onCompletionResolve;
+exports.getCurrentVariableName = getCurrentVariableName;

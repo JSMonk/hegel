@@ -1,10 +1,11 @@
-const { narrowDownTypes } = require("./narrow-types");
 const { getCompletionKind } = require("./completion-item-kind");
 const { removeLanguageTokens } = require("./remove-scope-variables");
 const { default: LazyIterator } = require("@sweet-monads/iterator");
-const {
-  getPositionedModuleScopeTypes,
-} = require("../validation/code-validation");
+const { getPositionedModuleScopeTypes } = require("../validation/code-validation");
+const { narrowDownTypes, discardVariableScope } = require("./narrow-types");
+
+const DOT_TRIGGER_KIND = 2;
+const REGULAR_TRIGGER_KIND = 1;
 
 function buildCompletionItem(scope, dataIndex) {
   /** This is possible when Hegel tries to find types in unappropriate variables. */
@@ -34,8 +35,15 @@ function buildCompletionItem(scope, dataIndex) {
 }
 
 function onCompletion(completionParams) {
+  if (completionParams.context.triggerKind === REGULAR_TRIGGER_KIND) {
+    discardVariableScope();
+  }
+
   const types = getPositionedModuleScopeTypes();
-  const maybeNarrowedTypes = narrowDownTypes(types, completionParams.position);
+  const maybeNarrowedTypes =
+    completionParams.context.triggerKind === DOT_TRIGGER_KIND
+      ? narrowDownTypes(types, completionParams)
+      : types;
 
   return buildCompletionItem(maybeNarrowedTypes, 0);
 }

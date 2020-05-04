@@ -1,3 +1,4 @@
+const { EMPTY_SCOPE } = require("../constants");
 const { getHegelTypings } = require("./typings");
 const { formatErrorRange } = require("../utils/range");
 const { DiagnosticSeverity } = require("vscode-languageserver");
@@ -8,10 +9,7 @@ const { DiagnosticSeverity } = require("vscode-languageserver");
  * must be initialised with default properties. After successfull analyzing
  * they will be replaced with actual types.
  */
-let moduleTypes = {
-  parent: null,
-  body: new Map(),
-};
+let moduleTypes = EMPTY_SCOPE;
 
 async function validateTextDocument(textDocument) {
   const text = textDocument.getText();
