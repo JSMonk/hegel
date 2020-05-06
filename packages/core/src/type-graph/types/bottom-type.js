@@ -1,6 +1,7 @@
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { UnionType } from "./union-type";
+import { TypeScope } from "../type-scope";
 import { FunctionType } from "./function-type";
 
 export class $BottomType extends Type {
@@ -106,12 +107,10 @@ export class $BottomType extends Type {
       }
       if (argument instanceof UnionType) {
         const newType = argument.changeAll(sourceTypes, targetTypes, typeScope);
-        const result = argument.variants
-          .map(mapper)
-          .filter(a => a !== undefined);
-        return result.length > 1 && newType.parent.priority <= 1
-          ? newType
-          : result[0];
+        if (newType.parent.priority > TypeScope. MODULE_SCOPE_PRIORITY) {
+          includedTypeVar = true;
+        }
+        return newType;
       }
       return argument;
     };
@@ -167,10 +166,19 @@ export class $BottomType extends Type {
         ? Type.getTypeRoot(this.subordinateMagicType)
         : this.subordinateMagicType;
     if ("subordinateType" in target) {
+      const parameters = this.genericArguments.map(
+        t => {
+          if (t instanceof $BottomType) {
+            t = t.unpack();
+          }
+          if (t instanceof TypeVar && t.root !== undefined) {
+            t = Type.getTypeRoot(t);
+          }
+          return t;
+        }
+      );
       return target.applyGeneric(
-        this.genericArguments.map(
-          a => (a instanceof TypeVar && a.root != undefined ? a.root : a)
-        ),
+        parameters,
         this.loc,
         true,
         true,

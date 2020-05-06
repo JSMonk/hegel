@@ -168,28 +168,25 @@ function mixBlockToCaseStatement(currentNode: Node) {
   return currentNode;
 }
 
-function mixDeclarationsInideForBlock(currentNode: Node) {
+function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
   if (
-    currentNode.type !== NODE.FOR_IN_STATEMENT &&
+    (currentNode.type !== NODE.FOR_IN_STATEMENT &&
     currentNode.type !== NODE.FOR_OF_STATEMENT &&
-    (currentNode.type !== NODE.FOR_STATEMENT || currentNode.init === null)
+    (currentNode.type !== NODE.FOR_STATEMENT || currentNode.init === null)) ||
+    parentNode.isCustom
   ) {
     return currentNode;
   }
-  if (currentNode.body.type === NODE.EMPTY_STATEMENT) {
-    currentNode.body = {
+  const init = currentNode.init || {
+    ...currentNode.left,
+    init: getInitFor(currentNode)
+  };
+  return {
       type: NODE.BLOCK_STATEMENT,
-      body: [],
+      body: [init, currentNode],
+      isCustom: true,
       loc: currentNode.init.loc
-    };
-  }
-  currentNode.body.body.unshift(
-    currentNode.init || {
-      ...currentNode.left,
-      init: getInitFor(currentNode)
-    }
-  );
-  return currentNode;
+  }; 
 }
 
 function mixExportInfo(currentNode: Node) {

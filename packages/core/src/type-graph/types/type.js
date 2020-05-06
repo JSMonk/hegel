@@ -192,6 +192,9 @@ export class Type {
     if (this.referenceEqualsTo(type)) {
       return [];
     }
+    if ("readonly" in type) {
+      type = type.readonly;
+    }
     if ("variants" in type) {
       // $FlowIssue
       const variants = [...type.variants].sort(

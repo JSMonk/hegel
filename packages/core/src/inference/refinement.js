@@ -198,7 +198,7 @@ function intersectionOfTypes(
       (a, b) => a.equalsTo(b)
     )[0];
     return UnionType.term(
-      UnionType.getName(intersectedVariants),
+      null,
       {},
       intersectedVariants
     );
@@ -219,7 +219,7 @@ function unionOfTypes(type1: Type, type2: Type, typeScope: TypeScope): Type {
     const unionVariants = union(type1.variants, type2.variants, (a, b) =>
       a.equalsTo(b)
     );
-    return UnionType.term(UnionType.getName(unionVariants), {}, unionVariants);
+    return UnionType.term(null, {}, unionVariants);
   }
   if (type1 instanceof UnionType || type2 instanceof UnionType) {
     const [unionType, notUnion]: [Type, Type] =
@@ -230,7 +230,7 @@ function unionOfTypes(type1: Type, type2: Type, typeScope: TypeScope): Type {
       [notUnion],
       (a, b) => a.equalsTo(b)
     );
-    return UnionType.term(UnionType.getName(newVariants), {}, newVariants);
+    return UnionType.term(null, {}, newVariants);
   }
   if (type1.isPrincipalTypeFor(type2)) {
     return type1;
@@ -239,7 +239,7 @@ function unionOfTypes(type1: Type, type2: Type, typeScope: TypeScope): Type {
     return type2;
   }
   const variants = [type1, type2];
-  return UnionType.term(UnionType.getName(variants), {}, variants);
+  return UnionType.term(null, {}, variants);
 }
 
 function getRefinementByBinaryExpression(

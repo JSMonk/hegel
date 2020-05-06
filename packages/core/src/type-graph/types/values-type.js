@@ -54,6 +54,6 @@ export class $Values extends GenericType {
     }
     const values = [...realTarget.properties.values()];
     const variants = values.map(value => value.type);
-    return UnionType.term(UnionType.getName(variants), {}, variants);
+    return UnionType.term(null, {}, variants);
   }
 }
