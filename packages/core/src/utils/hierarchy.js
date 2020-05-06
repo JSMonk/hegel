@@ -1,5 +1,6 @@
 import { Type } from "../type-graph/types/type";
 import { TypeVar } from "../type-graph/types/type-var";
+import { UnionType } from "../type-graph/types/union-type";
 import { TypeScope } from "../type-graph/type-scope";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -13,7 +14,9 @@ export function setupBaseHierarchy(globalTypeScope) {
   Type.Null.parent = globalTypeScope;
   Type.String.parent = globalTypeScope;
   Type.Symbol.parent = globalTypeScope;
-  Type.Boolean.parent = globalTypeScope;
+  Type.True.parent = globalTypeScope;
+  Type.False.parent = globalTypeScope;
+  UnionType.Boolean.parent = globalTypeScope;
   Type.Number.parent = globalTypeScope;
   Type.BigInt.parent = globalTypeScope;
   Type.Unknown.parent = globalTypeScope;

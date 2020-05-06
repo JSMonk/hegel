@@ -886,6 +886,15 @@ async function createGlobalScope(
   const errors: Array<HegelError> = [];
   const globalModule = new ModuleScope("#global");
   Type.prettyMode = withPositions;
+  if (Type.Number.parent != undefined) {
+    const oldBodySet = Type.Number.parent.body.set.bind(Type.Number.parent.body);
+    Object.assign(Type.GlobalTypeScope.body, {
+      set(...args) {
+        debugger;
+        return oldBodySet(...args);
+      } 
+    });
+  }
   setupBaseHierarchy(globalModule.typeScope);
   mixBaseGlobals(globalModule);
   mixUtilityTypes(globalModule);

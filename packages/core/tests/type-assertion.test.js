@@ -504,7 +504,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     });
     const secondExpectedCall = expect.objectContaining({
       target: globals.body.get("!"),
-      arguments: [new Type("boolean")]
+      arguments: [Type.Boolean]
     });
     expect(firstActualCall).toEqual(firstExpectedCall);
     expect(secondActualCall).toEqual(secondExpectedCall);

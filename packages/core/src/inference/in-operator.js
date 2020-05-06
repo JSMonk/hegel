@@ -2,7 +2,6 @@
 import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
-import { TypeVar } from "../type-graph/types/type-var";
 import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";

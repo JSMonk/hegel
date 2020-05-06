@@ -7,6 +7,9 @@ import type { $BottomType } from "./bottom-type";
 
 // $FlowIssue
 export class UnionType extends Type {
+  
+  static Boolean =  new UnionType("boolean", {}, [Type.True, Type.False]);
+  
   static get name() {
     return "UnionType";
   }
@@ -40,6 +43,10 @@ export class UnionType extends Type {
 
   static getName(params: Array<Type>) {
     const isMultyLine = this.prettyMode && params.length >= 4;
+    const isBooleanExist = params.some(p => p === Type.True) && params.some(p => p === Type.False);
+    if (isBooleanExist) {
+      params = params.filter(p => p !== Type.True && p !== Type.False).concat(UnionType.Boolean);
+    }
     return `${params
       .sort((t1, t2) => String(t1.name).localeCompare(String(t2.name)))
       .reduce((res, t) => {
@@ -162,13 +169,7 @@ export class UnionType extends Type {
 
   equalsTo(anotherType: Type) {
     anotherType = this.getOponentType(anotherType);
-    if (this.referenceEqualsTo(anotherType)) {
-      return true;
-    }
-    if (
-      this._alreadyProcessedWith === anotherType ||
-      (anotherType === Type.Boolean && this.name === "false | true")
-    ) {
+    if (this.referenceEqualsTo(anotherType) || this._alreadyProcessedWith === anotherType) {
       return true;
     }
     this._alreadyProcessedWith = anotherType;
@@ -299,3 +300,6 @@ export class UnionType extends Type {
     return Type.GlobalTypeScope;
   }
 }
+
+// Boolean described into /src/type-graph/types/union-type.js file because of circular dependencies
+Type.Boolean = UnionType.Boolean;

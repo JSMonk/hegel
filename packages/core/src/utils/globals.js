@@ -1,4 +1,5 @@
 import { Type } from "../type-graph/types/type";
+import { UnionType } from "../type-graph/types/union-type";
 import { VariableInfo } from "../type-graph/variable-info";
 
 const mixBaseGlobals = moduleScope => {
@@ -11,7 +12,9 @@ const mixBaseGlobals = moduleScope => {
     ["number", Type.Number],
     ["bigint", Type.BigInt],
     ["string", Type.String],
-    ["boolean", Type.Boolean],
+    [true, Type.True],
+    [false, Type.False],
+    ["boolean", UnionType.Boolean],
     ["symbol", Type.Symbol]
   ];
   const globals = [["undefined", new VariableInfo(Type.Undefined)]];

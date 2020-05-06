@@ -22,7 +22,10 @@ export class Type {
   static Null = new Type(null);
   static String = new Type("string");
   static Symbol = new Type("symbol");
-  static Boolean = new Type("boolean");
+  static True = new Type(true);
+  static False = new Type(false);
+  // Boolean described into /src/type-graph/types/union-type.js file because of circular dependencies
+  //  static Boolean = new UnionType("boolean", {}, [Type.True, Type.False]);
   static Number = new Type("number");
   static BigInt = new Type("bigint");
   static Unknown = new Type("unknown");
@@ -319,8 +322,8 @@ export class Type {
   findPrincipal(type: Type) {
     let principal = { isSubtypeOf: this };
     let isPrincipalFound = false;
-    while (principal.isSubtypeOf != undefined && !isPrincipalFound) {
-      principal = principal.isSubtypeOf;
+    while ((principal.isSubtypeOf != undefined || principal === Type.True || principal === Type.False) && !isPrincipalFound) {
+      principal = principal.isSubtypeOf || Type.Boolean;
       isPrincipalFound = principal.isPrincipalTypeFor(type);
     }
     return isPrincipalFound ? principal : undefined;

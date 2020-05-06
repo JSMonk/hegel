@@ -213,9 +213,7 @@ export function getTypeFromTypeAnnotation(
       });
     case NODE.BOOLEAN_LITERAL_TYPE_ANNOTATION:
     case NODE.BOOLEAN_LITERAL:
-      return Type.term(typeNode.typeAnnotation.value, {
-        isSubtypeOf: Type.Boolean
-      });
+      return Type.term(typeNode.typeAnnotation.value);
     case NODE.STRING_LITERAL_TYPE_ANNOTATION:
     case NODE.STRING_LITERAL:
       return Type.term(`'${typeNode.typeAnnotation.value}'`, {
@@ -900,7 +898,7 @@ export function getWrapperType(
   if (type === Type.Number || type.isSubtypeOf === Type.Number) {
     return Type.find("Number");
   }
-  if (type === Type.Boolean || type.isSubtypeOf === Type.Boolean) {
+  if (type === Type.Boolean || type === Type.True || type === Type.False) {
     return Type.find("Boolean");
   }
   if (type === Type.Symbol || type.isSubtypeOf === Type.Symbol) {
@@ -912,20 +910,15 @@ export function getWrapperType(
   return argument;
 }
 
-export let FALSY = [];
-
 export function getFalsy() {
-  if (FALSY.length === 0) {
-    FALSY = [
-      Type.term(false, { isSubtypeOf: Type.Boolean }),
-      Type.term(0, { isSubtypeOf: Type.Number }),
-      Type.term("0n", { isSubtypeOf: Type.BigInt }),
-      Type.term("''", { isSubtypeOf: Type.String }),
-      Type.Null,
-      Type.Undefined
-    ];
-  }
-  return FALSY;
+  return [
+    Type.False,
+    Type.term(0, { isSubtypeOf: Type.Number }),
+    Type.term("0n", { isSubtypeOf: Type.BigInt }),
+    Type.term("''", { isSubtypeOf: Type.String }),
+    Type.Null,
+    Type.Undefined
+  ];
 }
 
 export function pickFalsy(type: Type) {
@@ -934,7 +927,7 @@ export function pickFalsy(type: Type) {
     return UnionType.term(null, {}, variants);
   }
   if (type === Type.Boolean) {
-    return Type.term(false, { isSubtypeOf: Type.Boolean });
+    return Type.False;
   }
   if (type === Type.String) {
     return Type.term("''", { isSubtypeOf: Type.String });
@@ -959,7 +952,7 @@ export function pickTruthy(type: Type) {
     return UnionType.term(null, {}, variants);
   }
   if (type === Type.Boolean) {
-    return Type.term(true, { isSubtypeOf: Type.Boolean });
+    return Type.True;
   }
   if (!isFalsy(type)) {
     return type;

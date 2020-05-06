@@ -22,7 +22,7 @@ function getTruthyVariants(type: Type) {
     return [];
   }
   if (type === Type.Boolean) {
-    return [Type.term(true, { isSubtypeOf: Type.Boolean })];
+    return [Type.True];
   }
   if (type instanceof UnionType) {
     return type.variants.filter(variant => !isFalsy(variant));

@@ -2159,10 +2159,11 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(a.type === Type.find("boolean | number | string")).toBe(true);
-    expect(a.type.variants.length).toBe(3);
-    expect(a.type.variants[0] === Type.Boolean).toBe(true);
+    expect(a.type.variants.length).toBe(4);
+    expect(a.type.variants[0] === Type.False).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
     expect(a.type.variants[2] === Type.String).toBe(true);
+    expect(a.type.variants[3] === Type.True).toBe(true);
     expect(b.type === Type.Boolean).toBe(true);
   });
   test("Typeof refinement for union variable(string)", async () => {
@@ -2198,9 +2199,10 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(a.type === Type.find("boolean | number")).toBe(true);
-    expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.Boolean).toBe(true);
+    expect(a.type.variants.length).toBe(3);
+    expect(a.type.variants[0] === Type.False).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
+    expect(a.type.variants[2] === Type.True).toBe(true);
     expect(b.type === Type.Boolean).toBe(true);
   });
   test("Typeof refinement for union variable(number literal)", async () => {
@@ -2369,9 +2371,10 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(a.type === Type.find("boolean | number")).toBe(true);
-    expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.Boolean).toBe(true);
+    expect(a.type.variants.length).toBe(3);
+    expect(a.type.variants[0] === Type.False).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
+    expect(a.type.variants[2] === Type.True).toBe(true);
     expect(b.type === Type.find(true)).toBe(true);
   });
   test("Typeof refinement for union variable(object)", async () => {
@@ -2695,10 +2698,11 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(a.type === Type.find("boolean | number | string")).toBe(true);
-    expect(a.type.variants.length).toBe(3);
-    expect(a.type.variants[0] === Type.Boolean).toBe(true);
+    expect(a.type.variants.length).toBe(4);
+    expect(a.type.variants[0] === Type.False).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
     expect(a.type.variants[2] === Type.String).toBe(true);
+    expect(a.type.variants[3] === Type.True).toBe(true);
     expect(b.type === Type.find("number | string")).toBe(true);
   });
   test("Multiple typeof refinement for property", async () => {
@@ -2755,12 +2759,14 @@ describe("Type refinement", () => {
       const a: number | null = 2;
       const b = a && a.toString();
     `);
+    debugger;
     const [[actual], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,
       false,
       mixTypeDefinitions()
     );
+    debugger;
     const a = actual.body.get("a");
     const b = actual.body.get("b");
     expect(errors.length).toBe(0);
