@@ -1,3 +1,5 @@
+const { default: LazyIterator } = require("@sweet-monads/iterator");
+
 const OPERATOR_SYMBOLS_REGEXP = /[-+=><~*%/|&^$!?:#]/;
 /**
  * Keywords defined [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar)
@@ -21,6 +23,7 @@ const LANGUAGE_KEYWORDS = [
   "extends",
   "finally",
   "for",
+  "from",
   "function",
   "if",
   "import",
@@ -74,6 +77,7 @@ const LANGUAGE_KEYWORDS = [
  */
 let globalVariablesCache;
 
+// Maybe will be removed in future
 function removeLanguageTokens(scope) {
   if (globalVariablesCache !== undefined) {
     return globalVariablesCache;
@@ -82,11 +86,13 @@ function removeLanguageTokens(scope) {
       return (globalVariablesCache = {
         ...scope,
         body: new Map(
-          Array.from(scope.body.entries()).filter(
-            ([name, info]) =>
-              !OPERATOR_SYMBOLS_REGEXP.test(name) &&
-              !LANGUAGE_KEYWORDS.includes(name)
-          )
+          LazyIterator.from(scope.body.entries())
+            .filter(
+              ([name, info]) =>
+                !OPERATOR_SYMBOLS_REGEXP.test(name) &&
+                !LANGUAGE_KEYWORDS.includes(name)
+            )
+            .collect()
         ),
       });
     } else {
