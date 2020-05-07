@@ -3270,4 +3270,21 @@ describe("Issues", () => {
     expect(errors.length).toBe(0);
     expect(p.type === Type.find("Promise<2>")).toBe(true);
   });
+  test("Issue #185: Refinement should be worked with return statement inside if block", async () => {
+    const sourceAST = prepareAST(`
+      function bar(a:boolean) {
+        if (a === false) {
+            return
+        }
+        const x: true = a;
+      } 
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+  });
 });
