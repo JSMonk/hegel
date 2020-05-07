@@ -7,9 +7,8 @@ import type { $BottomType } from "./bottom-type";
 
 // $FlowIssue
 export class UnionType extends Type {
-  
-  static Boolean =  new UnionType("boolean", {}, [Type.True, Type.False]);
-  
+  static Boolean = new UnionType("boolean", {}, [Type.True, Type.False]);
+
   static get name() {
     return "UnionType";
   }
@@ -43,9 +42,12 @@ export class UnionType extends Type {
 
   static getName(params: Array<Type>) {
     const isMultyLine = this.prettyMode && params.length >= 4;
-    const isBooleanExist = params.some(p => p === Type.True) && params.some(p => p === Type.False);
+    const isBooleanExist =
+      params.some(p => p === Type.True) && params.some(p => p === Type.False);
     if (isBooleanExist) {
-      params = params.filter(p => p !== Type.True && p !== Type.False).concat(UnionType.Boolean);
+      params = params
+        .filter(p => p !== Type.True && p !== Type.False)
+        .concat(UnionType.Boolean);
     }
     return `${params
       .sort((t1, t2) => String(t1.name).localeCompare(String(t2.name)))
@@ -83,7 +85,11 @@ export class UnionType extends Type {
   }
 
   static shouldBeSkipped(variant: $BottomType | Type) {
-    return "subordinateMagicType" in variant || variant instanceof TypeVar || variant === Type.Unknown;
+    return (
+      "subordinateMagicType" in variant ||
+      variant instanceof TypeVar ||
+      variant === Type.Unknown
+    );
   }
 
   static uniqueVariants(set: Array<Type>) {
@@ -96,20 +102,19 @@ export class UnionType extends Type {
           existed =>
             !this.shouldBeSkipped(existed) &&
             existed.isPrincipalTypeFor(currentType)
-          )
+        )
       ) {
         unique.push(currentType);
       }
     }
     return unique;
   }
-  
+
   static rollup(variants: any) {
     return variants.length === 1
       ? [variants[0]]
       : this.uniqueVariants(variants);
   }
-
 
   variants: Array<Type>;
 
@@ -169,7 +174,10 @@ export class UnionType extends Type {
 
   equalsTo(anotherType: Type) {
     anotherType = this.getOponentType(anotherType);
-    if (this.referenceEqualsTo(anotherType) || this._alreadyProcessedWith === anotherType) {
+    if (
+      this.referenceEqualsTo(anotherType) ||
+      this._alreadyProcessedWith === anotherType
+    ) {
       return true;
     }
     this._alreadyProcessedWith = anotherType;
@@ -301,5 +309,5 @@ export class UnionType extends Type {
   }
 }
 
-// Boolean described into /src/type-graph/types/union-type.js file because of circular dependencies
+// $FlowIssue We need it to have access to Boolean type inside src/type-graph/types/type.js otherwise - circular dependency
 Type.Boolean = UnionType.Boolean;

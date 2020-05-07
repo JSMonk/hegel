@@ -1289,7 +1289,9 @@ describe("Classes", () => {
     expect(errors.length).toEqual(0);
     expect(b).not.toBe(undefined);
     expect(b.type).toBeInstanceOf(CollectionType);
-    expect(b.type === Type.find("$Immutable<Array<number | string>>")).toBe(true);
+    expect(b.type === Type.find("$Immutable<Array<number | string>>")).toBe(
+      true
+    );
   });
 });
 describe("Promises", () => {
@@ -1539,7 +1541,7 @@ describe("Issues", () => {
 
     expect(errors.length).toBe(0);
   });
-  
+
   test("Issue #101: WeakMap should normaly inferenced", async () => {
     const sourceAST = prepareAST(`
       const map = new WeakMap()
@@ -1589,7 +1591,7 @@ describe("Issues", () => {
 
     expect(errors.length).toBe(0);
   });
-  
+
   test("Issue #162: right scoping for 'for-loop'", async () => {
     const sourceAST = prepareAST(`
       for (let i = 10; i > 0; i--) {}

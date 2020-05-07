@@ -92,7 +92,7 @@ export class Scope {
           Scope.canTraverseFunction(rest)
         ) {
           // $FlowIssue
-          let result: VariableInfo<Type> | void = (Scope.addAndTraverseNodeWithType(
+          let result: VariableInfo<Type > | void = (Scope.addAndTraverseNodeWithType(
             // $FlowIssue
             undefined,
             variableInfo,

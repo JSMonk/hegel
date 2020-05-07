@@ -107,7 +107,7 @@ export class $BottomType extends Type {
       }
       if (argument instanceof UnionType) {
         const newType = argument.changeAll(sourceTypes, targetTypes, typeScope);
-        if (newType.parent.priority > TypeScope. MODULE_SCOPE_PRIORITY) {
+        if (newType.parent.priority > TypeScope.MODULE_SCOPE_PRIORITY) {
           includedTypeVar = true;
         }
         return newType;
@@ -159,31 +159,23 @@ export class $BottomType extends Type {
     }
   }
 
-  unpack() {
+  unpack(loc = this.loc) {
     const target =
       this.subordinateMagicType instanceof TypeVar &&
       this.subordinateMagicType.root != undefined
         ? Type.getTypeRoot(this.subordinateMagicType)
         : this.subordinateMagicType;
     if ("subordinateType" in target) {
-      const parameters = this.genericArguments.map(
-        t => {
-          if (t instanceof $BottomType) {
-            t = t.unpack();
-          }
-          if (t instanceof TypeVar && t.root !== undefined) {
-            t = Type.getTypeRoot(t);
-          }
-          return t;
+      const parameters = this.genericArguments.map(t => {
+        if (t instanceof $BottomType) {
+          t = t.unpack(loc);
         }
-      );
-      return target.applyGeneric(
-        parameters,
-        this.loc,
-        true,
-        true,
-        this.isForAssign
-      );
+        if (t instanceof TypeVar && t.root !== undefined) {
+          t = Type.getTypeRoot(t);
+        }
+        return t;
+      });
+      return target.applyGeneric(parameters, loc, true, true, this.isForAssign);
     }
     throw new Error(`Never!!! ${target.constructor.name}`);
   }

@@ -76,7 +76,7 @@ export function getSuperTypeOf(
   withUnion: boolean = false
 ): Type {
   if (type === Type.True || type === Type.False) {
-    return Type.Boolean;
+    return UnionType.Boolean;
   }
   if (type instanceof UnionType) {
     return withUnion

@@ -196,6 +196,7 @@ export class Type {
       return [];
     }
     if ("readonly" in type) {
+      // $FlowIssue
       type = type.readonly;
     }
     if ("variants" in type) {
@@ -322,7 +323,13 @@ export class Type {
   findPrincipal(type: Type) {
     let principal = { isSubtypeOf: this };
     let isPrincipalFound = false;
-    while ((principal.isSubtypeOf != undefined || principal === Type.True || principal === Type.False) && !isPrincipalFound) {
+    while (
+      (principal.isSubtypeOf != undefined ||
+        principal === Type.True ||
+        principal === Type.False) &&
+      !isPrincipalFound
+    ) {
+      // $FlowIssue We mutate static field Boolean in src/type-graph/types/union-type.js so Boolean should exists in Type
       principal = principal.isSubtypeOf || Type.Boolean;
       isPrincipalFound = principal.isPrincipalTypeFor(type);
     }

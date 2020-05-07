@@ -754,6 +754,10 @@ export function addCallToTypeGraph(
         targetType instanceof $AppliedImmutable
           ? targetType.readonly
           : targetType;
+      targetType =
+        targetType instanceof $BottomType
+          ? targetType.unpack(node.loc)
+          : targetType;
       if (
         !(targetType instanceof FunctionType) &&
         !(
@@ -942,7 +946,7 @@ export function addCallToTypeGraph(
           }
         }
       }
-      if (genericArguments != null) {
+      if (genericArguments != null || target.type instanceof $BottomType) {
         target = fnType;
       }
       inferenced =
@@ -959,7 +963,7 @@ export function addCallToTypeGraph(
         currentScope
       );
       nearestFunctionScope.calls.push(
-        new CallMeta(undefined, [], node.loc, "this")
+        new CallMeta(undefined, [], node.loc, "this", typeScope)
       );
       return {
         result:
@@ -1035,6 +1039,7 @@ export function addCallToTypeGraph(
     args,
     node.loc,
     targetName,
+    typeScope,
     inferenced,
     isFinal,
     argsLocations

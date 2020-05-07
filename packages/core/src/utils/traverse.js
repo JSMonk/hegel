@@ -172,8 +172,8 @@ function mixBlockToCaseStatement(currentNode: Node) {
 function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
   if (
     (currentNode.type !== NODE.FOR_IN_STATEMENT &&
-    currentNode.type !== NODE.FOR_OF_STATEMENT &&
-    (currentNode.type !== NODE.FOR_STATEMENT || currentNode.init === null)) ||
+      currentNode.type !== NODE.FOR_OF_STATEMENT &&
+      (currentNode.type !== NODE.FOR_STATEMENT || currentNode.init === null)) ||
     parentNode.isCustom
   ) {
     return currentNode;
@@ -183,11 +183,11 @@ function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
     init: getInitFor(currentNode)
   };
   return {
-      type: NODE.BLOCK_STATEMENT,
-      body: [init, currentNode],
-      isCustom: true,
-      loc: currentNode.init.loc
-  }; 
+    type: NODE.BLOCK_STATEMENT,
+    body: [init, currentNode],
+    isCustom: true,
+    loc: currentNode.init.loc
+  };
 }
 
 function mixExportInfo(currentNode: Node) {
@@ -249,15 +249,22 @@ function mixParentToClassObjectAndFunction(
   return currentNode;
 }
 
-function removeNodesWhichConteindInElse(alternateBody: Array<Node>, inferencedBody: Array<Node>) {
+function removeNodesWhichConteindInElse(
+  alternateBody: Array<Node>,
+  inferencedBody: Array<Node>
+) {
   for (let i = 0; i < inferencedBody.length; i++) {
     if (alternateBody.includes(inferencedBody[i])) {
-       inferencedBody[i] = undefined;
+      inferencedBody[i] = undefined;
     }
-  } 
+  }
 }
 
-function mixElseIfReturnOrThrowExisted(currentNode: Node, parentNode: Node, { previousBodyState = [] }: TraverseMeta) {
+function mixElseIfReturnOrThrowExisted(
+  currentNode: Node,
+  parentNode: Node,
+  { previousBodyState = [] }: TraverseMeta
+) {
   if (
     parentNode === undefined ||
     currentNode.type !== NODE.IF_STATEMENT ||

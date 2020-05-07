@@ -183,7 +183,7 @@ export function getTypeFromTypeAnnotation(
     case NODE.TYPE_GUARD:
     case NODE.BOOLEAN_TYPE_ANNOTATION:
     case NODE.TS_BOOLEAN_TYPE_ANNOTATION:
-      return Type.Boolean;
+      return UnionType.Boolean;
     case NODE.TS_ANY_TYPE_ANNOTATION:
     case NODE.MIXED_TYPE_ANNOTATION:
     case NODE.TS_UNKNOWN_TYPE_ANNOTATION:
@@ -898,7 +898,7 @@ export function getWrapperType(
   if (type === Type.Number || type.isSubtypeOf === Type.Number) {
     return Type.find("Number");
   }
-  if (type === Type.Boolean || type === Type.True || type === Type.False) {
+  if (type === UnionType.Boolean || type === Type.True || type === Type.False) {
     return Type.find("Boolean");
   }
   if (type === Type.Symbol || type.isSubtypeOf === Type.Symbol) {
@@ -926,7 +926,7 @@ export function pickFalsy(type: Type) {
     const variants = type.variants.map(pickFalsy).filter(Boolean);
     return UnionType.term(null, {}, variants);
   }
-  if (type === Type.Boolean) {
+  if (type === UnionType.Boolean) {
     return Type.False;
   }
   if (type === Type.String) {
@@ -951,7 +951,7 @@ export function pickTruthy(type: Type) {
     const variants = type.variants.map(pickTruthy).filter(Boolean);
     return UnionType.term(null, {}, variants);
   }
-  if (type === Type.Boolean) {
+  if (type === UnionType.Boolean) {
     return Type.True;
   }
   if (!isFalsy(type)) {

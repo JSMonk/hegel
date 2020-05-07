@@ -388,9 +388,10 @@ function resolveOuterTypeVarsFromCall(
     actualType = Type.getTypeRoot(actualType, true);
     declaratedType = Type.getTypeRoot(declaratedType);
     // $FlowIssue
-    let difference = declaratedType.parent.priority > actualType.parent.priority
-      ? actualType.getDifference(declaratedType, true)
-      : declaratedType.getDifference(actualType, true);
+    let difference =
+      declaratedType.parent.priority > actualType.parent.priority
+        ? actualType.getDifference(declaratedType, true)
+        : declaratedType.getDifference(actualType, true);
     for (let j = 0; j < difference.length; j++) {
       let { root, variable } = difference[j];
       if (TypeVar.isSelf(root)) {
@@ -515,7 +516,10 @@ export function implicitApplyGeneric(
       resultType === t &&
       resultType.defaultType !== undefined
     ) {
-      return rootFinder(resultType.defaultType) || Type.getTypeRoot(resultType.defaultType);
+      return (
+        rootFinder(resultType.defaultType) ||
+        Type.getTypeRoot(resultType.defaultType)
+      );
     }
     return resultType;
   });
@@ -556,6 +560,7 @@ export function getRawFunctionType(
 ) {
   fn =
     fn instanceof TypeVar && fn.root !== undefined ? Type.getTypeRoot(fn) : fn;
+  fn = fn instanceof $BottomType ? fn.unpack(loc) : fn;
   if (fn instanceof FunctionType) {
     return fn;
   }
@@ -601,7 +606,7 @@ export function getRawFunctionType(
     result = result.subordinateMagicType;
   }
   if (result instanceof GenericType) {
-    result =  result.subordinateType;
+    result = result.subordinateType;
   }
   return result;
 }
@@ -715,7 +720,10 @@ export function inferenceFunctionTypeByScope(
         continue;
       }
       const oldRoot = Type.getTypeRoot(returnType);
-      if (returnType.root === undefined || newOneRoot.isPrincipalTypeFor(oldRoot)) {
+      if (
+        returnType.root === undefined ||
+        newOneRoot.isPrincipalTypeFor(oldRoot)
+      ) {
         returnType.root = newOneRoot;
       } else if (!oldRoot.isPrincipalTypeFor(newOneRoot)) {
         const variants: any = (oldRoot instanceof UnionType

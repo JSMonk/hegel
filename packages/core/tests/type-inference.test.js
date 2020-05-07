@@ -2759,14 +2759,12 @@ describe("Type refinement", () => {
       const a: number | null = 2;
       const b = a && a.toString();
     `);
-    debugger;
     const [[actual], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,
       false,
       mixTypeDefinitions()
     );
-    debugger;
     const a = actual.body.get("a");
     const b = actual.body.get("b");
     expect(errors.length).toBe(0);

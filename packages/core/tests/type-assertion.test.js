@@ -1130,4 +1130,36 @@ describe("Rest parameter typing", () => {
     );
     expect(errors.length).toBe(0);
   });
+
+  test("Issue #200: Function should be compared with covariance usage of whole object", async () => {
+    const sourceAST = prepareAST(`
+      type Fn<T> = (value: T) => T
+
+      function test<T>(fn: Fn<T>) {
+        const result = fn(true);
+      }
+
+      test((s: string) => s)
+      test((s: number) => s)
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe('Type "true" is incompatible with type "T"');
+    expect(errors[0].loc).toEqual({
+      end: {
+        column: 30,
+        line: 5
+      },
+      start: {
+        column: 26,
+        line: 5
+      }
+    });
+  });
 });

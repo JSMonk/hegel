@@ -12,6 +12,7 @@ import { ModuleScope } from "../type-graph/module-scope";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
 import { getCallTarget } from "../inference/function-type";
+import { isReachableType } from "../utils/type-utils";
 import { $AppliedImmutable } from "../type-graph/types/immutable-type";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
 import type { CallableType } from "../type-graph/meta/call-meta";
@@ -85,7 +86,9 @@ function isValidTypes(
     if (
       targetName === "return" ||
       targetName === "init" ||
-      targetName === "="
+      targetName === "=" ||
+      (declaratedRootType.parent.priority >= TypeScope.MODULE_SCOPE_PRIORITY &&
+        isReachableType(declaratedRootType, typeScope))
     ) {
       TypeVar.strictEquality = true;
       const result = declaratedRootType.isPrincipalTypeFor(actualRootType);
@@ -156,7 +159,7 @@ function checkSingleCall(
         arg1 instanceof RestArgument
           ? call.arguments.slice(i)
           : call.arguments[i];
-      if (!isValidTypes(call.targetName, arg1, arg2, typeScope)) {
+      if (!isValidTypes(call.targetName, arg1, arg2, call.typeScope)) {
         let actualType =
           arg1 instanceof RestArgument
             ? givenArgumentsTypes.slice(i)

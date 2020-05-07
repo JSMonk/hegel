@@ -197,11 +197,7 @@ function intersectionOfTypes(
       type2.variants,
       (a, b) => a.equalsTo(b)
     )[0];
-    return UnionType.term(
-      null,
-      {},
-      intersectedVariants
-    );
+    return UnionType.term(null, {}, intersectedVariants);
   }
   if (type1 instanceof UnionType || type2 instanceof UnionType) {
     // $FlowIssue
