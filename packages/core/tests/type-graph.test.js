@@ -1627,6 +1627,44 @@ describe("Issues", () => {
     expect(errors.length).toBe(0);
   });
 
+  test("Issue #197: Detect type changing for reference type", async () => {
+    const sourceAST = prepareAST(`
+      type A = { a: string } | { a: number };
+      type B = { a: string | number };
+
+
+      const a1: { a: string } = { a: 'foo' };
+      const a2: A = a1;
+      const b: B = a2; // <--- this shouldn't be allowed
+
+      b.a = 1;
+
+      const string = a1.a.toLowerCase();
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      'Type "{ a: number } | { a: string }" is incompatible with type "{ a: number | string }"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: {
+        column: 21,
+        line: 8
+      },
+      start: {
+        column: 12,
+        line: 8
+      }
+    });
+  });
+
   test("Issue #199: Array<T> should be principal type of [T]", async () => {
     const sourceAST = prepareAST(`
       function ensureArray<T>(value: T | Array<T> | null | undefined): Array<T> {
