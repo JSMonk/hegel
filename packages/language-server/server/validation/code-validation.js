@@ -32,7 +32,7 @@ async function validateTextDocument(textDocument) {
       severity: DiagnosticSeverity.Error,
       range: formatErrorRange(error),
       message: error.message,
-      source: "ex",
+      source: "Hegel",
     }));
 
   return { uri: textDocument.uri, diagnostics };
