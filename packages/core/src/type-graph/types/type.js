@@ -225,7 +225,10 @@ export class Type {
     }
     if ("subordinateMagicType" in type) {
       // $FlowIssue
-      return this.getDifference(type.unpack(), withReverseUnion);
+      const unpacked = type.unpack();
+      if (!("subordinateMagicType" in unpacked)) {
+        return this.getDifference(unpacked, withReverseUnion);
+      }
     }
     return [];
   }

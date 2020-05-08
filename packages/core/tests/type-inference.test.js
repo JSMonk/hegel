@@ -3285,4 +3285,23 @@ describe("Issues", () => {
     );
     expect(errors.length).toBe(0);
   });
+
+  test("Issue #188: should be inferenced without infinity recursion", async () => {
+    const sourceAST = prepareAST(`
+			const strictPick = <T: {...}>(obj: T, keys: Array<$Keys<T>>) => {
+					return keys;
+			}
+
+			const picked = strictPick({a: '', b: ''}, ['b']);
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const picked = module.body.get("picked");
+    expect(errors.length).toBe(0);
+    expect(picked.type === Type.find("Array<'a' | 'b'>")).toBe(true);
+  });
 });
