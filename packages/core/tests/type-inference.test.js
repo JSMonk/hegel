@@ -2159,10 +2159,11 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(a.type === Type.find("boolean | number | string")).toBe(true);
-    expect(a.type.variants.length).toBe(3);
-    expect(a.type.variants[0] === Type.Boolean).toBe(true);
+    expect(a.type.variants.length).toBe(4);
+    expect(a.type.variants[0] === Type.False).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
     expect(a.type.variants[2] === Type.String).toBe(true);
+    expect(a.type.variants[3] === Type.True).toBe(true);
     expect(b.type === Type.Boolean).toBe(true);
   });
   test("Typeof refinement for union variable(string)", async () => {
@@ -2198,9 +2199,10 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(a.type === Type.find("boolean | number")).toBe(true);
-    expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.Boolean).toBe(true);
+    expect(a.type.variants.length).toBe(3);
+    expect(a.type.variants[0] === Type.False).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
+    expect(a.type.variants[2] === Type.True).toBe(true);
     expect(b.type === Type.Boolean).toBe(true);
   });
   test("Typeof refinement for union variable(number literal)", async () => {
@@ -2369,9 +2371,10 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(a.type === Type.find("boolean | number")).toBe(true);
-    expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.Boolean).toBe(true);
+    expect(a.type.variants.length).toBe(3);
+    expect(a.type.variants[0] === Type.False).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
+    expect(a.type.variants[2] === Type.True).toBe(true);
     expect(b.type === Type.find(true)).toBe(true);
   });
   test("Typeof refinement for union variable(object)", async () => {
@@ -2695,10 +2698,11 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(a.type === Type.find("boolean | number | string")).toBe(true);
-    expect(a.type.variants.length).toBe(3);
-    expect(a.type.variants[0] === Type.Boolean).toBe(true);
+    expect(a.type.variants.length).toBe(4);
+    expect(a.type.variants[0] === Type.False).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
     expect(a.type.variants[2] === Type.String).toBe(true);
+    expect(a.type.variants[3] === Type.True).toBe(true);
     expect(b.type === Type.find("number | string")).toBe(true);
   });
   test("Multiple typeof refinement for property", async () => {
@@ -2795,11 +2799,7 @@ describe("Type refinement", () => {
     expect(a.type.variants.length).toBe(2);
     expect(a.type.variants[0] === Type.Null).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
-    expect(b.type).toBeInstanceOf(UnionType);
-    expect(b.type === Type.find("4 | number")).toBe(true);
-    expect(b.type.variants.length).toBe(2);
-    expect(b.type.variants[0] === Type.find(4)).toBe(true);
-    expect(b.type.variants[1] === Type.Number).toBe(true);
+    expect(b.type === Type.Number).toBe(true);
   });
   test("Typeof refinement for property in nested member expression", async () => {
     const sourceAST = prepareAST(`
@@ -3202,6 +3202,22 @@ describe("Issues", () => {
       }
     });
   });
+  test("Issue #101: function calculation should be inferenced right", async () => {
+    const sourceAST = prepareAST(`
+      const id = x => x
+      const fst = a => b => a
+      const snd = fst(id)
+      const num: 1 = fst(1)('1')
+      const str: '2' = snd(1)('2') 
+    `);
+    const [[], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+  });
   test("Issue #115: inference property type without error", async () => {
     const sourceAST = prepareAST(`
       function prop(a, b) {
@@ -3251,5 +3267,22 @@ describe("Issues", () => {
     const p = module.body.get("p");
     expect(errors.length).toBe(0);
     expect(p.type === Type.find("Promise<2>")).toBe(true);
+  });
+  test("Issue #185: Refinement should be worked with return statement inside if block", async () => {
+    const sourceAST = prepareAST(`
+      function bar(a:boolean) {
+        if (a === false) {
+            return
+        }
+        const x: true = a;
+      } 
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
   });
 });

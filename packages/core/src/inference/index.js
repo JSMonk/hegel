@@ -45,9 +45,7 @@ export function inferenceTypeForNode(
       });
       break;
     case NODE.BOOLEAN_LITERAL:
-      result = Type.term(currentNode.value, {
-        isSubtypeOf: Type.Boolean
-      });
+      result = Type.term(currentNode.value);
       break;
     case NODE.NULL_LITERAL:
       result = Type.Null;

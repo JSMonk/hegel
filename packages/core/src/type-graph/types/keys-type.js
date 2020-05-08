@@ -69,6 +69,6 @@ export class $Keys extends GenericType {
         variants.push(Type.term(`'${property}'`, { isSubtypeOf: Type.String }));
       }
     }
-    return UnionType.term(UnionType.getName(variants), {}, variants);
+    return UnionType.term(null, {}, variants);
   }
 }

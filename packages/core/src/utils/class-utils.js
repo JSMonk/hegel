@@ -515,6 +515,7 @@ export function addClassToTypeGraph(
         // $FlowIssue
         constructorScope.declaration.meta.loc,
         "return",
+        self.type.parent,
         false,
         true
       );

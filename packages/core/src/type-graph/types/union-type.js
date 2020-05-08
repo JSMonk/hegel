@@ -1,12 +1,14 @@
 // @flow
 import { Type } from "./type";
-import { unique } from "../../utils/common";
 import { TypeVar } from "./type-var";
 import type { TypeMeta } from "./type";
 import type { TypeScope } from "../type-scope";
+import type { $BottomType } from "./bottom-type";
 
 // $FlowIssue
 export class UnionType extends Type {
+  static Boolean = new UnionType("boolean", {}, [Type.True, Type.False]);
+
   static get name() {
     return "UnionType";
   }
@@ -18,9 +20,9 @@ export class UnionType extends Type {
     ...args: Array<any>
   ) {
     variants = UnionType.flatten(variants);
-    const principalTypeInside = UnionType.getPrincipalTypeInside(variants);
-    if (principalTypeInside !== undefined) {
-      return principalTypeInside;
+    variants = UnionType.rollup(variants);
+    if (variants.length === 1) {
+      return variants[0];
     }
     name = name == null ? UnionType.getName(variants) : name;
     let parent: TypeScope | void = meta.parent;
@@ -38,19 +40,15 @@ export class UnionType extends Type {
     return super.term(name, newMeta, variants, ...args);
   }
 
-  static getPrincipalTypeInside(variants: any) {
-    return variants.length === 1
-      ? variants[0]
-      : variants.find(
-          variant =>
-            !(variant instanceof TypeVar) &&
-            variants.every(subVariant => variant.equalsTo(subVariant))
-        );
-  }
-
   static getName(params: Array<Type>) {
-    params = unique(params.map(a => Type.getTypeRoot(a)), a => String(a.name));
     const isMultyLine = this.prettyMode && params.length >= 4;
+    const isBooleanExist =
+      params.some(p => p === Type.True) && params.some(p => p === Type.False);
+    if (isBooleanExist) {
+      params = params
+        .filter(p => p !== Type.True && p !== Type.False)
+        .concat(UnionType.Boolean);
+    }
     return `${params
       .sort((t1, t2) => String(t1.name).localeCompare(String(t2.name)))
       .reduce((res, t) => {
@@ -82,21 +80,53 @@ export class UnionType extends Type {
       variant =>
         variant instanceof UnionType
           ? this.flatten(variant.variants)
-          : [variant]
+          : [Type.getTypeRoot(variant)]
     );
+  }
+
+  static shouldBeSkipped(variant: $BottomType | Type) {
+    return (
+      "subordinateMagicType" in variant ||
+      variant instanceof TypeVar ||
+      variant === Type.Unknown
+    );
+  }
+
+  static uniqueVariants(set: Array<Type>) {
+    const unique: Array<Type> = [];
+    for (let i = 0; i < set.length; i++) {
+      const currentType = set[i];
+      if (
+        this.shouldBeSkipped(currentType) ||
+        !unique.some(
+          existed =>
+            !this.shouldBeSkipped(existed) &&
+            existed.isPrincipalTypeFor(currentType)
+        )
+      ) {
+        unique.push(currentType);
+      }
+    }
+    return unique;
+  }
+
+  static rollup(variants: any) {
+    return variants.length === 1
+      ? [variants[0]]
+      : this.uniqueVariants(variants);
   }
 
   variants: Array<Type>;
 
   constructor(name: ?string, meta?: TypeMeta = {}, variants: Array<Type>) {
     variants = UnionType.flatten(variants);
+    variants = UnionType.rollup(variants);
+    if (variants.length === 1) {
+      return variants[0];
+    }
     name = name == null ? UnionType.getName(variants) : name;
     super(name, meta);
-    const principalTypeInside = UnionType.getPrincipalTypeInside(variants);
-    if (principalTypeInside) {
-      return principalTypeInside;
-    }
-    this.variants = unique(variants, a => String(a.name)).sort((t1, t2) =>
+    this.variants = variants.sort((t1, t2) =>
       String(t1.name).localeCompare(String(t2.name))
     );
   }
@@ -144,12 +174,9 @@ export class UnionType extends Type {
 
   equalsTo(anotherType: Type) {
     anotherType = this.getOponentType(anotherType);
-    if (this.referenceEqualsTo(anotherType)) {
-      return true;
-    }
     if (
-      this._alreadyProcessedWith === anotherType ||
-      (anotherType === Type.Boolean && this.name === "false | true")
+      this.referenceEqualsTo(anotherType) ||
+      this._alreadyProcessedWith === anotherType
     ) {
       return true;
     }
@@ -281,3 +308,6 @@ export class UnionType extends Type {
     return Type.GlobalTypeScope;
   }
 }
+
+// $FlowIssue We need it to have access to Boolean type inside src/type-graph/types/type.js otherwise - circular dependency
+Type.Boolean = UnionType.Boolean;

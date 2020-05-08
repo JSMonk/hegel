@@ -1,6 +1,5 @@
 // @flow
 import NODE from "../utils/nodes";
-import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
 import { TypeVar } from "../type-graph/types/type-var";
 import { UnionType } from "../type-graph/types/union-type";
@@ -21,8 +20,8 @@ function getTruthyVariants(type: Type) {
   if (isFalsy(type)) {
     return [];
   }
-  if (type === Type.Boolean) {
-    return [Type.term(true, { isSubtypeOf: Type.Boolean })];
+  if (type === UnionType.Boolean) {
+    return [Type.True];
   }
   if (type instanceof UnionType) {
     return type.variants.filter(variant => !isFalsy(variant));

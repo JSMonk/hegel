@@ -13,7 +13,8 @@ type Tree =
     };
 
 export type TraverseMeta = {
-  kind?: ?string
+  kind?: ?string,
+  previousBodyState?: Array<Node>
 };
 
 export const compose = (...fns: Array<Function>) => (...args: Array<any>) => {
@@ -168,28 +169,25 @@ function mixBlockToCaseStatement(currentNode: Node) {
   return currentNode;
 }
 
-function mixDeclarationsInideForBlock(currentNode: Node) {
+function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
   if (
-    currentNode.type !== NODE.FOR_IN_STATEMENT &&
-    currentNode.type !== NODE.FOR_OF_STATEMENT &&
-    (currentNode.type !== NODE.FOR_STATEMENT || currentNode.init === null)
+    (currentNode.type !== NODE.FOR_IN_STATEMENT &&
+      currentNode.type !== NODE.FOR_OF_STATEMENT &&
+      (currentNode.type !== NODE.FOR_STATEMENT || currentNode.init === null)) ||
+    parentNode.isCustom
   ) {
     return currentNode;
   }
-  if (currentNode.body.type === NODE.EMPTY_STATEMENT) {
-    currentNode.body = {
-      type: NODE.BLOCK_STATEMENT,
-      body: [],
-      loc: currentNode.init.loc
-    };
-  }
-  currentNode.body.body.unshift(
-    currentNode.init || {
-      ...currentNode.left,
-      init: getInitFor(currentNode)
-    }
-  );
-  return currentNode;
+  const init = currentNode.init || {
+    ...currentNode.left,
+    init: getInitFor(currentNode)
+  };
+  return {
+    type: NODE.BLOCK_STATEMENT,
+    body: [init, currentNode],
+    isCustom: true,
+    loc: currentNode.init.loc
+  };
 }
 
 function mixExportInfo(currentNode: Node) {
@@ -251,7 +249,22 @@ function mixParentToClassObjectAndFunction(
   return currentNode;
 }
 
-function mixElseIfReturnOrThrowExisted(currentNode: Node, parentNode: Node) {
+function removeNodesWhichConteindInElse(
+  alternateBody: Array<Node>,
+  inferencedBody: Array<Node>
+) {
+  for (let i = 0; i < inferencedBody.length; i++) {
+    if (alternateBody.includes(inferencedBody[i])) {
+      inferencedBody[i] = undefined;
+    }
+  }
+}
+
+function mixElseIfReturnOrThrowExisted(
+  currentNode: Node,
+  parentNode: Node,
+  { previousBodyState = [] }: TraverseMeta
+) {
   if (
     parentNode === undefined ||
     currentNode.type !== NODE.IF_STATEMENT ||
@@ -282,7 +295,9 @@ function mixElseIfReturnOrThrowExisted(currentNode: Node, parentNode: Node) {
       end: currentNode.loc.end
     }
   };
-  alternate.body = alternate.body.concat(body.splice(indexOfSlice + 1));
+  const inferencedAlternate = body.splice(indexOfSlice + 1);
+  alternate.body = alternate.body.concat(inferencedAlternate);
+  removeNodesWhichConteindInElse(inferencedAlternate, previousBodyState);
   return {
     ...currentNode,
     alternate
@@ -370,15 +385,23 @@ function traverseTree(
   const body = getBody(currentNode);
   const nextParent = getNextParent(currentNode, parentNode);
   let i = 0;
+  const newMeta = {
+    ...meta,
+    previousBodyState: body,
+    kind: currentNode.kind
+  };
   try {
     for (i = 0; i < body.length; i++) {
-      middle(body[i], nextParent, pre, middle, post, meta);
+      const node = body[i];
+      if (node !== undefined) {
+        middle(node, nextParent, pre, middle, post, newMeta);
+      }
     }
     for (i = 0; i < body.length; i++) {
-      traverseTree(body[i], pre, middle, post, nextParent, {
-        ...meta,
-        kind: currentNode.kind
-      });
+      const node = body[i];
+      if (node !== undefined) {
+        traverseTree(node, pre, middle, post, nextParent, newMeta);
+      }
     }
   } catch (e) {
     if (!(e instanceof UnreachableError)) {
@@ -388,7 +411,7 @@ function traverseTree(
       throw new HegelError("Unreachable code after this line", e.loc);
     }
   }
-  post(currentNode, parentNode, pre, middle, post, meta);
+  post(currentNode, parentNode, pre, middle, post, newMeta);
 }
 
 export default traverseTree;

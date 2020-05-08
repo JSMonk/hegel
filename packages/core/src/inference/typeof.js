@@ -70,7 +70,7 @@ function getRefinmentType(stringNode: Node): Type {
     case "string":
       return Type.String;
     case "boolean":
-      return Type.Boolean;
+      return UnionType.Boolean;
     case "bigint":
       return Type.BigInt;
     case "undefined":

@@ -1289,7 +1289,9 @@ describe("Classes", () => {
     expect(errors.length).toEqual(0);
     expect(b).not.toBe(undefined);
     expect(b.type).toBeInstanceOf(CollectionType);
-    expect(b.type === Type.find("Array<number | string>")).toBe(true);
+    expect(b.type === Type.find("$Immutable<Array<number | string>>")).toBe(
+      true
+    );
   });
 });
 describe("Promises", () => {
@@ -1540,6 +1542,22 @@ describe("Issues", () => {
     expect(errors.length).toBe(0);
   });
 
+  test("Issue #101: WeakMap should normaly inferenced", async () => {
+    const sourceAST = prepareAST(`
+      const map = new WeakMap()
+      const result = map.has({});
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+    expect(module.body.get("result").type === Type.Boolean).toBe(true);
+  });
+
   test("Issue #153: type interence for symbol without errors", async () => {
     const sourceAST = prepareAST(`
       const unknownValue: symbol | boolean = true;
@@ -1563,6 +1581,22 @@ describe("Issues", () => {
       if(typeof unknownValue === "symbol") {
           
       }
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+  });
+
+  test("Issue #162: right scoping for 'for-loop'", async () => {
+    const sourceAST = prepareAST(`
+      for (let i = 10; i > 0; i--) {}
+      for (let i = 10; i > 0; i--) {} 
+      for (let i = "10"; i != "1";i += "") {} 
     `);
     const [, errors] = await createTypeGraph(
       [sourceAST],

@@ -195,6 +195,7 @@ export function addFunctionToTypeGraph(
       type = UnionType.term(null, { parent: currentTypeScope }, types);
     }
     if (param.argument != undefined) {
+      // $FlowIssue
       type = type.type;
     }
     let varInfo = scope.body.get(id.name);

@@ -121,9 +121,7 @@ function getRefinmentType(
         isSubtypeOf: Type.String
       });
     case NODE.BOOLEAN_LITERAL:
-      return Type.term(value.value, {
-        isSubtypeOf: Type.Boolean
-      });
+      return Type.term(value.value);
     case NODE.NULL_LITERAL:
       return strict ? Type.Null : UNION;
   }
