@@ -11,6 +11,7 @@ Hegel provides several of types which help to extract or create new types from e
 
 Table of contents:
 - [$Class](#classinstance)
+- [$Entries](#excludetarget-whichshouldbeexcluded)
 - [$Exclude](#excludetarget-whichshouldbeexcluded)
 - [$Immutable](#immutabletype)
 - [$InstanceOf](#instanceofconstructor)
@@ -52,6 +53,17 @@ plantClass = animalClass;
 
 // Error: Type "class Dog" is incompatible with type "class Plant"
 plantClass = dogClass;
+```
+
+## $Entries<Obj\>
+
+$Entries<Obj\> returns the union type of all properties and values types.
+
+```typescript
+type Admin = { name: string, age: number };
+
+// Type of "property" is "['age', number] | ['name', string]"
+const property: $Entries<Admin> = ["name", 4]; 
 ```
 
 ## $Exclude<Target, WhichShouldBeExcluded\>

@@ -460,7 +460,7 @@ export function implicitApplyGeneric(
       );
       declaratedArgument = declaratedArgument.type;
     }
-    const difference = givenArgumentType.getDifference(declaratedArgument);
+    const difference = givenArgumentType.getDifference(declaratedArgument, true);
     for (let j = 0; j < difference.length; j++) {
       let { root, variable } = difference[j];
       if (TypeVar.isSelf(root)) {

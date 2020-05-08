@@ -1,4 +1,5 @@
 import HegelError from "../../utils/errors";
+import { Type } from "./type";
 import { TypeVar } from "./type-var";
 import { TupleType } from "./tuple-type";
 import { TypeScope } from "../type-scope";
@@ -54,6 +55,9 @@ export class $Values extends GenericType {
     }
     const values = [...realTarget.properties.values()];
     const variants = values.map(value => value.type);
+    if (!realTarget.isStrict) {
+      variants.push(Type.Unknown);
+    }
     return UnionType.term(null, {}, variants);
   }
 }
