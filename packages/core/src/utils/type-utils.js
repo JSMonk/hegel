@@ -673,9 +673,15 @@ export function getTypeFromTypeAnnotation(
             )
           )
         : [];
-      const { params: paramsNode, parameters } = typeNode.typeAnnotation;
-      const argNodes = paramsNode || parameters;
-      const args = argNodes.map(annotation => {
+      const { params: paramsNode, parameters, rest } = typeNode.typeAnnotation;
+      const argNodes = [
+        ...(paramsNode || parameters),
+        rest && { ...rest, type: NODE.REST_ELEMENT }
+      ];
+      const args = argNodes.reduce((res, annotation) => {
+        if (annotation == undefined) {
+          return res;
+        }
         const result = getTypeFromTypeAnnotation(
           // Ohhh, TS is beautiful ❤️
           annotation.typeAnnotation.type === NODE.TS_TYPE_ANNOTATION
@@ -691,10 +697,13 @@ export function getTypeFromTypeAnnotation(
           middlecompute,
           postcompute
         );
-        return annotation.type === NODE.REST_ELEMENT
-          ? RestArgument.term(null, {}, result)
-          : result;
-      });
+        return [
+          ...res,
+          annotation.type === NODE.REST_ELEMENT
+            ? RestArgument.term(null, {}, result)
+            : result
+        ];
+      }, []);
       const { returnType: returnTypeNode } = typeNode.typeAnnotation;
       let throwableType;
       let returnType = getTypeFromTypeAnnotation(
