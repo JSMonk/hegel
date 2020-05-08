@@ -1626,4 +1626,27 @@ describe("Issues", () => {
 
     expect(errors.length).toBe(0);
   });
+
+  test("Issue #199: Array<T> should be principal type of [T]", async () => {
+    const sourceAST = prepareAST(`
+      function ensureArray<T>(value: T | Array<T> | null | undefined): Array<T> {
+        if (value == null) {
+          return []
+        }
+
+        if (typeof value === 'object' && value instanceof Array) {
+          return value
+        }
+        return [value]
+      } 
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+  });
 });

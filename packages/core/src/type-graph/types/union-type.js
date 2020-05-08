@@ -97,12 +97,13 @@ export class UnionType extends Type {
     for (let i = 0; i < set.length; i++) {
       const currentType = set[i];
       if (
+        !unique.includes(currentType) && (
         this.shouldBeSkipped(currentType) ||
         !unique.some(
           existed =>
             !this.shouldBeSkipped(existed) &&
             existed.isPrincipalTypeFor(currentType)
-        )
+        ))
       ) {
         unique.push(currentType);
       }
