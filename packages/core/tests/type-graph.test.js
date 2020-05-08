@@ -1627,6 +1627,22 @@ describe("Issues", () => {
     expect(errors.length).toBe(0);
   });
 
+  test("Issue #192: Rest element should be destructed", async () => {
+    const sourceAST = prepareAST(`
+      type A = (...Array<unknown>) => undefined;
+      const fn: A = first => undefined;
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const fnScope = module.scopes.get("[[Scope3-20]]");
+    const first = fnScope.body.get("first");
+    expect(first.type === Type.find("undefined | unknown")).toBe(true);
+  });
+
   test("Issue #197: Detect type changing for reference type", async () => {
     const sourceAST = prepareAST(`
       type A = { a: string } | { a: number };

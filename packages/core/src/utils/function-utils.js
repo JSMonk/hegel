@@ -5,12 +5,12 @@ import { Type } from "../type-graph/types/type";
 import { TypeVar } from "../type-graph/types/type-var";
 import { UnionType } from "../type-graph/types/union-type";
 import { GenericType } from "../type-graph/types/generic-type";
-import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
 import { VariableScope } from "../type-graph/variable-scope";
 import { addVariableToGraph } from "./variable-utils";
 import { inferenceTypeForNode } from "../inference";
 import { PositionedModuleScope } from "../type-graph/module-scope";
+import { RestArgument, FunctionType } from "../type-graph/types/function-type";
 import { getDeclarationName, getAnonymousKey } from "./common";
 import {
   getParentForNode,
@@ -187,16 +187,26 @@ export function addFunctionToTypeGraph(
     }
   }
   const withPositions = moduleScope instanceof PositionedModuleScope;
+  const argumentsTypes: Array<Type> = (functionType: any).argumentsTypes;
   currentNode.params.forEach((param, index) => {
-    let type = (functionType: any).argumentsTypes[index];
+    let type = argumentsTypes[index];
+    if (type === undefined) {
+      type = argumentsTypes[argumentsTypes.length - 1];
+      if (!(type instanceof RestArgument)) {
+        type = Type.Undefined;
+      }
+    }
     const id = param.left || param.argument || param;
     if (param.left != undefined && type instanceof UnionType) {
       const types = type.variants.filter(a => a !== Type.Undefined);
       type = UnionType.term(null, { parent: currentTypeScope }, types);
     }
-    if (param.argument != undefined) {
-      // $FlowIssue
-      type = type.type;
+    if (type instanceof RestArgument) {
+      if (param.argument != undefined) {
+        type = type.type;
+      } else {
+        type = type.type.getPropertyType(index);
+      }
     }
     let varInfo = scope.body.get(id.name);
     if (varInfo !== undefined) {
