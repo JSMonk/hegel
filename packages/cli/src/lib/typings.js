@@ -36,7 +36,7 @@ async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
     } 
     const variable = entry[1];
     variable.parent = globalScope;
-    body.set(entry[0], variable);
+    void body.set(entry[0], variable);
   }
   for (const entry of typingsScope.typeScope.body.entries()) {
     if (entry === undefined) {
@@ -44,7 +44,7 @@ async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
     } 
     const type = entry[1];
     type.parent = globalScope.typeScope;
-    typesBody.set(entry[0], type);
+    void typesBody.set(entry[0], type);
   }
   globalScope.body = body;
   globalScope.typeScope.body = typesBody;

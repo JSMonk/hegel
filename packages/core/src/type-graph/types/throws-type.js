@@ -7,9 +7,23 @@ export class $ThrowsResult extends Type {
   static get name() {
     return "$ThrowsResult";
   }
+  
+  static term(name: mixed, meta?: TypeMeta = {}, errorType, ...args: Array<any>) {
+    name = name === null ? $ThrowsResult.getName(errorType) : name;
+    const scope = meta.parent || Type.GlobalTypeScope;
+    const existed = scope.findTypeWithName(name);
+    if (this.shouldBeReplaced(existed, name, meta, errorType, ...args)) {
+      return this.new(name, meta, errorType, ...args);
+    }
+    return existed;
+  }
+  
+  static getName(errorType) {
+    return `$Throws<${String(errorType.name)}>`;
+  }
 
   constructor(name, meta = {}, errorType) {
-    name = name === null ? `$Throws<${String(errorType).name}>` : name;
+    name = name === null ? $ThrowsResult.getName(errorType) : name;
     super(name, meta);
     this.errorType = errorType;
   }

@@ -125,7 +125,7 @@ export function importModule(config, getAST, cacheEveryModule = false) {
     }
     const moduleScope = parseAndAnalyze(module, getAST, getModuleScope);
     if (cacheEveryModule || (module.isLibrary && !module.isUserDefined)) {
-      cache.set(module.resolvedPath, moduleScope);
+      void cache.set(module.resolvedPath, moduleScope);
     }
     return moduleScope;
   };

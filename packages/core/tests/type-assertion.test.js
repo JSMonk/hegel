@@ -627,7 +627,12 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
       fn()
     `);
 
-    const [, errors] = await createTypeGraph([sourceAST]);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(

@@ -70,11 +70,11 @@ async function main() {
     const result = await getErrorsPrint(errors);
     const verdict = getVerdictPrint(errors);
     logger.log(`${result}${verdict}`);
-    process.exit(errors.length);
+    void process.exit(errors.length);
   } catch (e) {
     if (e instanceof Error) {
       logger.error(e.message);
     }
-    process.exit(1);
+    void process.exit(1);
   }
 }

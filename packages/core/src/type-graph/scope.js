@@ -1,4 +1,5 @@
 // @flow
+import NODE from "../utils/nodes";
 import HegelError from "../utils/errors";
 import traverseTree from "../utils/traverse";
 import { VariableInfo } from "./variable-info";
@@ -55,7 +56,7 @@ export class Scope {
       precompute,
       middlecompute,
       postcompute,
-      parentNode.parentNode || parentNode
+      NODE.isFunction(currentNode) ? parentNode : (parentNode.parentNode || parentNode)
     );
     const scope = typeGraph.scopes.get(scopeName);
     // $FlowIssue

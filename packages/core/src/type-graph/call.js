@@ -328,6 +328,11 @@ export function addCallToTypeGraph(
       if (nearestThrowableScope != null) {
         addToThrowable(args[0], nearestThrowableScope);
       }
+      if (isFinal && currentScope !== nearestFn) {
+        nearestFn.calls.push(
+          new CallMeta(undefined, [], node.loc, "throw", typeScope, false, true)
+        );
+      }
       if (
         nearestThrowableScope == null ||
         nearestThrowableScope.type !== VariableScope.FUNCTION_TYPE ||
