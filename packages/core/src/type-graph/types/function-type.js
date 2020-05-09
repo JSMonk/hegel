@@ -343,12 +343,13 @@ export class FunctionType extends Type {
         return false;
       }
     }
+    const anotherTypeRequiredArguments = anotherType.argumentsTypes.filter(a => !a.isPrincipalTypeFor(Type.Undefined));
     const result =
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
       (this.throwable === undefined ||
         (anotherType.throwable !== undefined &&
           this.throwable.isPrincipalTypeFor(anotherType.throwable))) &&
-      this.argumentsTypes.length >= anotherType.argumentsTypes.length &&
+      this.argumentsTypes.length >= anotherTypeRequiredArguments.length &&
       anotherType.argumentsTypes.every((arg, i) => {
         const anotherArgument = this.argumentsTypes[i] || Type.Undefined;
         return arg.onlyLiteral

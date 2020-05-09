@@ -3236,6 +3236,23 @@ describe("Issues", () => {
     expect(errors.length).toBe(0);
     expect(age.type === Type.Number).toBe(true);
   });
+  test("Issue #126: should inference wrapper type for primitives", async () => {
+    const sourceAST = prepareAST(`
+      let a = 12;
+      function b(n, m) {
+          return n.toString() + m.toString();
+      }
+      let c = b(a, a);
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+  });
+
   test("Issue #168: PromiseConsructor should conatain constructor", async () => {
     const sourceAST = prepareAST(`
       const p = new Promise<2>(resolve => {

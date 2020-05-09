@@ -898,25 +898,9 @@ export function getWrapperType(
   type = type instanceof $AppliedImmutable ? type.readonly : type;
   if (type instanceof UnionType) {
     const variants = type.variants.map(t => getWrapperType(t, typeGraph));
-    // $FlowIssue
     return UnionType.term(null, {}, variants);
   }
-  if (type === Type.String || type.isSubtypeOf === Type.String) {
-    return Type.find("String");
-  }
-  if (type === Type.Number || type.isSubtypeOf === Type.Number) {
-    return Type.find("Number");
-  }
-  if (type === UnionType.Boolean || type === Type.True || type === Type.False) {
-    return Type.find("Boolean");
-  }
-  if (type === Type.Symbol || type.isSubtypeOf === Type.Symbol) {
-    return Type.find("Symbol");
-  }
-  if (type === Type.BigInt || type.isSubtypeOf === Type.BigInt) {
-    return Type.find("BigInt");
-  }
-  return argument;
+  return type.getWrapperType() || argument;
 }
 
 export function getFalsy() {

@@ -184,10 +184,18 @@ export class Type {
       // $FlowIssue
       return type.variants.every(variant => this.isPrincipalTypeFor(variant));
     }
-    return (
+    const isPrincipal =
       this.equalsTo(Type.Unknown) ||
       this.equalsTo(type) ||
-      this.isSuperTypeFor(type)
+      this.isSuperTypeFor(type);
+    if (isPrincipal || type.constructor !== Type) {
+      return isPrincipal;
+    }
+    const typeWrapper = type.getWrapperType();
+    return (
+      typeWrapper !== undefined &&
+      typeWrapper !== this &&
+      this.isSuperTypeFor(typeWrapper)
     );
   }
 
@@ -210,16 +218,20 @@ export class Type {
           return diff;
         }
       }
-      return [];
     }
     if ("constraint" in type && type.isSubtypeOf === null) {
       const constraint =
         // $FlowIssue
         type.constraint instanceof Type ? type.constraint : undefined;
-      if (constraint !== undefined && !("subordinateMagicType" in constraint)) {
-        return constraint.isPrincipalTypeFor(this)
-          ? [{ root: this, variable: type }, ...this.getDifference(constraint)]
-          : [];
+      if (
+        constraint !== undefined &&
+        !("subordinateMagicType" in constraint) &&
+        constraint.isPrincipalTypeFor(this)
+      ) {
+        return [
+          { root: this, variable: type },
+          ...this.getDifference(constraint)
+        ];
       }
       return [{ root: this, variable: type }];
     }
@@ -229,6 +241,21 @@ export class Type {
       if (!("subordinateMagicType" in unpacked)) {
         return this.getDifference(unpacked, withReverseUnion);
       }
+    }
+    const wrapper = this.isSubtypeOf || this.getWrapperType();
+    if (
+      type.parent !== undefined &&
+      type.parent.priority > 1 &&
+      wrapper !== undefined
+    ) {
+      return wrapper
+        .getDifference(type)
+        .map(
+          d =>
+            d.root === wrapper && d.variable === type
+              ? { variable: type, root: this }
+              : d
+        );
     }
     return [];
   }
@@ -345,5 +372,27 @@ export class Type {
 
   asNotUserDefined() {
     return this;
+  }
+
+  getWrapperType() {
+    if (Type.GlobalTypeScope === undefined) {
+      return;
+    }
+    if (this === Type.String || this.isSubtypeOf === Type.String) {
+      return Type.GlobalTypeScope.body.get("String");
+    }
+    if (this === Type.Number || this.isSubtypeOf === Type.Number) {
+      return Type.GlobalTypeScope.body.get("Number");
+    }
+    // $FlowIssue We mutate static field Boolean in src/type-graph/types/union-type.js so Boolean should exists in Type
+    if (this === Type.Boolean || this === Type.True || this === Type.False) {
+      return Type.GlobalTypeScope.body.get("Boolean");
+    }
+    if (this === Type.Symbol || this.isSubtypeOf === Type.Symbol) {
+      return Type.GlobalTypeScope.body.get("Symbol");
+    }
+    if (this === Type.BigInt || this.isSubtypeOf === Type.BigInt) {
+      return Type.GlobalTypeScope.body.get("BigInt");
+    }
   }
 }
