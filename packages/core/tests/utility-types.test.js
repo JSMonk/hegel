@@ -66,6 +66,16 @@ describe("Test $Keys", () => {
     expect(errors.length).toEqual(0);
     expect(typeScope.body.get("A") === Type.find("'a' | 'b' | 'c'")).toBe(true);
   });
+  test("Simple test of object keys with soft object", async () => {
+    const sourceAST = prepareAST(`
+      type Obj = { a: 1, b: 2, c: 3, ... };
+      type A = $Keys<Obj>;
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const typeScope = actual.typeScope;
+    expect(errors.length).toEqual(0);
+    expect(typeScope.body.get("A") === Type.find("'a' | 'b' | 'c' | unknown")).toBe(true);
+  });
   test("Should throw error with non-object target", async () => {
     const sourceAST = prepareAST(`
       type A = $Keys<2>;
@@ -78,8 +88,41 @@ describe("Test $Keys", () => {
   });
 });
 
+describe("Test $Entries", () => {
+  test("Simple test of object entries", async () => {
+    const sourceAST = prepareAST(`
+      type Obj = { a: number, b: string, c: string };
+      type A = $Entries<Obj>;
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const typeScope = actual.typeScope;
+    expect(errors.length).toEqual(0);
+    expect(typeScope.body.get("A") === Type.find("['a', number] | ['b', string] | ['c', string]")).toBe(true);
+  });
+  test("Simple test of object entries with soft object", async () => {
+    const sourceAST = prepareAST(`
+      type Obj = { a: number, b: string, c: string, ... };
+      type A = $Entries<Obj>;
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const typeScope = actual.typeScope;
+    expect(errors.length).toEqual(0);
+    expect(typeScope.body.get("A") === Type.find("['a', number] | ['b', string] | ['c', string] | unknown")).toBe(true);
+  });
+  test("Should throw error with non-object target", async () => {
+    const sourceAST = prepareAST(`
+      type A = $Entries<2>;
+    `);
+    const [, errors] = await createTypeGraph([sourceAST]);
+    expect(errors.length).toEqual(1);
+    expect(errors[0].message).toEqual(
+      "First parameter should be an object or collection type"
+    );
+  });
+});
+
 describe("Test $Values", () => {
-  test("Simple test of object keys", async () => {
+  test("Simple test of object values", async () => {
     const sourceAST = prepareAST(`
       type Obj = { a: number, b: string, c: string };
       type A = $Values<Obj>;
@@ -88,6 +131,16 @@ describe("Test $Values", () => {
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
     expect(typeScope.body.get("A") === Type.find("number | string")).toBe(true);
+  });
+  test("Simple test of object values with soft object", async () => {
+    const sourceAST = prepareAST(`
+      type Obj = { a: number, b: string, c: string, ... };
+      type A = $Values<Obj>;
+    `);
+    const [[actual], errors] = await createTypeGraph([sourceAST]);
+    const typeScope = actual.typeScope;
+    expect(errors.length).toEqual(0);
+    expect(typeScope.body.get("A") === Type.find("number | string | unknown")).toBe(true);
   });
   test("Should throw error with non-object target", async () => {
     const sourceAST = prepareAST(`

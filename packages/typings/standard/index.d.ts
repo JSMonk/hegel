@@ -727,6 +727,9 @@ interface ObjectConstructor {
   //       */
   isExtensible(o: any): boolean;
 
+  entries<T extends object>(o: T): Array<$Entries<T>>;
+
+  fromEntries<T>(entries: Array<[string, T]>): $Collection<string, T>;
   //     /**
   //       * Returns the names of the enumerable string properties and methods of an object.
   //       * @param o Object that contains the properties and methods. This can be an object that you created or an existing Document Object Model (DOM) object.

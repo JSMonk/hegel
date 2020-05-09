@@ -93,18 +93,29 @@ export class UnionType extends Type {
   }
 
   static uniqueVariants(set: Array<Type>) {
-    const unique: Array<Type> = [];
+    let unique: Array<Type> = [];
     for (let i = 0; i < set.length; i++) {
       const currentType = set[i];
+      if (unique.includes(currentType)) {
+        continue;
+      }
+      if (this.shouldBeSkipped(currentType)) {
+        unique.push(currentType);
+        continue;
+      }
       if (
-        this.shouldBeSkipped(currentType) ||
         !unique.some(
           existed =>
             !this.shouldBeSkipped(existed) &&
             existed.isPrincipalTypeFor(currentType)
         )
       ) {
-        unique.push(currentType);
+        unique = [
+          ...unique.filter(
+            t => this.shouldBeSkipped(t) || !currentType.isPrincipalTypeFor(t)
+          ),
+          currentType
+        ];
       }
     }
     return unique;

@@ -7,16 +7,15 @@ import { UnionType } from "./union-type";
 import { ObjectType } from "./object-type";
 import { GenericType } from "./generic-type";
 import { CollectionType } from "./collection-type";
-import { CALLABLE, CONSTRUCTABLE, INDEXABLE } from "../constants";
 
-export class $Keys extends GenericType {
+export class $Entries extends GenericType {
   static get name() {
-    return "$Keys";
+    return "$Entries";
   }
 
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
-    super("$Keys", meta, [TypeVar.term("target", { parent })], parent, null);
+    super("$Entries", meta, [TypeVar.term("target", { parent })], parent, null);
   }
 
   isPrincipalTypeFor() {
@@ -31,21 +30,15 @@ export class $Keys extends GenericType {
     return false;
   }
 
-  applyGeneric(
-    parameters,
-    loc,
-    shouldBeMemoize = true,
-    isCalledAsBottom = false
-  ) {
+  applyGeneric(parameters, loc) {
     super.assertParameters(parameters, loc);
     const [currentTarget] = parameters;
     const realTarget = this.getOponentType(currentTarget);
     if (realTarget instanceof TypeVar) {
-      return this.bottomizeWith(parameters, currentTarget.parent, loc);
+      return this.bottomizeWith(parameters, realTarget.parent, loc);
     }
     if (
       !(realTarget instanceof ObjectType) &&
-      !(realTarget instanceof TupleType) &&
       !(realTarget instanceof CollectionType)
     ) {
       throw new HegelError(
@@ -53,22 +46,19 @@ export class $Keys extends GenericType {
         loc
       );
     }
-    if (realTarget instanceof TupleType) {
-      return realTarget.isSubtypeOf.keyType;
-    }
     if (realTarget instanceof CollectionType) {
-      return realTarget.keyType;
+      return TupleType.term(null, {}, [
+        realTarget.keyType,
+        realTarget.valueType
+      ]);
     }
-    const variants = [];
-    for (const property of realTarget.properties.keys()) {
-      if (
-        property !== CALLABLE &&
-        property !== CONSTRUCTABLE &&
-        property !== INDEXABLE
-      ) {
-        variants.push(Type.term(`'${property}'`, { isSubtypeOf: Type.String }));
-      }
-    }
+    const values = [...realTarget.properties.entries()];
+    const variants = values.map(([key, value]) =>
+      TupleType.term(null, {}, [
+        Type.term(`'${key}'`, { isSubtypeOf: Type.String }),
+        value.type
+      ])
+    );
     if (!realTarget.isStrict) {
       variants.push(Type.Unknown);
     }

@@ -7,6 +7,7 @@ import { $Strict } from "../type-graph/types/strict-type";
 import { $TypeOf } from "../type-graph/types/type-of-type";
 import { $Throws } from "../type-graph/types/throws-type";
 import { $Values } from "../type-graph/types/values-type";
+import { $Entries } from "../type-graph/types/entries-type";
 import { $Exclude } from "../type-graph/types/exclude-type";
 import { $Partial } from "../type-graph/types/partial-type";
 import { $Immutable } from "../type-graph/types/immutable-type";
@@ -25,6 +26,7 @@ const mixUtilityTypes = moduleScope => {
     ],
     ["$InstanceOf", new $InstanceOf($InstanceOf.name, { parent: typeScope })],
     ["$Keys", new $Keys($Keys.name, { parent: typeScope })],
+    ["$Entries", new $Entries($Entries.name, { parent: typeScope })],
     ["$Values", new $Values($Values.name, { parent: typeScope })],
     ["$Partial", new $Partial($Partial.name, { parent: typeScope })],
     ["$Pick", new $Pick($Pick.name, { parent: typeScope })],

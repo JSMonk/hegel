@@ -67,7 +67,12 @@ function isValidTypes(
         : declaratedRootType;
     if (actualRootType instanceof UnionType) {
       return actualRootType.variants.every(t =>
-        isValidTypes(targetName, declaratedRootType, t, typeScope)
+        isValidTypes(
+          targetName,
+          declaratedRootType,
+          actual instanceof VariableInfo ? new VariableInfo(t) : t,
+          typeScope
+        )
       );
     }
     if (
