@@ -692,21 +692,24 @@ interface ObjectConstructor {
   //       * @param o Object on which to add or modify the property. This can be a native JavaScript object (that is, a user-defined object or a built in object) or a DOM object.
   //       * @param p The property name.
   //       * @param attributes Descriptor for the property. It can be for a data property or an accessor property.
+  //       * @throws {TypeError} If Type(O) is not Object
   //       */
-  defineProperty(o: any, p: PropertyKey, attributes: PropertyDescriptor): any;
+  defineProperty(o: any, p: PropertyKey, attributes: PropertyDescriptor): any | $Throws<TypeError>;
 
   //     /**
   //       * Adds one or more properties to an object, and/or modifies attributes of existing properties.
   //       * @param o Object on which to add or modify the properties. This can be a native JavaScript object or a DOM object.
   //       * @param properties JavaScript object that contains one or more descriptor objects. Each descriptor object describes a data property or an accessor property.
+  //       * @throws {TypeError} If Type(O) is not Object
   //       */
-  defineProperties(o: any, properties: PropertyDescriptorMap): any;
+  defineProperties(o: any, properties: PropertyDescriptorMap): any | $Throws<TypeError>;
 
   //     /**
   //       * Prevents the modification of attributes of existing properties, and prevents the addition of new properties.
   //       * @param o Object on which to lock the attributes.
+  //       * @throws {TypeError} if cannot perform operation (https://tc39.es/ecma262/#sec-object.seal)
   //       */
-  seal<T>(o: T): T;
+  seal<T>(o: T): T | $Throws<TypeError>;
 
   //     /**
   //       * Prevents the modification of existing property attributes and values, and prevents the addition of new properties.
@@ -717,14 +720,16 @@ interface ObjectConstructor {
   //     /**
   //       * Prevents the modification of existing property attributes and values, and prevents the addition of new properties.
   //       * @param o Object on which to lock the attributes.
+  //       * @throws {TypeError} if cannot perform operation (https://tc39.es/ecma262/#sec-object.freeze)
   //       */
-  freeze<T>(o: T): $Immutable<T>;
+  freeze<T>(o: T): $Immutable<T> | $Throws<TypeError>;
 
   //     /**
   //       * Prevents the addition of new properties to an object.
   //       * @param o Object to make non-extensible.
+  //       * @throws {TypeError} if cannot perform operation (https://tc39.es/ecma262/#sec-object.preventextensions)
   //       */
-  preventExtensions<T>(o: T): T;
+  preventExtensions<T>(o: T): T | $Throws<TypeError>;
 
   //     /**
   //       * Returns true if existing property attributes cannot be modified in an object and new properties cannot be added to the object.
@@ -761,6 +766,8 @@ interface ObjectConstructor {
    * target object. Returns the target object.
    * @param target The target object to copy to.
    * @param source The source object from which to copy properties.
+   * @throws {TypeError} In case of an error, for example if a property is non-writable,
+   * a TypeError is raised, and the target object is changed if any properties are added before the error is raised.
    */
   assign<
     O1,
@@ -785,7 +792,7 @@ interface ObjectConstructor {
       | [O2, O3, O4, O5, O6, O7, O8]
       | [O2, O3, O4, O5, O6, O7, O8, O9]
       | [O2, O3, O4, O5, O6, O7, O8, O9, O10]
-  ): O1 & O2 & O3 & O4 & O5 & O6 & O7 & O8 & O9 & O10;
+  ): O1 & O2 & O3 & O4 & O5 & O6 & O7 & O8 & O9 & O10 | $Throws<TypeError>;
 }
 
 // /**
