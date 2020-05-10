@@ -59,7 +59,12 @@ function getScopesForSwitchCase(
   // $FlowIssue
   let primaryScope: VariableScope = moduleScope.scopes.get(primaryScopeName);
   if (!(primaryScope instanceof VariableScope)) {
-    primaryScope = new VariableScope(VariableScope.BLOCK_TYPE, currentScope);
+    primaryScope = new VariableScope(
+      VariableScope.BLOCK_TYPE,
+      currentScope,
+      undefined,
+      condition.test === null ? "default-case" : "case" 
+    );
     moduleScope.scopes.set(primaryScopeName, primaryScope);
   }
   const currentCaseIndex = condition.parent.cases.indexOf(condition);
@@ -77,7 +82,9 @@ function getScopesForSwitchCase(
     if (!(alternateScope instanceof VariableScope)) {
       alternateScope = new VariableScope(
         VariableScope.BLOCK_TYPE,
-        currentScope
+        currentScope,
+        undefined,
+        $case.test === null ? "default-case" : "case"
       );
       moduleScope.scopes.set(alternateScopeName, alternateScope);
     }

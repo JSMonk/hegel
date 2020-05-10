@@ -320,7 +320,10 @@ export function addCallToTypeGraph(
         currentScope
           .getParentsUntil(nearestFn)
           .every(
-            parent => parent.creator === "block" || parent.creator === "catch"
+            parent =>
+              parent.creator === "block" ||
+              parent.creator === "catch" ||
+              parent.creator === "default-case"
           );
       const nearestThrowableScope = findThrowableBlock(currentScope);
       const throwableDeclaration =
@@ -522,10 +525,12 @@ export function addCallToTypeGraph(
       );
       isFinal =
         currentScope === fn ||
-        // $FlowIssue
         currentScope
           .getParentsUntil(fn)
-          .every(parent => parent.creator === "block");
+          .every(
+            parent =>
+              parent.creator === "block" || parent.creator === "default-case"
+          );
       currentScope = fn;
       break;
     case NODE.UNARY_EXPRESSION:
