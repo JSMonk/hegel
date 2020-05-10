@@ -1128,20 +1128,23 @@ interface Number {
   //     /**
   //       * Returns a string representing a number in fixed-point notation.
   //       * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+  //       * @throws {RangeError} in case fractionDigits > 100
   //       */
-  toFixed(fractionDigits?: number): string;
+  toFixed(fractionDigits?: number): string | $Throws<RangeError>;
 
   //     /**
   //       * Returns a string containing a number represented in exponential notation.
   //       * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+  //       * @throws {RangeError} in case fractionDigits > 100
   //       */
-  toExponential(fractionDigits?: number): string;
+  toExponential(fractionDigits?: number): string | $Throws<RangeError>;
 
   //     /**
   //       * Returns a string containing a number represented either in exponential or fixed-point notation with a specified number of digits.
   //       * @param precision Number of significant digits. Must be in the range 1 - 21, inclusive.
+  //       * @throws {RangeError} in case fractionDigits > 100
   //       */
-  toPrecision(precision?: number): string;
+  toPrecision(precision?: number): string | $Throws<RangeError>;
 
   //     /** Returns the primitive value of the specified object. */
   valueOf(): number;
