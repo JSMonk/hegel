@@ -24,7 +24,7 @@ declare var Infinity: number;
  * Evaluates JavaScript code and executes it.
  * @param x A String value that contains valid JavaScript code.
  */
-declare function eval(x: string): any;
+declare function eval(x: string): any | $Throws<SyntaxError | TypeError | RangeError | EvalError | ReferenceError | URIError>;
 
 // /**
 //   * Converts A string to an integer.
