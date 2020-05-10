@@ -365,7 +365,9 @@ interface ReadonlyArray<T> {
   //       * @param items Additional items to add to the end of array1.
   //       */
 //  concat<T1>(...items: Array<T1>): ReadonlyArray<T | T1>;
-  concat(...items: Array<ReadonlyArray<T>>): T[];
+  // @throws {TypeError} in case n + len > 2**53 - 1
+  // @throws {RangeError} in case n + len > 2**32 - 1
+  concat(...items: Array<ReadonlyArray<T>>): T[] | $Throws<TypeError | RangeError>;
   //       * Adds all the elements of an array separated by the specified separator string.
   //       * @param separator A string used to separate one element of an array from the next in the resulting String. If omitted, the array elements are separated with a comma.
   //       */
