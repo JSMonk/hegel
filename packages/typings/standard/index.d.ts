@@ -1488,7 +1488,8 @@ interface Date {
   //     /** Returns a date converted to a string using Universal Coordinated Time (UTC). */
   toUTCString(): string;
   //     /** Returns a date as a string value in ISO format. */
-  toISOString(): string;
+  //     // @throws {RangeError} in case time is not finite value
+  toISOString(): string | $Throws<RangeError>;
   //     /** Used by the JSON.stringify method to enable the transformation of an object's data for JavaScript Object Notation (JSON) serialization. */
   toJSON(key?: any): string;
   //     /**
