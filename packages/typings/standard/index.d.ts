@@ -903,7 +903,8 @@ interface String {
   //       */
   replace(searchValue: string | RegExp, replaceValue: string): string;
 
-  repeat(times: number): string;
+  // @throws {RangeError} if times < 0 or times >= Infinity
+  repeat(times: number): string | $Throws<RangeError>;
 
   //     /**
   //       * Replaces text in a string, using a regular expression or search string.
