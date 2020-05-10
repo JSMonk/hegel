@@ -158,11 +158,6 @@ interface Array<T> {
   //       * Combines two or more arrays.
   //       * @param items Additional items to add to the end of array1.
   //       */
-//  concat<T1>(...items: Array<Array<T1>>): Array<T | T1>;
-  //     /**
-  //       * Combines two or more arrays.
-  //       * @param items Additional items to add to the end of array1.
-  //       */
 //  concat<T1>(...items: Array<T1>): Array<T | T1>;
   // @throws {TypeError} in case n + len > 2**53 - 1
   // @throws {RangeError} in case n + len > 2**32 - 1
@@ -358,11 +353,6 @@ interface ReadonlyArray<T> {
   //       * Returns a string representation of an array. The elements are converted to string using their toLocalString methods.
   //       */
   toLocaleString(): string;
-  //     /**
-  //       * Combines two or more arrays.
-  //       * @param items Additional items to add to the end of array1.
-  //       */
-//  concat<T1>(...items: Array<Array<T1>>): ReadonlyArray<T | T1>;
   //     /**
   //       * Combines two or more arrays.
   //       * @param items Additional items to add to the end of array1.
