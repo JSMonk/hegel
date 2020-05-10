@@ -2795,11 +2795,7 @@ describe("Type refinement", () => {
     expect(a.type.variants.length).toBe(2);
     expect(a.type.variants[0] === Type.Null).toBe(true);
     expect(a.type.variants[1] === Type.Number).toBe(true);
-    expect(b.type).toBeInstanceOf(UnionType);
-    expect(b.type === Type.find("4 | number")).toBe(true);
-    expect(b.type.variants.length).toBe(2);
-    expect(b.type.variants[0] === Type.find(4)).toBe(true);
-    expect(b.type.variants[1] === Type.Number).toBe(true);
+    expect(b.type === Type.Number).toBe(true);
   });
   test("Typeof refinement for property in nested member expression", async () => {
     const sourceAST = prepareAST(`
@@ -3202,6 +3198,22 @@ describe("Issues", () => {
       }
     });
   });
+  test("Issue #101: function calculation should be inferenced right", async () => {
+    const sourceAST = prepareAST(`
+      const id = x => x
+      const fst = a => b => a
+      const snd = fst(id)
+      const num: 1 = fst(1)('1')
+      const str: '2' = snd(1)('2') 
+    `);
+    const [[], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+  });
   test("Issue #115: inference property type without error", async () => {
     const sourceAST = prepareAST(`
       function prop(a, b) {
@@ -3219,5 +3231,37 @@ describe("Issues", () => {
     const age = actual.body.get("age");
     expect(errors.length).toBe(0);
     expect(age.type === Type.Number).toBe(true);
+  });
+  test("Issue #168: PromiseConsructor should conatain constructor", async () => {
+    const sourceAST = prepareAST(`
+      const p = new Promise<2>(resolve => {
+        resolve(2);
+      });
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const p = module.body.get("p");
+    expect(errors.length).toBe(0);
+    expect(p.type === Type.find("Promise<2>")).toBe(true);
+  });
+  test("Issue #168: PromiseConsructor should conatain constructor and right type inferene", async () => {
+    const sourceAST = prepareAST(`
+      const p = new Promise(resolve => {
+        resolve(2);
+      });
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const p = module.body.get("p");
+    expect(errors.length).toBe(0);
+    expect(p.type === Type.find("Promise<2>")).toBe(true);
   });
 });

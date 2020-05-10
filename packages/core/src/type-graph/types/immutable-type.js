@@ -80,6 +80,10 @@ export class $AppliedImmutable extends Type {
   weakContains(type) {
     return this.readonly.contains(type);
   }
+  
+  getDifference(type: Type, withReverseUnion?: boolean = false) {
+    return this.readonly.getDifference(type, withReverseUnion);
+  }
 
   changeAll(...args) {
     const changed = this.readonly.changeAll(...args);

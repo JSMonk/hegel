@@ -5,7 +5,7 @@ const { createModuleScope } = require("../build/type-graph/type-graph");
 
 const babelrc = {
   sourceType: "module",
-  plugins: ["flow", "bigInt", "classProperties"]
+  plugins: [["flow", { all: true }], "bigInt", "classProperties"]
 };
 
 const definitionsRc = {
