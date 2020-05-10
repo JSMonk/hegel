@@ -56,20 +56,22 @@ declare function isFinite(number: number): boolean;
 // /**
 //   * Gets the unencoded version of an encoded Uniform Resource Identifier (URI).
 //   * @param encodedURI A value representing an encoded URI.
+//   * @throws {URIError}  when encodedURI contains invalid character sequences.
 //   */
-declare function decodeURI(encodedURI: string): string;
+declare function decodeURI(encodedURI: string): string | $Throws<URIError>;
 
 // /**
 //   * Gets the unencoded version of an encoded component of a Uniform Resource Identifier (URI).
 //   * @param encodedURIComponent A value representing an encoded URI component.
+//   * @throws {URIError} when used wrongly.
 //   */
-declare function decodeURIComponent(encodedURIComponent: string): string;
+declare function decodeURIComponent(encodedURIComponent: string): string | $Throws<URIError>;
 
 // /**
 //   * Encodes a text string as a valid Uniform Resource Identifier (URI)
 //   * @param uri A value representing an encoded URI.
 //   */
-declare function encodeURI(uri: string): string;
+declare function encodeURI(uri: string): string | $Throws<URIError>;
 
 // /**
 //   * Encodes a text string as a valid component of a Uniform Resource Identifier (URI).
@@ -77,7 +79,7 @@ declare function encodeURI(uri: string): string;
 //   */
 declare function encodeURIComponent(
   uriComponent: string | number | boolean
-): string;
+): string | $Throws<URIError>;
 
 // /**
 //   * Computes a new string in which certain characters have been replaced by a hexadecimal escape sequence.
