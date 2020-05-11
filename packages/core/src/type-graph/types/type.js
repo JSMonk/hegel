@@ -98,6 +98,7 @@ export class Type {
   shouldBeUsedAsGeneric: boolean;
   isSubtypeOf: Type | null;
   _alreadyProcessedWith: Type | null = null;
+  _processingType: Type | null = null;
   _changeStack: Array<Type> | null = null;
   onlyLiteral: boolean = false;
   priority = 1;
@@ -184,10 +185,15 @@ export class Type {
       // $FlowIssue
       return type.variants.every(variant => this.isPrincipalTypeFor(variant));
     }
+    if (this._processingType === type) {
+      return false;
+    }
+    this._processingType = type;
     const isPrincipal =
       this.equalsTo(Type.Unknown) ||
       this.equalsTo(type) ||
       this.isSuperTypeFor(type);
+    this._processingType = null;
     if (isPrincipal || type.constructor !== Type) {
       return isPrincipal;
     }
@@ -394,5 +400,15 @@ export class Type {
     if (this === Type.BigInt || this.isSubtypeOf === Type.BigInt) {
       return Type.GlobalTypeScope.body.get("BigInt");
     }
+  }
+
+  
+  isSimpleType() {
+    return this === Type.String || this.isSubtypeOf === Type.String ||
+    this === Type.Number || this.isSubtypeOf === Type.Number ||
+    this === Type.BigInt || this.isSubtypeOf === Type.BigInt ||
+    this === Type.Boolean || this === Type.True || this === Type.False ||
+    this === Type.Symbol || this.isSubtypeOf === Type.Symbol ||
+    this === Type.Null || this === Type.Undefined;
   }
 }

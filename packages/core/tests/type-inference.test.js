@@ -3321,4 +3321,27 @@ describe("Issues", () => {
     expect(errors.length).toBe(0);
     expect(picked.type === Type.find("Array<'a' | 'b'>")).toBe(true);
   });
+
+  test("Issue #204: return or throw inside default case of switch case should be final", async () => {
+    const sourceAST = prepareAST(`
+      type Nat = 1 | 2
+
+      function test(val: Nat) {
+          switch(val) {
+              case 1: return '1'
+              case 2: return '2'
+              default: return ''
+          }
+      }
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const test = module.body.get("test");
+    expect(errors.length).toBe(0);
+    expect(test.type.returnType === Type.String).toBe(true);
+  });
 });

@@ -24,7 +24,7 @@ export async function getFileContent(path) {
   let content = await fs.readFile(path, "utf8");
   content = extname(path) === ".json" ? wrapJSON(content) : content;
   let result = { path, content };
-  cache.set(path, result);
+  void cache.set(path, result);
   return content;
 }
 
@@ -55,7 +55,7 @@ export function createASTGenerator(config: Config) {
         Object.assign({}, config.babel, { strictMode: !isDefinition, plugins })
       );
       const result: ExtendedFile = Object.assign(ast, { path, content });
-      cache.set(path, result);
+      void cache.set(path, result);
       return result;
     } catch (e) {
       if (e instanceof Error) {

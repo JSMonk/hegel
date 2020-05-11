@@ -108,8 +108,10 @@ export class TypeVar extends Type {
     if (this.constraint === undefined) {
       return true;
     }
-    if (type instanceof TypeVar && type.constraint !== undefined) {
-      return this.constraint.isPrincipalTypeFor(type.constraint);
+    if (type instanceof TypeVar) {
+      return type.constraint !== undefined 
+        ? this.constraint.isPrincipalTypeFor(type.constraint)
+        : !type._isUserDefined;
     }
     return this.constraint.isPrincipalTypeFor(type);
   }

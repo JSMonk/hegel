@@ -650,7 +650,8 @@ const afterFillierActions = (
               `You use function "${functionName}" as side effect function, but it returns a ${String(
                 invocationResultType.name
               )} type`,
-              currentNode.loc
+              currentNode.loc,
+              moduleScope.path 
             )
           );
         }

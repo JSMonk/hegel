@@ -40,7 +40,7 @@ function forVariable(
   const alternateVariants = getFalsyVariants(variableInfo.type);
   if (
     !(variableInfo.type instanceof TypeVar) &&
-    refinementedVariants.length === 0
+    (refinementedVariants.length === 0 || alternateVariants.length === 0)
   ) {
     return;
   }

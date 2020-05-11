@@ -186,7 +186,7 @@ function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
     type: NODE.BLOCK_STATEMENT,
     body: [init, currentNode],
     isCustom: true,
-    loc: currentNode.init.loc
+    loc: init.loc
   };
 }
 

@@ -165,5 +165,7 @@ function getScopeCreator(creator: Node) {
       return "for-in";
     case NODE.BLOCK_STATEMENT:
       return "block";
+    case NODE.SWITCH_CASE:
+      return creator.test === null ? "default-case" : "case";
   }
 }
