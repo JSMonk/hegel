@@ -390,6 +390,7 @@ export function refinementProperty(
       typeScope
     );
   }
+  return [];
 }
 
 function equalsProperty(

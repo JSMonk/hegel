@@ -25,14 +25,6 @@ export function findUnhandledCases(
   const { discriminant, cases } = node;
   // test equals null only if it's default case
   const hasDefaultCase = cases.some(switchCase => switchCase.test === null);
-  if (
-    // if switch statement doesn't have default case, we should check whether cases exhaustive or not
-    hasDefaultCase ||
-    (discriminant.type !== NODE.IDENTIFIER &&
-      discriminant.type !== NODE.MEMBER_EXPRESSION)
-  ) {
-    return;
-  }
   const { result: switchedValue } = addCallToTypeGraph(
     discriminant,
     moduleScope,
@@ -42,6 +34,15 @@ export function findUnhandledCases(
     middle,
     post
   );
+  if (
+    // if switch statement doesn't have default case, we should check whether cases exhaustive or not
+    hasDefaultCase ||
+    (discriminant.type !== NODE.IDENTIFIER &&
+      discriminant.type !== NODE.CALL_EXPRESSION &&
+      discriminant.type !== NODE.MEMBER_EXPRESSION)
+  ) {
+    return;
+  }
   const switchedValueType =
     switchedValue instanceof VariableInfo ? switchedValue.type : switchedValue;
   if (!(switchedValueType instanceof UnionType)) {
