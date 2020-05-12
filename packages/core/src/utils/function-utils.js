@@ -209,6 +209,7 @@ export function addFunctionToTypeGraph(
       }
     }
     let varInfo = scope.body.get(id.name);
+    /*::if (type == undefined) return*/
     if (varInfo !== undefined) {
       varInfo.type = type;
       varInfo.parent = scope;

@@ -8,12 +8,9 @@
     "prebuild": "npm run build:clean",
     "build": "babel src -d build",
     "postbuild": "npm run build:copy",
-
     "build:dev": "npm run build -- -s",
-
     "build:copy": "cp ./package.json ./build/package.json && cp ./src/index.d.ts ./build/index.d.ts",
     "build:clean": "rm -rf build && mkdir build",
-    
     "pretest": "npm run build",
     "test": "jest"
   },
@@ -32,7 +29,7 @@
     "babel-jest": "^25.1.0",
     "babel-plugin-syntax-flow": "^6.18.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
-    "flow-bin": "^0.123.0",
+    "flow-bin": "^0.124.0",
     "jest": "^25.1.0"
   }
 }

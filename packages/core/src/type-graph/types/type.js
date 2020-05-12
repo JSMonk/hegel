@@ -407,6 +407,7 @@ export class Type {
     return this === Type.String || this.isSubtypeOf === Type.String ||
     this === Type.Number || this.isSubtypeOf === Type.Number ||
     this === Type.BigInt || this.isSubtypeOf === Type.BigInt ||
+    // $FlowIssue We mutate static field Boolean in src/type-graph/types/union-type.js so Boolean should exists in Type
     this === Type.Boolean || this === Type.True || this === Type.False ||
     this === Type.Symbol || this.isSubtypeOf === Type.Symbol ||
     this === Type.Null || this === Type.Undefined;

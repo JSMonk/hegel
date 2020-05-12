@@ -5,7 +5,11 @@ export interface Locationable {
   loc: SourceLocation;
 }
 
-export default class HegelError extends Error implements Locationable {
+export interface Sourcable {
+  source: string;
+}
+
+export default class HegelError extends Error implements Locationable, Sourcable {
   loc: SourceLocation;
   source: string;
 
