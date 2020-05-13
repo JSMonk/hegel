@@ -70,6 +70,7 @@ function isValidTypes(
         isValidTypes(
           targetName,
           declaratedRootType,
+          //$FlowIssue it's needed for the property consistency
           actual instanceof VariableInfo ? new VariableInfo(t) : t,
           typeScope
         )

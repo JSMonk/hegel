@@ -589,7 +589,6 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
   test("Function declaration with signed argument will throw error", async () => {
     const sourceAST = prepareAST(`
        function fn(a?: number) {}
-       fn();
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toEqual(1);
@@ -1166,5 +1165,51 @@ describe("Rest parameter typing", () => {
         line: 5
       }
     });
+  });
+
+  test("Issue #202: Errors should not stop analysis", async () => {
+    const sourceAST = prepareAST(`
+      type Route = {
+        layout: 'cotne'
+      }
+
+      const route: Route = {
+        layout: 'cotne'
+      }
+
+      const layout = route.layout
+
+      switch (layout) { 
+        case 'cotne': // okxzi
+        case 'not so cotne': // should error and it does 
+      }
+       
+      switch (route.layout) {
+        case 'cotne': // ok
+        case 'not so cotne': // should error and it does
+      }
+
+      switch (getFun()) {
+        case 'cotne': // ok
+        case 'not so cotne': // should error
+      } 
+
+      if (getFun() === 'cotne') {} // should error
+      if (route.layout === 'cotne') {} // should error and it does (if you comment out previous error)
+      if (layout === 'cotne') {} // should error and it does (if you comment out previous error)
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(6);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[1]).toBeInstanceOf(HegelError);
+    expect(errors[2]).toBeInstanceOf(HegelError);
+    expect(errors[3]).toBeInstanceOf(HegelError);
+    expect(errors[4]).toBeInstanceOf(HegelError);
+    expect(errors[5]).toBeInstanceOf(HegelError);
   });
 });

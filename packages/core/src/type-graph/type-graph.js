@@ -825,7 +825,8 @@ export async function createModuleScope(
   withPositions?: boolean = true
 ): Promise<ModuleScope> {
   const errors: IgnorableArray<HegelError> = IgnorableArray.withIgnoring(
-    file.comments
+    file.comments,
+    file.path
   );
   const ast = file.program;
   const typeScope = new TypeScope(globalModule.typeScope);
@@ -844,24 +845,14 @@ export async function createModuleScope(
     getModuleTypeGraph,
     isTypeDefinitions
   );
-  try {
-    traverseTree(
-      ast,
-      fillModuleScope(module, errors, isTypeDefinitions),
-      middlefillModuleScope(module, errors, isTypeDefinitions),
-      afterFillierActions(module, errors, isTypeDefinitions)
-    );
-  } catch (e) {
-    if (!(e instanceof HegelError) && !Array.isArray(e)) {
-      throw e;
-    }
-    if (Array.isArray(e)) {
-      errors.push(...e.map(e => Object.assign(e, { source: file.path })));
-    } else {
-      e.source = file.path;
-      errors.push(e);
-    }
-  }
+  traverseTree(
+    ast,
+    fillModuleScope(module, errors, isTypeDefinitions),
+    middlefillModuleScope(module, errors, isTypeDefinitions),
+    afterFillierActions(module, errors, isTypeDefinitions),
+    null,
+    { errors }
+  );
   module.scopes.forEach(scope =>
     checkCalls(file.path, scope, typeScope, errors)
   );

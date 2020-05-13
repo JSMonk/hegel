@@ -14,7 +14,8 @@ type Tree =
 
 export type TraverseMeta = {
   kind?: ?string,
-  previousBodyState?: Array<Node>
+  previousBodyState?: Array<Node>,
+  errors: Array<HegelError>
 };
 
 export const compose = (...fns: Array<Function>) => (...args: Array<any>) => {
@@ -368,50 +369,62 @@ function traverseTree(
   middle: Handler,
   post: Handler,
   parentNode: ?Tree = null,
-  meta?: TraverseMeta = {}
+  meta: TraverseMeta
 ) {
-  const currentNode = getCurrentNode(node, parentNode, meta);
-  const shouldContinueTraversing = pre(
-    currentNode,
-    parentNode,
-    pre,
-    middle,
-    post,
-    meta
-  );
-  if (!shouldContinueTraversing) {
-    return;
-  }
-  const body = getBody(currentNode);
-  const nextParent = getNextParent(currentNode, parentNode);
-  let i = 0;
-  const newMeta = {
-    ...meta,
-    previousBodyState: body,
-    kind: currentNode.kind
-  };
   try {
-    for (i = 0; i < body.length; i++) {
-      const node = body[i];
-      if (node !== undefined) {
-        middle(node, nextParent, pre, middle, post, newMeta);
+    const currentNode = getCurrentNode(node, parentNode, meta);
+    const shouldContinueTraversing = pre(
+      currentNode,
+      parentNode,
+      pre,
+      middle,
+      post,
+      meta
+    );
+    if (!shouldContinueTraversing) {
+      return;
+    }
+    const body = getBody(currentNode);
+    const nextParent = getNextParent(currentNode, parentNode);
+    let i = 0;
+    const newMeta = {
+      ...meta,
+      previousBodyState: body,
+      kind: currentNode.kind
+    };
+    try {
+      for (i = 0; i < body.length; i++) {
+        const node = body[i];
+        if (node !== undefined) {
+          middle(node, nextParent, pre, middle, post, newMeta);
+        }
+      }
+      for (i = 0; i < body.length; i++) {
+        const node = body[i];
+        if (node !== undefined) {
+          traverseTree(node, pre, middle, post, nextParent, newMeta);
+        }
+      }
+    } catch (e) {
+      if (!(e instanceof UnreachableError)) {
+        throw e;
+      }
+      if (i < body.length - 1) {
+        meta.errors.push(new HegelError("Unreachable code after this line", e.loc));
+        return;
       }
     }
-    for (i = 0; i < body.length; i++) {
-      const node = body[i];
-      if (node !== undefined) {
-        traverseTree(node, pre, middle, post, nextParent, newMeta);
-      }
-    }
-  } catch (e) {
-    if (!(e instanceof UnreachableError)) {
+    post(currentNode, parentNode, pre, middle, post, newMeta);
+  } catch(e) {
+    if (e instanceof Error && !(e instanceof HegelError)) {
       throw e;
     }
-    if (i < body.length - 1) {
-      throw new HegelError("Unreachable code after this line", e.loc);
+    if (Array.isArray(e)) {
+      meta.errors.push(...e);
+    } else {
+      meta.errors.push(e);
     }
   }
-  post(currentNode, parentNode, pre, middle, post, newMeta);
 }
 
 export default traverseTree;

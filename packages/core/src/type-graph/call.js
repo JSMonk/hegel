@@ -721,6 +721,24 @@ export function addCallToTypeGraph(
       targetName = "new";
       target = currentScope.findVariable({ name: targetName, loc: node.loc });
       break;
+    case NODE.TAGGED_TEMPLATE_EXPRESSION:
+      node = {
+        loc: node.loc,
+        type: NODE.CALL_EXPRESSION,
+        callee: node.tag,
+        arguments: [
+          {
+            type: NODE.ARRAY_EXPRESSION,
+            loc: node.quasi.loc,
+            elements: node.quasi.quasis.map(a => ({
+              ...a,
+              type: NODE.STRING_LITERAL,
+              value: a.value.raw
+            }))
+          },
+          ...node.quasi.expressions
+        ]
+      };
     case NODE.CALL_EXPRESSION:
       if (
         node.callee.type === NODE.IDENTIFIER ||

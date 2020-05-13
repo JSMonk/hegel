@@ -51,15 +51,21 @@ export class Scope {
           definedType.variants.find(a => "argumentsTypes" in a)
         : definedType;
     const scopeName = this.getName(currentNode);
+    const errors = [];
     traverseTree(
       currentNode,
       precompute,
       middlecompute,
       postcompute,
-      NODE.isFunction(currentNode) ? parentNode : (parentNode.parentNode || parentNode)
+      NODE.isFunction(currentNode)
+        ? parentNode
+        : parentNode.parentNode || parentNode,
+      { errors }
     );
+    if (errors.length !== 0) {
+      throw errors;
+    }
     const scope = typeGraph.scopes.get(scopeName);
-    // $FlowIssue
     if (scope === undefined || scope.type !== "function") {
       return;
     }
