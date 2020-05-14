@@ -1,6 +1,6 @@
 {
   "name": "@hegel/docs",
-  "version": "0.0.41",
+  "version": "0.0.43",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
   "dependencies": {
     "@babel/parser": "^7.7.5",
     "@emotion/core": "^10.0.28",
-    "@hegel/core": "^0.0.41",
+    "@hegel/core": "^0.0.43",
     "@hegel/typings": "^0.0.41",
     "@reach/router": "^1.2.1",
     "classnames": "^2.2.6",
