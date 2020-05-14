@@ -250,6 +250,7 @@ export class Type {
     }
     const wrapper = this.isSubtypeOf || this.getWrapperType();
     if (
+      type.constructor !== this.constructor &&
       type.parent !== undefined &&
       type.parent.priority > 1 &&
       wrapper !== undefined
