@@ -92,6 +92,20 @@ export function addCallToTypeGraph(
   if (node.type === NODE.SUPER) {
     node = { type: NODE.IDENTIFIER, name: "super", loc: node.loc };
   }
+  if (node.operator === "delete") {
+    node = {
+      loc: node.loc,
+      type: NODE.ASSIGNMENT_EXPRESSION,
+      operator: "=",
+      // $FlowIssue
+      left: node.argument,
+      right: {
+        type: NODE.IDENTIFIER,
+        name: "undefined",
+        loc: node.loc,
+      }
+    };
+  }
   switch (node.type) {
     case NODE.TYPE_CAST:
       throw new HegelError("Type cast does not exist in Hegel", node.loc);
