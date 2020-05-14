@@ -97,7 +97,7 @@
 				var addMethods = __webpack_require__(/*! ../../../../../workerize-loader/dist/rpc-wrapper.js */ "../node_modules/workerize-loader/dist/rpc-wrapper.js")
 				var methods = []
 				module.exports = function() {
-					var w = new Worker(__webpack_require__.p + "8da02dc53c6e75362eda.worker.js", { name: "[hash].worker.js" })
+					var w = new Worker(__webpack_require__.p + "9882c219518b9ac38468.worker.js", { name: "[hash].worker.js" })
 					addMethods(w, methods)
 					
 					return w
@@ -114,14 +114,14 @@
 /***/ (function(module, exports) {
 
 function addMethods(worker, methods) {
-  let c = 0;
-  let callbacks = {};
-  worker.addEventListener('message', e => {
-    let d = e.data;
-    if (d.type !== 'RPC') return;
+  var c = 0;
+  var callbacks = {};
+  worker.addEventListener('message', function (e) {
+    var d = e.data;
+    if (d.type !== 'RPC') { return; }
 
     if (d.id) {
-      let f = callbacks[d.id];
+      var f = callbacks[d.id];
 
       if (f) {
         delete callbacks[d.id];
@@ -133,23 +133,28 @@ function addMethods(worker, methods) {
         }
       }
     } else {
-      let evt = document.createEvent('Event');
+      var evt = document.createEvent('Event');
       evt.initEvent(d.method, false, false);
       evt.data = d.params;
       worker.dispatchEvent(evt);
     }
   });
-  methods.forEach(method => {
-    worker[method] = (...params) => new Promise((a, b) => {
-      let id = ++c;
+  methods.forEach(function (method) {
+    worker[method] = function () {
+      var params = [], len = arguments.length;
+      while ( len-- ) params[ len ] = arguments[ len ];
+
+      return new Promise(function (a, b) {
+      var id = ++c;
       callbacks[id] = [a, b];
       worker.postMessage({
         type: 'RPC',
-        id,
-        method,
-        params
+        id: id,
+        method: method,
+        params: params
       });
     });
+    };
   });
 }
 
