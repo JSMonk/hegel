@@ -17,7 +17,10 @@ export const genericFunction = (
   getTypeParameters,
   getReturnType
 ) => {
-  const localTypeScope = new TypeScope(typeScope);
+  const localTypeScope = new TypeScope(
+    typeScope,
+    TypeScope.MODULE_SCOPE_PRIORITY + 1
+  );
   let genericArguments = getGenericArguments(localTypeScope);
   genericArguments.forEach(([key, type]) => localTypeScope.body.set(key, type));
   genericArguments = genericArguments.map(([, t]) =>

@@ -1167,6 +1167,59 @@ describe("Rest parameter typing", () => {
     });
   });
 
+  test("Issue #161: Delete operator should not work with non-optional properties", async () => {
+    const sourceAST = prepareAST(`
+      function plus1(x) {
+					return x + 1;
+			}
+			let y: { z: number } = {
+					z: 5
+			};
+			delete y.z; // if you switch this line to y.z = undefined it will produce an error
+			let result = plus1(y.z);
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      'Type "undefined" is incompatible with type "number"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: {
+        column: 13,
+        line: 8
+      },
+      start: {
+        column: 3,
+        line: 8
+      }
+    });
+  });
+
+  test("Issue #161: Delete operator should work only with optional properties", async () => {
+    const sourceAST = prepareAST(`
+      function plus1(x) {
+					return x + 1;
+			}
+			let y: { z: ?number } = {
+					z: 5
+			};
+			delete y.z; 
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+  });
+
   test("Issue #202: Errors should not stop analysis", async () => {
     const sourceAST = prepareAST(`
       type Route = {

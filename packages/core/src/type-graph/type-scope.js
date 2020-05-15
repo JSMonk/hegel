@@ -13,12 +13,14 @@ export class TypeScope {
   parent: TypeScope | null;
   body: Map<mixed, Type | TSInterfaceDeclaration> = new Map();
 
-  constructor(parent?: TypeScope) {
+  constructor(
+    parent?: TypeScope,
+    priority?: number = parent === undefined
+      ? TypeScope.GLOBAL_SCOPE_PRIORITY
+      : parent.priority + 1
+  ) {
     this.parent = parent === undefined ? null : parent;
-    this.priority =
-      parent === undefined
-        ? TypeScope.GLOBAL_SCOPE_PRIORITY
-        : parent.priority + 1;
+    this.priority = priority;
   }
 
   makeCustom() {

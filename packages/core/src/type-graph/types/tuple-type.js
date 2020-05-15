@@ -175,7 +175,7 @@ export class TupleType extends Type {
       return [];
     }
     this._alreadyProcessedWith = type;
-    if (type instanceof TupleType) {
+    if (type instanceof TupleType && this.items.length === type.items.length) {
       let differences = [];
       const { items } = type;
       this.items.forEach((type, index) => {

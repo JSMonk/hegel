@@ -1,8 +1,9 @@
 // @flow
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
-import { TypeScope } from "../type-scope";
 import { CALLABLE } from "../constants";
+import { TypeScope } from "../type-scope";
+import { UnionType } from "./union-type";
 import { GenericType } from "./generic-type";
 import type { TypeMeta } from "./type";
 
@@ -30,6 +31,24 @@ export class RestArgument extends Type {
 
   static getName(type: Type) {
     return `...${String(type.name)}`;
+  }
+
+  static getValueType(type: Type) {
+    type = type.getOponentType(type);
+    if ("valueType" in type) {
+      // $FlowIssue
+      return type.valueType;
+    }
+    if ("items" in type) {
+      // $FlowIssue TupleType always has isSubtypeOf
+      return this.getValueType(type.isSubtypeOf);
+    }
+    if (type instanceof UnionType) {
+      const variants = type.variants.map(this.getValueType);
+      return variants.includes(undefined)
+        ? undefined
+        : UnionType.term(null, {}, variants);
+    }
   }
 
   type: Type;
@@ -74,20 +93,24 @@ export class RestArgument extends Type {
     action: "equalsTo" | "isSuperTypeFor",
     anotherType: Type | RestArgument
   ) {
-    if (!(anotherType instanceof RestArgument)) {
-      return false;
-    }
+    const innerType =
+      anotherType instanceof RestArgument ? anotherType.type : anotherType;
     const selfType = this.getOponentType(this.type, false);
-    const otherType = this.getOponentType(anotherType.type, false);
-    if (!("valueType" in selfType && "valueType" in otherType)) {
-      return false;
-    }
-    // $FlowIssue
-    return selfType.valueType[action](otherType.valueType);
+    const otherType = this.getOponentType(innerType, false);
+    const selfValueType = RestArgument.getValueType(selfType);
+    const otherValueType = RestArgument.getValueType(otherType);
+    return (
+      selfValueType !== undefined &&
+      otherValueType !== undefined &&
+      selfValueType[action](otherValueType)
+    );
   }
 
   equalsTo(anotherType: Type | RestArgument) {
-    return this.isType("equalsTo", anotherType);
+    return (
+      anotherType instanceof RestArgument &&
+      this.isType("equalsTo", anotherType)
+    );
   }
 
   isSuperTypeFor(anotherType: Type | RestArgument) {
@@ -343,7 +366,9 @@ export class FunctionType extends Type {
         return false;
       }
     }
-    const anotherTypeRequiredArguments = anotherType.argumentsTypes.filter(a => !a.isPrincipalTypeFor(Type.Undefined));
+    const anotherTypeRequiredArguments = anotherType.argumentsTypes.filter(
+      a => !a.isPrincipalTypeFor(Type.Undefined)
+    );
     const result =
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
       (this.throwable === undefined ||
