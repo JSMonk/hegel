@@ -24,7 +24,7 @@ declare var Infinity: number;
  * Evaluates JavaScript code and executes it.
  * @param x A String value that contains valid JavaScript code.
  */
-declare function eval(x: string): any;
+declare function eval(x: string): any | $Throws<SyntaxError | TypeError | RangeError | EvalError | ReferenceError | URIError>;
 
 // /**
 //   * Converts A string to an integer.
@@ -56,20 +56,22 @@ declare function isFinite(number: number): boolean;
 // /**
 //   * Gets the unencoded version of an encoded Uniform Resource Identifier (URI).
 //   * @param encodedURI A value representing an encoded URI.
+//   * @throws {URIError}  when encodedURI contains invalid character sequences.
 //   */
-declare function decodeURI(encodedURI: string): string;
+declare function decodeURI(encodedURI: string): string | $Throws<URIError>;
 
 // /**
 //   * Gets the unencoded version of an encoded component of a Uniform Resource Identifier (URI).
 //   * @param encodedURIComponent A value representing an encoded URI component.
+//   * @throws {URIError} when used wrongly.
 //   */
-declare function decodeURIComponent(encodedURIComponent: string): string;
+declare function decodeURIComponent(encodedURIComponent: string): string | $Throws<URIError>;
 
 // /**
 //   * Encodes a text string as a valid Uniform Resource Identifier (URI)
 //   * @param uri A value representing an encoded URI.
 //   */
-declare function encodeURI(uri: string): string;
+declare function encodeURI(uri: string): string | $Throws<URIError>;
 
 // /**
 //   * Encodes a text string as a valid component of a Uniform Resource Identifier (URI).
@@ -77,7 +79,7 @@ declare function encodeURI(uri: string): string;
 //   */
 declare function encodeURIComponent(
   uriComponent: string | number | boolean
-): string;
+): string | $Throws<URIError>;
 
 // /**
 //   * Computes a new string in which certain characters have been replaced by a hexadecimal escape sequence.
@@ -148,13 +150,18 @@ interface Array<T> {
   //     /**
   //       * Appends new elements to an array, and returns the new length of the array.
   //       * @param items New elements of the Array.
+  //       * @throws {TypeError} in case len + argCount > (2**53)-1
+  //       * @throws {RangeError} in case len + argCount > (2**32)-1
   //       */
-  push(...items: T[]): number;
+  push(...items: T[]): number | $Throws<TypeError | RangeError>;
   //     /**
   //       * Combines two or more arrays.
   //       * @param items Additional items to add to the end of array1.
   //       */
-  concat<T1>(...items: Array<T1> | Array<Array<T1>>): Array<T | T1>;
+//  concat<T1>(...items: Array<T1>): Array<T | T1>;
+  // @throws {TypeError} in case n + len > 2**53 - 1
+  // @throws {RangeError} in case n + len > 2**32 - 1
+  concat<T1>(...items: Array<T1> | Array<Array<T1>>): Array<T | T1> | $Throws<TypeError | RangeError>;
 //  concat(...items: Array<T[]>): T[];
   //     /**
   //       * Adds all the elements of an array separated by the specified separator string.
@@ -191,13 +198,17 @@ interface Array<T> {
   //       * @param start The zero-based location in the array from which to start removing elements.
   //       * @param deleteCount The number of elements to remove.
   //       * @param items Elements to insert into the array in place of the deleted elements.
+  //       * @throws {TypeError} in case len + insertCount - actualDeleteCount > 2**53 - 1
+  //       * @throws {RangeError} in case len + insertCount - actualDeleteCount > 2**32 - 1
   //       */
-  splice(start: number, deleteCount: number, ...items: T[]): T[];
+  splice(start: number, deleteCount: number, ...items: T[]): T[] | $Throws<TypeError | RangeError>;
   //     /**
   //       * Inserts new elements at the start of an array.
   //       * @param items  Elements to insert at the start of the Array.
+  //       * @throws {TypeError} in case len + argCount > 2**53 - 1
+  //       * @throws {RangeError} in case len + argCount > 2**32 - 1
   //       */
-  unshift(...items: T[]): number;
+  unshift(...items: T[]): number | $Throws<TypeError | RangeError>;
   //     /**
   //       * Returns the index of the first occurrence of a value in an array.
   //       * @param searchElement The value to locate in the array.
@@ -277,6 +288,7 @@ interface Array<T> {
   //       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -286,7 +298,7 @@ interface Array<T> {
       array: T[]
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
@@ -298,6 +310,7 @@ interface Array<T> {
   //       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -307,7 +320,7 @@ interface Array<T> {
       array: T[]
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   /** Iterator */
   //[Symbol.iterator](): IterableIterator<T>;
@@ -344,7 +357,9 @@ interface ReadonlyArray<T> {
   //       * Combines two or more arrays.
   //       * @param items Additional items to add to the end of array1.
   //       */
-  concat<T1>(...items: Array<T1> | Array<Array<T1>> | Array<ReadonlyArray<T1>>): ReadonlyArray<T | T1>;
+  // @throws {TypeError} in case n + len > 2**53 - 1
+  // @throws {RangeError} in case n + len > 2**32 - 1
+  concat<T1>(...items: Array<T1> | Array<Array<T1>> | Array<ReadonlyArray<T1>>): ReadonlyArray<T | T1> | $Throws<TypeError | RangeError>;
   //       * Adds all the elements of an array separated by the specified separator string.
   //       * @param separator A string used to separate one element of an array from the next in the resulting String. If omitted, the array elements are separated with a comma.
   //       */
@@ -422,6 +437,7 @@ interface ReadonlyArray<T> {
   //       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   // reduce(callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: ReadonlyArray<T>) => T, initialValue?: T): T;
   reduce<U>(
@@ -432,7 +448,7 @@ interface ReadonlyArray<T> {
       array: Array<T>
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
   //     /**
   //       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduce method calls the callbackfn function one time for each element in the array.
@@ -442,6 +458,7 @@ interface ReadonlyArray<T> {
   //       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -451,7 +468,7 @@ interface ReadonlyArray<T> {
       array: Array<T>
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
   //       * @param callbackfn A function that accepts up to four arguments. The reduceRight method calls the callbackfn function one time for each element in the array.
@@ -675,21 +692,24 @@ interface ObjectConstructor {
   //       * @param o Object on which to add or modify the property. This can be a native JavaScript object (that is, a user-defined object or a built in object) or a DOM object.
   //       * @param p The property name.
   //       * @param attributes Descriptor for the property. It can be for a data property or an accessor property.
+  //       * @throws {TypeError} If Type(O) is not Object
   //       */
-  defineProperty(o: any, p: PropertyKey, attributes: PropertyDescriptor): any;
+  defineProperty(o: any, p: PropertyKey, attributes: PropertyDescriptor): any | $Throws<TypeError>;
 
   //     /**
   //       * Adds one or more properties to an object, and/or modifies attributes of existing properties.
   //       * @param o Object on which to add or modify the properties. This can be a native JavaScript object or a DOM object.
   //       * @param properties JavaScript object that contains one or more descriptor objects. Each descriptor object describes a data property or an accessor property.
+  //       * @throws {TypeError} If Type(O) is not Object
   //       */
-  defineProperties(o: any, properties: PropertyDescriptorMap): any;
+  defineProperties(o: any, properties: PropertyDescriptorMap): any | $Throws<TypeError>;
 
   //     /**
   //       * Prevents the modification of attributes of existing properties, and prevents the addition of new properties.
   //       * @param o Object on which to lock the attributes.
+  //       * @throws {TypeError} if cannot perform operation (https://tc39.es/ecma262/#sec-object.seal)
   //       */
-  seal<T>(o: T): T;
+  seal<T>(o: T): T | $Throws<TypeError>;
 
   //     /**
   //       * Prevents the modification of existing property attributes and values, and prevents the addition of new properties.
@@ -700,14 +720,16 @@ interface ObjectConstructor {
   //     /**
   //       * Prevents the modification of existing property attributes and values, and prevents the addition of new properties.
   //       * @param o Object on which to lock the attributes.
+  //       * @throws {TypeError} if cannot perform operation (https://tc39.es/ecma262/#sec-object.freeze)
   //       */
-  freeze<T>(o: T): $Immutable<T>;
+  freeze<T>(o: T): $Immutable<T> | $Throws<TypeError>;
 
   //     /**
   //       * Prevents the addition of new properties to an object.
   //       * @param o Object to make non-extensible.
+  //       * @throws {TypeError} if cannot perform operation (https://tc39.es/ecma262/#sec-object.preventextensions)
   //       */
-  preventExtensions<T>(o: T): T;
+  preventExtensions<T>(o: T): T | $Throws<TypeError>;
 
   //     /**
   //       * Returns true if existing property attributes cannot be modified in an object and new properties cannot be added to the object.
@@ -747,6 +769,8 @@ interface ObjectConstructor {
    * target object. Returns the target object.
    * @param target The target object to copy to.
    * @param source The source object from which to copy properties.
+   * @throws {TypeError} In case of an error, for example if a property is non-writable,
+   * a TypeError is raised, and the target object is changed if any properties are added before the error is raised.
    */
   assign<
     O1,
@@ -771,7 +795,7 @@ interface ObjectConstructor {
       | [O2, O3, O4, O5, O6, O7, O8]
       | [O2, O3, O4, O5, O6, O7, O8, O9]
       | [O2, O3, O4, O5, O6, O7, O8, O9, O10]
-  ): O1 & O2 & O3 & O4 & O5 & O6 & O7 & O8 & O9 & O10;
+  ): O1 & O2 & O3 & O4 & O5 & O6 & O7 & O8 & O9 & O10 | $Throws<TypeError>;
 }
 
 // /**
@@ -882,7 +906,8 @@ interface String {
   //       */
   replace(searchValue: string | RegExp, replaceValue: string): string;
 
-  repeat(times: number): string;
+  // @throws {RangeError} if times < 0 or times >= Infinity
+  repeat(times: number): string | $Throws<RangeError>;
 
   //     /**
   //       * Replaces text in a string, using a regular expression or search string.
@@ -1107,20 +1132,23 @@ interface Number {
   //     /**
   //       * Returns a string representing a number in fixed-point notation.
   //       * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+  //       * @throws {RangeError} in case fractionDigits > 100
   //       */
-  toFixed(fractionDigits?: number): string;
+  toFixed(fractionDigits?: number): string | $Throws<RangeError>;
 
   //     /**
   //       * Returns a string containing a number represented in exponential notation.
   //       * @param fractionDigits Number of digits after the decimal point. Must be in the range 0 - 20, inclusive.
+  //       * @throws {RangeError} in case fractionDigits > 100
   //       */
-  toExponential(fractionDigits?: number): string;
+  toExponential(fractionDigits?: number): string | $Throws<RangeError>;
 
   //     /**
   //       * Returns a string containing a number represented either in exponential or fixed-point notation with a specified number of digits.
   //       * @param precision Number of significant digits. Must be in the range 1 - 21, inclusive.
+  //       * @throws {RangeError} in case fractionDigits > 100
   //       */
-  toPrecision(precision?: number): string;
+  toPrecision(precision?: number): string | $Throws<RangeError>;
 
   //     /** Returns the primitive value of the specified object. */
   valueOf(): number;
@@ -1464,7 +1492,8 @@ interface Date {
   //     /** Returns a date converted to a string using Universal Coordinated Time (UTC). */
   toUTCString(): string;
   //     /** Returns a date as a string value in ISO format. */
-  toISOString(): string;
+  //     // @throws {RangeError} in case time is not finite value
+  toISOString(): string | $Throws<RangeError>;
   //     /** Used by the JSON.stringify method to enable the transformation of an object's data for JavaScript Object Notation (JSON) serialization. */
   toJSON(key?: any): string;
   //     /**
@@ -1865,7 +1894,8 @@ interface ArrayBufferView {
 interface ArrayBufferConstructor {
   readonly prototype: ArrayBuffer;
   // @throws {RangeError} in case byteLength > 2**32 - 1
-  new (byteLength: number): ArrayBuffer | $Throws<RangeError>;
+  // @throws {TypeError} in case byteLength > 2**53 - 1
+  new (byteLength: number): ArrayBuffer | $Throws<TypeError | RangeError>;
   isView(arg: ArrayBufferView): true;
   isView(arg: any): false;
 }
@@ -2220,6 +2250,7 @@ interface Int8Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -2229,7 +2260,7 @@ interface Int8Array {
       array: Int8Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order.
@@ -2253,6 +2284,7 @@ interface Int8Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -2262,7 +2294,7 @@ interface Int8Array {
       array: Int8Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U |$Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -2555,6 +2587,7 @@ interface Uint8Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -2564,7 +2597,7 @@ interface Uint8Array {
       array: Uint8Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order.
@@ -2588,6 +2621,7 @@ interface Uint8Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -2597,7 +2631,7 @@ interface Uint8Array {
       array: Uint8Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -2911,6 +2945,7 @@ interface Uint8ClampedArray {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -2920,7 +2955,7 @@ interface Uint8ClampedArray {
       array: Uint8ClampedArray
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order.
@@ -2944,6 +2979,7 @@ interface Uint8ClampedArray {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -2953,7 +2989,7 @@ interface Uint8ClampedArray {
       array: Uint8ClampedArray
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -3253,6 +3289,7 @@ interface Int16Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -3262,7 +3299,7 @@ interface Int16Array {
       array: Int16Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order.
@@ -3286,6 +3323,7 @@ interface Int16Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -3295,7 +3333,7 @@ interface Int16Array {
       array: Int16Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -3582,6 +3620,7 @@ interface Uint16Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -3591,7 +3630,7 @@ interface Uint16Array {
       array: Uint16Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order.
@@ -3615,6 +3654,7 @@ interface Uint16Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -3624,7 +3664,7 @@ interface Uint16Array {
       array: Uint16Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -3908,6 +3948,7 @@ interface Int32Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -3917,7 +3958,7 @@ interface Int32Array {
       array: Int32Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order.
@@ -3941,6 +3982,7 @@ interface Int32Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -3950,7 +3992,7 @@ interface Int32Array {
       array: Int32Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -4234,6 +4276,7 @@ interface Uint32Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -4243,7 +4286,7 @@ interface Uint32Array {
       array: Uint32Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order.
@@ -4267,6 +4310,7 @@ interface Uint32Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -4276,7 +4320,7 @@ interface Uint32Array {
       array: Uint32Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -4560,6 +4604,7 @@ interface Float32Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -4569,7 +4614,7 @@ interface Float32Array {
       array: Float32Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order.
@@ -4593,6 +4638,7 @@ interface Float32Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -4602,7 +4648,7 @@ interface Float32Array {
       array: Float32Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -4894,6 +4940,7 @@ interface Float64Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduce<U>(
     callbackfn: (
@@ -4903,7 +4950,7 @@ interface Float64Array {
       array: Float64Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Calls the specified callback function for all the elements in an array, in descending order.
@@ -4927,6 +4974,7 @@ interface Float64Array {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start
   //       * the accumulation. The first call to the callbackfn function provides this value as an argument
   //       * instead of an array value.
+  //       * @throws {TypeError} in case if len is 0 and initialValue is not present.
   //       */
   reduceRight<U>(
     callbackfn: (
@@ -4936,7 +4984,7 @@ interface Float64Array {
       array: Float64Array
     ) => U,
     initialValue?: U
-  ): U;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -5051,7 +5099,10 @@ interface Float64ArrayConstructor {
 declare var Float64Array: Float64ArrayConstructor;
 
 interface ArrayConstructor {
-  new <T = unknown>(...args: [] | [number] | Array<T[]> | T[]): (T | undefined)[];
+  // new creates an instance of Array<T>
+  // @throws {TypeError} in case len + argCount > 2**53 - 1
+  // @throws {RangeError} in case len + argCount > 2**32 - 1
+  new <T = unknown>(...args: [] | [number] | Array<T[]> | T[]): (T | undefined)[] | $Throws<TypeError | RangeError>;
   <T>(...items: T[]): T[];
   isArray(arg: any): arg is Array<any>;
   readonly prototype: Array<any>;
