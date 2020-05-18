@@ -212,7 +212,7 @@ class Container<T> {
 
 const container1: Container<number> = new Container(2);  // 👌!
 
-// Error: Generic type "Container<T>" should be used with type paramteres!
+// Error: Generic type "Container<T>" should be used with type parameters!
 const container2: Container = new Container(2);
 ```
 
@@ -221,7 +221,7 @@ type Container<T> = { value: T };
 
 const container1: Container<number> = { value: 2 };  // 👌!
 
-// Error: Generic type "Container<T>" should be used with type paramteres!
+// Error: Generic type "Container<T>" should be used with type parameters!
 const container2: Container = { value: 4 };
 ```
 
