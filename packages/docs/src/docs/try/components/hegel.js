@@ -107,6 +107,12 @@ export async function getDiagnostics(sourceCode) {
   return errors.map(toTransferableObject);
 }
 
+/**
+ * Summon and format completion items.
+ * @param {import("monaco-editor").languages.CompletionItemKind} completionItemKind 
+ * @param {string} word - name of the variable before "." character.
+ * @param {import("monaco-editor").languages.CompletionTriggerKind} triggerKind 
+ */
 export function summonCompletionItems(
   completionItemKind,
   word,
