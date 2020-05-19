@@ -81,7 +81,7 @@ async function getCompletionItems(monaco, model, position, context, token) {
     hegel = new HegelWorker();
   }
 
-  const word = model.getWordUntilPosition(context.triggerKind === 0
+  const { word } = model.getWordUntilPosition(context.triggerKind === 0
     ? position
     : {
       ...position,
@@ -91,7 +91,7 @@ async function getCompletionItems(monaco, model, position, context, token) {
   return {
     suggestions: await hegel.summonCompletionItems(
       monaco.languages.CompletionItemKind,
-      word.word,
+      word,
       context.triggerKind
     )
   };
