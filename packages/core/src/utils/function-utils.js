@@ -110,8 +110,18 @@ export function addFunctionToTypeGraph(
     isTypeDefinitions
   ): any);
   const expected = currentNode.expected;
-  const expectedType =
+  let expectedType =
     expected instanceof GenericType ? expected.subordinateType : expected;
+  if (expectedType instanceof UnionType) {
+    expectedType = expectedType.variants.find(a => {
+      a = a instanceof GenericType ? a.subordinateType : a;
+      return a instanceof FunctionType;
+    });
+    expectedType =
+      expectedType instanceof GenericType
+        ? expectedType.subordinateType
+        : expectedType;
+  }
   let functionType =
     variableInfo.type instanceof GenericType
       ? variableInfo.type.subordinateType
