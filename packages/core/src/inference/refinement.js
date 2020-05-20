@@ -1,5 +1,6 @@
 // @flow
 import NODE from "../utils/nodes";
+import HegelError from "../utils/errors";
 import { Type } from "../type-graph/types/type";
 import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
@@ -464,7 +465,8 @@ export function refinement(
   currentRefinementNode: Node,
   currentScope: VariableScope | ModuleScope,
   typeScope: TypeScope,
-  moduleScope: ModuleScope
+  moduleScope: ModuleScope,
+  errors: Array<HegelError>
 ) {
   if (currentRefinementNode.isRefinemented) {
     return;
@@ -483,13 +485,21 @@ export function refinement(
   if (condition == undefined) {
     return;
   }
-  const currentRefinements = refinementByCondition(
-    condition,
-    currentScope,
-    typeScope,
-    moduleScope,
-    primaryScope
-  );
+  let currentRefinements;
+  try {
+    currentRefinements = refinementByCondition(
+      condition,
+      currentScope,
+      typeScope,
+      moduleScope,
+      primaryScope
+    );
+  } catch (e) {
+    if (!(e instanceof HegelError)) {
+      throw e;
+    }
+    errors.push(e);
+  }
   if (!currentRefinements) {
     return;
   }
