@@ -102,7 +102,7 @@ export function addCallToTypeGraph(
       right: {
         type: NODE.IDENTIFIER,
         name: "undefined",
-        loc: node.loc,
+        loc: node.loc
       }
     };
   }
@@ -907,8 +907,8 @@ export function addCallToTypeGraph(
           // $FlowIssue
           return args[i];
         }
-        // $FlowIssue
-        let expectedType = fnType.argumentsTypes[i];
+        let expectedType =
+          fnType instanceof FunctionType ? fnType.argumentsTypes[i] : undefined;
         // We need it for right type inference of the argument function
         if (targetType instanceof GenericType) {
           const existedGenericArguments =
