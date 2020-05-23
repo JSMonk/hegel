@@ -15,7 +15,7 @@ const definitionsRc = {
 };
 
 const libsFile = fs.readFileSync(
-  path.join(__dirname, "../../typings/standard/index.d.ts"),
+  path.join(require.resolve("@hegel/typings"), "..", "standard/index.d.ts"),
   "utf-8"
 );
 
