@@ -160,7 +160,7 @@ $ npm install -g @hegel/cli
 $ npm install -D @hegel/cli
 ```
 
-**Finally**. You already can use it into your JavaScript project:
+**Step 3**. You already can use it into your JavaScript project:
 
 ```bash
 # globally
@@ -173,6 +173,54 @@ No errors!
 ```
 
 > Hegel has a zero-configuration, but if you want to change settings see [Configuration Section](https://hegel.js.org/docs/configuration).
+
+**Step 4**. Hegel is already configured, but, you need to compile your project to plain JavaScript.
+
+* If you use [Babel](https://babeljs.io/): 
+  Add into `.babelrc` file (or create `.babelrc` file at the root of your project with) next content:
+  ```json
+  {
+    "presets": [["@babel/preset-flow", { "all": true }]]
+  }
+  ```
+  And install `@babel/preset-flow`
+  ```bash
+  $ npm i -D @babel/core @babel/cli @babel/preset-flow
+  ```
+
+  Add script inside your package.json:
+
+  ```json
+  {
+    "name": "your-project",
+    "scripts": {
+      "build": "babel directory_with_your_project_files/ -d compilation_destination_directory/",
+    }
+  }
+  ```
+
+* If you don't use [Babel](https://babeljs.io/): 
+  The same as Flow, you can use [flow-remove-types](https://www.npmjs.com/package/flow-remove-types). 
+
+  Install `flow-remove-types`:
+  ```bash
+  $ npm i -D flow-remove-types
+  ```
+
+  And add next script inside your `package.json` `scripts` section:
+
+  ```json
+  {
+    "scripts": {
+      "build": "flow-remove-types directory_with_your_project_files/ --out-dir compilation_destination_directory/",
+    }
+  }
+  ```
+
+**Finally**. You can compile your project by:
+```bash
+$ npm run build
+```
 
 ## Project Overview
 
