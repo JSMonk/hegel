@@ -3,6 +3,9 @@ const { ModuleScope } = require("@hegel/core");
 const { getBabylonAST } = require("../utils/document-ast");
 const { createModuleScope } = require("@hegel/core");
 
+/** 
+ * Cash of global type graph.
+ */
 let globalScopeGraph = new ModuleScope();
 
 function getGlobalScopeGraph() {
