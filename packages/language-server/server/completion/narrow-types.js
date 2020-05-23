@@ -1,9 +1,10 @@
 const { EMPTY_SCOPE } = require("../constants");
+const { ModuleScope } = require("@hegel/core");
 const { convertRangeToLoc } = require("../utils/range");
 const { PositionedModuleScope } = require("@hegel/core");
 const { getCurrentVariableName } = require("./completion-resolve");
 
-let currentVariableScope = null;
+let currentVariableScopeBody = null;
 
 /**
  * Narrow scope to smaller one of objects, constructors, functions.
@@ -12,21 +13,17 @@ function narrowDownTypes(scope, completionParams) {
   if (scope instanceof PositionedModuleScope) {
     const cursorLocation = convertRangeToLoc(completionParams.position);
     const variable =
-      currentVariableScope === null
+      currentVariableScopeBody === null
         ? scope.getVarAtPosition({
             ...cursorLocation,
             column: cursorLocation.column - 1,
           })
-        : currentVariableScope.get(getCurrentVariableName());
+        : currentVariableScopeBody.get(getCurrentVariableName());
 
     if (variable !== undefined) {
-      currentVariableScope = new Map(getVariableProperties(variable.type));
+      currentVariableScopeBody = new Map(getVariableProperties(variable.type));
 
-      return {
-        // Signals that global tokens must not be included.
-        parent: null,
-        body: currentVariableScope,
-      };
+      return new ModuleScope("", currentVariableScopeBody);
     } else {
       return EMPTY_SCOPE;
     }
@@ -45,7 +42,7 @@ function getVariableProperties(type) {
 }
 
 function discardVariableScope() {
-  currentVariableScope = null;
+  currentVariableScopeBody = null;
 }
 
 exports.narrowDownTypes = narrowDownTypes;

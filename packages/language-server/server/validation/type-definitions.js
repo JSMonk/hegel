@@ -1,6 +1,16 @@
 const path = require("path");
+const { ModuleScope } = require("@hegel/core");
 const { getBabylonAST } = require("../utils/document-ast");
 const { createModuleScope } = require("@hegel/core");
+
+/** 
+ * Cash of global type graph.
+ */
+let globalScopeGraph = new ModuleScope();
+
+function getGlobalScopeGraph() {
+  return globalScopeGraph;
+}
 
 let stdLibTypeGraph;
 let browserGlobalTypeGraph;
@@ -41,6 +51,8 @@ function mixTypeDefinitions(config) {
     if (shouldIncludeBrowser) {
       mixSomeTypeDefinitions(globalScope, browserGlobalScope);
     }
+
+    globalScopeGraph = globalScope;
   };
 }
 
@@ -104,3 +116,4 @@ async function getTypeGraphFor(path, globalScope) {
 }
 
 exports.mixTypeDefinitions = mixTypeDefinitions;
+exports.getGlobalScopeGraph = getGlobalScopeGraph;

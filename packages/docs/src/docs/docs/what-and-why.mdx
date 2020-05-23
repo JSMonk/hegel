@@ -28,7 +28,7 @@ function setupE2E(db) {
 const db = new Fixture();
 debugger;
 setupE2E(db);
-// Congratulations, you became a DropDatabase Engineer 
+// Congratulations, you became a DropDatabase Engineer
 ```
 
 But if you have added only one thing in your code with Hegel, you would not have dropped the DataBase.
@@ -60,7 +60,7 @@ But, we need to answer this question differently for different audiences. So, ch
 First of all, static analysis means that your code will be analyzed without actually running. So, static type analysis will analyze your code for any type of errors.
 
 Actually, there are 2 major benefits of static type analysis:
-1. Static type analysis finds and provides you information about a type error that exists in your code during code writing. It not only gives you guarantees that your code will work without runtime type errors but in addition, it really saves a lot of time for finding and fixing errors, especially in big projects that contain a really long build step. 
+1. Static type analysis finds and provides you information about a type error that exists in your code during code writing. It not only gives you guarantees that your code will work without runtime type errors but in addition, it really saves a lot of time for finding and fixing errors, especially in big projects that contain a really long build step.
 2. When you use an instrument that provides type information of your variables, functions, methods, classes and etc - you have got a documentation of method usage without any additional efforts.
 
 ```typescript
@@ -107,7 +107,7 @@ const result = id(42).then(x => x + x);
 
 2. No unexpected runtime errors
 
-One of the non-goals of TypeScript is: "Apply a sound or "probably correct" type system. Instead, strike a balance between correctness and productivity.". It means that TypeScript never will guarantee that you will not have a Type Error at Runtime. Hegel is on the opposite side. We try to implement a strong type system which will guarantee that your program is valid.
+One of the non-goals of TypeScript is: "Apply a sound or "provably correct" type system. Instead, strike a balance between correctness and productivity.". It means that TypeScript never will guarantee that you will not have a Type Error at Runtime. Hegel is on the opposite side. We try to implement a strong type system which will guarantee that your program is valid.
 
 ```typescript
 const doubles: Array<number> = [Math.PI, Math.E];
@@ -142,7 +142,7 @@ try {
 
 > The same example in TypeScript (tested at version 3.7.5) will inference e as "any" type [TypeScript Example](http://www.typescriptlang.org/play/index.html#code/GYVwdgxgLglg9mABAQwM6oKYCcoElUAqWIGAFMlgOYCUiA3gFCLOIzCKkCEFN9TLAqAAsscAO6IwGCQQCeABwwBRLKKykARD1apWYAG7IANjAAmG6v2YBfBrYZQssvgLSYc+IiVLBjmagDcdogQyFAQQhwYtIwCAPRxiHKKiHDsGhgaiIZYMMgARkYYOohaYLIadkA).
 
-### Disadvantages 
+### Disadvantages
 
 1. Minimal changes in JavaScript Syntax
 
@@ -168,7 +168,7 @@ const Anatoly = new User("Anatoly", UserStatus.Active);
 
 ```typescript
 // Hegel
-const UserStatus = Object.freeze({ 
+const UserStatus = Object.freeze({
   Active: "Active",
   Muted: "Muted",
   Banned: "Banned"
@@ -252,7 +252,7 @@ Flow.js has custom library definition languages and doesn't support the most pop
 [OCaml](https://ocaml.org/) is really great language and this language inspired us to implement the same type inference in Hegel, but the problem is that it's not common language (especially for developer who works with JavaScript stack) and as result it's hard for JavaScript community to contribute into the Flow.js.
 We decided to implement Hegel in JavaScript.
 
-### Disadvantages 
+### Disadvantages
 
 1. No type coercion and "any" type
 

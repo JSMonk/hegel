@@ -218,7 +218,8 @@ const fillModuleScope = (
           currentNode,
           getParentForNode(currentNode, parentNode, typeGraph),
           typeScope,
-          typeGraph
+          typeGraph,
+          errors
         );
         break;
       case NODE.IF_STATEMENT:
@@ -247,7 +248,8 @@ const fillModuleScope = (
             currentNode,
             getParentForNode(block, parentNode, typeGraph),
             typeScope,
-            typeGraph
+            typeGraph,
+            errors
           );
         }
         if (currentNode.test != undefined) {
@@ -651,7 +653,7 @@ const afterFillierActions = (
                 invocationResultType.name
               )} type`,
               currentNode.loc,
-              moduleScope.path 
+              moduleScope.path
             )
           );
         }

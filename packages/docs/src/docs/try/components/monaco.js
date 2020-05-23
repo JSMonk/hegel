@@ -18,11 +18,6 @@ export async function buildAndMountEditor(setEditor, currentTheme, id) {
     noSyntaxValidation: true
   });
   monaco.languages.registerHoverProvider("javascript", { provideHover });
-  monaco.languages.registerCompletionItemProvider("javascript", {
-    triggerCharacters: ["."],
-    provideCompletionItems: async (model, position, context, token) =>
-      getCompletionItems(monaco, model, position, context, token)
-  });
   monaco.editor.defineTheme("dark", DARK_THEME);
   monaco.editor.defineTheme("light", LIGHT_THEME);
   const editorContainer = document.getElementById(id);
@@ -65,36 +60,6 @@ async function provideHover(_, position) {
     column: position.column
   });
   return type && { contents: [{ value: js(getTypeTooltip(type)) }] };
-}
-
-/**
- * Completes values.
- * @param {import('monaco-editor')} monaco 
- * @param {import('monaco-editor').editor.ITextModel} model 
- * @param {import('monaco-editor').Position} position 
- * @param {import('monaco-editor').languages.CompletionContext} context 
- * @param {import('monaco-editor').CancellationToken} token 
- * @returns {Promise<import('monaco-editor').languages.ProviderResult<import('monaco-editor').languages.CompletionList>>}
- */
-async function getCompletionItems(monaco, model, position, context, token) {
-  if (hegel === undefined) {
-    hegel = new HegelWorker();
-  }
-
-  const { word } = model.getWordUntilPosition(context.triggerKind === 0
-    ? position
-    : {
-      ...position,
-      column: position.column - 1,
-    });
-
-  return {
-    suggestions: await hegel.summonCompletionItems(
-      monaco.languages.CompletionItemKind,
-      word,
-      context.triggerKind
-    )
-  };
 }
 
 let timeout = undefined;
