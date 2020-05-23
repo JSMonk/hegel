@@ -1,7 +1,9 @@
 const { getCompletionKind } = require("./completion-item-kind");
-const { removeLanguageTokens } = require("./remove-scope-variables");
+const { getGlobalScopeGraph } = require("../validation/type-definitions");
 const { default: LazyIterator } = require("@sweet-monads/iterator");
-const { getPositionedModuleScopeTypes } = require("../validation/code-validation");
+const {
+  getPositionedModuleScopeTypes,
+} = require("../validation/code-validation");
 const { narrowDownTypes, discardVariableScope } = require("./narrow-types");
 
 const DOT_TRIGGER_KIND = 2;
@@ -27,11 +29,19 @@ function buildCompletionItem(scope, dataIndex) {
     ? [
         ...completionItems,
         ...buildCompletionItem(
-          removeLanguageTokens(scope.parent),
+          maybeGlobalScope(scope.parent),
           completionItems.length
         ),
       ]
     : completionItems;
+}
+
+/**
+ * Gets cashed global type graph if scope has not parent.
+ * @param {import("@hegel/core").ModuleScope} scope
+ */
+function maybeGlobalScope(scope) {
+  return scope.parent === null ? getGlobalScopeGraph() : scope;
 }
 
 function onCompletion(completionParams) {
