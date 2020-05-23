@@ -912,14 +912,20 @@ var CodeActionAdaptor = /** @class */ (function (_super) {
         });
     };
     CodeActionAdaptor.prototype._tsCodeFixActionToMonacoCodeAction = function (model, context, codeFix) {
-        var _this = this;
-        var edits = codeFix.changes.map(function (edit) { return ({
-            resource: model.uri,
-            edits: edit.textChanges.map(function (tc) { return ({
-                range: _this._textSpanToRange(model, tc.span),
-                text: tc.newText
-            }); })
-        }); });
+        var edits = [];
+        for (var _i = 0, _a = codeFix.changes; _i < _a.length; _i++) {
+            var change = _a[_i];
+            for (var _b = 0, _c = change.textChanges; _b < _c.length; _b++) {
+                var textChange = _c[_b];
+                edits.push({
+                    resource: model.uri,
+                    edit: {
+                        range: this._textSpanToRange(model, textChange.span),
+                        text: textChange.newText
+                    }
+                });
+            }
+        }
         var action = {
             title: codeFix.description,
             edit: { edits: edits },
@@ -939,7 +945,7 @@ var RenameAdapter = /** @class */ (function (_super) {
     }
     RenameAdapter.prototype.provideRenameEdits = function (model, position, newName, token) {
         return __awaiter(this, void 0, void 0, function () {
-            var resource, fileName, offset, worker, renameInfo, renameLocations, fileNameToResourceTextEditMap, edits, _i, renameLocations_1, renameLocation, resourceTextEdit;
+            var resource, fileName, offset, worker, renameInfo, renameLocations, edits, _i, renameLocations_1, renameLocation;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -967,21 +973,15 @@ var RenameAdapter = /** @class */ (function (_super) {
                         if (!renameLocations || model.isDisposed()) {
                             return [2 /*return*/];
                         }
-                        fileNameToResourceTextEditMap = {};
                         edits = [];
                         for (_i = 0, renameLocations_1 = renameLocations; _i < renameLocations_1.length; _i++) {
                             renameLocation = renameLocations_1[_i];
-                            if (!(renameLocation.fileName in fileNameToResourceTextEditMap)) {
-                                resourceTextEdit = {
-                                    edits: [],
-                                    resource: monaco.Uri.parse(renameLocation.fileName)
-                                };
-                                fileNameToResourceTextEditMap[renameLocation.fileName] = resourceTextEdit;
-                                edits.push(resourceTextEdit);
-                            }
-                            fileNameToResourceTextEditMap[renameLocation.fileName].edits.push({
-                                range: this._textSpanToRange(model, renameLocation.textSpan),
-                                text: newName
+                            edits.push({
+                                resource: monaco.Uri.parse(renameLocation.fileName),
+                                edit: {
+                                    range: this._textSpanToRange(model, renameLocation.textSpan),
+                                    text: newName
+                                }
                             });
                         }
                         return [2 /*return*/, { edits: edits }];
@@ -1044,12 +1044,12 @@ function getTypeScriptWorker() {
 }
 function setupMode(defaults, modeId) {
     var client = new _workerManager_js__WEBPACK_IMPORTED_MODULE_0__["WorkerManager"](modeId, defaults);
-    var worker = function (first) {
-        var more = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            more[_i - 1] = arguments[_i];
+    var worker = function () {
+        var uris = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            uris[_i] = arguments[_i];
         }
-        return client.getLanguageServiceWorker.apply(client, [first].concat(more));
+        return client.getLanguageServiceWorker.apply(client, uris);
     };
     monaco.languages.registerCompletionItemProvider(modeId, new _languageFeatures_js__WEBPACK_IMPORTED_MODULE_1__["SuggestAdapter"](worker));
     monaco.languages.registerSignatureHelpProvider(modeId, new _languageFeatures_js__WEBPACK_IMPORTED_MODULE_1__["SignatureHelpAdapter"](worker));

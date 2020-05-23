@@ -97,7 +97,7 @@
 				var addMethods = __webpack_require__(/*! ../../../../../workerize-loader/dist/rpc-wrapper.js */ "../node_modules/workerize-loader/dist/rpc-wrapper.js")
 				var methods = []
 				module.exports = function() {
-					var w = new Worker(__webpack_require__.p + "a674751d19d1430d7efd.worker.js", { name: "[hash].worker.js" })
+					var w = new Worker(__webpack_require__.p + "41b66d9949afae94efac.worker.js", { name: "[hash].worker.js" })
 					addMethods(w, methods)
 					
 					return w

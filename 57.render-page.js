@@ -72,12 +72,23 @@ var language = {
     escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
     tokenizer: {
         root: [
+            { include: '@whitespace' },
             { include: '@comment' },
             { include: '@attribute' },
             { include: '@literal' },
             { include: '@keyword' },
             { include: '@invokedmethod' },
             { include: '@symbol' },
+        ],
+        whitespace: [
+            [/\s+/, 'white'],
+            [/"""/, 'string.quote', '@endDblDocString']
+        ],
+        endDblDocString: [
+            [/[^"]+/, 'string'],
+            [/\\"/, 'string'],
+            [/"""/, 'string.quote', '@popall'],
+            [/"/, 'string']
         ],
         symbol: [
             [/[{}()\[\]]/, '@brackets'],
