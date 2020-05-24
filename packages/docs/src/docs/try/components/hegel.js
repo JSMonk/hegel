@@ -1,9 +1,13 @@
 import { parse } from "@babel/parser";
+import { ObjectType } from "@hegel/core/type-graph/types/object-type";
+import { GenericType } from "@hegel/core/type-graph/types/generic-type";
+import { FunctionType } from "@hegel/core/type-graph/types/function-type";
+import { THIS_TYPE, CONSTRUCTABLE } from "@hegel/core/type-graph/constants";
 import {
+  HegelError,
   VariableInfo,
   createModuleScope,
   createGlobalScope,
-  HegelError,
 } from "@hegel/core";
 
 let module = undefined;
@@ -16,8 +20,8 @@ const DEFAULT_OPTIONS = {
     "numericSeparator",
     "classPrivateMethods",
     "classPrivateProperties",
-    ["flow", { all: true }]
-  ]
+    ["flow", { all: true }],
+  ],
 };
 // eslint-disable-next-line
 const STANDARD_AST = parse(STD_LIB_CONTENT, STANDARD_LIB_OPTIONS);
@@ -27,10 +31,10 @@ export function getTypeByLocation(location) {
     return;
   }
   const varInfoOrType = module.getVarAtPosition(location);
-  if (varInfoOrType  === undefined) {
+  if (varInfoOrType === undefined) {
     return;
   }
-  return varInfoOrType instanceof VariableInfo 
+  return varInfoOrType instanceof VariableInfo
     ? varInfoOrType.type
     : varInfoOrType;
 }
@@ -82,22 +86,116 @@ export async function getDiagnostics(sourceCode) {
       true
     );
   } catch (e) {
-    const error = new HegelError(
-      `AnalyzationError: ${e.message}`,
-      {
-        start: {
-          line: 0,
-          column: 0,
-        },
-        end: {
-          line: Number.MAX_VALUE,
-          column: Number.MAX_VALUE,
-        }
-      }
-    )
+    const error = new HegelError(`AnalyzationError: ${e.message}`, {
+      start: {
+        line: 0,
+        column: 0,
+      },
+      end: {
+        line: Number.MAX_VALUE,
+        column: Number.MAX_VALUE,
+      },
+    });
     errors = [error];
   }
   return errors.map(toTransferableObject);
+}
+
+/**
+ * Summon and format completion items.
+ * @param {import("monaco-editor").languages.CompletionItemKind} completionItemKind
+ * @param {string} word - name of the variable before "." character.
+ * @param {import("monaco-editor").languages.CompletionTriggerKind} triggerKind
+ */
+export function summonCompletionItems(completionItemKind, word, triggerKind) {
+  if (module === undefined || module.body === undefined) {
+    return [];
+  }
+
+  const moduleTypes = [
+    ...module.body.entries(),
+    ...stdLibTypeGraph.body.entries(),
+  ];
+  const types =
+    triggerKind === 0 ? moduleTypes : narrowTypes(moduleTypes, word);
+
+  return types.map(([varName, varInfo]) => ({
+    label: varName,
+    kind: getCompletionKind(varInfo, completionItemKind),
+  }));
+}
+
+function narrowTypes(moduleTypes, word) {
+  const outerType = moduleTypes.find(([varName, varInfo]) => varName === word);
+  return outerType === null || outerType === undefined
+    ? []
+    : getVariableProperties(outerType[1].type);
+}
+
+function getVariableProperties(type) {
+  if (type === null || type === undefined) {
+    return [];
+  }
+  const currentTypeProperties =
+    type.properties !== undefined ? type.properties.entries() : [];
+  return [...currentTypeProperties, ...getVariableProperties(type.isSubtypeOf)];
+}
+
+/**
+ * Find type kind of variable.
+ */
+function getCompletionKind(
+  variableInfo,
+  completionItemKind,
+  isGeneric = false
+) {
+  const variableTypeProto = Reflect.getPrototypeOf(
+    isGeneric ? variableInfo.type.subordinateType : variableInfo.type
+  );
+  switch (variableTypeProto.constructor) {
+    case FunctionType:
+      return getFunctionKind(variableInfo, completionItemKind);
+    case ObjectType:
+      return getObjectKind(variableInfo, completionItemKind);
+    case GenericType:
+      return getCompletionKind(variableInfo, completionItemKind, true);
+    default:
+      return getPropertyKind(variableInfo, completionItemKind);
+  }
+}
+
+function getObjectKind(variableInfo, completionItemKind) {
+  return isVariableInstanceProperty(variableInfo)
+    ? completionItemKind.Field
+    : variableInfo.type.properties.has(CONSTRUCTABLE)
+    ? completionItemKind.Constructor
+    : variableInfo.type.classType === null
+    ? completionItemKind.Class
+    : getVariableKind(variableInfo, completionItemKind);
+}
+
+function getFunctionKind(variableInfo, completionItemKind) {
+  return isVariableInstanceProperty(variableInfo)
+    ? completionItemKind.Method
+    : completionItemKind.Function;
+}
+
+function getPropertyKind(variableInfo, completionItemKind) {
+  return isVariableInstanceProperty(variableInfo)
+    ? completionItemKind.Field
+    : getVariableKind(variableInfo, completionItemKind);
+}
+
+function getVariableKind(variableInfo, completionItemKind) {
+  return variableInfo.isConstant
+    ? completionItemKind.Constant
+    : completionItemKind.Variable;
+}
+
+function isVariableInstanceProperty(variableInfo) {
+  return (
+    variableInfo.parent !== null && variableInfo.parent.body.has(THIS_TYPE)
+  );
 }
 
 function toTransferableObject(error) {
@@ -105,7 +203,7 @@ function toTransferableObject(error) {
   return {
     message: error.message,
     source: error.source,
-    loc: loc && formatLoc(loc)
+    loc: loc && formatLoc(loc),
   };
 }
 
@@ -113,10 +211,10 @@ function formatLoc(loc) {
   return loc.start
     ? {
         start: { line: loc.start.line, column: loc.start.column },
-        end: { line: loc.end.line, column: loc.end.column }
+        end: { line: loc.end.line, column: loc.end.column },
       }
     : {
         start: { line: loc.line, column: loc.column },
-        end: { line: loc.line, column: loc.column + 1 }
+        end: { line: loc.line, column: loc.column + 1 },
       };
 }
