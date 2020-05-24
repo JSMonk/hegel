@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "scripts": {
+    "test": "yarn workspace @hegel/core test",
+    "build": "yarn build:core && yarn build:cli",
+    "build:core": "yarn workspace @hegel/core build",
+    "build:cli": "yarn workspace @hegel/cli build"
+  },
+  "workspaces": [
+    "packages/cli",
+    "packages/core",
+    "packages/docs",
+    "packages/language-server",
+    "_packages/typings"
+  ],
+  "dependencies": {
+    "flow-bin": "0.124.0"
+  }
+}

@@ -7,7 +7,7 @@
     "hegel": "./index.js"
   },
   "scripts": {
-    "build": "npm run build:check && npm run build:clean && npm run build:start",
+    "build": "yarn build:check && yarn build:clean && yarn build:start",
     "build:check": "flow",
     "build:start": "babel src -d build",
     "build:clean": "rm -rf build && mkdir build",

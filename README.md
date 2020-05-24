@@ -234,35 +234,32 @@ There are few separated packages in Hegel project:
 
 ## Building Hegel from source
 
-Hegel is written in JavaScript (Node.js 12 is required). Ensure that you have [Git](https://git-scm.com/downloads) and [Node.js 12](https://nodejs.org/en/) installed.
+You will need to install [Git](https://git-scm.com/downloads), nodejs, npm and yarn
 
-1. Clone the repo:
+it is HIGHLY RECOMMENDED to install nodejs (and npm) with [nvm](https://github.com/creationix/nvm) and then yarn with npm like so `npm -g i yarn`
 
-```sh
-$ git clone git@github.com:JSMonk/hegel.git
+required versions of sayed software are listed below
+
+```yaml
+node: ^12.16.3
+npm: ^6.14.4
+yarn: ^1.22.4
 ```
 
-2. Change to the @hegel/cli directory:
+Open Terminal and copy paste following commands
 
 ```sh
-$ cd hegel/packages/cli
-```
+# clone the repo
+git clone git@github.com:JSMonk/hegel.git
 
-3. Install dependencies
+# cd into the repo
+cd hegel
 
-```sh
-$ npm i
-```
+# install all dependencies 
+yarn
 
-4. That's all. You can build @hegel/cli:
-```sh
-npm run build
-```
-The resulting code will be compiled into the `build` directory.
-And you can debug it with default Node.js debugger:
-
-```sh
-node --inspect-brk ./build/index.js
+# build core and cli
+yarn build
 ```
 
 ## Tests
@@ -270,9 +267,9 @@ node --inspect-brk ./build/index.js
 Currently, all tests are written for [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core), so, if you will change code inside [@hegel/core](https://github.com/JSMonk/hegel/tree/master/packages/core) package, you can run tests by:
 
 ```sh
-npm run test
+yarn test
 ```
- 
+
 ## License
 
 Hegel is MIT-licensed ([LICENSE](https://github.com/JSMonk/hegel/blob/master/LICENSE)). 

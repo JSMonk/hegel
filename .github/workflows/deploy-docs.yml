@@ -21,8 +21,8 @@ jobs:
 
     - name: Build
       run: |
-        npm ci
-        npm run build
+        yarn
+        yarn build
       working-directory: packages/docs
 
     - name: Deploy
