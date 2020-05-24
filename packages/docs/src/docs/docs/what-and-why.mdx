@@ -43,13 +43,13 @@ You can see result in [Hegel Playground](/try#MYGwhgzhAEAiYBcwCFIFNoG8BQ1oCc1gB7
 
 ## Why Hegel?
 
-First of all, lets explore the main goals of Hegel:
+First of all, let's explore the main goals of Hegel:
 
 - Minimalistic type syntax
 - Strong type system
 - Powerful type inference
 
-But, we need to answer this question differently for different audiences. So, choose list item which describes your experience:
+But we need to answer this question differently for different audiences. So, choose list item which describes your experience:
 
 - [You have never worked with typed languages or type checkers](#why-actually-do-we-need-static-analysis)
 - [You work with TypeScript](#benefits-and-disadvantages-over-typescript)
@@ -60,7 +60,7 @@ But, we need to answer this question differently for different audiences. So, ch
 First of all, static analysis means that your code will be analyzed without actually running. So, static type analysis will analyze your code for any type of errors.
 
 Actually, there are 2 major benefits of static type analysis:
-1. Static type analysis finds and provides you information about a type error that exists in your code during code writing. It not only gives you guarantees that your code will work without runtime type errors but in addition, it really saves a lot of time for finding and fixing errors, especially in big projects that contain a really long build step.
+1. Static type analysis finds and provides to you information about a type error that exists in your code during code writing. It not only gives you guarantees that your code will work without runtime type errors but in addition, it really saves a lot of time for finding and fixing errors, especially in big projects that contain a really long build step.
 2. When you use an instrument that provides type information of your variables, functions, methods, classes and etc - you have got a documentation of method usage without any additional efforts.
 
 ```typescript
@@ -80,11 +80,11 @@ function deserializeUser(stringifiedUserJson) {
 const user = deserializeUser("42");
 ```
 
-If you open this example in [Hegel Playground](/try#GYVwdgxgLglg9mABAEwKYGdUCcYEMA2MAXqgKqZYAU6UOYA5jMDKsudgFLoICUiA3gChEiCAhqIAtrgCeAIzIVEAXkQcAygHkAcgDoADriyZqtGAyYs2FLrwDcwxE0SVHIqDP2o4wKbIXsWCrKqgBEcHIAVqjQoYgAZPFufvKK2IgAhCGIYCD4+AlJIiKhYLiSqHHmKQFKickeXj41aVi6ZRXBYTR09KGOfELFiFioUCBYSNKpgQ4iAL6OUAAWWHAA7jmomwAqnqgAolhrVKEACmsAbjBoyIgUeIQkdyBKMOhOYJcENxmhPA5FoI0A8fiRApRQgAWABM-zsQA) and hover at `deserializeUser` function invocation, then you will see arguments types of the function, return type of the function and which error this funcation may throw. And you've got it free.
+If you open this example in [Hegel Playground](/try#GYVwdgxgLglg9mABAEwKYGdUCcYEMA2MAXqgKqZYAU6UOYA5jMDKsudgFLoICUiA3gChEiCAhqIAtrgCeAIzIVEAXkQcAygHkAcgDoADriyZqtGAyYs2FLrwDcwxE0SVHIqDP2o4wKbIXsWCrKqgBEcHIAVqjQoYgAZPFufvKK2IgAhCGIYCD4+AlJIiKhYLiSqHHmKQFKickeXj41aVi6ZRXBYTR09KGOfELFiFioUCBYSNKpgQ4iAL6OUAAWWHAA7jmomwAqnqgAolhrVKEACmsAbjBoyIgUeIQkdyBKMOhOYJcENxmhPA5FoI0A8fiRApRQgAWABM-zsQA) and hover at `deserializeUser` function invocation, then you will see arguments types of the function, return type of the function and which error this function may throw. And you've got it free.
 
 ## Benefits and disadvantages over TypeScript
 
-If you familiar with TypeScript you may know benefits of static typing, so lets explore benefits and disadvantages of Hegel over TypeScript
+If you familiar with TypeScript you may know benefits of static typing, so let's explore benefits and disadvantages of Hegel over TypeScript
 
 ### Benefits
 
@@ -146,7 +146,7 @@ try {
 
 1. Minimal changes in JavaScript Syntax
 
-TypeScript provides a lot of additional syntax features and syntax sugar with types, but Hegel does not. Hegel is only a JavaScript with types. Lets see the example implemented in TypeScript and Hegel.
+TypeScript provides a lot of additional syntax features and syntax sugar with types, but Hegel does not. Hegel is only a JavaScript with types. Let's see the example implemented in TypeScript and Hegel.
 
 ```typescript
 // TypeScript
@@ -189,7 +189,7 @@ const Anatoly = new User("Anatoly", UserStatus.Active);
 
 2. No type coercion and "any" type
 
-As result of attempt to implement soundness type system Hegel doesn't have a type coercion and "any" type.
+As result of attempt to implement soundness type system Hegel doesn't have type coercion and "any" type.
 
 ```typescript
 // Error: There is no "any" type in Hegel.
@@ -201,7 +201,7 @@ const something: any = null;
 
 ## Benefits and disadvantages over Flow.js
 
-If you familiar with Flow.js you may know benefits of static typing, so lets explore benefits and disadvantages of Hegel over Flow.js
+If you familiar with Flow.js you may know benefits of static typing, so let's explore benefits and disadvantages of Hegel over Flow.js
 
 ### Benefits
 
@@ -245,7 +245,7 @@ try {
 
 3. No custom library definition language
 
-Flow.js has custom library definition languages and doesn't support the most popular TypeScript "d.ts" format. But for Hegel TypeScript "d.ts" it the only way to create type definition for library. So, every library which has TypeScript definitions should work with Hegel.
+Flow.js has custom library definition languages and doesn't support the most popular TypeScript "d.ts" format. But for Hegel TypeScript "d.ts" it is the only way to create the type definition for a library. So, every library which has TypeScript definitions should work with Hegel.
 
 4. No OCaml in source code
 
@@ -256,7 +256,7 @@ We decided to implement Hegel in JavaScript.
 
 1. No type coercion and "any" type
 
-As result of atempt to implement soundness type system Hegel doesn't have a type coercion and "any" type.
+As a result of attempting to implement soundness type system Hegel doesn't have type coercion and the "any" type.
 
 ```typescript
 // Error: There is no "any" type in Hegel.
