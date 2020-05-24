@@ -1,10 +1,10 @@
 exports.ids = [39];
 exports.modules = {
 
-/***/ "../node_modules/monaco-editor/esm/vs/basic-languages/powershell/powershell.js":
-/*!*************************************************************************************!*\
-  !*** ../node_modules/monaco-editor/esm/vs/basic-languages/powershell/powershell.js ***!
-  \*************************************************************************************/
+/***/ "../../../node_modules/monaco-editor/esm/vs/basic-languages/powershell/powershell.js":
+/*!****************************************************************************************************************!*\
+  !*** /home/runner/work/hegel/hegel/node_modules/monaco-editor/esm/vs/basic-languages/powershell/powershell.js ***!
+  \****************************************************************************************************************/
 /*! exports provided: conf, language */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 

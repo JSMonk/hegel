@@ -1,10 +1,10 @@
 exports.ids = [43];
 exports.modules = {
 
-/***/ "../node_modules/monaco-editor/esm/vs/basic-languages/razor/razor.js":
-/*!***************************************************************************!*\
-  !*** ../node_modules/monaco-editor/esm/vs/basic-languages/razor/razor.js ***!
-  \***************************************************************************/
+/***/ "../../../node_modules/monaco-editor/esm/vs/basic-languages/razor/razor.js":
+/*!******************************************************************************************************!*\
+  !*** /home/runner/work/hegel/hegel/node_modules/monaco-editor/esm/vs/basic-languages/razor/razor.js ***!
+  \******************************************************************************************************/
 /*! exports provided: conf, language */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 

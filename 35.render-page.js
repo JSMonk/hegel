@@ -1,10 +1,10 @@
 exports.ids = [35];
 exports.modules = {
 
-/***/ "../node_modules/monaco-editor/esm/vs/basic-languages/pgsql/pgsql.js":
-/*!***************************************************************************!*\
-  !*** ../node_modules/monaco-editor/esm/vs/basic-languages/pgsql/pgsql.js ***!
-  \***************************************************************************/
+/***/ "../../../node_modules/monaco-editor/esm/vs/basic-languages/pgsql/pgsql.js":
+/*!******************************************************************************************************!*\
+  !*** /home/runner/work/hegel/hegel/node_modules/monaco-editor/esm/vs/basic-languages/pgsql/pgsql.js ***!
+  \******************************************************************************************************/
 /*! exports provided: conf, language */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 

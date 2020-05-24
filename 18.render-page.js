@@ -1,10 +1,10 @@
 exports.ids = [18];
 exports.modules = {
 
-/***/ "../node_modules/monaco-editor/esm/vs/basic-languages/go/go.js":
-/*!*********************************************************************!*\
-  !*** ../node_modules/monaco-editor/esm/vs/basic-languages/go/go.js ***!
-  \*********************************************************************/
+/***/ "../../../node_modules/monaco-editor/esm/vs/basic-languages/go/go.js":
+/*!************************************************************************************************!*\
+  !*** /home/runner/work/hegel/hegel/node_modules/monaco-editor/esm/vs/basic-languages/go/go.js ***!
+  \************************************************************************************************/
 /*! exports provided: conf, language */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 

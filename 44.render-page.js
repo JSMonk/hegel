@@ -1,10 +1,10 @@
 exports.ids = [44];
 exports.modules = {
 
-/***/ "../node_modules/monaco-editor/esm/vs/basic-languages/redis/redis.js":
-/*!***************************************************************************!*\
-  !*** ../node_modules/monaco-editor/esm/vs/basic-languages/redis/redis.js ***!
-  \***************************************************************************/
+/***/ "../../../node_modules/monaco-editor/esm/vs/basic-languages/redis/redis.js":
+/*!******************************************************************************************************!*\
+  !*** /home/runner/work/hegel/hegel/node_modules/monaco-editor/esm/vs/basic-languages/redis/redis.js ***!
+  \******************************************************************************************************/
 /*! exports provided: conf, language */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 

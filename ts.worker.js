@@ -81,23 +81,23 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "../node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js");
+/******/ 	return __webpack_require__(__webpack_require__.s = "../../../node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ "../node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js":
-/*!*****************************************************************************!*\
-  !*** ../node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js ***!
-  \*****************************************************************************/
+/***/ "../../../node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js":
+/*!********************************************************************************************************!*\
+  !*** /home/runner/work/hegel/hegel/node_modules/monaco-editor/esm/vs/language/typescript/ts.worker.js ***!
+  \********************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 
-				var addMethods = __webpack_require__(/*! ../../../../../workerize-loader/dist/rpc-wrapper.js */ "../node_modules/workerize-loader/dist/rpc-wrapper.js")
+				var addMethods = __webpack_require__(/*! ../../../../../workerize-loader/dist/rpc-wrapper.js */ "../../../node_modules/workerize-loader/dist/rpc-wrapper.js")
 				var methods = []
 				module.exports = function() {
-					var w = new Worker(__webpack_require__.p + "731034359d06e19714e2.worker.js", { name: "[hash].worker.js" })
+					var w = new Worker(__webpack_require__.p + "c692af68aff63f7ebb1a.worker.js", { name: "[hash].worker.js" })
 					addMethods(w, methods)
 					
 					return w
@@ -106,10 +106,10 @@
 
 /***/ }),
 
-/***/ "../node_modules/workerize-loader/dist/rpc-wrapper.js":
-/*!************************************************************!*\
-  !*** ../node_modules/workerize-loader/dist/rpc-wrapper.js ***!
-  \************************************************************/
+/***/ "../../../node_modules/workerize-loader/dist/rpc-wrapper.js":
+/*!***************************************************************************************!*\
+  !*** /home/runner/work/hegel/hegel/node_modules/workerize-loader/dist/rpc-wrapper.js ***!
+  \***************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
