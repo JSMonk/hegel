@@ -22,8 +22,8 @@ jobs:
     - name: Build
       run: |
         yarn
-        yarn build
-      working-directory: packages/docs
+        yarn build:core
+        yarn build:docs
 
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@releases/v3
