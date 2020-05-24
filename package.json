@@ -3,6 +3,7 @@
   "scripts": {
     "test": "yarn workspace @hegel/core test",
     "build": "yarn build:core && yarn build:cli",
+    "build:docs": "yarn workspace @hegel/docs build",
     "build:core": "yarn workspace @hegel/core build",
     "build:cli": "yarn workspace @hegel/cli build"
   },
