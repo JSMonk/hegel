@@ -3,16 +3,18 @@
   "author": "Artem Kobzar",
   "version": "0.0.43",
   "description": "",
-  "main": "index.js",
+  "main": "build/index.js",
+  "files": [
+    "build/*",
+    "README.md"
+  ],
   "scripts": {
-    "prebuild": "npm run build:clean",
-    "build": "babel src -d build",
-    "build:watch": "babel src -d build -w",
-    "postbuild": "npm run build:copy",
-    "build:dev": "npm run build -- -s",
-    "build:copy": "cp ./package.json ./build/package.json && cp ./src/index.d.ts ./build/index.d.ts && cp ../../README.md ./build/README.md",
-    "build:clean": "rm -rf build && mkdir build",
-    "pretest": "npm run build",
+    "prebuild": "yarn build:clean",
+    "build": "babel src --out-dir build --copy-files",
+    "build:watch": "yarn build -- --watch",
+    "build:dev": "yarn build -- --source-maps",
+    "build:clean": "rm -rf build",
+    "pretest": "yarn build",
     "test": "jest"
   },
   "license": "MIT",
@@ -31,7 +33,6 @@
     "babel-jest": "^25.1.0",
     "babel-plugin-syntax-flow": "^6.18.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
-    "flow-bin": "^0.124.0",
     "jest": "^25.1.0"
   }
 }
