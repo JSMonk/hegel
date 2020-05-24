@@ -11,7 +11,7 @@
     "build:check": "node ./build/index.js",
     "build:start": "babel src -d build --config-file ./.babelrc",
     "build:clean": "rm -rf build && mkdir build",
-    "build:copy": "cp ./package.json ./build/package.json"
+    "build:copy": "cp ./package.json ./build/package.json && cp ../../README.md ./build/README.md"
   },
   "author": "Artem Kobzar",
   "license": "MIT",

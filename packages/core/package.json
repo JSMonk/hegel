@@ -7,9 +7,10 @@
   "scripts": {
     "prebuild": "npm run build:clean",
     "build": "babel src -d build",
+    "build:watch": "babel src -d build -w",
     "postbuild": "npm run build:copy",
     "build:dev": "npm run build -- -s",
-    "build:copy": "cp ./package.json ./build/package.json && cp ./src/index.d.ts ./build/index.d.ts",
+    "build:copy": "cp ./package.json ./build/package.json && cp ./src/index.d.ts ./build/index.d.ts && cp ../../README.md ./build/README.md",
     "build:clean": "rm -rf build && mkdir build",
     "pretest": "npm run build",
     "test": "jest"
