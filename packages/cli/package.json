@@ -4,14 +4,17 @@
   "description": "",
   "main": "index.js",
   "bin": {
-    "hegel": "./index.js"
+    "hegel": "./build/index.js"
   },
+  "files": [
+    "build/*",
+    "README.md"
+  ],
   "scripts": {
-    "build": "npm run build:clean && npm run build:start && npm run build:copy",
+    "build": "yarn build:clean && yarn build:start",
     "build:check": "node ./build/index.js",
-    "build:start": "babel src -d build --config-file ./.babelrc",
-    "build:clean": "rm -rf build && mkdir build",
-    "build:copy": "cp ./package.json ./build/package.json"
+    "build:start": "babel src --out-dir build --copy-files --config-file ./.babelrc",
+    "build:clean": "rm -rf build"
   },
   "author": "Artem Kobzar",
   "license": "MIT",
