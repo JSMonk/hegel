@@ -1,11 +1,11 @@
-const { ObjectType } = require("@hegel/core/type-graph/types/object-type");
-const { GenericType } = require("@hegel/core/type-graph/types/generic-type");
-const { FunctionType } = require("@hegel/core/type-graph/types/function-type");
+const { ObjectType } = require("@hegel/core/build/type-graph/types/object-type");
+const { GenericType } = require("@hegel/core/build/type-graph/types/generic-type");
+const { FunctionType } = require("@hegel/core/build/type-graph/types/function-type");
 const { CompletionItemKind } = require("vscode-languageserver");
 const {
   THIS_TYPE,
   CONSTRUCTABLE,
-} = require("@hegel/core/type-graph/constants");
+} = require("@hegel/core/build/type-graph/constants");
 
 /**
  * Find type kind of variable.

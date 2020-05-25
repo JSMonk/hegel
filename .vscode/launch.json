@@ -16,7 +16,7 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}/client/client.js",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"]
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages/language-server"]
     },
     {
       "name": "Extension Tests",
@@ -24,8 +24,8 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}/client/client.js",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/test"
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/language-server",
+        "--extensionTestsPath=${workspaceFolder}/packages/language-server/test"
       ]
     }
   ]
