@@ -8,15 +8,15 @@ At current time it can:
 
 - [x]: show diagnostic information.
 
-![Diagonstics](packages/language-server/images/diagnostics.png)
+![Diagonstics](images/diagnostics.png)
 
 - [x]: show information on hovering an element.
 
-![Hover](packages/language-server/images/hover.png)
+![Hover](images/hover.png)
 
 - [x]: autocomplete variables on typing.
 
-![Autocompletion](packages/language-server/images/autocompletion.png)
+![Autocompletion](images/autocompletion.png)
 
 ## Extension Settings
 

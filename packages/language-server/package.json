@@ -1,5 +1,5 @@
 {
-  "name": "@hegel/language-server",
+  "name": "hegel-language-server",
   "displayName": "Hegel",
   "description": "Language server for Hegel Type Checker",
   "version": "0.0.43",
@@ -7,7 +7,7 @@
     "vscode": "^1.31.0"
   },
   "publisher": "JSMonk",
-  "icon": "packages/language-server/images/logo.png",
+  "icon": "images/logo.png",
   "categories": [
     "Programming Languages",
     "Linters"
@@ -55,7 +55,8 @@
     ]
   },
   "scripts": {
-    "test": "No tests defined yet."
+    "test": "No tests defined yet.",
+    "compile": "vsce package --yarn"
   },
   "devDependencies": {
     "@types/mocha": "^7.0.2",
