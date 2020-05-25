@@ -1,10 +1,10 @@
-const createTypeGraph = require("../build/type-graph/type-graph").default;
-const { Type } = require("../build/type-graph/types/type");
-const { prepareAST } = require("./preparation");
-const { ObjectType } = require("../build/type-graph/types/object-type");
-const { GenericType } = require("../build/type-graph/types/generic-type");
-const { FunctionType } = require("../build/type-graph/types/function-type");
-const { CollectionType } = require("../build/type-graph/types/collection-type");
+import createTypeGraph from "../src/type-graph/type-graph";
+import { Type } from "../src/type-graph/types/type";
+import { prepareAST } from "./preparation";
+import { ObjectType } from "../src/type-graph/types/object-type";
+import { GenericType } from "../src/type-graph/types/generic-type";
+import { FunctionType } from "../src/type-graph/types/function-type";
+import { CollectionType } from "../src/type-graph/types/collection-type";
 
 describe("TypeScript type defitions", () => {
   describe("Simple defitions", () => {

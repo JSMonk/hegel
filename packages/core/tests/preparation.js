@@ -1,7 +1,7 @@
-const fs = require("fs");
-const path = require("path");
-const babylon = require("@babel/parser");
-const { createModuleScope } = require("../build/type-graph/type-graph");
+import fs from "fs";
+import path from "path";
+import { parse } from "@babel/parser";
+import { createModuleScope } from "../src/type-graph/type-graph"
 
 const babelrc = {
   sourceType: "module",
@@ -19,11 +19,11 @@ const libsFile = fs.readFileSync(
   "utf-8"
 );
 
-exports.prepareAST = (source, isTypeDefinitions) =>
-  babylon.parse(source, isTypeDefinitions ? definitionsRc : babelrc);
+export const prepareAST = (source, isTypeDefinitions) =>
+  parse(source, isTypeDefinitions ? definitionsRc : babelrc);
 
-exports.mixTypeDefinitions = () => {
-  const definitionsAST = exports.prepareAST(libsFile, true);
+export const mixTypeDefinitions = () => {
+  const definitionsAST = prepareAST(libsFile, true);
   return async globalScope => {
     const errors = [];
     const typingsScope = await createModuleScope(

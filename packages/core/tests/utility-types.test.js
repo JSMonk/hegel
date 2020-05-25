@@ -1,11 +1,7 @@
-const createTypeGraph = require("../build/type-graph/type-graph").default;
-const { Type } = require("../build/type-graph/types/type");
-const { ObjectType } = require("../build/type-graph/types/object-type");
-const {
-  prepareAST,
-  getModuleAST,
-  mixTypeDefinitions
-} = require("./preparation");
+import createTypeGraph from "../src/type-graph/type-graph";
+import { Type } from "../src/type-graph/types/type";
+import { ObjectType } from "../src/type-graph/types/object-type";
+import { prepareAST, getModuleAST, mixTypeDefinitions } from "./preparation";
 
 describe("Test $PropertyType", () => {
   test("Simple test of object property", async () => {

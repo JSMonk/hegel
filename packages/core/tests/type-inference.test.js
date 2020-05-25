@@ -1,21 +1,15 @@
-const HegelError = require("../build/utils/errors").default;
-const createTypeGraph = require("../build/type-graph/type-graph").default;
-const { Type } = require("../build/type-graph/types/type");
-const { TypeVar } = require("../build/type-graph/types/type-var");
-const { TupleType } = require("../build/type-graph/types/tuple-type");
-const { UnionType } = require("../build/type-graph/types/union-type");
-const { ObjectType } = require("../build/type-graph/types/object-type");
-const { GenericType } = require("../build/type-graph/types/generic-type");
-const { FunctionType } = require("../build/type-graph/types/function-type");
-const {
-  $Refinemented
-} = require("../build/type-graph/types/refinemented-type");
-const { CollectionType } = require("../build/type-graph/types/collection-type");
-const {
-  prepareAST,
-  getModuleAST,
-  mixTypeDefinitions
-} = require("./preparation");
+import HegelError from "../src/utils/errors";
+import createTypeGraph from "../src/type-graph/type-graph";
+import { Type } from "../src/type-graph/types/type";
+import { TypeVar } from "../src/type-graph/types/type-var";
+import { TupleType } from "../src/type-graph/types/tuple-type";
+import { UnionType } from "../src/type-graph/types/union-type";
+import { ObjectType } from "../src/type-graph/types/object-type";
+import { GenericType } from "../src/type-graph/types/generic-type";
+import { FunctionType } from "../src/type-graph/types/function-type";
+import { $Refinemented } from "../src/type-graph/types/refinemented-type";
+import { CollectionType } from "../src/type-graph/types/collection-type";
+import { prepareAST, getModuleAST, mixTypeDefinitions } from "./preparation";
 
 describe("Simple inference for module variables by literal", () => {
   test("Inference global module constant with number type", async () => {

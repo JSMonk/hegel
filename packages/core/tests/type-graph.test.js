@@ -1,18 +1,14 @@
-const HegelError = require("../build/utils/errors").default;
-const createTypeGraph = require("../build/type-graph/type-graph").default;
-const { Type } = require("../build/type-graph/types/type");
-const { UnionType } = require("../build/type-graph/types/union-type");
-const { ObjectType } = require("../build/type-graph/types/object-type");
-const { GenericType } = require("../build/type-graph/types/generic-type");
-const { VariableInfo } = require("../build/type-graph/variable-info");
-const { FunctionType } = require("../build/type-graph/types/function-type");
-const { CollectionType } = require("../build/type-graph/types/collection-type");
-const { CONSTRUCTABLE } = require("../build/type-graph/constants");
-const {
-  prepareAST,
-  getModuleAST,
-  mixTypeDefinitions
-} = require("./preparation");
+import HegelError from "../src/utils/errors";
+import createTypeGraph from "../src/type-graph/type-graph";
+import { Type } from "../src/type-graph/types/type";
+import { UnionType } from "../src/type-graph/types/union-type";
+import { ObjectType } from "../src/type-graph/types/object-type";
+import { GenericType } from "../src/type-graph/types/generic-type";
+import { VariableInfo } from "../src/type-graph/variable-info";
+import { FunctionType } from "../src/type-graph/types/function-type";
+import { CollectionType } from "../src/type-graph/types/collection-type";
+import { CONSTRUCTABLE } from "../src/type-graph/constants";
+import { prepareAST, getModuleAST, mixTypeDefinitions } from "./preparation";
 
 describe("Simple global variable nodes", () => {
   test("Creating global module variable with number type", async () => {
