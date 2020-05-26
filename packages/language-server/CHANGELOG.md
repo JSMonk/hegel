@@ -1,7 +1,18 @@
-# Change Log
-All notable changes to the "hegel-language-server" extension will be documented in this file.
+# Changelog
+All notable changes to this project will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Initial release
+- Extension settings.
+- Detailed informaion of completion items.
+- Autoimport.
+- Suggestion of types that are exported from other modules.
+- Trey icon and status.
+
+## [0.0.43] - 2020-05-25
+### Added
+- Types validation.
+- Hover.
+- Autocompletion.

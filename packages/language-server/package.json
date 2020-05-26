@@ -1,15 +1,21 @@
 {
-  "name": "@hegel/language-server",
+  "name": "hegel-language-server",
   "displayName": "Hegel",
   "description": "Language server for Hegel Type Checker",
   "version": "0.0.43",
   "engines": {
     "vscode": "^1.31.0"
   },
+  "publisher": "JSMonk",
+  "icon": "images/logo.png",
   "categories": [
     "Programming Languages",
     "Linters"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JSMonk/hegel"
+  },
   "activationEvents": [
     "onLanguage:javascript",
     "workspaceContains:**/.hegelrc"
@@ -49,15 +55,17 @@
     ]
   },
   "scripts": {
-    "test": "No tests defined yet."
+    "test": "No tests defined yet.",
+    "compile": "vsce package --yarn"
   },
   "devDependencies": {
     "@types/mocha": "^7.0.2",
     "@types/node": "^13.13.2",
     "@types/vscode": "1.14.0",
-    "vscode-test": "1.3.0",
     "eslint": "^6.8.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "vsce": "^1.75.0",
+    "vscode-test": "1.3.0"
   },
   "dependencies": {
     "@babel/parser": "^7.9.4",

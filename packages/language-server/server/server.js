@@ -35,7 +35,7 @@ function onDidChange(change) {
   timeoutId = setTimeout(async () => {
     const diagnostics = await validateTextDocument(change.document);
     connection.sendDiagnostics(diagnostics);
-  }, 200);
+  }, 100);
 }
 
 connection.onHover(onHover);
