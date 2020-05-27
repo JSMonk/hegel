@@ -1,11 +1,7 @@
-const HegelError = require("../build/utils/errors").default;
-const createTypeGraph = require("../build/type-graph/type-graph").default;
-const { Type } = require("../build/type-graph/types/type");
-const {
-  prepareAST,
-  mixTypeDefinitions,
-  getModuleAST
-} = require("./preparation");
+import HegelError from "../src/utils/errors";
+import createTypeGraph from "../src/type-graph/type-graph";
+import { Type } from "../src/type-graph/types/type";
+import { prepareAST, mixTypeDefinitions, getModuleAST } from "./preparation";
 
 describe("Variable declrataion and assignment", () => {
   test("Simple typed const declaration with number literal type", async () => {
