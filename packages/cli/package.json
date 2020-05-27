@@ -11,10 +11,14 @@
     "README.md"
   ],
   "scripts": {
-    "build": "yarn build:clean && yarn build:start",
-    "build:check": "node ./build/index.js",
-    "build:start": "babel src --out-dir build --copy-files --config-file ./.babelrc",
-    "build:clean": "rm -rf build"
+    "prebuild": "yarn build:clean",
+    "build": "babel src --out-dir build --copy-files --config-file ./.babelrc",
+    "build:watch": "yarn build -- --watch",
+    "build:dev": "yarn build -- --source-maps",
+    "build:clean": "rm -rf build",
+    "pretest": "yarn build",
+    "test": "yarn hegel",
+    "hegel": "node ./build/index.js"
   },
   "author": "Artem Kobzar",
   "license": "MIT",
