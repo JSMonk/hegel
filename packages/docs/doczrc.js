@@ -42,5 +42,9 @@ export default {
     },
     "Configuration",
     "Libraries",
+    {
+      name: "For Potential Contributors",
+      menu: ["Architecture Overview"]
+    }
   ]
 };
