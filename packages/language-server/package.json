@@ -1,5 +1,5 @@
 {
-  "name": "hegel-language-server",
+  "name": "@hegel/language-server",
   "displayName": "Hegel",
   "description": "Language server for Hegel Type Checker",
   "version": "0.0.45",
