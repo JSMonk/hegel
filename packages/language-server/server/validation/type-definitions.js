@@ -1,4 +1,3 @@
-const path = require("path");
 const { ModuleScope } = require("@hegel/core");
 const { getBabylonAST } = require("../utils/document-ast");
 const { createModuleScope } = require("@hegel/core");
@@ -69,10 +68,7 @@ function mixSomeTypeDefinitions(globalScope, additionalTypeGraph) {
 
 async function getStandardTypeDefinitions(globalScope) {
   stdLibTypeGraph = await getTypeGraphFor(
-    path.join(
-      __dirname,
-      "../../node_modules/@hegel/typings/standard/index.d.ts"
-    ),
+    require.resolve("@hegel/typings/standard/index.d.ts"),
     globalScope
   );
   return stdLibTypeGraph;
@@ -80,10 +76,7 @@ async function getStandardTypeDefinitions(globalScope) {
 
 async function getNodeJSTypeDefinitions(globalScope) {
   nodeJsGlobalTypeGraph = await getTypeGraphFor(
-    path.join(
-      __dirname,
-      "../../node_modules/@hegel/typings/nodejs/globals.d.ts"
-    ),
+    require.resolve("@hegel/typings/nodejs/globals.d.ts"),
     globalScope
   );
   return nodeJsGlobalTypeGraph;
@@ -91,10 +84,7 @@ async function getNodeJSTypeDefinitions(globalScope) {
 
 async function getBrowserTypeDefinitions(globalScope) {
   browserGlobalTypeGraph = await getTypeGraphFor(
-    path.join(
-      __dirname,
-      "../../node_modules/@hegel/typings/browser/index.d.ts"
-    ),
+    require.resolve("@hegel/typings/browser/index.d.ts"),
     globalScope
   );
   return browserGlobalTypeGraph;
