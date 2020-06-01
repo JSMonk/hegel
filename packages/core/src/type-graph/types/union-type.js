@@ -1,11 +1,11 @@
 // @flow
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
+import { ObjectType } from "./object-type";
 import type { TypeMeta } from "./type";
 import type { TypeScope } from "../type-scope";
 import type { $BottomType } from "./bottom-type";
 
-// $FlowIssue
 export class UnionType extends Type {
   static Boolean = new UnionType("boolean", {}, [Type.True, Type.False]);
 
@@ -88,6 +88,7 @@ export class UnionType extends Type {
     return (
       "subordinateMagicType" in variant ||
       variant instanceof TypeVar ||
+      variant instanceof ObjectType ||
       variant === Type.Unknown
     );
   }

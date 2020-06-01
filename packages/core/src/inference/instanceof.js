@@ -50,7 +50,6 @@ function instanceofIdentifier(
   if (type === Type.Unknown || !(type instanceof UnionType)) {
     return [targetNode.name, constructor, type];
   }
-  // $FlowIssue
   const [refinementedVariants, alternateVariants] = type.variants.reduce(
     ([refinementedVariants, alternateVariants], variant) =>
       constructor.isPrincipalTypeFor(variant)
