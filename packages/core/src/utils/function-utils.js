@@ -86,6 +86,9 @@ export function addFunctionToTypeGraph(
     name
   ): any);
   variableInfo.isInferenced = currentNode.returnType === undefined;
+  variableInfo.meta.isAnonymous =
+    currentNode.type !== NODE.FUNCTION_DECLARATION &&
+    currentNode.type !== NODE.TS_FUNCTION_DECLARATION;
   const currentTypeScope = findNearestTypeScope(
     variableInfo.parent,
     moduleScope

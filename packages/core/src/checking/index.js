@@ -89,10 +89,20 @@ function isValidTypes(
     ) {
       return declaratedRootType.equalsTo(actualRootType);
     }
+    const isAssignment =
+      targetName === "return" || targetName === "init" || targetName === "=";
     if (
-      targetName === "return" ||
-      targetName === "init" ||
-      targetName === "=" ||
+      (declaratedRootType instanceof FunctionType ||
+        (declaratedRootType instanceof GenericType &&
+          declaratedRootType.subordinateType instanceof FunctionType)) &&
+      isAssignment &&
+      actual instanceof VariableInfo &&
+      !actual.meta.isAnonymous
+    ) {
+      return declaratedRootType.equalsTo(actualRootType);
+    }
+    if (
+      isAssignment ||
       (declaratedRootType.parent.priority >= TypeScope.MODULE_SCOPE_PRIORITY &&
         isReachableType(declaratedRootType, typeScope))
     ) {

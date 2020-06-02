@@ -8,10 +8,10 @@ const ZeroLocation: SourceLocation = {
 
 export class Meta {
   loc: SourceLocation;
-  changed: boolean;
+  changed: boolean = false;
+  isAnonymous: boolean = false;
 
   constructor(loc: SourceLocation = ZeroLocation) {
     this.loc = loc;
-    this.changed = false;
   }
 }
