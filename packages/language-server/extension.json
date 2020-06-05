@@ -1,0 +1,60 @@
+{
+  "name": "hegel-language-server",
+  "displayName": "Hegel",
+  "description": "Language server for Hegel Type Checker",
+  "version": "0.0.43",
+  "engines": {
+    "vscode": "^1.31.0"
+  },
+  "publisher": "JSMonk",
+  "icon": "images/logo.png",
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JSMonk/hegel"
+  },
+  "activationEvents": [
+    "onLanguage:javascript",
+    "workspaceContains:**/.hegelrc"
+  ],
+  "main": "./client.js",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Client configuration",
+      "properties": {
+        "hegelLanguageServer.maxNumberOfProblems": {
+          "type": "number",
+          "default": 100,
+          "description": "Controls the maximum number of problems produced by the server."
+        },
+        "hegelLanguageServer.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VSCode and the hegelLanguageServer service."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "javascript",
+        "extensions": [
+          ".js",
+          ".cjs",
+          ".mjs"
+        ]
+      }
+    ]
+  },
+  "dependencies": {
+    "@hegel/typings": "*"
+  }
+}

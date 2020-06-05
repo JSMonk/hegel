@@ -1,0 +1,10 @@
+{
+  "sourceType": "module",
+  "presets": [
+    ["@babel/preset-env", { "targets": { "node": "current" }, "modules": false }],
+    "@babel/preset-flow"
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-class-properties"
+  ]
+}
