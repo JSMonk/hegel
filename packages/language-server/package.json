@@ -15,8 +15,7 @@
     "build:copy:typings": "mkdir -p build/node_modules/@hegel; cp -r $(node -e 'process.stdout.write(require(\"path\").dirname(require.resolve(\"@hegel/typings\")))') build/node_modules/@hegel/typings",
     "build:copy:readme": "cp -r README.md build/README.md",
     "build:package": "cd build; vsce package",
-    "build:install": "code --install-extension ./build/*.vsix",
-    "test": "No tests defined yet."
+    "build:install": "code --install-extension ./build/*.vsix"
   },
   "devDependencies": {
     "@rollup/plugin-babel": "^5.0.2",
