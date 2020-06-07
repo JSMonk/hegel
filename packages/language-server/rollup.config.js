@@ -36,17 +36,10 @@ export default [
     output: {
       ...base.output,
       file: 'build/server.js',
-    },
-    plugins: [
-      replace({ 
-        'require.resolve': 'require_resolve',
-      }),
-      ...base.plugins,
-      {
-        renderChunk (code) {
-          return 'var require_resolve = require.resolve.bind(require);\n' + code;
-        }
-      }
-    ]
+      plugins: [
+        // workaround bug in @rollup/plugin-commonjs see https://github.com/rollup/plugins/issues/406
+        replace({ 'commonjsRequire.resolve': 'require.resolve' })
+      ]
+    }
   }
 ];
