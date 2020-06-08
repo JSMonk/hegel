@@ -1,3 +1,4 @@
+import { $Not } from "../type-graph/types/not-type";
 import { $Keys } from "../type-graph/types/keys-type";
 import { $Pick } from "../type-graph/types/pick-type";
 import { $Omit } from "../type-graph/types/omit-type";
@@ -43,7 +44,8 @@ const mixUtilityTypes = moduleScope => {
     ["$Soft", new $Soft($Soft.name, { parent: typeScope })],
     ["$Strict", new $Strict($Strict.name, { parent: typeScope })],
     ["$Class", new $Class($Class.name, { parent: typeScope })],
-    ["$Exclude", new $Exclude($Exclude.name, { parent: typeScope })]
+    ["$Exclude", new $Exclude($Exclude.name, { parent: typeScope })],
+    ["$Not", new $Not($Not.name, { parent: typeScope })]
   ]);
   for (const [name, type] of utilityTypes) {
     typeScope.body.set(name, type);

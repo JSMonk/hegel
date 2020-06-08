@@ -313,10 +313,11 @@ export function getTypeFromTypeAnnotation(
       );
     case NODE.TYPE_PARAMETER:
     case NODE.TS_TYPE_PARAMETER:
+      const constraintNode = typeNode.typeAnnotation.bound || typeNode.typeAnnotation.constraint;
       const constraint =
-        typeNode.typeAnnotation.bound &&
+        constraintNode &&
         getTypeFromTypeAnnotation(
-          typeNode.typeAnnotation.bound,
+          constraintNode.typeAnnotation ? constraintNode : { typeAnnotation: constraintNode },
           typeScope,
           currentScope,
           false,

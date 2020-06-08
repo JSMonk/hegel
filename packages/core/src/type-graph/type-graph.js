@@ -10,15 +10,15 @@ import HegelError, { UnreachableError } from "../utils/errors";
 import { Type } from "./types/type";
 import { Meta } from "./meta/meta";
 import { TypeVar } from "./types/type-var";
+import { UnionType } from "./types/union-type";
 import { TypeScope } from "./type-scope";
 import { refinement } from "../inference/refinement";
-import { UnionType } from "./types/union-type";
-import { IgnorableArray } from "../utils/ignore";
 import { ObjectType } from "./types/object-type";
 import { GenericType } from "./types/generic-type";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { VariableScope } from "./variable-scope";
+import { IgnorableArray } from "../utils/ignore";
 import { getVariableType } from "../utils/variable-utils";
 import { addVariableToGraph } from "../utils/variable-utils";
 import { findUnhandledCases } from "../inference/switch-refinement";
@@ -112,6 +112,7 @@ const addTypeAlias = (
     genericArguments != undefined
       ? GenericType.getName(typeName, genericArguments)
       : undefined;
+
   const type = getTypeFromTypeAnnotation(
     getAliasBody(node),
     localTypeScope,

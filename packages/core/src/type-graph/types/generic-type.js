@@ -14,9 +14,13 @@ export class GenericType<T: Type> extends Type {
   }
 
   static new(name: mixed, meta?: TypeMeta = {}, ...args: Array<any>) {
-    const [, localTypeScope, subordinateType] = args;
+    const [genericArguments, localTypeScope, subordinateType] = args;
     const declaratedParent = meta.parent || Type.GlobalTypeScope;
-    const subordinateParent = subordinateType.getNextParent(localTypeScope);
+    const subordinateParent = this.getParent(
+      genericArguments,
+      localTypeScope,
+      subordinateType
+    );
     const parent =
       declaratedParent.priority > subordinateParent.priority
         ? declaratedParent
@@ -25,16 +29,31 @@ export class GenericType<T: Type> extends Type {
   }
 
   static term(name: mixed, meta?: TypeMeta = {}, ...args: Array<any>) {
-    const [, localTypeScope, subordinateType] = args;
+    const [genericArguments, localTypeScope, subordinateType] = args;
     const declaratedParent = meta.parent || Type.GlobalTypeScope;
-    const subordinateParent = subordinateType.getNextParent(
-      localTypeScope.priority
+    const subordinateParent = this.getParent(
+      genericArguments,
+      localTypeScope,
+      subordinateType
     );
     const parent =
       declaratedParent.priority > subordinateParent.priority
         ? declaratedParent
         : subordinateParent;
     return super.term(name, { ...meta, parent }, ...args);
+  }
+
+  static getParent(
+    genericArguments: Array<TypeVar>,
+    localTypeScope: TypeScope,
+    subordinateType: Type
+  ) {
+    const minLocalTypeScope = genericArguments.reduce(
+      (scope, type) =>
+        scope.priority > type.parent.priority ? type.parent : scope,
+      localTypeScope
+    );
+    return subordinateType.getNextParent(minLocalTypeScope);
   }
 
   static getNameWithoutApplying(name: mixed) {
@@ -74,6 +93,7 @@ export class GenericType<T: Type> extends Type {
   genericArguments: Array<TypeVar>;
   subordinateType: T;
   localTypeScope: TypeScope;
+  canBeNested: boolean = true;
 
   constructor(
     name: string,
@@ -85,7 +105,17 @@ export class GenericType<T: Type> extends Type {
     super(name, meta);
     this.subordinateType = type;
     this.localTypeScope = typeScope;
-    this.genericArguments = genericArguments;
+    this.genericArguments = genericArguments.map(param => {
+      if (
+        param.constraint != undefined &&
+        "not" in param.constraint &&
+        TypeVar.isSelf(param.constraint.not)
+      ) {
+        this.canBeNested = false;
+        param.constraint = undefined;
+      }
+      return param;
+    });
   }
 
   isSuperTypeFor(anotherType: Type) {
@@ -252,8 +282,16 @@ export class GenericType<T: Type> extends Type {
   ): T {
     this.assertParameters(appliedParameters, loc);
     let isBottomPresented = false;
+    let nestedInside = null;
     const parameters: Array<Type> = this.genericArguments.map((t, i) => {
       const appliedType = appliedParameters[i];
+      if (
+        !this.canBeNested &&
+        nestedInside === null &&
+        this.subordinateType.isPrincipalTypeFor(appliedType)
+      ) {
+        nestedInside = appliedType;
+      }
       if (appliedType instanceof $BottomType) {
         isBottomPresented = true;
       }
@@ -289,6 +327,9 @@ export class GenericType<T: Type> extends Type {
       }
       return appliedType;
     });
+    if (nestedInside !== null) {
+      return nestedInside;
+    }
     let appliedTypeName = this.getChangedName(
       this.genericArguments,
       parameters

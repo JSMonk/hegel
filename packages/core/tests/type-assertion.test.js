@@ -1255,4 +1255,36 @@ describe("Rest parameter typing", () => {
     expect(errors[4]).toBeInstanceOf(HegelError);
     expect(errors[5]).toBeInstanceOf(HegelError);
   });
+
+  test("Issue #235: Promise should uwrap inner promise", async () => {
+    const sourceAST = prepareAST(`
+      async function foo<T>(val: T) {
+        const v = await val;
+        return v;
+      }
+
+      async function test() {
+        const promise = Promise.resolve(1);
+        const val = await foo(promise);
+        const a = val.then(); // Runtime error
+      }
+
+      test();
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      'Property "then" does not exist in "Number"'
+    );
+    expect(errors[0].loc).toEqual({
+      start: { line: 10, column: 18 },
+      end: { line: 10, column: 26 }
+    });
+  });
 });

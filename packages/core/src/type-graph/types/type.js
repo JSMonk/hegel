@@ -323,7 +323,9 @@ export class Type {
 
   promisify() {
     const Promise = Type.find("Promise");
-    return Promise.applyGeneric([this]);
+    return "constraint" in this 
+      ? Promise.bottomizeWith([this])
+      : Promise.applyGeneric([this]);
   }
 
   isPromise() {

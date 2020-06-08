@@ -1665,7 +1665,7 @@ interface TypedPropertyDescriptor<T> {
 
 // declare type PromiseConstructorLike = new <T>(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) => PromiseLike<T>;
 
-interface PromiseLike<T> {
+interface PromiseLike<T extends $Not<this>> {
   //     /**
   //      * Attaches callbacks for the resolution and/or rejection of the Promise.
   //      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1681,7 +1681,7 @@ interface PromiseLike<T> {
 // /**
 //  * Represents the completion of an asynchronous operation
 //  */
-interface Promise<T> {
+interface Promise<T extends $Not<this>> {
   //     /**
   //      * Attaches callbacks for the resolution and/or rejection of the Promise.
   //      * @param onfulfilled The callback to execute when the Promise is resolved.

@@ -109,7 +109,7 @@ export class TypeVar extends Type {
       return true;
     }
     if (type instanceof TypeVar) {
-      return type.constraint !== undefined 
+      return type.constraint !== undefined
         ? this.constraint.isPrincipalTypeFor(type.constraint)
         : !type._isUserDefined;
     }
@@ -197,7 +197,13 @@ export class TypeVar extends Type {
       // $FlowIssue
       const result = target.getNextParent(typeScope);
       this._alreadyProcessedWith = null;
-      return result;
+      if (
+        this.root !== undefined ||
+        (result.priority < typeScope.priority &&
+          result.priority > this.parent.priority)
+      ) {
+        return result;
+      }
     }
     this._alreadyProcessedWith = null;
     if (
