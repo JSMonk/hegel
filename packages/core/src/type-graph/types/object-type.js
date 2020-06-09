@@ -209,7 +209,13 @@ export class ObjectType extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ): Type {
-    if (sourceTypes.every(type => !this.canContain(type))) {
+    if (
+      sourceTypes.every(
+        type =>
+          !this.canContain(type) ||
+          (this.isSubtypeOf === ObjectType.Object && this.properties.size === 0)
+      )
+    ) {
       const newName = this.getChangedName(sourceTypes, targetTypes);
       const name = String(this.name);
       return name[0] === "{" || newName === name

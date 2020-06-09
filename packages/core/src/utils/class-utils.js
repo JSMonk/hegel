@@ -245,7 +245,7 @@ export function addThisToClassScope(
             ? constructor.type.genericArguments
             : [];
         const genericArguments = Array.from(
-          new Set([...self.genericArguments, addition])
+          new Set([...self.genericArguments, ...addition])
         );
         type = GenericType.new(
           `constructor ${String(self.name)}`,
@@ -541,6 +541,31 @@ export function addClassToTypeGraph(
           constructorScope.calls[thisCallIndex].loc
         );
       }
+    }
+    if (self.type instanceof $BottomType) {
+      const constructor: any = constructorScope.declaration;
+      const type =
+        constructor.type instanceof GenericType
+          ? constructor.type.subordinateType
+          : constructor.type;
+      const localTypeScope =
+        constructor.type instanceof GenericType
+          ? constructor.type.localTypeScope
+          : self.type.subordinateMagicType.localTypeScope;
+      const addition =
+        constructor.type instanceof GenericType
+          ? constructor.type.genericArguments
+          : [];
+      const genericArguments = Array.from(
+        new Set([...self.type.genericArguments, ...addition])
+      );
+      constructor.type = GenericType.new(
+        `constructor ${String(self.type.name)}`,
+        {},
+        genericArguments,
+        localTypeScope,
+        type
+      );
     }
   }
   if (classNode.implements) {

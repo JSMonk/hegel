@@ -1699,4 +1699,45 @@ describe("Issues", () => {
 
     expect(errors.length).toBe(0);
   });
+
+  test("Issue #271: Custom generic class should work if it has not a property", async () => {
+    const sourceAST = prepareAST(`
+      class GenericNumber<T> {}
+
+      // Generic "constructor GenericNumber<T>" called with wrong number of arguments. Expect: 2, Actual: 1
+      let myGenericNumber = new GenericNumber<number>();
+    `);
+    const [module, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+    expect(module.body.get("myGenericNumber").type === Type.find("GenericNumber<number>"))
+  });
+
+  test("Issue #271: Custom generic class should work if it has a property", async () => {
+    const sourceAST = prepareAST(`
+      class GenericNumber<T> {
+        value: T;
+
+        constructor(value) {
+          this.value = value;
+        }
+      }
+
+      // Generic "constructor GenericNumber<T>" called with wrong number of arguments. Expect: 2, Actual: 1
+      let myGenericNumber = new GenericNumber<number>(1);
+    `);
+    const [module, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+    expect(module.body.get("myGenericNumber").type === Type.find("GenericNumber<number>"))
+  });
 });
