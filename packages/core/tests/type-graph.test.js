@@ -1707,7 +1707,7 @@ describe("Issues", () => {
       // Generic "constructor GenericNumber<T>" called with wrong number of arguments. Expect: 2, Actual: 1
       let myGenericNumber = new GenericNumber<number>();
     `);
-    const [module, errors] = await createTypeGraph(
+    const [[module], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,
       false,
@@ -1728,10 +1728,9 @@ describe("Issues", () => {
         }
       }
 
-      // Generic "constructor GenericNumber<T>" called with wrong number of arguments. Expect: 2, Actual: 1
       let myGenericNumber = new GenericNumber<number>(1);
     `);
-    const [module, errors] = await createTypeGraph(
+    const [[module], errors] = await createTypeGraph(
       [sourceAST],
       getModuleAST,
       false,
