@@ -49,6 +49,9 @@ export class $Intersection extends GenericType {
           obj.constraint = ObjectType.Object;
         }
       }
+      if (obj instanceof $BottomType) {
+        obj = obj.unpack();
+      }
       return i !== 0 && "readonly" in obj ? obj.readonly : obj;
     });
     if (containsVariable) {
