@@ -12,7 +12,7 @@
     "packages/core",
     "packages/docs",
     "packages/language-server",
-    "_packages/typings"
+    "packages/typings"
   ],
   "dependencies": {
     "flow-bin": "0.124.0"
