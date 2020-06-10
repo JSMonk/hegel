@@ -20,6 +20,26 @@ and limitations under the License.
 declare var NaN: number;
 declare var Infinity: number;
 
+class Error {
+  name: string;
+  message: string;
+  stack?: string;
+  constructor(message?: string);
+}
+
+class EvalError extends Error {}
+
+class RangeError extends Error {}
+
+class ReferenceError extends Error {}
+
+class SyntaxError extends Error {}
+
+class TypeError extends Error {}
+
+class URIError extends Error {}
+
+
 /**
  * Evaluates JavaScript code and executes it.
  * @param x A String value that contains valid JavaScript code.
@@ -1588,25 +1608,6 @@ interface DateConstructor {
 }
 
 declare var Date: DateConstructor;
-
-class Error {
-  name: string;
-  message: string;
-  stack?: string;
-  constructor(message?: string);
-}
-
-class EvalError extends Error {}
-
-class RangeError extends Error {}
-
-class ReferenceError extends Error {}
-
-class SyntaxError extends Error {}
-
-class TypeError extends Error {}
-
-class URIError extends Error {}
 
 interface JSON {
   //     /**
