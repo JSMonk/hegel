@@ -1,7 +1,7 @@
 {
   "name": "@hegel/core",
   "author": "Artem Kobzar",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "",
   "main": "build/index.js",
   "files": [
@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@babel/parser": "^7.8.4",
-    "@hegel/typings": "0.0.41"
+    "@hegel/typings": "0.0.45"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",

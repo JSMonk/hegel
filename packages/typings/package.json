@@ -1,6 +1,6 @@
 {
   "name": "@hegel/typings",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "Typings for Hegel Project",
   "main": "index.js",
   "scripts": {},
