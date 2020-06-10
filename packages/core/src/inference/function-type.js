@@ -334,6 +334,9 @@ export function getCallTarget(
   if (callTargetType instanceof TypeVar) {
     callTargetType = Type.getTypeRoot(callTargetType);
   }
+  if (callTargetType instanceof $BottomType) {
+    callTargetType = callTargetType.unpack();
+  }
   if (callTargetType instanceof GenericType) {
     callTargetType = getRawFunctionType(
       callTargetType,

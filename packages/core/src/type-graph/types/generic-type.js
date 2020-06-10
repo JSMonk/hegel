@@ -284,7 +284,7 @@ export class GenericType<T: Type> extends Type {
     let isBottomPresented = false;
     let nestedInside = null;
     const parameters: Array<Type> = this.genericArguments.map((t, i) => {
-      const appliedType = appliedParameters[i];
+      let appliedType = appliedParameters[i];
       if (
         !this.canBeNested &&
         nestedInside === null &&
@@ -349,15 +349,28 @@ export class GenericType<T: Type> extends Type {
           : parent,
       this.parent
     );
-    const appliedSelf = TypeVar.term(
+    let appliedSelf = TypeVar.term(
       appliedTypeName,
       { parent: theMostPriorityParent, isSubtypeOf: TypeVar.Self },
       undefined,
       undefined,
       true
     );
-    if (!(appliedSelf instanceof TypeVar)) {
+    if (
+      !(appliedSelf instanceof TypeVar) &&
+      !(appliedSelf instanceof $BottomType)
+    ) {
       return appliedSelf;
+    }
+    if (appliedSelf instanceof $BottomType) {
+      appliedSelf.parent.body.delete(appliedTypeName);
+      appliedSelf = TypeVar.new(
+        appliedTypeName,
+        { parent: theMostPriorityParent, isSubtypeOf: TypeVar.Self },
+        undefined,
+        undefined,
+        true
+      );
     }
     if (isBottomPresented) {
       return this.bottomizeWith(parameters, theMostPriorityParent, loc);
