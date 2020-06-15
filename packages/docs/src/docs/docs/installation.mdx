@@ -75,7 +75,6 @@ Or you can add script inside your `package.json` `scripts` section:
   }
 }
 ```
-
 ### Flow Remove Types
 
 Install `flow-remove-types`:
@@ -92,6 +91,8 @@ And add next script inside your `package.json` `scripts` section:
   }
 }
 ```
+
+And update each files `directory_with_your_project_files/**/*.(m|c)js` with `/* @flow */` (else flow-remove-types see/do nothing)
 
 And run it by:
 ```bash
