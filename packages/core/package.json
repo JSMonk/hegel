@@ -3,7 +3,7 @@
   "author": "Artem Kobzar",
   "version": "0.0.45",
   "description": "",
-  "main": "build/index.js",
+  "main": "./build/index.js",
   "files": [
     "build/*",
     "README.md"

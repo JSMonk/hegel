@@ -1,3 +1,11 @@
 {
-  "files.trimTrailingWhitespace": false
+  "files.trimTrailingWhitespace": false,
+  "search.exclude": {
+    "**/.docz": true,
+    "**/.git": true,
+    "**/bower_components": true,
+    "**/build": true,
+    "**/dist": true,
+    "**/node_modules": true
+  }
 }

@@ -1,5 +1,5 @@
-const { getConfig } = require("@hegel/cli/lib/config");
-const { importModule } = require("@hegel/cli/lib/module");
+const { getConfig } = require("@hegel/cli/build/config");
+const { importModule } = require("@hegel/cli/build/module");
 const { getBabylonAST } = require("../utils/document-ast");
 const { createGlobalScope } = require("@hegel/core");
 const { mixTypeDefinitions } = require("./type-definitions");
