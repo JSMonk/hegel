@@ -212,7 +212,7 @@ No errors!
   ```json
   {
     "scripts": {
-      "build": "flow-remove-types directory_with_your_project_files/ --out-dir compilation_destination_directory/",
+      "build": "flow-remove-types directory_with_your_project_files/ --out-dir compilation_destination_directory/ --all",
     }
   }
   ```
