@@ -3,46 +3,46 @@ import { TypeVar } from "./type-var";
 import { TypeScope } from "../type-scope";
 import { GenericType } from "./generic-type";
 
-export class $AppliedNot extends Type {
+export class $AppliedUnwrap extends Type {
   static get name() {
-    return "$AppliedNot";
+    return "$AppliedUnwrap";
   }
 
   static term(
     name: ?string,
     meta?: TypeMeta = {},
-    not: Type,
+    unwrap: Type,
     ...args: Array<any>
   ) {
-    name = name || this.getName(not);
+    name = name || this.getName(unwrap);
     let parent: TypeScope | void = meta.parent;
-    if (parent === undefined || not.parent.priority > parent.priority) {
-      parent = not.parent;
+    if (parent === undefined || unwrap.parent.priority > parent.priority) {
+      parent = unwrap.parent;
     }
     const newMeta = { ...meta, parent };
-    return super.term(name, newMeta, not, ...args);
+    return super.term(name, newMeta, unwrap, ...args);
   }
 
   static getName(type) {
-    return `$Not<${String(type.name)}>`;
+    return `$Unwrap<${String(type.name)}>`;
   }
 
-  not: Type;
+  unwrap: Type;
 
   constructor(name, meta = {}, type) {
     name = name || this.getName(type);
     super(name, meta);
-    this.not = type;
+    this.unwrap = type;
   }
 
   equalsTo(type) {
-    return type instanceof $AppliedNot && this.not.equalsTo(type.not);
+    return type instanceof $AppliedUnwrap && this.unwrap.equalsTo(type.unwrap);
   }
 
   isSuperTypeFor(type) {
-    return type instanceof $AppliedNot
-      ? this.not.isSuperTypeFor(type.not)
-      : !this.not.isPrincipalTypeFor(type);
+    return type instanceof $AppliedUnwrap
+      ? this.unwrap.isSuperTypeFor(type.unwrap)
+      : this.unwrap.isPrincipalTypeFor(type);
   }
 
   isPrincipalTypeFor(type: Type): boolean {
@@ -50,34 +50,34 @@ export class $AppliedNot extends Type {
   }
 
   contains(type) {
-    return this.not.contains(type);
+    return this.unwrap.contains(type);
   }
 
   weakContains(type) {
-    return this.not.contains(type);
+    return this.unwrap.contains(type);
   }
 
   getDifference(type: Type, withReverseUnion?: boolean = false) {
-    return this.not.getDifference(type, withReverseUnion);
+    return this.unwrap.getDifference(type, withReverseUnion);
   }
 
   changeAll(...args) {
-    const changed = this.not.changeAll(...args);
-    if (changed === this.not) {
+    const changed = this.unwrap.changeAll(...args);
+    if (changed === this.unwrap) {
       return this;
     }
-    return $AppliedNot.term(null, {}, changed);
+    return $AppliedUnwrap.term(null, {}, changed);
   }
 }
 
-export class $Not extends GenericType {
+export class $Unwrap extends GenericType {
   static get name() {
-    return "$Not";
+    return "$Unwrap";
   }
 
   constructor(_, meta = {}) {
     const parent = new TypeScope(meta.parent);
-    super("$Not", meta, [TypeVar.term("target", { parent })], parent, null);
+    super("$Unwrap", meta, [TypeVar.term("target", { parent })], parent, null);
   }
 
   isPrincipalTypeFor() {
@@ -100,6 +100,7 @@ export class $Not extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [target] = parameters;
-    return $AppliedNot.term(null, { parent: target.parent }, target);
+    return $AppliedUnwrap.term(null, { parent: target.parent }, target);
   }
 }
+

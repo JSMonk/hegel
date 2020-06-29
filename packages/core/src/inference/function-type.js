@@ -364,10 +364,11 @@ function resolveOuterTypeVarsFromCall(
   typeGraph: ModuleScope
 ) {
   const callTarget: FunctionType = getCallTarget(call, false);
+  const callTargetType =
+    call.target instanceof VariableInfo ? call.target.type : call.target;
   if (callTarget === undefined) {
     return;
   }
-  // $FlowIssue
   const level = oldGenericArguments[0];
   const roots: Map<Type, Type> = new Map();
   for (let i = 0; i < call.arguments.length; i++) {
@@ -390,7 +391,6 @@ function resolveOuterTypeVarsFromCall(
     }
     actualType = Type.getTypeRoot(actualType, true);
     declaratedType = Type.getTypeRoot(declaratedType);
-    // $FlowIssue
     let difference =
       declaratedType.parent.priority > actualType.parent.priority
         ? actualType.getDifference(declaratedType, true)
@@ -422,6 +422,17 @@ function resolveOuterTypeVarsFromCall(
         continue;
       }
       variable.root = root;
+      if (
+        callTargetType instanceof GenericType &&
+        root instanceof TypeVar &&
+        root.constraint !== undefined
+      ) {
+        callTargetType.genericArguments.forEach(arg => {
+          if (root !== arg && !genericArguments.includes(arg) && root.contains(arg)) {
+            genericArguments.push(arg);
+          }
+        });
+      }
     }
   }
 }
@@ -463,7 +474,10 @@ export function implicitApplyGeneric(
       );
       declaratedArgument = declaratedArgument.type;
     }
-    const difference = givenArgumentType.getDifference(declaratedArgument, true);
+    const difference = givenArgumentType.getDifference(
+      declaratedArgument,
+      true
+    );
     for (let j = 0; j < difference.length; j++) {
       let { root, variable } = difference[j];
       if (TypeVar.isSelf(root)) {

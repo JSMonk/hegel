@@ -175,6 +175,7 @@ export class TypeVar extends Type {
   contains(type: Type) {
     return (
       (this.constraint != undefined && this.constraint.contains(type)) ||
+      (this.root != undefined && this.root.contains(type)) ||
       this.equalsTo(type, true, true)
     );
   }

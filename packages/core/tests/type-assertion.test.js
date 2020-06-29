@@ -1258,7 +1258,7 @@ describe("Rest parameter typing", () => {
 
   test("Issue #235: Promise should uwrap inner promise", async () => {
     const sourceAST = prepareAST(`
-      async function foo<T>(val: T) {
+      async function foo(val) {
         const v = await val;
         return v;
       }

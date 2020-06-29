@@ -236,7 +236,7 @@ export class Type {
       ) {
         return [
           { root: this, variable: type },
-          ...this.getDifference(constraint)
+          ...this.getDifference(constraint, withReverseUnion)
         ];
       }
       return [{ root: this, variable: type }];
@@ -256,7 +256,7 @@ export class Type {
       wrapper !== undefined
     ) {
       return wrapper
-        .getDifference(type)
+        .getDifference(type, withReverseUnion)
         .map(
           d =>
             d.root === wrapper && d.variable === type
