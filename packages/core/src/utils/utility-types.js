@@ -16,6 +16,7 @@ import { $Immutable } from "../type-graph/types/immutable-type";
 import { $ReturnType } from "../type-graph/types/return-type";
 import { $Collection } from "../type-graph/types/collection-type";
 import { $InstanceOf } from "../type-graph/types/instance-of-type";
+import { $StrictUnion } from "../type-graph/types/strict-union-type";
 import { $PropertyType } from "../type-graph/types/property-type";
 import { $Intersection } from "../type-graph/types/intersection-type";
 
@@ -27,6 +28,7 @@ const mixUtilityTypes = moduleScope => {
       new $PropertyType($PropertyType.name, { parent: typeScope })
     ],
     ["$InstanceOf", new $InstanceOf($InstanceOf.name, { parent: typeScope })],
+    ["$StrictUnion", new $StrictUnion($StrictUnion.name, { parent: typeScope })],
     ["$Keys", new $Keys($Keys.name, { parent: typeScope })],
     ["$Entries", new $Entries($Entries.name, { parent: typeScope })],
     ["$Values", new $Values($Values.name, { parent: typeScope })],

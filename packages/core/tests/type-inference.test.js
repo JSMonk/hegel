@@ -9,6 +9,7 @@ import { GenericType } from "../src/type-graph/types/generic-type";
 import { FunctionType } from "../src/type-graph/types/function-type";
 import { $Refinemented } from "../src/type-graph/types/refinemented-type";
 import { CollectionType } from "../src/type-graph/types/collection-type";
+import { $AppliedStrictUnion } from "../src/type-graph/types/strict-union-type";
 import { prepareAST, getModuleAST, mixTypeDefinitions } from "./preparation";
 
 describe("Simple inference for module variables by literal", () => {
@@ -659,10 +660,10 @@ describe("Simple inference for module functions", () => {
     expect(mul.type.subordinateType.argumentsTypes[0]).toBeInstanceOf(TypeVar);
     expect(
       mul.type.subordinateType.argumentsTypes[0].constraint
-    ).toBeInstanceOf(UnionType);
+    ).toBeInstanceOf($AppliedStrictUnion);
     expect(
       mul.type.subordinateType.argumentsTypes[0].constraint ===
-        Type.find("bigint | number")
+        Type.find("$StrictUnion<bigint | number>")
     ).toBe(true);
     expect(
       mul.type.subordinateType.argumentsTypes[0].constraint.variants.length
@@ -678,10 +679,10 @@ describe("Simple inference for module functions", () => {
     expect(mul.type.subordinateType.argumentsTypes[1]).toBeInstanceOf(TypeVar);
     expect(
       mul.type.subordinateType.argumentsTypes[1].constraint
-    ).toBeInstanceOf(UnionType);
+    ).toBeInstanceOf($AppliedStrictUnion);
     expect(
       mul.type.subordinateType.argumentsTypes[1].constraint ===
-        Type.find("bigint | number")
+        Type.find("$StrictUnion<bigint | number>")
     ).toBe(true);
     expect(
       mul.type.subordinateType.argumentsTypes[1].constraint.variants.length
@@ -696,11 +697,11 @@ describe("Simple inference for module functions", () => {
     ).toBe(true);
     expect(mul.type.subordinateType.returnType).toBeInstanceOf(TypeVar);
     expect(mul.type.subordinateType.returnType.constraint).toBeInstanceOf(
-      UnionType
+      $AppliedStrictUnion
     );
     expect(
       mul.type.subordinateType.returnType.constraint ===
-        Type.find("bigint | number")
+        Type.find("$StrictUnion<bigint | number>")
     ).toBe(true);
     expect(mul.type.subordinateType.returnType.constraint.variants.length).toBe(
       2
@@ -1529,10 +1530,10 @@ describe("Simple inference for module functions", () => {
     expect(res.type.subordinateType.argumentsTypes[0]).toBeInstanceOf(TypeVar);
     expect(
       res.type.subordinateType.argumentsTypes[0].constraint
-    ).toBeInstanceOf(UnionType);
+    ).toBeInstanceOf($AppliedStrictUnion);
     expect(
       res.type.subordinateType.argumentsTypes[0].constraint ===
-        Type.find("bigint | number")
+        Type.find("$StrictUnion<bigint | number>")
     ).toBe(true);
     expect(
       res.type.subordinateType.argumentsTypes[0].constraint.variants.length
@@ -1548,10 +1549,10 @@ describe("Simple inference for module functions", () => {
     expect(res.type.subordinateType.argumentsTypes[1]).toBeInstanceOf(TypeVar);
     expect(
       res.type.subordinateType.argumentsTypes[1].constraint
-    ).toBeInstanceOf(UnionType);
+    ).toBeInstanceOf($AppliedStrictUnion);
     expect(
       res.type.subordinateType.argumentsTypes[1].constraint ===
-        Type.find("bigint | number")
+        Type.find("$StrictUnion<bigint | number>")
     ).toBe(true);
     expect(
       res.type.subordinateType.argumentsTypes[1].constraint.variants.length
@@ -1566,11 +1567,11 @@ describe("Simple inference for module functions", () => {
     ).toBe(true);
     expect(res.type.subordinateType.returnType).toBeInstanceOf(TypeVar);
     expect(res.type.subordinateType.returnType.constraint).toBeInstanceOf(
-      UnionType
+      $AppliedStrictUnion
     );
     expect(
       res.type.subordinateType.returnType.constraint ===
-        Type.find("bigint | number")
+        Type.find("$StrictUnion<bigint | number>")
     ).toBe(true);
     expect(res.type.subordinateType.returnType.constraint.variants.length).toBe(
       2
@@ -3127,7 +3128,7 @@ describe("Other", () => {
     expect(
       fn.type ===
         Type.find(
-          "<_a: { 'a': T, 'b': T, ... }, T: bigint | number | string>(_a) => T"
+          "<_a: { 'a': T, 'b': T, ... }, T: $StrictUnion<bigint | number | string>>(_a) => T"
         )
     ).toBe(true);
     expect(res.type === Type.Number).toBe(true);
@@ -3337,5 +3338,42 @@ describe("Issues", () => {
     const test = module.body.get("test");
     expect(errors.length).toBe(0);
     expect(test.type.returnType === Type.String).toBe(true);
+  });
+
+  test("Issue #229: should inference operators as strict union", async () => {
+    const sourceAST = prepareAST(`
+      let f = (a, b) => a + b
+
+      const a: number | bigint = 1;
+      const b: number | bigint = 1n;
+
+      const x = f(a, b);
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe('Parameter "bigint | number" is incompatible with restriction "$StrictUnion<bigint | number | string>"');
+    expect(errors[0].loc).toEqual({ end: { column: 23, line: 7 }, start: { column: 16, line: 7 } });
+  });
+
+  test("Issue #229: should have not to swap strict union to raw union", async () => {
+    const sourceAST = prepareAST(`
+      let f = <T: number | string>(a: T, b: T) => a + b
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe('Parameter "T" is incompatible with restriction "$StrictUnion<bigint | number | string>"');
+    expect(errors[0].loc).toEqual({ end: { column: 55, line: 2 }, start: { column: 50, line: 2 } });
   });
 });
