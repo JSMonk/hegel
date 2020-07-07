@@ -160,7 +160,7 @@ describe("Test $Partial", () => {
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
     expect(typeScope.body.get("A")).toBe(
-      Type.find("{ a: 1 | undefined, b: 2 | undefined, c: 3 | undefined }")
+      Type.find("{ 'a': 1 | undefined, 'b': 2 | undefined, 'c': 3 | undefined }")
     );
   });
   test("Should throw error with non-object target", async () => {
@@ -184,7 +184,7 @@ describe("Test $Pick", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A") === Type.find("{ a: 1, b: 2 }")).toBe(true);
+    expect(typeScope.body.get("A") === Type.find("{ 'a': 1, 'b': 2 }")).toBe(true);
   });
   test("Should throw error with non-object first argument", async () => {
     const sourceAST = prepareAST(`
@@ -222,7 +222,7 @@ describe("Test $Omit", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A") === Type.find("{ c: 3 }")).toBe(true);
+    expect(typeScope.body.get("A") === Type.find("{ 'c': 3 }")).toBe(true);
   });
   test("Should throw error with non-object first argument", async () => {
     const sourceAST = prepareAST(`
@@ -333,7 +333,7 @@ describe("Issues", () => {
     expect(
       StillSoft.properties.get("test").type === Type.term("number | undefined")
     ).toBe(true);
-    expect(StillSoft === Type.term("{ test: number | undefined, ... }")).toBe(
+    expect(StillSoft === Type.term("{ 'test': number | undefined, ... }")).toBe(
       true
     );
   });
@@ -351,7 +351,7 @@ describe("Issues", () => {
       StillStrict.properties.get("test").type ===
         Type.term("number | undefined")
     ).toBe(true);
-    expect(StillStrict === Type.term("{ test: number | undefined }")).toBe(
+    expect(StillStrict === Type.term("{ 'test': number | undefined }")).toBe(
       true
     );
   });

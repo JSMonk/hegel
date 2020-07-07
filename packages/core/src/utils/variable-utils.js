@@ -1,7 +1,9 @@
 // @flow
 import NODE from "./nodes";
+import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
 import { Type } from "../type-graph/types/type";
+import { TypeVar } from "../type-graph/types/type-var";
 import { UnionType } from "../type-graph/types/union-type";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -26,7 +28,8 @@ import type {
 } from "@babel/parser";
 
 export function getPropertyName(
-  node: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod
+  node: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod,
+  addCallToTypeGraph?: (ClassProperty | ObjectProperty | ClassMethod | ObjectMethod) => { result: Type | VariableInfo<any> }
 ) {
   const isPrivate =
     node.type === NODE.CLASS_PRIVATE_METHOD ||
@@ -37,6 +40,32 @@ export function getPropertyName(
   if (node.kind === "constructor") {
     return CONSTRUCTABLE;
   }
+  if (node.computed && addCallToTypeGraph !== undefined) {
+    const { result } = addCallToTypeGraph(node.key);
+    const type = result instanceof VariableInfo ? result.type : result;
+    const availableTypes = UnionType.term(null, {}, [Type.String, Type.Number, Type.Symbol]);
+    if (availableTypes.isPrincipalTypeFor(type)) {
+      if (type instanceof TypeVar) {
+        return type;
+      }
+      if (
+          !(type instanceof UnionType) &&
+          type !== Type.String &&
+          type !== Type.Number &&
+          type !== Type.Symbol
+        ) {
+        return String(type.name);
+      }
+    }
+    if (type instanceof TypeVar && !type.isUserDefined && type.constraint === undefined) {
+      type.constraint = availableTypes;
+      return type;
+    }
+    throw new HegelError(
+      `Only string, symbol or number values are available for object property constructing, your type is: ${String(type.name)}`,
+      node.key.loc
+    );
+  } 
   return node.key.name || `${node.key.value}`;
 }
 

@@ -58,7 +58,8 @@ type CallableMeta = {
   isForAssign?: boolean,
   isForInit?: boolean,
   isTypeDefinitions?: boolean,
-  isImmutable?: boolean
+  isImmutable?: boolean,
+  skipAddingCalls?: boolean
 };
 
 export function addCallToTypeGraph(
@@ -231,7 +232,19 @@ export function addCallToTypeGraph(
         selfObject instanceof $BottomType
           ? selfObject.subordinateMagicType.subordinateType
           : selfObject;
-      const _propertyName = getPropertyName(node);
+      const _propertyName = getPropertyName(
+        node,
+        node => addCallToTypeGraph(
+              node,
+              moduleScope,
+              currentScope,
+              parentNode,
+              pre,
+              middle,
+              post,
+              {...meta, skipAddingCalls: true }
+        )
+      );
       const propertyType = selfObject.properties.get(_propertyName);
       if (propertyType === undefined) {
         throw new Error("Never!!!");
@@ -1076,21 +1089,23 @@ export function addCallToTypeGraph(
     targetType instanceof UnionType
       ? UnionType.term(null, {}, targetType.variants.map(getResult))
       : getResult(targetType);
-  const callMeta = new CallMeta(
-    (target: any),
-    args,
-    node.loc,
-    targetName,
-    typeScope,
-    inferenced,
-    isFinal,
-    argsLocations
-  );
-  while (currentScope.skipCalls !== false && currentScope !== moduleScope) {
-    // $FlowIssue
-    currentScope = currentScope.parent;
+  if (!meta.skipAddingCalls) {
+    const callMeta = new CallMeta(
+      (target: any),
+      args,
+      node.loc,
+      targetName,
+      typeScope,
+      inferenced,
+      isFinal,
+      argsLocations
+    );
+    while (currentScope.skipCalls !== false && currentScope !== moduleScope) {
+      // $FlowIssue
+      currentScope = currentScope.parent;
+    }
+    currentScope.calls.push(callMeta);
   }
-  currentScope.calls.push(callMeta);
   return { result: invocationType, inferenced };
 }
 
@@ -1207,18 +1222,24 @@ export function addPropertyToThis(
   middlecompute: Handler,
   postcompute: Handler
 ) {
-  let propertyName;
-  const isPrivate = currentNode.type === NODE.CLASS_PRIVATE_PROPERTY;
-  if (isPrivate) {
-    propertyName = `#${currentNode.key.id.name}`;
-  } else {
-    propertyName = currentNode.key.name || `${currentNode.key.value}`;
-  }
   // $FlowIssue
   const currentScope: VariableScope = getParentForNode(
     currentNode,
     parentNode,
     moduleScope
+  );
+  const propertyName = getPropertyName(
+        currentNode,
+        node => addCallToTypeGraph(
+            node,
+            moduleScope,
+            currentScope,
+            parentNode,
+            precompute,
+            middlecompute,
+            postcompute,
+            { skipAddingCalls: true }
+        )
   );
   const currentClassScope: any = findNearestScopeByType(
     [VariableScope.CLASS_TYPE, VariableScope.OBJECT_TYPE],
@@ -1261,7 +1282,8 @@ export function addPropertyToThis(
     new Meta(currentNode.loc),
     false,
     false,
-    isPrivate
+    currentNode.type === NODE.CLASS_PRIVATE_METHOD ||
+    currentNode.type === NODE.CLASS_PRIVATE_PROPERTY
   );
   if (!(selfType instanceof ObjectType)) {
     throw new Error("Never!!!");
@@ -1335,16 +1357,20 @@ export function addMethodToThis(
   if (classScope.isProcessed) {
     return;
   }
-  let propertyName;
+  const propertyName = getPropertyName(
+    currentNode,
+    node => addCallToTypeGraph(
+          node,
+          moduleScope,
+          currentScope,
+          parentNode,
+          pre,
+          middle,
+          post,
+          { skipAddingCalls: true }
+    )
+  );
   const isPrivate = currentNode.type === NODE.CLASS_PRIVATE_METHOD;
-  if (isPrivate) {
-    propertyName = `#${currentNode.key.id.name}`;
-  } else {
-    propertyName = currentNode.key.name || `${currentNode.key.value}`;
-  }
-  if (currentNode.kind === "constructor") {
-    propertyName = CONSTRUCTABLE;
-  }
   const self = classScope.findVariable({ name: THIS_TYPE });
   // $FlowIssue
   const classVar: VariableInfo =

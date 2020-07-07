@@ -297,7 +297,7 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "{  }" is incompatible with type "{ a: number }"'
+      `Type "{  }" is incompatible with type "{ 'a': number }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 33, line: 2 },
@@ -767,7 +767,7 @@ describe("Object and collection properties", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Property "b" does not exist in "{ a: number }"'
+      `Property "b" does not exist in "{ 'a': number }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 10, line: 3 },
@@ -789,7 +789,7 @@ describe("Object and collection properties", () => {
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors[0].message).toEqual(
-      'Property "c" does not exist in "{ b: number }"'
+      `Property "c" does not exist in "{ 'b': number }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 12, line: 3 },
@@ -823,7 +823,7 @@ describe("Object and collection properties", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
     expect(errors[0].message).toEqual(
-      'Property "a" does not exist in "{ a: number } | { b: string }"'
+      `Property "a" does not exist in "{ 'a': number } | { 'b': string }"`
     );
   });
   test("Get property from Union type when first type has not property", async () => {
@@ -836,7 +836,7 @@ describe("Object and collection properties", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
     expect(errors[0].message).toEqual(
-      'Property "a" does not exist in "{ a: number } | { b: string }"'
+      `Property "a" does not exist in "{ 'a': number } | { 'b': string }"`
     );
   });
 });
@@ -882,7 +882,7 @@ describe("Checking objects and collections reference behavior", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "{ a: number }" is incompatible with type "{ a: number | string }"'
+      `Type "{ 'a': number }" is incompatible with type "{ 'a': number | string }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 20, line: 5 },
@@ -957,7 +957,7 @@ describe("Nullable types", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "{ a: 2 }" is incompatible with type "{ a: string | undefined }"'
+      `Type "{ 'a': 2 }" is incompatible with type "{ 'a': string | undefined }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 40, line: 2 },
@@ -1093,7 +1093,7 @@ describe("Rest parameter typing", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "({ a: number | string }) => undefined" is incompatible with type "({ a: number }) => undefined"'
+      `Type "({ 'a': number | string }) => undefined" is incompatible with type "({ 'a': number }) => undefined"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 7, line: 4 },

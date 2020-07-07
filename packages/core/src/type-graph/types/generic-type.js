@@ -341,14 +341,6 @@ export class GenericType<T: Type> extends Type {
       ) {
         return appliedType;
       }
-      if (t.constraint instanceof UnionType) {
-        const variant = t.constraint.variants.find(v =>
-          v.isPrincipalTypeFor(appliedType)
-        );
-        if (variant !== undefined) {
-          return variant;
-        }
-      }
       return appliedType;
     });
     if (nestedInside !== null) {

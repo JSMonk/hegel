@@ -295,7 +295,19 @@ export function addThisToClassScope(
         ) {
           return;
         }
-        const propertyName = getPropertyName(node);
+        const propertyName = getPropertyName(
+          node,
+          node => addCallToTypeGraph(
+            node,
+            typeGraph,
+            classScope,
+            parentNode,
+            precompute,
+            middlecompute,
+            postcompute,
+            { skipAddingCalls: true }
+          )
+        );
         const existedProperty = typeForImplementation.properties.get(
           propertyName
         );
@@ -365,12 +377,23 @@ export function addPropertyNodeToThis(
   middle: Handler,
   post: Handler
 ) {
-  const propertyName = getPropertyName(currentNode);
   // $FlowIssue
   const currentClassScope: VariableScope = getParentForNode(
     currentNode,
     parentNode,
     typeGraph
+  );
+  const propertyName = getPropertyName(
+    currentNode,
+    node => addCallToTypeGraph(
+          node,
+          typeGraph,
+          currentClassScope,
+          parentNode,
+          pre,
+          middle,
+          post
+      )
   );
   if (currentClassScope.isProcessed) {
     return;

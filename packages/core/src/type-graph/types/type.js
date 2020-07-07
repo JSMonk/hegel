@@ -164,6 +164,10 @@ export class Type {
     if (this._alreadyProcessedWith === type) {
       return true;
     }
+    // $FlowIssue
+    if ("constraint" in type && type.constraint !== undefined) {
+      return this.isPrincipalTypeFor(type.constraint);
+    }
     if (type.isSubtypeOf === null || !this.canContain(type.isSubtypeOf)) {
       return false;
     }
@@ -181,6 +185,10 @@ export class Type {
   }
 
   isPrincipalTypeFor(type: Type): boolean {
+    // $FlowIssue
+    if ("constraint" in type && type.constraint !== undefined) {
+      return this.isPrincipalTypeFor(type.constraint);
+    }
     if ("variants" in type) {
       // $FlowIssue
       return type.variants.every(variant => this.isPrincipalTypeFor(variant));

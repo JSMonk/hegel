@@ -837,7 +837,7 @@ export function createSelf(node: Node, parent: TypeScope) {
 
 function getPropertyName(property: Node): string {
   if (property.key !== undefined) {
-    return property.key.name;
+    return property.key.name || String(property.key.value);
   }
   switch (property.type) {
     case NODE.TS_CALL_SIGNATURE_DECLARATION:

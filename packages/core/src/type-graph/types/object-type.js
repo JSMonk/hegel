@@ -54,7 +54,7 @@ export class ObjectType extends Type {
   }
 
   static getName(
-    params: Array<[string, any]>,
+    params: Array<[string | TypeVar, any]>,
     type?: ObjectType,
     isSoft?: boolean = false
   ) {
@@ -70,11 +70,11 @@ export class ObjectType extends Type {
       : this.oneLine(properties, isSoft);
   }
 
-  static oneLine(properties: Array<[string, Type]>, isSoft: boolean) {
+  static oneLine(properties: Array<[string | TypeVar, Type]>, isSoft: boolean) {
     return `{ ${properties
       .map(
         ([name, type]) =>
-          `${name}: ${String(
+          `${this.getPropertyString(name)}: ${String(
             Type.getTypeRoot(type instanceof VariableInfo ? type.type : type)
               .name
           )}`
@@ -84,11 +84,11 @@ export class ObjectType extends Type {
     } }`;
   }
 
-  static multyLine(properties: Array<[string, Type]>, isSoft: boolean) {
+  static multyLine(properties: Array<[string | TypeVar, Type]>, isSoft: boolean) {
     return `{\n${properties
       .map(
         ([name, type]) =>
-          `\t${name}: ${String(
+          `\t${this.getPropertyString(name)}: ${String(
             Type.getTypeRoot(type instanceof VariableInfo ? type.type : type)
               .name
           ).replace(/\n/g, "\n\t")}`
@@ -98,8 +98,12 @@ export class ObjectType extends Type {
     }}`;
   }
 
+  static getPropertyString(propertyKey: string | TypeVar) {
+    return typeof propertyKey === "string" ? `'${propertyKey}'` : String(propertyKey.name);
+  }
+
   isNominal: boolean;
-  properties: Map<string, VariableInfo<Type>>;
+  properties: Map<string | TypeVar, VariableInfo<Type>>;
   instanceType: Type | null = null;
   classType: Type | null = null;
   isStrict: boolean = true;
@@ -109,7 +113,7 @@ export class ObjectType extends Type {
   constructor(
     name: ?string,
     options: ExtendedTypeMeta = {},
-    properties: Array<[string, VariableInfo<Type>]>
+    properties: Array<[string | TypeVar, VariableInfo<Type>]>
   ) {
     name =
       name == undefined
@@ -134,7 +138,7 @@ export class ObjectType extends Type {
     _: boolean = false,
     isForInit: boolean = false
   ): ?Type | ClassProperty | ObjectProperty | ClassMethod | ObjectMethod {
-    const propertyName = String(property);
+    const propertyName = property instanceof TypeVar ? property : String(property);
     let fieldOwner = this;
     let field = undefined;
     while (fieldOwner) {
@@ -245,12 +249,18 @@ export class ObjectType extends Type {
           targetTypes,
           typeScope
         );
-        if (vInfo.type === newType) {
+        let newKey = key instanceof TypeVar
+          ? key.changeAll(sourceTypes, targetTypes, typeScope)
+          : key;
+        if (key !== newKey && !(newKey instanceof TypeVar)) {
+          newKey = Type.String.isPrincipalTypeFor(newKey) ? String(newKey.name.slice(1, -1)) : String(newKey.name);
+        }
+        if (vInfo.type === newType && newKey === key) {
           return newProperties.push([key, vInfo]);
         }
         isAnyPropertyChanged = true;
         newProperties.push([
-          key,
+          newKey,
           new VariableInfo(newType, vInfo.parent, vInfo.meta)
         ]);
       });
