@@ -479,7 +479,7 @@ export class FunctionType extends Type {
     }
     return GenericType.new(
       fnName,
-      { parent: typeScope },
+      {},
       newGenericArguments,
       localTypeScope,
       newFnType

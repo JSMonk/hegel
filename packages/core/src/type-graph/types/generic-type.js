@@ -492,12 +492,12 @@ export class GenericType<T: Type> extends Type {
     return this.genericArguments.includes(type);
   }
 
-  getNextParent(typeScope: TypeScope) {
+  getNextParent(_: TypeScope) {
     if (this._alreadyProcessedWith !== null || this.subordinateType == null) {
       return Type.GlobalTypeScope;
     }
     this._alreadyProcessedWith = this;
-    const result = this.subordinateType.getNextParent(typeScope);
+    const result = this.subordinateType.getNextParent(this.localTypeScope);
     this._alreadyProcessedWith = null;
     return result;
   }

@@ -1085,7 +1085,7 @@ export function addCallToTypeGraph(
     inferenced = inferenced || localInferenced;
     return result;
   };
-  const invocationType =
+  const result =
     targetType instanceof UnionType
       ? UnionType.term(null, {}, targetType.variants.map(getResult))
       : getResult(targetType);
@@ -1106,7 +1106,21 @@ export function addCallToTypeGraph(
     }
     currentScope.calls.push(callMeta);
   }
-  return { result: invocationType, inferenced };
+  const invocationType = result instanceof VariableInfo ? result.type : result;
+  if (currentScope === moduleScope && invocationType.parent.priority > TypeScope.MODULE_SCOPE_PRIORITY) {
+    const getArgumentTypeName = arg => String((arg instanceof VariableInfo ? arg.type : arg).name);
+    throw new HegelError(
+      `Could not deduce type "${
+        String(invocationType.name)
+      }" arising from the arguments${
+        args.length > 0 ? " " : ""
+      }${args.map(getArgumentTypeName).toString()}.
+Please, provide type parameters for the call or provide default type value for parameters
+of "${String(targetType.name)}" function.`,
+      node.loc
+    );
+  }
+  return { result, inferenced };
 }
 
 function invoke({
