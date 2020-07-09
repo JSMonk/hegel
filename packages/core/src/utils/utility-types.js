@@ -3,6 +3,7 @@ import { $Keys } from "../type-graph/types/keys-type";
 import { $Pick } from "../type-graph/types/pick-type";
 import { $Omit } from "../type-graph/types/omit-type";
 import { $Soft } from "../type-graph/types/soft-type";
+import { Symbol } from "../type-graph/types/symbol-literal-type";
 import { $Class } from "../type-graph/types/class-type";
 import { $Strict } from "../type-graph/types/strict-type";
 import { $TypeOf } from "../type-graph/types/type-of-type";
@@ -49,7 +50,8 @@ const mixUtilityTypes = moduleScope => {
     ["$Class", new $Class($Class.name, { parent: typeScope })],
     ["$Exclude", new $Exclude($Exclude.name, { parent: typeScope })],
     ["$Not", new $Not($Not.name, { parent: typeScope })],
-    ["$Unwrap", new $Unwrap($Unwrap.name, { parent: typeScope })]
+    ["$Unwrap", new $Unwrap($Unwrap.name, { parent: typeScope })],
+    ["Symbol", new Symbol(Symbol.name, { parent: typeScope })],
   ]);
   for (const [name, type] of utilityTypes) {
     typeScope.body.set(name, type);

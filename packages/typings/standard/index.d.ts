@@ -113,22 +113,26 @@ declare function escape(string: string): string;
 //   */
 declare function unescape(string: string): string;
 
-interface Symbol {
-  //   /** Returns a string representation of an object. */
-  toString(): string;
-
-  //   /** Returns the primitive value of the specified object. */
-  valueOf(): symbol;
-}
+// Used as special type
+//interface Symbol {
+//  //   /** Returns a string representation of an object. */
+//  toString(): string;
+//
+//  //   /** Returns the primitive value of the specified object. */
+//  valueOf(): symbol;
+//}
 
 interface SymbolConstructor {
-  readonly prototype: symbol;
-  readonly iterator: symbol;
-  readonly asyncIterator: symbol;
+  readonly prototype: Symbol<"prototype">;
+  readonly iterator: Symbol<"iterator">;
+  readonly asyncIterator: Symbol<"asyncIterator">;
 
-  (description?: string | number): symbol;
 
-  for(key: string): symbol;
+  // WARRNING: THE METHOD IS CHANGED in @hegel/core/src/type-graph/types/symbol-literal-type.js:29.
+  // We need it to generate randomly postfixed symbol
+  // <T extends string = "">(description?: T): Symbol<T>;
+
+  for<T extends string>(key: T): Symbol<T>;
 
   keyFor(sym: symbol): string | undefined;
 }

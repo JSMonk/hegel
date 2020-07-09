@@ -95,8 +95,9 @@ export class $BottomType extends Type {
               ? argument.subordinateType === a
               : a.equalsTo(argument)
         );
-        const result =
-          argumentIndex === -1 ? undefined : targetTypes[argumentIndex];
+        const result = argumentIndex === -1
+          ? undefined 
+          : sourceTypes[argumentIndex].changeAll(sourceTypes, targetTypes, typeScope);
         if (result === undefined) {
           includedUndefined = true;
         }
