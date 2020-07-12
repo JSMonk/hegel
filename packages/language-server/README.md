@@ -8,15 +8,15 @@ At current time it can:
 
 - [x]: show diagnostic information.
 
-![Diagonstics](https://raw.githubusercontent.com/JSMonk/hegel/master/packages/language-server/images/diagnostics.png)
+![Diagonstics](https://raw.githubusercontent.com/JSMonk/hegel/master/packages/language-server/src/images/diagnostics.png)
 
 - [x]: show information on hovering an element.
 
-![Hover](https://raw.githubusercontent.com/JSMonk/hegel/master/packages/language-server/images/hover.png)
+![Hover](https://raw.githubusercontent.com/JSMonk/hegel/master/packages/language-server/src/images/hover.png)
 
 - [x]: autocomplete variables on typing.
 
-![Autocompletion](https://raw.githubusercontent.com/JSMonk/hegel/master/packages/language-server/images/autocompletion.png)
+![Autocompletion](https://raw.githubusercontent.com/JSMonk/hegel/master/packages/language-server/src/images/autocompletion.png)
 
 ## Extension Settings
 
