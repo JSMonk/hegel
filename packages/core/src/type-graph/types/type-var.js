@@ -43,7 +43,6 @@ export class TypeVar extends Type {
     isUserDefined?: boolean = false
   ) {
     super(name, meta);
-    this.name = name;
     this.constraint = constraint;
     this.defaultType = defaultType;
     this._isUserDefined = isUserDefined;

@@ -128,13 +128,15 @@ interface SymbolConstructor {
   readonly asyncIterator: Symbol<"asyncIterator">;
 
 
-  // WARRNING: THE METHOD IS CHANGED in @hegel/core/src/type-graph/types/symbol-literal-type.js:29.
+  // WARRNING: THE METHOD IS CHANGED in @hegel/core/src/type-graph/types/symbol-literal-type.js:75.
   // We need it to generate randomly postfixed symbol
-  // <T extends string = "">(description?: T): Symbol<T>;
+  //  <T extends string = "">(description?: T): Symbol<T>;
 
-  for<T extends string>(key: T): Symbol<T>;
+  // WARRNING: THE METHOD IS CHANGED in @hegel/core/src/type-graph/types/symbol-literal-type.js:75.
+  // We need it to generate randomly postfixed symbol
+  //  for<T extends string>(key: T): Symbol<T>;
 
-  keyFor(sym: symbol): string | undefined;
+  keyFor<T extends string | undefined = string | undefined>(sym: Symbol<T> | symbol): T;
 }
 
 declare var Symbol: SymbolConstructor;

@@ -1,5 +1,5 @@
 import { Type } from "../type-graph/types/type";
-import { Symbol } from "../type-graph/types/symbol-literal-type";
+import { $Symbol } from "../type-graph/types/symbol-literal-type";
 import { TypeVar } from "../type-graph/types/type-var";
 import { UnionType } from "../type-graph/types/union-type";
 import { TypeScope } from "../type-graph/type-scope";
@@ -55,9 +55,10 @@ export function setupFullHierarchy(globalTypeScope) {
   );
   /*
     Extend interface "SymbolConstructor" defined in @hegel/typings/standard/index.d.ts:125
-    with callable property <T extends string = "">(description?: T): Symbol<T>;
+    with callable property <T extends string = "">(description?: T): Symbol<T> and
+    "for" method  <T extends string>(T): Symbol<T>
   */ 
-  Symbol.defineCallFunctionForSymbolConstructor();
+  $Symbol.defineSymbolConstructorMethods();
 }
 
 export function dropAllGlobals() {

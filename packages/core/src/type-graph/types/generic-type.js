@@ -384,6 +384,15 @@ export class GenericType<T: Type> extends Type {
       undefined,
       true
     );
+    if (appliedTypeName.indexOf("magic") === 0) {
+      appliedSelf = TypeVar.new(
+        appliedTypeName,
+        { parent: theMostPriorityParent, isSubtypeOf: TypeVar.Self },
+        undefined,
+        undefined,
+        true
+      );
+    }
     if (
       !(appliedSelf instanceof TypeVar) &&
       !(appliedSelf instanceof $BottomType)
