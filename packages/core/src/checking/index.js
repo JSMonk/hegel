@@ -128,12 +128,7 @@ function checkSingleCall(
   const targetFunctionType = getCallTarget(call);
   const targetArguments = targetFunctionType.argumentsTypes;
   const requiredTargetArguments = targetArguments.filter(
-    a =>
-      !(
-        (a instanceof UnionType &&
-          a.variants.find(a => a.equalsTo(Type.Undefined))) ||
-        a instanceof RestArgument
-      )
+    a =>  !(a instanceof RestArgument) && !a.isPrincipalTypeFor(Type.Undefined)
   );
   if (requiredTargetArguments.length > givenArgumentsTypes.length) {
     errors.push(

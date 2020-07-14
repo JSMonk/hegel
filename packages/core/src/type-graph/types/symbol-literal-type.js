@@ -142,7 +142,7 @@ export class $Symbol extends GenericType<Type> {
     const callFunction = FunctionType.term(
       "magic (T | undefined) => Symbol<T>",
       {},
-      [UnionType.term(null, {}, [Type.String, Type.Undefined])],
+      [T],
       new $BottomType({}, new $Symbol($Symbol.name, {}, 'hashed'), [T])
     );
     // call : <T: string = "">(?T) => Symbol<T>
