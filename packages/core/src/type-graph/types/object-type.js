@@ -138,7 +138,9 @@ export class ObjectType extends Type {
     _: boolean = false,
     isForInit: boolean = false
   ): ?Type | ClassProperty | ObjectProperty | ClassMethod | ObjectMethod {
-    const propertyName = property instanceof TypeVar ? property : String(property);
+    const propertyName = property instanceof TypeVar || property.isSubtypeOf === Type.Symbol 
+      ? property 
+      : String(property);
     let fieldOwner = this;
     let field = undefined;
     while (fieldOwner) {

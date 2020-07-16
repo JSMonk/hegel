@@ -84,6 +84,7 @@ export const OBJECT_PROPERTIES = {
   OBJECT_PROPERTY: "ObjectProperty",
   TS_OBJECT_PROPERTY: "TSPropertySignature",
   TS_INDEX_PROPERTY: "TSIndexSignature",
+  OBJECT_TYPE_INDEXER: "ObjectTypeIndexer",
   TS_CONSTRUCT_SIGNATURE_DECLARATION: "TSConstructSignatureDeclaration"
 };
 

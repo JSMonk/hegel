@@ -45,8 +45,14 @@ export function getPropertyName(
     const type = result instanceof VariableInfo ? result.type : result;
     const availableTypes = UnionType.term(null, {}, [Type.String, Type.Number, Type.Symbol]);
     if (availableTypes.isPrincipalTypeFor(type)) {
-      if (type instanceof TypeVar) {
+      if (type instanceof TypeVar || type.isSubtypeOf === Type.Symbol) {
         return type;
+      }
+      if (type.isSubtypeOf === Type.String) {
+        return String(type.name).slice(1, -1);
+      }
+      if (type.isSubtypeOf === Type.Number) {
+        return String(type.name);
       }
       if (
           !(type instanceof UnionType) &&

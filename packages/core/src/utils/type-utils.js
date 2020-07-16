@@ -16,6 +16,7 @@ import { $ThrowsResult } from "../type-graph/types/throws-type";
 import { VariableScope } from "../type-graph/variable-scope";
 import { $Intersection } from "../type-graph/types/intersection-type";
 import { CollectionType } from "../type-graph/types/collection-type";
+import { addCallToTypeGraph } from "../type-graph/call";
 import { getDeclarationName } from "./common";
 import { PositionedModuleScope } from "../type-graph/module-scope";
 import { FunctionType, RestArgument } from "../type-graph/types/function-type";
@@ -414,6 +415,7 @@ export function getTypeFromTypeAnnotation(
         annotation.type === NODE.TS_INTERFACE_DECLARATION || annotation.inexact;
       const properties =
         objectBody.properties || objectBody.body || objectBody.members;
+      const computed = objectBody.indexers || [];
       const superTypes = (annotation.extends || []).map(node =>
         getTypeFromTypeAnnotation(
           { typeAnnotation: node },
@@ -430,7 +432,7 @@ export function getTypeFromTypeAnnotation(
       );
       const isNotTypeDefinition =
         annotation.type === NODE.OBJECT_TYPE_ANNOTATION;
-      const params = properties.flatMap(property => {
+      const params = [...properties, ...computed].flatMap(property => {
         if (property.type === NODE.OBJECT_TYPE_SPREAD_PROPERTY) {
           const spreadType = getTypeFromTypeAnnotation(
             { typeAnnotation: property.argument },
@@ -455,23 +457,59 @@ export function getTypeFromTypeAnnotation(
             property.loc
           );
         }
-        return [
-          [
-            getPropertyName(property),
-            getTypeFromTypeAnnotation(
-              { typeAnnotation: property.value || property },
-              typeScope,
-              currentScope,
-              rewritable,
-              self,
-              parentNode,
-              typeGraph,
-              precompute,
-              middlecompute,
-              postcompute
-            )
-          ]
-        ];
+        let key;
+        if (property.type === NODE.OBJECT_TYPE_INDEXER) {
+          key = getTypeFromTypeAnnotation(
+            { typeAnnotation: property.key },
+            typeScope,
+            currentScope,
+            rewritable,
+            self,
+            parentNode,
+            typeGraph,
+            precompute,
+            middlecompute,
+            postcompute
+          );
+        } else if (property.key !== undefined && property.key.type !== NODE.IDENTIFIER) {
+          const callResult = addCallToTypeGraph(
+            property.key,
+            typeGraph,
+            currentScope,
+            parentNode,
+            precompute,
+            middlecompute,
+            postcompute
+          ).result;
+          key = callResult instanceof VariableInfo ? callResult.type : callResult; 
+          if (
+              key.isSubtypeFor !== Type.String &&
+              key.isSubtypeFor !== Type.Symbol &&
+              key.isSubtypeFor !== Type.Number
+          ) {
+            throw new HegelError("Computed property type should be String, Symbol or Number literal type.", property.key.loc);
+          }
+         if (key.isSubtypeFor === Type.String) {
+          key = String(key.name).slice(1, -1);
+         } else if (key.isSubtypeFor === Type.Number) {
+          key = String(key.name);
+         }
+        } else {
+          key = getPropertyName(property);
+        }
+        return [[key, getTypeFromTypeAnnotation(
+            { typeAnnotation: property.value || property },
+            typeScope,
+            currentScope,
+            rewritable,
+            self,
+            parentNode,
+            typeGraph,
+            precompute,
+            middlecompute,
+            postcompute
+          )
+        ]];
       });
       if (customName === undefined) {
         customName =
