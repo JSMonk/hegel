@@ -71,7 +71,7 @@ export class $Symbol extends GenericType<Type> {
     if (existed) {
       return existed;
     }
-    const result = `${name}:${this.getHash()}`;
+    const result = `${name.slice(1, -1)}:${this.getHash()}`;
     this.symbolNamespace.set(name, result); 
     return result;
   }
