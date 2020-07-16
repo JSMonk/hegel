@@ -501,6 +501,8 @@ interface ReadonlyArray<T> {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
   //       */
 
+  [Symbol.iterator](): IterableIterator<T>;
+  
   readonly [n: number]: T;
 }
 

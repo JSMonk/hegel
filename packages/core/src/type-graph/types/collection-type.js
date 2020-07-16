@@ -29,8 +29,10 @@ export class CollectionType<K: Type, V: Type> extends Type {
     if (parent === undefined || valueType.parent.priority > parent.priority) {
       parent = valueType.parent;
     }
-    const newMeta = { ...meta, parent };
-    return super.term(name, newMeta, keyType, valueType, ...args);
+    const newMeta = { ...meta, isSubtypeOf: undefined, parent };
+    const result = super.term(name, newMeta, keyType, valueType, ...args);
+    result.isSubtypeOf = meta.isSubtypeOf;
+    return result;
   }
 
   static getName(keyType: Type, valueType: Type) {
