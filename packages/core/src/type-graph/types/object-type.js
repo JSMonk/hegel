@@ -1,4 +1,5 @@
 // @flow
+import HegelError from "../../utils/errors";
 import { Type } from "./type";
 import { unique } from "../../utils/common";
 import { TypeVar } from "./type-var";
@@ -254,8 +255,18 @@ export class ObjectType extends Type {
         let newKey = key instanceof TypeVar
           ? key.changeAll(sourceTypes, targetTypes, typeScope)
           : key;
+          if (typeof newKey !== "string" && !(newKey instanceof TypeVar)) {
+            newKey = this.getOponentType(newKey);
+            if (
+                newKey.isSubtypeOf !== Type.String &&
+                newKey.isSubtypeOf !== Type.Symbol &&
+                newKey.isSubtypeOf !== Type.Number
+            ) {
+              throw new HegelError(`Computed property type should be String, Symbol or Number literal type, but given "${String(newKey.name)}"`);
+            }
+          }
         if (key !== newKey && !(newKey instanceof TypeVar)) {
-          newKey = Type.String.isPrincipalTypeFor(newKey) ? String(newKey.name.slice(1, -1)) : String(newKey.name);
+          newKey = newKey.isSubtypeOf === Type.String ? String(newKey.name.slice(1, -1)) : String(newKey.name);
         }
         if (vInfo.type === newType && newKey === key) {
           return newProperties.push([key, vInfo]);

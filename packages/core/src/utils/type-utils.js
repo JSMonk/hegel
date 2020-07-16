@@ -482,16 +482,17 @@ export function getTypeFromTypeAnnotation(
             postcompute
           ).result;
           key = callResult instanceof VariableInfo ? callResult.type : callResult; 
+          key = key.getOponentType(key);
           if (
-              key.isSubtypeFor !== Type.String &&
-              key.isSubtypeFor !== Type.Symbol &&
-              key.isSubtypeFor !== Type.Number
+              key.isSubtypeOf !== Type.String &&
+              key.isSubtypeOf !== Type.Symbol &&
+              key.isSubtypeOf !== Type.Number
           ) {
-            throw new HegelError("Computed property type should be String, Symbol or Number literal type.", property.key.loc);
+            throw new HegelError(`Computed property type should be String, Symbol or Number literal type, but given "${String(key.name)}"`, property.key.loc);
           }
-         if (key.isSubtypeFor === Type.String) {
+         if (key.isSubtypeOf === Type.String) {
           key = String(key.name).slice(1, -1);
-         } else if (key.isSubtypeFor === Type.Number) {
+         } else if (key.isSubtypeOf === Type.Number) {
           key = String(key.name);
          }
         } else {
