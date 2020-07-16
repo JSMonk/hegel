@@ -423,4 +423,8 @@ export class Type {
     this === Type.Symbol || this.isSubtypeOf === Type.Symbol ||
     this === Type.Null || this === Type.Undefined;
   }
+
+  toString() {
+    return String(this.name);
+  }
 }

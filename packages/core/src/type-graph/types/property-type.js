@@ -65,11 +65,12 @@ export class $PropertyType extends GenericType {
     const [currentTarget, property] = parameters;
     const realTarget = this.getOponentType(currentTarget);
     const realProperty = this.getOponentType(property);
-    const propertyName =
-      realProperty.isSubtypeOf && realProperty.isSubtypeOf.name === "string"
-        ? realProperty.name.slice(1, -1)
-        : realProperty.name;
-
+    let propertyName = realProperty.name;
+    if (realProperty.isSubtypeOf && realProperty.isSubtypeOf.name === "string") {
+      propertyName = realProperty.name.slice(1, -1);
+    } else if (realProperty.isSubtypeOf === Type.Symbol || realProperty instanceof TypeVar) {
+      propertyName = realProperty;
+    }
     const isTargetVariable = realTarget instanceof TypeVar;
     const isPropertyVariable = realProperty instanceof TypeVar;
     if (isTargetVariable && !realTarget.isUserDefined) {
@@ -141,13 +142,6 @@ export class $PropertyType extends GenericType {
     if (isTargetVariable && !realTarget.isUserDefined && !isPropertyVariable) {
       return realTarget.constraint.properties.get(propertyName).type;
     }
-    if (isPropertyVariable) {
-      return this.bottomizeWith(
-        [realTarget, realProperty],
-        realTarget.parent,
-        loc
-      );
-    }
     if (realProperty instanceof UnionType) {
       try {
         const variants = realProperty.variants.map(p =>
@@ -198,6 +192,13 @@ export class $PropertyType extends GenericType {
     }
     if (fieldType !== null) {
       return fieldType;
+    }
+    if (isPropertyVariable) {
+      return this.bottomizeWith(
+        [realTarget, realProperty],
+        realTarget.parent,
+        loc
+      );
     }
     throw new HegelError(
       `Property "${propertyName}" does not exist in "${currentTarget.name}"`,

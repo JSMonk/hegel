@@ -265,9 +265,11 @@ export class ObjectType extends Type {
               throw new HegelError(`Computed property type should be String, Symbol or Number literal type, but given "${String(newKey.name)}"`);
             }
           }
-        if (key !== newKey && !(newKey instanceof TypeVar)) {
-          newKey = newKey.isSubtypeOf === Type.String ? String(newKey.name.slice(1, -1)) : String(newKey.name);
-        }
+         if (newKey.isSubtypeOf === Type.String) {
+          newKey = String(newKey.name).slice(1, -1);
+         } else if (key.isSubtypeOf === Type.Number) {
+          newKey = String(newKey.name);
+         }
         if (vInfo.type === newType && newKey === key) {
           return newProperties.push([key, vInfo]);
         }
