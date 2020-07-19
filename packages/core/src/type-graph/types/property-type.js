@@ -63,7 +63,7 @@ export class $PropertyType extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;
-    const realTarget = this.getOponentType(currentTarget);
+    const realTarget = this.getOponentType(currentTarget, true, false);
     const realProperty = this.getOponentType(property);
     let propertyName = realProperty.name;
     if (realProperty.isSubtypeOf && realProperty.isSubtypeOf.name === "string") {
