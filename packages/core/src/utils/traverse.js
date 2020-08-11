@@ -190,6 +190,7 @@ function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
         init: getInitFor(currentNode)
       }]
     }; 
+    currentNode.left = undefined;
   }
   return {
     type: NODE.BLOCK_STATEMENT,

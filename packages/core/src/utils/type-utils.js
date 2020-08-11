@@ -1001,11 +1001,13 @@ export function isFalsy(type: Type) {
 }
 
 export function getIteratorValueType(iterator: Type, isIterable: boolean) {
-  const $Symbol = Type.find("Symbol"); 
+  iterator = iterator.getOponentType(iterator);
+  const $SymbolConstructor = Type.find("SymbolConstructor"); 
   const $ReturnType = Type.find("$ReturnType"); 
   const $PropertyType = Type.find("$PropertyType"); 
+  const symbolIterator = $PropertyType.applyGeneric([$SymbolConstructor, Type.term("'iterator'", { isSubtypeOf: Type.String })]);
   if (isIterable) {
-    const IteratorMethodType =  $PropertyType.applyGeneric([iterator, Type.find("@@iterator")]);
+    const IteratorMethodType =  $PropertyType.applyGeneric([iterator, symbolIterator]);
     iterator = $ReturnType.applyGeneric([IteratorMethodType])
   }
   const NextMethodType = $PropertyType.applyGeneric([iterator, Type.term("'next'", { isSubtypeOf: Type.String })]);

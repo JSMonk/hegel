@@ -21,10 +21,12 @@ import type { TypeScope } from "../type-graph/type-scope";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
   Node,
-  ClassProperty,
-  ObjectProperty,
   ClassMethod,
-  ObjectMethod
+  ArrayPattern,
+  ObjectMethod,
+  ClassProperty,
+  ObjectPattern,
+  ObjectProperty,
 } from "@babel/parser";
 
 export function getPropertyName(
