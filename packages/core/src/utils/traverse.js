@@ -201,8 +201,7 @@ function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
 }
 
 function mixExportInfo(currentNode: Node) {
-  if (
-    currentNode.type !== NODE.EXPORT_NAMED_DECLARATION &&
+  if ( currentNode.type !== NODE.EXPORT_NAMED_DECLARATION &&
     currentNode.type !== NODE.EXPORT_DEFAULT_DECLARATION
   ) {
     return currentNode;
@@ -256,6 +255,61 @@ function mixParentToClassObjectAndFunction(
   ) {
     currentNode.parentNode = parentNode;
   }
+  return currentNode;
+}
+
+function copyLocOfNode(node) {
+  return { start: {...node.loc.start}, end: {...node.loc.end} };
+}
+
+function convertObjectSpreadIntoAssign(
+  currentNode: Node,
+  parentNode: Node
+) {
+  if (
+    currentNode.type !== NODE.OBJECT_EXPRESSION ||
+    !currentNode.properties.some(p => p.type === NODE.SPREAD_ELEMENT)
+  ) {
+    return currentNode;
+  }
+  const properties = currentNode.properties;
+  const propertiesSize = properties.length;
+  let lastObject = { ...currentNode, properties: [], loc: copyLocOfNode(currentNode)  };
+  let lastProperty;
+  const objects = [lastObject];
+  for (let i = 0; i < propertiesSize; i++) {
+    const property = properties[i];
+    if (property.type === NODE.SPREAD_ELEMENT) {
+      if (lastProperty == undefined) {
+        objects.push(property.argument);
+        lastObject = { ...currentNode, loc: copyLocOfNode(currentNode),  properties: [] };
+        objects.push(lastObject);
+        continue;
+      }
+      lastObject.loc.end = lastProperty.loc.end; 
+      objects.push(property.argument);
+      lastObject = { ...currentNode, loc: { start: lastObject.loc.end },  properties: [] };
+      objects.push(lastObject);
+    } else {
+      lastObject.properties.push(property);
+      lastProperty = property;
+    }
+  }
+  if (lastObject.properties.length !== 0) {
+    lastObject.loc.end = lastProperty.loc.end; 
+  } 
+  Object.assign(currentNode, {
+    type: NODE.CALL_EXPRESSION,
+    loc: currentNode.loc,
+    arguments: objects,
+    callee: {
+      type: NODE.MEMBER_EXPRESSION,
+      loc: currentNode.loc,
+      object: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "Object" },
+      property: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "assign" },
+    },
+    properties: undefined
+  });
   return currentNode;
 }
 
@@ -360,7 +414,8 @@ const getCurrentNode = compose(
   mixBlockToConditionalExpression,
   mixBlockToCaseStatement,
   mixParentToClassObjectAndFunction,
-  sortClassMembers
+  sortClassMembers,
+  convertObjectSpreadIntoAssign
 );
 
 export type Handler = (

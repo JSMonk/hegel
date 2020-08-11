@@ -74,11 +74,11 @@ export const EXPRESSIONS_TYPES = {
   NEW_EXPRESSION: "NewExpression",
   THIS_EXPRESSION: "ThisExpression",
   TS_EXPRESSION_WITH_TYPE_ARGUMENTS: "TSExpressionWithTypeArguments",
-  REST_ELEMENT: "RestElement"
+  REST_ELEMENT: "RestElement",
+  SPREAD_ELEMENT: "SpreadElement"
 };
 
 export const OBJECT_PROPERTIES = {
-  OBJECT_EXPRESSION: "ObjectExpression",
   OBJECT_METHOD: "ObjectMethod",
   TS_OBJECT_METHOD: "TSMethodSignature",
   OBJECT_PROPERTY: "ObjectProperty",
@@ -186,7 +186,7 @@ export const isUnscopableDeclaration = ({ kind }: Object) =>
   kind === DECLARATION_KINDS.VAR;
 
 export const isObject = (node: Node) =>
-  node.type === OBJECT_PROPERTIES.OBJECT_EXPRESSION;
+  node.type === EXPRESSIONS_TYPES.OBJECT_EXPRESSION;
 
 export const isScopeCreator = (node: Node) =>
   [

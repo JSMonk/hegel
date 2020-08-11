@@ -60,7 +60,7 @@ export class $Intersection extends GenericType {
     const wrongIndex = objectTypes.findIndex(a => !(a instanceof ObjectType));
     if (wrongIndex !== -1) {
       throw new HegelError(
-        `All parameters should be an object type. Only first parameter should mutable object type. ${wrongIndex} is not.`,
+        `All parameters should be an object type. Only first parameter should mutable object type. ${wrongIndex + 1} is not.`,
         loc
       );
     }
