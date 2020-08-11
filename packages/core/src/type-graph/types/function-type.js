@@ -44,7 +44,7 @@ export class RestArgument extends Type {
       return this.getValueType(type.isSubtypeOf);
     }
     if (type instanceof UnionType) {
-      const variants = type.variants.map(this.getValueType);
+      const variants = type.variants.map(t => this.getValueType(t));
       return variants.includes(undefined)
         ? undefined
         : UnionType.term(null, {}, variants);

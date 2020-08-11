@@ -42,7 +42,8 @@ export function getPropertyName(
   }
   if (node.computed && addCallToTypeGraph !== undefined) {
     const { result } = addCallToTypeGraph(node.key);
-    const type = result instanceof VariableInfo ? result.type : result;
+    let type = result instanceof VariableInfo ? result.type : result;
+    type = type.getOponentType(type);
     const availableTypes = UnionType.term(null, {}, [Type.String, Type.Number, Type.Symbol]);
     if (availableTypes.isPrincipalTypeFor(type)) {
       if (type instanceof TypeVar || type.isSubtypeOf === Type.Symbol) {

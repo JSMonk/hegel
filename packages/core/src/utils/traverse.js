@@ -179,10 +179,18 @@ function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
   ) {
     return currentNode;
   }
-  const init = currentNode.init || {
-    ...currentNode.left,
-    init: getInitFor(currentNode)
-  };
+  let init;
+  if (currentNode.init != undefined) {
+    init = currentNode.init; 
+  } else {
+    init = {
+      ...currentNode.left,
+      declarations: [{
+        ...currentNode.left.declarations[0],
+        init: getInitFor(currentNode)
+      }]
+    }; 
+  }
   return {
     type: NODE.BLOCK_STATEMENT,
     body: [init, currentNode],

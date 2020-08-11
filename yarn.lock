@@ -1335,11 +1335,6 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@hegel/typings@0.0.41", "@hegel/typings@^0.0.41":
-  version "0.0.41"
-  resolved "https://registry.yarnpkg.com/@hegel/typings/-/typings-0.0.41.tgz#1d168c8155c1950dfe9a9fae42b7df7e373d842f"
-  integrity sha512-hA2tfd7aOS16Qc9XQQqcSADrPUqjGLyWaPC+mwDbE7U35WbXGpJsags56DW4AvwQSc4QbFEZ7/g6TtfK17NZJQ==
-
 "@hutson/parse-repository-url@^3.0.0":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@hutson/parse-repository-url/-/parse-repository-url-3.0.2.tgz#98c23c950a3d9b6c8f0daed06da6c3af06981340"

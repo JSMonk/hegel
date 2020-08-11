@@ -7,6 +7,7 @@ import { $Keys } from "./types/keys-type";
 import { $Values } from "./types/values-type";
 import { TypeVar } from "./types/type-var";
 import { CallMeta } from "./meta/call-meta";
+import { TupleType } from "./types/tuple-type";
 import { TypeScope } from "./type-scope";
 import { UnionType } from "./types/union-type";
 import { ObjectType } from "./types/object-type";
@@ -32,7 +33,11 @@ import {
   getRawFunctionType,
   getInvocationType
 } from "../inference/function-type";
-import { getWrapperType, getTypeFromTypeAnnotation } from "../utils/type-utils";
+import { 
+  getWrapperType,
+  getIteratorValueType,
+  getTypeFromTypeAnnotation
+} from "../utils/type-utils";
 import {
   getParentForNode,
   findNearestTypeScope,
@@ -609,17 +614,20 @@ export function addCallToTypeGraph(
         meta
       ).result;
       args = [target];
-      targetName = "Object.values";
-      args = args.map(a => (a instanceof VariableInfo ? a.type : a));
-      const isArray = args[0] instanceof CollectionType;
-      target = new $Values().applyGeneric(args, node.loc);
-      target =
-        isArray && node.type === NODE.VALUE
-          ? UnionType.term(null, {}, [target, Type.Undefined])
-          : target;
-      // $FlowIssue
-      target = new FunctionType(targetName, {}, args, target);
-      break;
+      const maybeIterableType = target instanceof VariableInfo ? target.type : target;
+      const CommonIterable = ObjectType.Iterable.root.applyGeneric([Type.Unknown]);
+      const CommonIterator = ObjectType.Iterator.root.applyGeneric([Type.Unknown]);
+      const isIterable = CommonIterable.isPrincipalTypeFor(maybeIterableType);
+      const isIterator = CommonIterator.isPrincipalTypeFor(maybeIterableType);
+      if (isIterable || isIterator) {
+        return {
+          result: getIteratorValueType(maybeIterableType, isIterable)
+        };
+      }
+      throw new HegelError(
+        `Type '${String(maybeIterableType.name)}' must have a '[Symbol.iterator]()' method that returns an iterator.`,
+        node.of.loc
+      );
     case NODE.MEMBER_EXPRESSION:
       const propertyName =
         node.property.type === NODE.PRIVATE_NAME

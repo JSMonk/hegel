@@ -793,12 +793,16 @@ export function getTypeFromTypeAnnotation(
         false,
         throwableType && throwableType.errorType
       );
-      const type = FunctionType.term(typeName, {}, args, returnType);
-      type.throwable = throwableType && throwableType.errorType;
-      if (genericParams.length === 0 || !(type instanceof FunctionType)) {
-        return type;
+      let type = FunctionType.term(typeName, {}, args, returnType);
+      if (type instanceof FunctionType) {
+        type.throwable = throwableType && throwableType.errorType;
       }
-      return GenericType.new(typeName, {}, genericParams, localTypeScope, type);
+      if (genericParams.length !== 0 && type instanceof FunctionType) {
+        type = GenericType.new(typeName, {}, genericParams, localTypeScope, type);
+      }
+      return typeNode.typeAnnotation.optional
+        ? UnionType.term(null, {}, [type, Type.Undefined]) 
+        : type;
   }
   return Type.Unknown;
 }
@@ -994,4 +998,21 @@ export function pickTruthy(type: Type) {
 
 export function isFalsy(type: Type) {
   return getFalsy().includes(type);
+}
+
+export function getIteratorValueType(iterator: Type, isIterable: boolean) {
+  const $Symbol = Type.find("Symbol"); 
+  const $ReturnType = Type.find("$ReturnType"); 
+  const $PropertyType = Type.find("$PropertyType"); 
+  if (isIterable) {
+    const IteratorMethodType =  $PropertyType.applyGeneric([iterator, Type.find("@@iterator")]);
+    iterator = $ReturnType.applyGeneric([IteratorMethodType])
+  }
+  const NextMethodType = $PropertyType.applyGeneric([iterator, Type.term("'next'", { isSubtypeOf: Type.String })]);
+  const YieldType = $ReturnType.applyGeneric([NextMethodType]);
+  let ValueType = $PropertyType.applyGeneric([YieldType, Type.term("'value'", { isSubtypeOf: Type.String })]);
+  if (ValueType instanceof UnionType && ValueType.variants.includes(Type.Unknown)) {
+    ValueType = UnionType.term(null, {}, ValueType.variants.filter(t => t !== Type.Unknown));
+  }
+  return ValueType;  
 }

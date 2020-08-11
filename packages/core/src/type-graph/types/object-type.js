@@ -24,6 +24,8 @@ export class ObjectType extends Type {
   }
 
   static Object = new TypeVar("Object");
+  static Iterable = new TypeVar("Iterable");
+  static Iterator = new TypeVar("Iterator");
 
   static term(
     name: mixed,
