@@ -59,8 +59,9 @@ async function main() {
         asts,
         importModule(config, getFileAST, true),
         false,
-        await mixTypeDefinitions(config, getFileAST)
+        await mixTypeDefinitions(config, getFileAST)  
       );
+      //console.log(result)
       errors = result[1];
     } catch (e) {
       if (!(e instanceof SyntaxError)) {

@@ -1,4 +1,5 @@
 import manifest from "../package.json";
+import { existsSync } from "fs";
 import { dirname, join } from "path";
 import { createModuleScope } from "@hegel/core";
 import type { Config } from "./config";
@@ -52,16 +53,19 @@ async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
 
 export async function mixTypeDefinitions(
   config: Config,
-  prepeareAST: (string, boolean) => Promise<ExtendedFile>
+  prepareAST: (string, boolean) => Promise<ExtendedFile>
 ) {
-  const standardAST = await prepeareAST(standard, true);
-  const nodejsAST = config.environment === "nodejs"
-    ? await prepeareAST(nodejs, true)
-    : undefined;
+  const standardAST = await prepareAST(standard, true);
+  let environmentAST: ExtendedFile;
+  if(config.environment){
+    const environment_globals = join(typings, `${config.environment}/globals.d.ts`);
+    environmentAST = await prepareAST(environment_globals, true);
+  }
   return async globalScope => {
     await mixLibraryToGlobal(standardAST, globalScope);
-    if (nodejsAST !== undefined) {
-      await mixLibraryToGlobal(nodejsAST, globalScope);
+    
+    if (environmentAST) {
+      await mixLibraryToGlobal(environmentAST, globalScope);
     }
   };
 }
