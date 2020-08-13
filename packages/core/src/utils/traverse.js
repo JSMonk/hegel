@@ -273,11 +273,10 @@ function convertObjectSpreadIntoAssign(currentNode: Node) {
     return currentNode;
   }
   const properties = currentNode.properties;
-  const propertiesSize = properties.length;
   let lastObject;
   let lastProperty;
   const objects = [];
-  for (let i = 0; i < propertiesSize; i++) {
+  for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
     if (property.type === NODE.SPREAD_ELEMENT) {
       if (lastObject !== undefined) {
@@ -330,10 +329,9 @@ function convertArraySpreadIntoConcat(currentNode: Node) {
     return currentNode;
   }
   const elements = currentNode.elements;
-  const elementsLength = elements.length;
   const arrays = [];
   let lastArray;
-  for (let i = 0; i < elementsLength; i++) {
+  for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
     if (element.type === NODE.SPREAD_ELEMENT) {
       arrays.push({

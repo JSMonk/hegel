@@ -13,7 +13,6 @@ import { UnionType } from "./types/union-type";
 import { ObjectType } from "./types/object-type";
 import { GenericType } from "./types/generic-type";
 import { $BottomType } from "./types/bottom-type";
-import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { $PropertyType } from "./types/property-type";
 import { VariableScope } from "./variable-scope";
@@ -25,6 +24,7 @@ import { $AppliedImmutable } from "./types/immutable-type";
 import { inferenceTypeForNode } from "../inference";
 import { pickFalsy, pickTruthy } from "../utils/type-utils";
 import { addFunctionToTypeGraph } from "../utils/function-utils";
+import { FunctionType, RestArgument } from "./types/function-type";
 import { getVariableType, getPropertyName } from "../utils/variable-utils";
 import { ModuleScope, PositionedModuleScope } from "./module-scope";
 import { addToThrowable, findThrowableBlock } from "../utils/throwable";
@@ -901,32 +901,67 @@ export function addCallToTypeGraph(
           node.loc
         );
       }
+      const providedArgumentsLength = node.arguments.length;
       args = node.arguments.map((n, i) => {
         argsLocations.push(n.loc);
         // $FlowIssue
         const defaultArg = (fnType.argumentsTypes || [])[i];
-        return n.type === NODE.FUNCTION_EXPRESSION ||
-          n.type === NODE.ARROW_FUNCTION_EXPRESSION
-          ? defaultArg
-          : addCallToTypeGraph(
-              n,
-              moduleScope,
-              currentScope,
-              parentNode,
-              pre,
-              middle,
-              post,
-              { ...meta, isImmutable: defaultArg instanceof $AppliedImmutable }
-            ).result;
+        if (n.type === NODE.FUNCTION_EXPRESSION || n.type === NODE.ARROW_FUNCTION_EXPRESSION) {
+          return defaultArg;
+        }
+        const isSpreadElement = n.type === NODE.SPREAD_ELEMENT;
+        if (isSpreadElement) {
+          n = n.argument;
+        } 
+        const { result } = addCallToTypeGraph(
+          n,
+          moduleScope,
+          currentScope,
+          parentNode,
+          pre,
+          middle,
+          post,
+          { ...meta, isImmutable: defaultArg instanceof $AppliedImmutable }
+        );
+        if (isSpreadElement) {
+          let resultType = result instanceof VariableInfo ? result.type : result;
+          resultType = resultType.getOponentType(resultType);
+          if (resultType instanceof TupleType) {
+            return resultType.items; 
+          }
+          const length = fnType.argumentsTypes.length - i;
+          const restOfArguments = Array.from({ length });
+          if (resultType instanceof CollectionType) {
+            return restOfArguments.fill(
+              defaultArg instanceof RestArgument 
+                ? resultType.valueType
+                : UnionType.term(null, {}, [Type.Undefined, resultType.valueType])
+            );
+          }
+          const CommonIterable = ObjectType.Iterable.root.applyGeneric([Type.Unknown]);
+          const CommonIterator = ObjectType.Iterator.root.applyGeneric([Type.Unknown]);
+          const isIterable = CommonIterable.isPrincipalTypeFor(resultType);
+          const isIterator = CommonIterator.isPrincipalTypeFor(resultType);
+          if (isIterable || isIterator) {
+              const element = getIteratorValueType(resultType, isIterable);
+              return restOfArguments.fill(UnionType.term(null, {}, [Type.Undefined, element]));
+          }
+          throw new HegelError(
+            `Type '${String(resultType.name)}' must have a '[Symbol.iterator]()' method that returns an iterator.`,
+            n.loc
+          );
+        }
+        return result;
       });
       targetType.asNotUserDefined();
-      args = node.arguments.map((n, i) => {
+      args = node.arguments.flatMap((n, i) => {
         if (
           n.type !== NODE.FUNCTION_EXPRESSION &&
           n.type !== NODE.ARROW_FUNCTION_EXPRESSION
         ) {
+          const element = args[i];
           // $FlowIssue
-          return args[i];
+          return element instanceof Array ? element : [element];
         }
         let expectedType =
           fnType instanceof FunctionType ? fnType.argumentsTypes[i] : undefined;
@@ -958,7 +993,7 @@ export function addCallToTypeGraph(
           middle,
           post
         );
-        return result;
+        return [result];
       });
       fnType = getRawFunctionType(
         // $FlowIssue
