@@ -30,10 +30,10 @@ and limitations under the License.
 //   rpDisplayName: string;
 // }
 
-// interface AddEventListenerOptions extends EventListenerOptions {
-//   once?: boolean;
-//   passive?: boolean;
-// }
+interface AddEventListenerOptions extends EventListenerOptions {
+  once?: boolean;
+  passive?: boolean;
+}
 
 // interface AesCbcParams extends Algorithm {
 //   iv: Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | ArrayBuffer;
@@ -472,15 +472,15 @@ and limitations under the License.
 //   message?: string;
 // }
 
-// interface EventInit {
-//   bubbles?: boolean;
-//   cancelable?: boolean;
-//   composed?: boolean;
-// }
+interface EventInit {
+  bubbles?: boolean;
+  cancelable?: boolean;
+  composed?: boolean;
+}
 
-// interface EventListenerOptions {
-//   capture?: boolean;
-// }
+interface EventListenerOptions {
+  capture?: boolean;
+}
 
 // interface EventModifierInit extends UIEventInit {
 //   altKey?: boolean;
@@ -1921,9 +1921,9 @@ and limitations under the License.
 //   contentType: string;
 // }
 
-// interface EventListener {
-//   (evt: Event): void;
-// }
+interface EventListener {
+  (evt: Event): void;
+}
 
 // type XPathNSResolver = ((prefix: string | null) => string | null) | { lookupNamespaceURI(prefix: string | null): string | null; };
 
@@ -1940,7 +1940,8 @@ interface AbortController {
   /**
    * Returns the AbortSignal object associated with this object.
    */
-  readonly signal: AbortSignal;
+  readonly signal: any;
+  // readonly signal: AbortSignal;
   /**
    * Invoking this method will set this object's AbortSignal's aborted flag and signal to any observers that the associated activity is to be aborted.
    */
@@ -5359,9 +5360,9 @@ declare var Event: {
   readonly NONE: number;
 };
 
-// interface EventListenerObject {
-//   handleEvent(evt: Event): void;
-// }
+interface EventListenerObject {
+  handleEvent(evt: Event): void;
+}
 
 // interface EventSourceEventMap {
 //   "error": Event;
