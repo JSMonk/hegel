@@ -67,12 +67,12 @@ interface AddEventListenerOptions extends EventListenerOptions {
 //   name: string;
 // }
 
-// interface AnalyserOptions extends AudioNodeOptions {
-//   fftSize?: number;
-//   maxDecibels?: number;
-//   minDecibels?: number;
-//   smoothingTimeConstant?: number;
-// }
+interface AnalyserOptions extends AudioNodeOptions {
+  fftSize?: number;
+  maxDecibels?: number;
+  minDecibels?: number;
+  smoothingTimeConstant?: number;
+}
 
 // interface AnimationEventInit extends EventInit {
 //   animationName?: string;
@@ -96,20 +96,20 @@ interface AnimationPlaybackEventInit extends EventInit {
 //   flatten?: boolean;
 // }
 
-// interface AudioBufferOptions {
-//   length: number;
-//   numberOfChannels?: number;
-//   sampleRate: number;
-// }
+interface AudioBufferOptions {
+  length: number;
+  numberOfChannels?: number;
+  sampleRate: number;
+}
 
-// interface AudioBufferSourceOptions {
-//   buffer?: AudioBuffer | null;
-//   detune?: number;
-//   loop?: boolean;
-//   loopEnd?: number;
-//   loopStart?: number;
-//   playbackRate?: number;
-// }
+interface AudioBufferSourceOptions {
+  buffer?: AudioBuffer | null;
+  detune?: number;
+  loop?: boolean;
+  loopEnd?: number;
+  loopStart?: number;
+  playbackRate?: number;
+}
 
 // interface AudioContextInfo {
 //   currentTime?: number;
@@ -121,11 +121,11 @@ interface AnimationPlaybackEventInit extends EventInit {
 //   sampleRate?: number;
 // }
 
-// interface AudioNodeOptions {
-//   channelCount?: number;
-//   channelCountMode?: ChannelCountMode;
-//   channelInterpretation?: ChannelInterpretation;
-// }
+interface AudioNodeOptions {
+  channelCount?: number;
+  channelCountMode?: ChannelCountMode;
+  channelInterpretation?: ChannelInterpretation;
+}
 
 // interface AudioParamDescriptor {
 //   automationRate?: AutomationRate;
@@ -135,11 +135,11 @@ interface AnimationPlaybackEventInit extends EventInit {
 //   name: string;
 // }
 
-// interface AudioProcessingEventInit extends EventInit {
-//   inputBuffer: AudioBuffer;
-//   outputBuffer: AudioBuffer;
-//   playbackTime: number;
-// }
+interface AudioProcessingEventInit extends EventInit {
+  inputBuffer: AudioBuffer;
+  outputBuffer: AudioBuffer;
+  playbackTime: number;
+}
 
 // interface AudioTimestamp {
 //   contextTime?: number;
@@ -182,13 +182,13 @@ interface AnimationPlaybackEventInit extends EventInit {
 //   userVerification?: UserVerificationRequirement;
 // }
 
-// interface BiquadFilterOptions extends AudioNodeOptions {
-//   Q?: number;
-//   detune?: number;
-//   frequency?: number;
-//   gain?: number;
-//   type?: BiquadFilterType;
-// }
+interface BiquadFilterOptions extends AudioNodeOptions {
+  Q?: number;
+  detune?: number;
+  frequency?: number;
+  gain?: number;
+  type?: BiquadFilterType;
+}
 
 interface BlobPropertyBag {
   endings?: EndingType;
@@ -210,13 +210,13 @@ interface BlobPropertyBag {
 //   desynchronized?: boolean;
 // }
 
-// interface ChannelMergerOptions extends AudioNodeOptions {
-//   numberOfInputs?: number;
-// }
+interface ChannelMergerOptions extends AudioNodeOptions {
+  numberOfInputs?: number;
+}
 
-// interface ChannelSplitterOptions extends AudioNodeOptions {
-//   numberOfOutputs?: number;
-// }
+interface ChannelSplitterOptions extends AudioNodeOptions {
+  numberOfOutputs?: number;
+}
 
 // interface ClientData {
 //   challenge: string;
@@ -295,10 +295,10 @@ interface ConstrainULongRange extends ULongRange {
 //   ideal?: VideoFacingModeEnum | VideoFacingModeEnum[];
 // }
 
-// interface ConvolverOptions extends AudioNodeOptions {
-//   buffer?: AudioBuffer | null;
-//   disableNormalization?: boolean;
-// }
+interface ConvolverOptions extends AudioNodeOptions {
+  buffer?: AudioBuffer | null;
+  disableNormalization?: boolean;
+}
 
 // interface CredentialCreationOptions {
 //   publicKey?: PublicKeyCredentialCreationOptions;
@@ -418,13 +418,13 @@ interface DoubleRange {
 //   dataTransfer?: DataTransfer | null;
 // }
 
-// interface DynamicsCompressorOptions extends AudioNodeOptions {
-//   attack?: number;
-//   knee?: number;
-//   ratio?: number;
-//   release?: number;
-//   threshold?: number;
-// }
+interface DynamicsCompressorOptions extends AudioNodeOptions {
+  attack?: number;
+  knee?: number;
+  ratio?: number;
+  release?: number;
+  threshold?: number;
+}
 
 // interface EcKeyAlgorithm extends KeyAlgorithm {
 //   namedCurve: NamedCurve;
@@ -539,9 +539,9 @@ interface FocusOptions {
 //   navigationUI?: FullscreenNavigationUI;
 // }
 
-// interface GainOptions extends AudioNodeOptions {
-//   gain?: number;
-// }
+interface GainOptions extends AudioNodeOptions {
+  gain?: number;
+}
 
 // interface GamepadEventInit extends EventInit {
 //   gamepad: Gamepad;
@@ -935,33 +935,33 @@ interface OptionalEffectTiming {
   iterations?: number;
 }
 
-// interface OscillatorOptions extends AudioNodeOptions {
-//   detune?: number;
-//   frequency?: number;
-//   periodicWave?: PeriodicWave;
-//   type?: OscillatorType;
-// }
+interface OscillatorOptions extends AudioNodeOptions {
+  detune?: number;
+  frequency?: number;
+  periodicWave?: PeriodicWave;
+  type?: OscillatorType;
+}
 
 // interface PageTransitionEventInit extends EventInit {
 //   persisted?: boolean;
 // }
 
-// interface PannerOptions extends AudioNodeOptions {
-//   coneInnerAngle?: number;
-//   coneOuterAngle?: number;
-//   coneOuterGain?: number;
-//   distanceModel?: DistanceModelType;
-//   maxDistance?: number;
-//   orientationX?: number;
-//   orientationY?: number;
-//   orientationZ?: number;
-//   panningModel?: PanningModelType;
-//   positionX?: number;
-//   positionY?: number;
-//   positionZ?: number;
-//   refDistance?: number;
-//   rolloffFactor?: number;
-// }
+interface PannerOptions extends AudioNodeOptions {
+  coneInnerAngle?: number;
+  coneOuterAngle?: number;
+  coneOuterGain?: number;
+  distanceModel?: DistanceModelType;
+  maxDistance?: number;
+  orientationX?: number;
+  orientationY?: number;
+  orientationZ?: number;
+  panningModel?: PanningModelType;
+  positionX?: number;
+  positionY?: number;
+  positionZ?: number;
+  refDistance?: number;
+  rolloffFactor?: number;
+}
 
 // interface PaymentCurrencyAmount {
 //   currency: string;
@@ -1033,14 +1033,14 @@ interface OptionalEffectTiming {
 //   type?: string;
 // }
 
-// interface PeriodicWaveConstraints {
-//   disableNormalization?: boolean;
-// }
+interface PeriodicWaveConstraints {
+  disableNormalization?: boolean;
+}
 
-// interface PeriodicWaveOptions extends PeriodicWaveConstraints {
-//   imag?: number[] | Float32Array;
-//   real?: number[] | Float32Array;
-// }
+interface PeriodicWaveOptions extends PeriodicWaveConstraints {
+  imag?: number[] | Float32Array;
+  real?: number[] | Float32Array;
+}
 
 // interface PermissionDescriptor {
 //   name: PermissionName;
@@ -1743,9 +1743,9 @@ interface ReadableStreamReadValueResult<T> {
 //   startOffset: number;
 // }
 
-// interface StereoPannerOptions extends AudioNodeOptions {
-//   pan?: number;
-// }
+interface StereoPannerOptions extends AudioNodeOptions {
+  pan?: number;
+}
 
 // interface StorageEstimate {
 //   quota?: number;
@@ -1876,10 +1876,10 @@ interface UnderlyingSource<R = any> {
 //   sizeY?: number;
 // }
 
-// interface WaveShaperOptions extends AudioNodeOptions {
-//   curve?: number[] | Float32Array;
-//   oversample?: OverSampleType;
-// }
+interface WaveShaperOptions extends AudioNodeOptions {
+  curve?: number[] | Float32Array;
+  oversample?: OverSampleType;
+}
 
 // interface WebAuthnExtensions {
 // }
@@ -1913,9 +1913,9 @@ interface UnderlyingSource<R = any> {
 //   type?: WorkerType;
 // }
 
-// interface WorkletOptions {
-//   credentials?: RequestCredentials;
-// }
+interface WorkletOptions {
+  credentials?: RequestCredentials;
+}
 
 // interface txAuthGenericArg {
 //   content: ArrayBuffer;
@@ -2024,23 +2024,23 @@ declare var AbortSignal: {
 //   length: number;
 // }
 
-// /** A node able to provide real-time frequency and time-domain analysis information. It is an AudioNode that passes the audio stream unchanged from the input to the output, but allows you to take the generated data, process it, and create audio visualizations. */
-// interface AnalyserNode extends AudioNode {
-//   fftSize: number;
-//   readonly frequencyBinCount: number;
-//   maxDecibels: number;
-//   minDecibels: number;
-//   smoothingTimeConstant: number;
-//   getByteFrequencyData(array: Uint8Array): void;
-//   getByteTimeDomainData(array: Uint8Array): void;
-//   getFloatFrequencyData(array: Float32Array): void;
-//   getFloatTimeDomainData(array: Float32Array): void;
-// }
+/** A node able to provide real-time frequency and time-domain analysis information. It is an AudioNode that passes the audio stream unchanged from the input to the output, but allows you to take the generated data, process it, and create audio visualizations. */
+interface AnalyserNode extends AudioNode {
+  fftSize: number;
+  readonly frequencyBinCount: number;
+  maxDecibels: number;
+  minDecibels: number;
+  smoothingTimeConstant: number;
+  getByteFrequencyData(array: Uint8Array): void;
+  getByteTimeDomainData(array: Uint8Array): void;
+  getFloatFrequencyData(array: Float32Array): void;
+  getFloatTimeDomainData(array: Float32Array): void;
+}
 
-// declare var AnalyserNode: {
-//   prototype: AnalyserNode;
-//   new(context: BaseAudioContext, options?: AnalyserOptions): AnalyserNode;
-// };
+declare var AnalyserNode: {
+  prototype: AnalyserNode;
+  new(context: BaseAudioContext, options?: AnalyserOptions): AnalyserNode;
+};
 
 interface Animatable {
   animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions): Animation;
@@ -2205,41 +2205,41 @@ declare var AnimationTimeline: {
 //   new(): Attr;
 // };
 
-// /** A short audio asset residing in memory, created from an audio file using the AudioContext.decodeAudioData() method, or from raw data using AudioContext.createBuffer(). Once put into an AudioBuffer, the audio can then be played by being passed into an AudioBufferSourceNode. */
-// interface AudioBuffer {
-//   readonly duration: number;
-//   readonly length: number;
-//   readonly numberOfChannels: number;
-//   readonly sampleRate: number;
-//   copyFromChannel(destination: Float32Array, channelNumber: number, bufferOffset?: number): void;
-//   copyToChannel(source: Float32Array, channelNumber: number, bufferOffset?: number): void;
-//   getChannelData(channel: number): Float32Array;
-// }
+/** A short audio asset residing in memory, created from an audio file using the AudioContext.decodeAudioData() method, or from raw data using AudioContext.createBuffer(). Once put into an AudioBuffer, the audio can then be played by being passed into an AudioBufferSourceNode. */
+interface AudioBuffer {
+  readonly duration: number;
+  readonly length: number;
+  readonly numberOfChannels: number;
+  readonly sampleRate: number;
+  copyFromChannel(destination: Float32Array, channelNumber: number, bufferOffset?: number): void;
+  copyToChannel(source: Float32Array, channelNumber: number, bufferOffset?: number): void;
+  getChannelData(channel: number): Float32Array;
+}
 
-// declare var AudioBuffer: {
-//   prototype: AudioBuffer;
-//   new(options: AudioBufferOptions): AudioBuffer;
-// };
+declare var AudioBuffer: {
+  prototype: AudioBuffer;
+  new(options: AudioBufferOptions): AudioBuffer;
+};
 
-// /** An AudioScheduledSourceNode which represents an audio source consisting of in-memory audio data, stored in an AudioBuffer. It's especially useful for playing back audio which has particularly stringent timing accuracy requirements, such as for sounds that must match a specific rhythm and can be kept in memory rather than being played from disk or the network. */
-// interface AudioBufferSourceNode extends AudioScheduledSourceNode {
-//   buffer: AudioBuffer | null;
-//   readonly detune: AudioParam;
-//   loop: boolean;
-//   loopEnd: number;
-//   loopStart: number;
-//   readonly playbackRate: AudioParam;
-//   start(when?: number, offset?: number, duration?: number): void;
-//   addEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: AudioBufferSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: AudioBufferSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+/** An AudioScheduledSourceNode which represents an audio source consisting of in-memory audio data, stored in an AudioBuffer. It's especially useful for playing back audio which has particularly stringent timing accuracy requirements, such as for sounds that must match a specific rhythm and can be kept in memory rather than being played from disk or the network. */
+interface AudioBufferSourceNode extends AudioScheduledSourceNode {
+  buffer: AudioBuffer | null;
+  readonly detune: AudioParam;
+  loop: boolean;
+  loopEnd: number;
+  loopStart: number;
+  readonly playbackRate: AudioParam;
+  start(when?: number, offset?: number, duration?: number): void;
+  addEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: AudioBufferSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: AudioBufferSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
-// declare var AudioBufferSourceNode: {
-//   prototype: AudioBufferSourceNode;
-//   new(context: BaseAudioContext, options?: AudioBufferSourceOptions): AudioBufferSourceNode;
-// };
+declare var AudioBufferSourceNode: {
+  prototype: AudioBufferSourceNode;
+  new(context: BaseAudioContext, options?: AudioBufferSourceOptions): AudioBufferSourceNode;
+};
 
 // /** An audio-processing graph built from audio modules linked together, each represented by an AudioNode. */
 // interface AudioContext extends BaseAudioContext {
@@ -2264,39 +2264,39 @@ declare var AnimationTimeline: {
 //   new(contextOptions?: AudioContextOptions): AudioContext;
 // };
 
-// /** AudioDestinationNode has no output (as it is the output, no more AudioNode can be linked after it in the audio graph) and one input. The number of channels in the input must be between 0 and the maxChannelCount value or an exception is raised. */
-// interface AudioDestinationNode extends AudioNode {
-//   readonly maxChannelCount: number;
-// }
+/** AudioDestinationNode has no output (as it is the output, no more AudioNode can be linked after it in the audio graph) and one input. The number of channels in the input must be between 0 and the maxChannelCount value or an exception is raised. */
+interface AudioDestinationNode extends AudioNode {
+  readonly maxChannelCount: number;
+}
 
-// declare var AudioDestinationNode: {
-//   prototype: AudioDestinationNode;
-//   new(): AudioDestinationNode;
-// };
+declare var AudioDestinationNode: {
+  prototype: AudioDestinationNode;
+  new(): AudioDestinationNode;
+};
 
-// /** The position and orientation of the unique person listening to the audio scene, and is used in audio spatialization. All PannerNodes spatialize in relation to the AudioListener stored in the BaseAudioContext.listener attribute. */
-// interface AudioListener {
-//   readonly forwardX: AudioParam;
-//   readonly forwardY: AudioParam;
-//   readonly forwardZ: AudioParam;
-//   readonly positionX: AudioParam;
-//   readonly positionY: AudioParam;
-//   readonly positionZ: AudioParam;
-//   readonly upX: AudioParam;
-//   readonly upY: AudioParam;
-//   readonly upZ: AudioParam;
-//   /** @deprecated */
-//   setOrientation(x: number, y: number, z: number, xUp: number, yUp: number, zUp: number): void;
-//   /** @deprecated */
-//   setPosition(x: number, y: number, z: number): void;
-// }
+/** The position and orientation of the unique person listening to the audio scene, and is used in audio spatialization. All PannerNodes spatialize in relation to the AudioListener stored in the BaseAudioContext.listener attribute. */
+interface AudioListener {
+  readonly forwardX: AudioParam;
+  readonly forwardY: AudioParam;
+  readonly forwardZ: AudioParam;
+  readonly positionX: AudioParam;
+  readonly positionY: AudioParam;
+  readonly positionZ: AudioParam;
+  readonly upX: AudioParam;
+  readonly upY: AudioParam;
+  readonly upZ: AudioParam;
+  /** @deprecated */
+  setOrientation(x: number, y: number, z: number, xUp: number, yUp: number, zUp: number): void;
+  /** @deprecated */
+  setPosition(x: number, y: number, z: number): void;
+}
 
-// declare var AudioListener: {
-//   prototype: AudioListener;
-//   new(): AudioListener;
-// };
+declare var AudioListener: {
+  prototype: AudioListener;
+  new(): AudioListener;
+};
 
-// /** A generic interface for representing an audio processing module. Examples include: */
+/** A generic interface for representing an audio processing module. Examples include: */
 // interface AudioNode extends EventTarget {
 //   channelCount: number;
 //   channelCountMode: ChannelCountMode;
@@ -2320,26 +2320,35 @@ declare var AnimationTimeline: {
 //   new(): AudioNode;
 // };
 
-// /** The Web Audio API's AudioParam interface represents an audio-related parameter, usually a parameter of an AudioNode (such as GainNode.gain). */
-// interface AudioParam {
-//   automationRate: AutomationRate;
-//   readonly defaultValue: number;
-//   readonly maxValue: number;
-//   readonly minValue: number;
-//   value: number;
-//   cancelAndHoldAtTime(cancelTime: number): AudioParam;
-//   cancelScheduledValues(cancelTime: number): AudioParam;
-//   exponentialRampToValueAtTime(value: number, endTime: number): AudioParam;
-//   linearRampToValueAtTime(value: number, endTime: number): AudioParam;
-//   setTargetAtTime(target: number, startTime: number, timeConstant: number): AudioParam;
-//   setValueAtTime(value: number, startTime: number): AudioParam;
-//   setValueCurveAtTime(values: number[] | Float32Array, startTime: number, duration: number): AudioParam;
-// }
+//TODO:Soremwar use real AudioNode interface
+interface AudioNode extends EventTarget {
+}
 
-// declare var AudioParam: {
-//   prototype: AudioParam;
-//   new(): AudioParam;
-// };
+declare var AudioNode: {
+  prototype: AudioNode;
+  new(): AudioNode;
+};
+
+/** The Web Audio API's AudioParam interface represents an audio-related parameter, usually a parameter of an AudioNode (such as GainNode.gain). */
+interface AudioParam {
+  automationRate: AutomationRate;
+  readonly defaultValue: number;
+  readonly maxValue: number;
+  readonly minValue: number;
+  value: number;
+  cancelAndHoldAtTime(cancelTime: number): AudioParam;
+  cancelScheduledValues(cancelTime: number): AudioParam;
+  exponentialRampToValueAtTime(value: number, endTime: number): AudioParam;
+  linearRampToValueAtTime(value: number, endTime: number): AudioParam;
+  setTargetAtTime(target: number, startTime: number, timeConstant: number): AudioParam;
+  setValueAtTime(value: number, startTime: number): AudioParam;
+  setValueCurveAtTime(values: number[] | Float32Array, startTime: number, duration: number): AudioParam;
+}
+
+declare var AudioParam: {
+  prototype: AudioParam;
+  new(): AudioParam;
+};
 
 // interface AudioParamMap {
 //   forEach(callbackfn: (value: AudioParam, key: string, parent: AudioParamMap) => void, thisArg?: any): void;
@@ -2350,44 +2359,44 @@ declare var AnimationTimeline: {
 //   new(): AudioParamMap;
 // };
 
-// /** The Web Audio API events that occur when a ScriptProcessorNode input buffer is ready to be processed. */
-// interface AudioProcessingEvent extends Event {
-//   readonly inputBuffer: AudioBuffer;
-//   readonly outputBuffer: AudioBuffer;
-//   readonly playbackTime: number;
-// }
+/** The Web Audio API events that occur when a ScriptProcessorNode input buffer is ready to be processed. */
+interface AudioProcessingEvent extends Event {
+  readonly inputBuffer: AudioBuffer;
+  readonly outputBuffer: AudioBuffer;
+  readonly playbackTime: number;
+}
 
-// declare var AudioProcessingEvent: {
-//   prototype: AudioProcessingEvent;
-//   new(type: string, eventInitDict: AudioProcessingEventInit): AudioProcessingEvent;
-// };
+declare var AudioProcessingEvent: {
+  prototype: AudioProcessingEvent;
+  new(type: string, eventInitDict: AudioProcessingEventInit): AudioProcessingEvent;
+};
 
-// interface AudioScheduledSourceNodeEventMap {
-//   "ended": Event;
-// }
+interface AudioScheduledSourceNodeEventMap {
+  "ended": Event;
+}
 
-// interface AudioScheduledSourceNode extends AudioNode {
-//   onended: ((this: AudioScheduledSourceNode, ev: Event) => any) | null;
-//   start(when?: number): void;
-//   stop(when?: number): void;
-//   addEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: AudioScheduledSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: AudioScheduledSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+interface AudioScheduledSourceNode extends AudioNode {
+  onended: ((this: AudioScheduledSourceNode, ev: Event) => any) | null;
+  start(when?: number): void;
+  stop(when?: number): void;
+  addEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: AudioScheduledSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: AudioScheduledSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
-// declare var AudioScheduledSourceNode: {
-//   prototype: AudioScheduledSourceNode;
-//   new(): AudioScheduledSourceNode;
-// };
+declare var AudioScheduledSourceNode: {
+  prototype: AudioScheduledSourceNode;
+  new(): AudioScheduledSourceNode;
+};
 
-// interface AudioWorklet extends Worklet {
-// }
+interface AudioWorklet extends Worklet {
+}
 
-// declare var AudioWorklet: {
-//   prototype: AudioWorklet;
-//   new(): AudioWorklet;
-// };
+declare var AudioWorklet: {
+  prototype: AudioWorklet;
+  new(): AudioWorklet;
+};
 
 // interface AudioWorkletNodeEventMap {
 //   "processorerror": Event;
@@ -2446,47 +2455,47 @@ declare var AnimationTimeline: {
 //   new(): BarProp;
 // };
 
-// interface BaseAudioContextEventMap {
-//   "statechange": Event;
-// }
+interface BaseAudioContextEventMap {
+  "statechange": Event;
+}
 
-// interface BaseAudioContext extends EventTarget {
-//   readonly audioWorklet: AudioWorklet;
-//   readonly currentTime: number;
-//   readonly destination: AudioDestinationNode;
-//   readonly listener: AudioListener;
-//   onstatechange: ((this: BaseAudioContext, ev: Event) => any) | null;
-//   readonly sampleRate: number;
-//   readonly state: AudioContextState;
-//   createAnalyser(): AnalyserNode;
-//   createBiquadFilter(): BiquadFilterNode;
-//   createBuffer(numberOfChannels: number, length: number, sampleRate: number): AudioBuffer;
-//   createBufferSource(): AudioBufferSourceNode;
-//   createChannelMerger(numberOfInputs?: number): ChannelMergerNode;
-//   createChannelSplitter(numberOfOutputs?: number): ChannelSplitterNode;
-//   createConstantSource(): ConstantSourceNode;
-//   createConvolver(): ConvolverNode;
-//   createDelay(maxDelayTime?: number): DelayNode;
-//   createDynamicsCompressor(): DynamicsCompressorNode;
-//   createGain(): GainNode;
-//   createIIRFilter(feedforward: number[], feedback: number[]): IIRFilterNode;
-//   createOscillator(): OscillatorNode;
-//   createPanner(): PannerNode;
-//   createPeriodicWave(real: number[] | Float32Array, imag: number[] | Float32Array, constraints?: PeriodicWaveConstraints): PeriodicWave;
-//   createScriptProcessor(bufferSize?: number, numberOfInputChannels?: number, numberOfOutputChannels?: number): ScriptProcessorNode;
-//   createStereoPanner(): StereoPannerNode;
-//   createWaveShaper(): WaveShaperNode;
-//   decodeAudioData(audioData: ArrayBuffer, successCallback?: DecodeSuccessCallback | null, errorCallback?: DecodeErrorCallback | null): Promise<AudioBuffer>;
-//   addEventListener<K extends keyof BaseAudioContextEventMap>(type: K, listener: (this: BaseAudioContext, ev: BaseAudioContextEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof BaseAudioContextEventMap>(type: K, listener: (this: BaseAudioContext, ev: BaseAudioContextEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+interface BaseAudioContext extends EventTarget {
+  readonly audioWorklet: AudioWorklet;
+  readonly currentTime: number;
+  readonly destination: AudioDestinationNode;
+  readonly listener: AudioListener;
+  onstatechange: ((this: BaseAudioContext, ev: Event) => any) | null;
+  readonly sampleRate: number;
+  readonly state: AudioContextState;
+  createAnalyser(): AnalyserNode;
+  createBiquadFilter(): BiquadFilterNode;
+  createBuffer(numberOfChannels: number, length: number, sampleRate: number): AudioBuffer;
+  createBufferSource(): AudioBufferSourceNode;
+  createChannelMerger(numberOfInputs?: number): ChannelMergerNode;
+  createChannelSplitter(numberOfOutputs?: number): ChannelSplitterNode;
+  createConstantSource(): ConstantSourceNode;
+  createConvolver(): ConvolverNode;
+  createDelay(maxDelayTime?: number): DelayNode;
+  createDynamicsCompressor(): DynamicsCompressorNode;
+  createGain(): GainNode;
+  createIIRFilter(feedforward: number[], feedback: number[]): IIRFilterNode;
+  createOscillator(): OscillatorNode;
+  createPanner(): PannerNode;
+  createPeriodicWave(real: number[] | Float32Array, imag: number[] | Float32Array, constraints?: PeriodicWaveConstraints): PeriodicWave;
+  createScriptProcessor(bufferSize?: number, numberOfInputChannels?: number, numberOfOutputChannels?: number): ScriptProcessorNode;
+  createStereoPanner(): StereoPannerNode;
+  createWaveShaper(): WaveShaperNode;
+  decodeAudioData(audioData: ArrayBuffer, successCallback?: DecodeSuccessCallback | null, errorCallback?: DecodeErrorCallback | null): Promise<AudioBuffer>;
+  addEventListener<K extends keyof BaseAudioContextEventMap>(type: K, listener: (this: BaseAudioContext, ev: BaseAudioContextEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof BaseAudioContextEventMap>(type: K, listener: (this: BaseAudioContext, ev: BaseAudioContextEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
-// declare var BaseAudioContext: {
-//   prototype: BaseAudioContext;
-//   new(): BaseAudioContext;
-// };
+declare var BaseAudioContext: {
+  prototype: BaseAudioContext;
+  new(): BaseAudioContext;
+};
 
 // /** The beforeunload event is fired when the window, the document and its resources are about to be unloaded. */
 // interface BeforeUnloadEvent extends Event {
@@ -2520,20 +2529,20 @@ declare var AnimationTimeline: {
 //   new(): BhxBrowser;
 // };
 
-// /** A simple low-order filter, and is created using the AudioContext.createBiquadFilter() method. It is an AudioNode that can represent different kinds of filters, tone control devices, and graphic equalizers. */
-// interface BiquadFilterNode extends AudioNode {
-//   readonly Q: AudioParam;
-//   readonly detune: AudioParam;
-//   readonly frequency: AudioParam;
-//   readonly gain: AudioParam;
-//   type: BiquadFilterType;
-//   getFrequencyResponse(frequencyHz: Float32Array, magResponse: Float32Array, phaseResponse: Float32Array): void;
-// }
+/** A simple low-order filter, and is created using the AudioContext.createBiquadFilter() method. It is an AudioNode that can represent different kinds of filters, tone control devices, and graphic equalizers. */
+interface BiquadFilterNode extends AudioNode {
+  readonly Q: AudioParam;
+  readonly detune: AudioParam;
+  readonly frequency: AudioParam;
+  readonly gain: AudioParam;
+  type: BiquadFilterType;
+  getFrequencyResponse(frequencyHz: Float32Array, magResponse: Float32Array, phaseResponse: Float32Array): void;
+}
 
-// declare var BiquadFilterNode: {
-//   prototype: BiquadFilterNode;
-//   new(context: BaseAudioContext, options?: BiquadFilterOptions): BiquadFilterNode;
-// };
+declare var BiquadFilterNode: {
+  prototype: BiquadFilterNode;
+  new(context: BaseAudioContext, options?: BiquadFilterOptions): BiquadFilterNode;
+};
 
 /** A file-like object of immutable, raw data. Blobs represent data that isn't necessarily in a JavaScript-native format. The File interface is based on Blob, inheriting blob functionality and expanding it to support files on the user's system. */
 interface Blob {
@@ -3464,23 +3473,23 @@ declare var Blob: {
 //   new(): CaretPosition;
 // };
 
-// /** The ChannelMergerNode interface, often used in conjunction with its opposite, ChannelSplitterNode, reunites different mono inputs into a single output. Each input is used to fill a channel of the output. This is useful for accessing each channels separately, e.g. for performing channel mixing where gain must be separately controlled on each channel. */
-// interface ChannelMergerNode extends AudioNode {
-// }
+/** The ChannelMergerNode interface, often used in conjunction with its opposite, ChannelSplitterNode, reunites different mono inputs into a single output. Each input is used to fill a channel of the output. This is useful for accessing each channels separately, e.g. for performing channel mixing where gain must be separately controlled on each channel. */
+interface ChannelMergerNode extends AudioNode {
+}
 
-// declare var ChannelMergerNode: {
-//   prototype: ChannelMergerNode;
-//   new(context: BaseAudioContext, options?: ChannelMergerOptions): ChannelMergerNode;
-// };
+declare var ChannelMergerNode: {
+  prototype: ChannelMergerNode;
+  new(context: BaseAudioContext, options?: ChannelMergerOptions): ChannelMergerNode;
+};
 
-// /** The ChannelSplitterNode interface, often used in conjunction with its opposite, ChannelMergerNode, separates the different channels of an audio source into a set of mono outputs. This is useful for accessing each channel separately, e.g. for performing channel mixing where gain must be separately controlled on each channel. */
-// interface ChannelSplitterNode extends AudioNode {
-// }
+/** The ChannelSplitterNode interface, often used in conjunction with its opposite, ChannelMergerNode, separates the different channels of an audio source into a set of mono outputs. This is useful for accessing each channel separately, e.g. for performing channel mixing where gain must be separately controlled on each channel. */
+interface ChannelSplitterNode extends AudioNode {
+}
 
-// declare var ChannelSplitterNode: {
-//   prototype: ChannelSplitterNode;
-//   new(context: BaseAudioContext, options?: ChannelSplitterOptions): ChannelSplitterNode;
-// };
+declare var ChannelSplitterNode: {
+  prototype: ChannelSplitterNode;
+  new(context: BaseAudioContext, options?: ChannelSplitterOptions): ChannelSplitterNode;
+};
 
 // /** The CharacterData abstract interface represents a Node object that contains characters. This is an abstract interface, meaning there aren't any object of type CharacterData: it is implemented by other interfaces, like Text, Comment, or ProcessingInstruction which aren't abstract. */
 // interface CharacterData extends Node, ChildNode, NonDocumentTypeChildNode {
@@ -3618,29 +3627,29 @@ interface ClipboardEvent extends Event {
 //   publicInfo?: Uint8Array;
 // }
 
-// interface ConstantSourceNode extends AudioScheduledSourceNode {
-//   readonly offset: AudioParam;
-//   addEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: ConstantSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: ConstantSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+interface ConstantSourceNode extends AudioScheduledSourceNode {
+  readonly offset: AudioParam;
+  addEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: ConstantSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: ConstantSourceNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
-// declare var ConstantSourceNode: {
-//   prototype: ConstantSourceNode;
-//   new(context: BaseAudioContext, options?: ConstantSourceOptions): ConstantSourceNode;
-// };
+declare var ConstantSourceNode: {
+  prototype: ConstantSourceNode;
+  new(context: BaseAudioContext, options?: ConstantSourceOptions): ConstantSourceNode;
+};
 
-// /** An AudioNode that performs a Linear Convolution on a given AudioBuffer, often used to achieve a reverb effect. A ConvolverNode always has exactly one input and one output. */
-// interface ConvolverNode extends AudioNode {
-//   buffer: AudioBuffer | null;
-//   normalize: boolean;
-// }
+/** An AudioNode that performs a Linear Convolution on a given AudioBuffer, often used to achieve a reverb effect. A ConvolverNode always has exactly one input and one output. */
+interface ConvolverNode extends AudioNode {
+  buffer: AudioBuffer | null;
+  normalize: boolean;
+}
 
-// declare var ConvolverNode: {
-//   prototype: ConvolverNode;
-//   new(context: BaseAudioContext, options?: ConvolverOptions): ConvolverNode;
-// };
+declare var ConvolverNode: {
+  prototype: ConvolverNode;
+  new(context: BaseAudioContext, options?: ConvolverOptions): ConvolverNode;
+};
 
 // /** The position and altitude of the device on Earth, as well as the accuracy with which these properties are calculated. */
 // interface Coordinates {
@@ -3757,67 +3766,67 @@ interface ClipboardEvent extends Event {
 //   new(): DOMError;
 // };
 
-// /** An abnormal event (called an exception) which occurs as a result of calling a method or accessing a property of a web API. */
-// interface DOMException {
-//   readonly code: number;
-//   readonly message: string;
-//   readonly name: string;
-//   readonly ABORT_ERR: number;
-//   readonly DATA_CLONE_ERR: number;
-//   readonly DOMSTRING_SIZE_ERR: number;
-//   readonly HIERARCHY_REQUEST_ERR: number;
-//   readonly INDEX_SIZE_ERR: number;
-//   readonly INUSE_ATTRIBUTE_ERR: number;
-//   readonly INVALID_ACCESS_ERR: number;
-//   readonly INVALID_CHARACTER_ERR: number;
-//   readonly INVALID_MODIFICATION_ERR: number;
-//   readonly INVALID_NODE_TYPE_ERR: number;
-//   readonly INVALID_STATE_ERR: number;
-//   readonly NAMESPACE_ERR: number;
-//   readonly NETWORK_ERR: number;
-//   readonly NOT_FOUND_ERR: number;
-//   readonly NOT_SUPPORTED_ERR: number;
-//   readonly NO_DATA_ALLOWED_ERR: number;
-//   readonly NO_MODIFICATION_ALLOWED_ERR: number;
-//   readonly QUOTA_EXCEEDED_ERR: number;
-//   readonly SECURITY_ERR: number;
-//   readonly SYNTAX_ERR: number;
-//   readonly TIMEOUT_ERR: number;
-//   readonly TYPE_MISMATCH_ERR: number;
-//   readonly URL_MISMATCH_ERR: number;
-//   readonly VALIDATION_ERR: number;
-//   readonly WRONG_DOCUMENT_ERR: number;
-// }
+/** An abnormal event (called an exception) which occurs as a result of calling a method or accessing a property of a web API. */
+interface DOMException {
+  readonly code: number;
+  readonly message: string;
+  readonly name: string;
+  readonly ABORT_ERR: number;
+  readonly DATA_CLONE_ERR: number;
+  readonly DOMSTRING_SIZE_ERR: number;
+  readonly HIERARCHY_REQUEST_ERR: number;
+  readonly INDEX_SIZE_ERR: number;
+  readonly INUSE_ATTRIBUTE_ERR: number;
+  readonly INVALID_ACCESS_ERR: number;
+  readonly INVALID_CHARACTER_ERR: number;
+  readonly INVALID_MODIFICATION_ERR: number;
+  readonly INVALID_NODE_TYPE_ERR: number;
+  readonly INVALID_STATE_ERR: number;
+  readonly NAMESPACE_ERR: number;
+  readonly NETWORK_ERR: number;
+  readonly NOT_FOUND_ERR: number;
+  readonly NOT_SUPPORTED_ERR: number;
+  readonly NO_DATA_ALLOWED_ERR: number;
+  readonly NO_MODIFICATION_ALLOWED_ERR: number;
+  readonly QUOTA_EXCEEDED_ERR: number;
+  readonly SECURITY_ERR: number;
+  readonly SYNTAX_ERR: number;
+  readonly TIMEOUT_ERR: number;
+  readonly TYPE_MISMATCH_ERR: number;
+  readonly URL_MISMATCH_ERR: number;
+  readonly VALIDATION_ERR: number;
+  readonly WRONG_DOCUMENT_ERR: number;
+}
 
-// declare var DOMException: {
-//   prototype: DOMException;
-//   new(message?: string, name?: string): DOMException;
-//   readonly ABORT_ERR: number;
-//   readonly DATA_CLONE_ERR: number;
-//   readonly DOMSTRING_SIZE_ERR: number;
-//   readonly HIERARCHY_REQUEST_ERR: number;
-//   readonly INDEX_SIZE_ERR: number;
-//   readonly INUSE_ATTRIBUTE_ERR: number;
-//   readonly INVALID_ACCESS_ERR: number;
-//   readonly INVALID_CHARACTER_ERR: number;
-//   readonly INVALID_MODIFICATION_ERR: number;
-//   readonly INVALID_NODE_TYPE_ERR: number;
-//   readonly INVALID_STATE_ERR: number;
-//   readonly NAMESPACE_ERR: number;
-//   readonly NETWORK_ERR: number;
-//   readonly NOT_FOUND_ERR: number;
-//   readonly NOT_SUPPORTED_ERR: number;
-//   readonly NO_DATA_ALLOWED_ERR: number;
-//   readonly NO_MODIFICATION_ALLOWED_ERR: number;
-//   readonly QUOTA_EXCEEDED_ERR: number;
-//   readonly SECURITY_ERR: number;
-//   readonly SYNTAX_ERR: number;
-//   readonly TIMEOUT_ERR: number;
-//   readonly TYPE_MISMATCH_ERR: number;
-//   readonly URL_MISMATCH_ERR: number;
-//   readonly VALIDATION_ERR: number;
-//   readonly WRONG_DOCUMENT_ERR: number;
-// };
+declare var DOMException: {
+  prototype: DOMException;
+  new(message?: string, name?: string): DOMException;
+  readonly ABORT_ERR: number;
+  readonly DATA_CLONE_ERR: number;
+  readonly DOMSTRING_SIZE_ERR: number;
+  readonly HIERARCHY_REQUEST_ERR: number;
+  readonly INDEX_SIZE_ERR: number;
+  readonly INUSE_ATTRIBUTE_ERR: number;
+  readonly INVALID_ACCESS_ERR: number;
+  readonly INVALID_CHARACTER_ERR: number;
+  readonly INVALID_MODIFICATION_ERR: number;
+  readonly INVALID_NODE_TYPE_ERR: number;
+  readonly INVALID_STATE_ERR: number;
+  readonly NAMESPACE_ERR: number;
+  readonly NETWORK_ERR: number;
+  readonly NOT_FOUND_ERR: number;
+  readonly NOT_SUPPORTED_ERR: number;
+  readonly NO_DATA_ALLOWED_ERR: number;
+  readonly NO_MODIFICATION_ALLOWED_ERR: number;
+  readonly QUOTA_EXCEEDED_ERR: number;
+  readonly SECURITY_ERR: number;
+  readonly SYNTAX_ERR: number;
+  readonly TIMEOUT_ERR: number;
+  readonly TYPE_MISMATCH_ERR: number;
+  readonly URL_MISMATCH_ERR: number;
+  readonly VALIDATION_ERR: number;
+  readonly WRONG_DOCUMENT_ERR: number;
+};
 
 // /** An object providing methods which are not dependent on any particular document. Such an object is returned by the Document.implementation property. */
 // interface DOMImplementation {
@@ -4226,6 +4235,7 @@ interface DataTransfer {
    * Uses the given element to update the drag feedback, replacing any previously specified feedback.
    */
   setDragImage(image: Placeholder, x: number, y: number): void;
+  // setDragImage(image: Element, x: number, y: number): void;
 }
 
 declare var DataTransfer: {
@@ -4300,10 +4310,10 @@ declare var DataTransferItemList: {
 //   new(): DeferredPermissionRequest;
 // };
 
-// /** A delay-line; an AudioNode audio-processing module that causes a delay between the arrival of an input data and its propagation to the output. */
-// interface DelayNode extends AudioNode {
-//   readonly delayTime: AudioParam;
-// }
+/** A delay-line; an AudioNode audio-processing module that causes a delay between the arrival of an input data and its propagation to the output. */
+interface DelayNode extends AudioNode {
+  readonly delayTime: AudioParam;
+}
 
 // declare var DelayNode: {
 //   prototype: DelayNode;
@@ -5051,20 +5061,20 @@ interface DocumentAndElementEventHandlers {
 //   new(type: string, eventInitDict?: DragEventInit): DragEvent;
 // };
 
-// /** Inherits properties from its parent, AudioNode. */
-// interface DynamicsCompressorNode extends AudioNode {
-//   readonly attack: AudioParam;
-//   readonly knee: AudioParam;
-//   readonly ratio: AudioParam;
-//   readonly reduction: number;
-//   readonly release: AudioParam;
-//   readonly threshold: AudioParam;
-// }
+/** Inherits properties from its parent, AudioNode. */
+interface DynamicsCompressorNode extends AudioNode {
+  readonly attack: AudioParam;
+  readonly knee: AudioParam;
+  readonly ratio: AudioParam;
+  readonly reduction: number;
+  readonly release: AudioParam;
+  readonly threshold: AudioParam;
+}
 
-// declare var DynamicsCompressorNode: {
-//   prototype: DynamicsCompressorNode;
-//   new(context: BaseAudioContext, options?: DynamicsCompressorOptions): DynamicsCompressorNode;
-// };
+declare var DynamicsCompressorNode: {
+  prototype: DynamicsCompressorNode;
+  new(context: BaseAudioContext, options?: DynamicsCompressorOptions): DynamicsCompressorNode;
+};
 
 // interface EXT_blend_minmax {
 //   readonly MAX_EXT: GLenum;
@@ -5573,15 +5583,15 @@ interface FileList {
 //   new(form?: HTMLFormElement): FormData;
 // };
 
-// /** A change in volume. It is an AudioNode audio-processing module that causes a given gain to be applied to the input data before its propagation to the output. A GainNode always has exactly one input and one output, both with the same number of channels. */
-// interface GainNode extends AudioNode {
-//   readonly gain: AudioParam;
-// }
+/** A change in volume. It is an AudioNode audio-processing module that causes a given gain to be applied to the input data before its propagation to the output. A GainNode always has exactly one input and one output, both with the same number of channels. */
+interface GainNode extends AudioNode {
+  readonly gain: AudioParam;
+}
 
-// declare var GainNode: {
-//   prototype: GainNode;
-//   new(context: BaseAudioContext, options?: GainOptions): GainNode;
-// };
+declare var GainNode: {
+  prototype: GainNode;
+  new(context: BaseAudioContext, options?: GainOptions): GainNode;
+};
 
 // /** This Gamepad API interface defines an individual gamepad or other controller, allowing access to information such as button presses, axis positions, and id. */
 // interface Gamepad {
@@ -9538,10 +9548,10 @@ interface FileList {
 //   new(type: string, eventInitDict?: IDBVersionChangeEventInit): IDBVersionChangeEvent;
 // };
 
-// /** The IIRFilterNode interface of the Web Audio API is a AudioNode processor which implements a general infinite impulse response (IIR)  filter; this type of filter can be used to implement tone control devices and graphic equalizers as well. It lets the parameters of the filter response be specified, so that it can be tuned as needed. */
-// interface IIRFilterNode extends AudioNode {
-//   getFrequencyResponse(frequencyHz: Float32Array, magResponse: Float32Array, phaseResponse: Float32Array): void;
-// }
+/** The IIRFilterNode interface of the Web Audio API is a AudioNode processor which implements a general infinite impulse response (IIR)  filter; this type of filter can be used to implement tone control devices and graphic equalizers as well. It lets the parameters of the filter response be specified, so that it can be tuned as needed. */
+interface IIRFilterNode extends AudioNode {
+  getFrequencyResponse(frequencyHz: Float32Array, magResponse: Float32Array, phaseResponse: Float32Array): void;
+}
 
 // declare var IIRFilterNode: {
 //   prototype: IIRFilterNode;
@@ -9606,9 +9616,9 @@ interface FileList {
 //   new(array: Uint8ClampedArray, width: number, height?: number): ImageData;
 // };
 
-// interface InnerHTML {
-//   innerHTML: string;
-// }
+interface InnerHTML {
+  innerHTML: string;
+}
 
 // interface InputDeviceInfo extends MediaDeviceInfo {
 //   getCapabilities(): MediaTrackCapabilities;
@@ -11240,22 +11250,22 @@ interface FileList {
 //   new(): OffscreenCanvasRenderingContext2D;
 // };
 
-// /** The OscillatorNode interface represents a periodic waveform, such as a sine wave. It is an AudioScheduledSourceNode audio-processing module that causes a specified frequency of a given wave to be created—in effect, a constant tone. */
-// interface OscillatorNode extends AudioScheduledSourceNode {
-//   readonly detune: AudioParam;
-//   readonly frequency: AudioParam;
-//   type: OscillatorType;
-//   setPeriodicWave(periodicWave: PeriodicWave): void;
-//   addEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: OscillatorNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: OscillatorNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+/** The OscillatorNode interface represents a periodic waveform, such as a sine wave. It is an AudioScheduledSourceNode audio-processing module that causes a specified frequency of a given wave to be created—in effect, a constant tone. */
+interface OscillatorNode extends AudioScheduledSourceNode {
+  readonly detune: AudioParam;
+  readonly frequency: AudioParam;
+  type: OscillatorType;
+  setPeriodicWave(periodicWave: PeriodicWave): void;
+  addEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: OscillatorNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof AudioScheduledSourceNodeEventMap>(type: K, listener: (this: OscillatorNode, ev: AudioScheduledSourceNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
-// declare var OscillatorNode: {
-//   prototype: OscillatorNode;
-//   new(context: BaseAudioContext, options?: OscillatorOptions): OscillatorNode;
-// };
+declare var OscillatorNode: {
+  prototype: OscillatorNode;
+  new(context: BaseAudioContext, options?: OscillatorOptions): OscillatorNode;
+};
 
 // interface OverconstrainedError extends Error {
 //   constraint: string;
@@ -11306,32 +11316,32 @@ interface FileList {
 //   new(type: string, eventInitDict?: PageTransitionEventInit): PageTransitionEvent;
 // };
 
-// /** A PannerNode always has exactly one input and one output: the input can be mono or stereo but the output is always stereo (2 channels); you can't have panning effects without at least two audio channels! */
-// interface PannerNode extends AudioNode {
-//   coneInnerAngle: number;
-//   coneOuterAngle: number;
-//   coneOuterGain: number;
-//   distanceModel: DistanceModelType;
-//   maxDistance: number;
-//   readonly orientationX: AudioParam;
-//   readonly orientationY: AudioParam;
-//   readonly orientationZ: AudioParam;
-//   panningModel: PanningModelType;
-//   readonly positionX: AudioParam;
-//   readonly positionY: AudioParam;
-//   readonly positionZ: AudioParam;
-//   refDistance: number;
-//   rolloffFactor: number;
-//   /** @deprecated */
-//   setOrientation(x: number, y: number, z: number): void;
-//   /** @deprecated */
-//   setPosition(x: number, y: number, z: number): void;
-// }
+/** A PannerNode always has exactly one input and one output: the input can be mono or stereo but the output is always stereo (2 channels); you can't have panning effects without at least two audio channels! */
+interface PannerNode extends AudioNode {
+  coneInnerAngle: number;
+  coneOuterAngle: number;
+  coneOuterGain: number;
+  distanceModel: DistanceModelType;
+  maxDistance: number;
+  readonly orientationX: AudioParam;
+  readonly orientationY: AudioParam;
+  readonly orientationZ: AudioParam;
+  panningModel: PanningModelType;
+  readonly positionX: AudioParam;
+  readonly positionY: AudioParam;
+  readonly positionZ: AudioParam;
+  refDistance: number;
+  rolloffFactor: number;
+  /** @deprecated */
+  setOrientation(x: number, y: number, z: number): void;
+  /** @deprecated */
+  setPosition(x: number, y: number, z: number): void;
+}
 
-// declare var PannerNode: {
-//   prototype: PannerNode;
-//   new(context: BaseAudioContext, options?: PannerOptions): PannerNode;
-// };
+declare var PannerNode: {
+  prototype: PannerNode;
+  new(context: BaseAudioContext, options?: PannerOptions): PannerNode;
+};
 
 // interface ParentNode {
 //   readonly childElementCount: number;
@@ -11679,14 +11689,14 @@ interface FileList {
 //   new(): PerformanceTiming;
 // };
 
-// /** PeriodicWave has no inputs or outputs; it is used to define custom oscillators when calling OscillatorNode.setPeriodicWave(). The PeriodicWave itself is created/returned by AudioContext.createPeriodicWave(). */
-// interface PeriodicWave {
-// }
+/** PeriodicWave has no inputs or outputs; it is used to define custom oscillators when calling OscillatorNode.setPeriodicWave(). The PeriodicWave itself is created/returned by AudioContext.createPeriodicWave(). */
+interface PeriodicWave {
+}
 
-// declare var PeriodicWave: {
-//   prototype: PeriodicWave;
-//   new(context: BaseAudioContext, options?: PeriodicWaveOptions): PeriodicWave;
-// };
+declare var PeriodicWave: {
+  prototype: PeriodicWave;
+  new(context: BaseAudioContext, options?: PeriodicWaveOptions): PeriodicWave;
+};
 
 // interface PermissionRequest extends DeferredPermissionRequest {
 //   readonly state: MSWebViewPermissionState;
@@ -14816,26 +14826,26 @@ interface ReadableStreamDefaultReader<R = any> {
 //   new(): ScreenOrientation;
 // };
 
-// interface ScriptProcessorNodeEventMap {
-//   "audioprocess": AudioProcessingEvent;
-// }
+interface ScriptProcessorNodeEventMap {
+  "audioprocess": AudioProcessingEvent;
+}
 
-// /** Allows the generation, processing, or analyzing of audio using JavaScript. */
-// interface ScriptProcessorNode extends AudioNode {
-//   /** @deprecated */
-//   readonly bufferSize: number;
-//   /** @deprecated */
-//   onaudioprocess: ((this: ScriptProcessorNode, ev: AudioProcessingEvent) => any) | null;
-//   addEventListener<K extends keyof ScriptProcessorNodeEventMap>(type: K, listener: (this: ScriptProcessorNode, ev: ScriptProcessorNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof ScriptProcessorNodeEventMap>(type: K, listener: (this: ScriptProcessorNode, ev: ScriptProcessorNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+/** Allows the generation, processing, or analyzing of audio using JavaScript. */
+interface ScriptProcessorNode extends AudioNode {
+  /** @deprecated */
+  readonly bufferSize: number;
+  /** @deprecated */
+  onaudioprocess: ((this: ScriptProcessorNode, ev: AudioProcessingEvent) => any) | null;
+  addEventListener<K extends keyof ScriptProcessorNodeEventMap>(type: K, listener: (this: ScriptProcessorNode, ev: ScriptProcessorNodeEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof ScriptProcessorNodeEventMap>(type: K, listener: (this: ScriptProcessorNode, ev: ScriptProcessorNodeEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
-// declare var ScriptProcessorNode: {
-//   prototype: ScriptProcessorNode;
-//   new(): ScriptProcessorNode;
-// };
+declare var ScriptProcessorNode: {
+  prototype: ScriptProcessorNode;
+  new(): ScriptProcessorNode;
+};
 
 // /** Inherits from Event, and represents the event object of an event sent on a document or worker when its content security policy is violated. */
 // interface SecurityPolicyViolationEvent extends Event {
@@ -15296,15 +15306,15 @@ interface ReadableStreamDefaultReader<R = any> {
 //   new(init: StaticRangeInit): StaticRange;
 // };
 
-// /** The pan property takes a unitless value between -1 (full left pan) and 1 (full right pan). This interface was introduced as a much simpler way to apply a simple panning effect than having to use a full PannerNode. */
-// interface StereoPannerNode extends AudioNode {
-//   readonly pan: AudioParam;
-// }
+/** The pan property takes a unitless value between -1 (full left pan) and 1 (full right pan). This interface was introduced as a much simpler way to apply a simple panning effect than having to use a full PannerNode. */
+interface StereoPannerNode extends AudioNode {
+  readonly pan: AudioParam;
+}
 
-// declare var StereoPannerNode: {
-//   prototype: StereoPannerNode;
-//   new(context: BaseAudioContext, options?: StereoPannerOptions): StereoPannerNode;
-// };
+declare var StereoPannerNode: {
+  prototype: StereoPannerNode;
+  new(context: BaseAudioContext, options?: StereoPannerOptions): StereoPannerNode;
+};
 
 // /** This Web Storage API interface provides access to a particular domain's session or local storage. It allows, for example, the addition, modification, or deletion of stored data items. */
 // interface Storage {
@@ -16339,16 +16349,16 @@ interface ReadableStreamDefaultReader<R = any> {
 //   restoreContext(): void;
 // }
 
-// /** A WaveShaperNode always has exactly one input and one output. */
-// interface WaveShaperNode extends AudioNode {
-//   curve: Float32Array | null;
-//   oversample: OverSampleType;
-// }
+/** A WaveShaperNode always has exactly one input and one output. */
+interface WaveShaperNode extends AudioNode {
+  curve: Float32Array | null;
+  oversample: OverSampleType;
+}
 
-// declare var WaveShaperNode: {
-//   prototype: WaveShaperNode;
-//   new(context: BaseAudioContext, options?: WaveShaperOptions): WaveShaperNode;
-// };
+declare var WaveShaperNode: {
+  prototype: WaveShaperNode;
+  new(context: BaseAudioContext, options?: WaveShaperOptions): WaveShaperNode;
+};
 
 // interface WebAuthentication {
 //   getAssertion(assertionChallenge: Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array | DataView | ArrayBuffer | null, options?: AssertionOptions): Promise<WebAuthnAssertion>;
@@ -18682,14 +18692,14 @@ interface ReadableStreamDefaultReader<R = any> {
 //   new(stringUrl: string | URL, options?: WorkerOptions): Worker;
 // };
 
-// interface Worklet {
-//   addModule(moduleURL: string, options?: WorkletOptions): Promise<void>;
-// }
+interface Worklet {
+  addModule(moduleURL: string, options?: WorkletOptions): Promise<void>;
+}
 
-// declare var Worklet: {
-//   prototype: Worklet;
-//   new(): Worklet;
-// };
+declare var Worklet: {
+  prototype: Worklet;
+  new(): Worklet;
+};
 
 /** This Streams API interface provides a standard abstraction for writing streaming data to a destination, known as a sink. This object comes with built-in backpressure and queuing. */
 interface WritableStream<W = any> {
@@ -19160,13 +19170,13 @@ declare var console: Console;
 //   new (...params: any[]): HTMLElement;
 // }
 
-// interface DecodeErrorCallback {
-//   (error: DOMException): void;
-// }
+interface DecodeErrorCallback {
+  (error: DOMException): void;
+}
 
-// interface DecodeSuccessCallback {
-//   (decodedData: AudioBuffer): void;
-// }
+interface DecodeSuccessCallback {
+  (decodedData: AudioBuffer): void;
+}
 
 // interface EventHandlerNonNull {
 //   (event: Event): any;
