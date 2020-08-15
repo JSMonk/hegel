@@ -358,12 +358,12 @@ interface ConvolverOptions extends AudioNodeOptions {
 //   p4?: DOMPointInit;
 // }
 
-// interface DOMRectInit {
-//   height?: number;
-//   width?: number;
-//   x?: number;
-//   y?: number;
-// }
+interface DOMRectInit {
+  height?: number;
+  width?: number;
+  x?: number;
+  y?: number;
+}
 
 // interface DelayOptions extends AudioNodeOptions {
 //   delayTime?: number;
@@ -1926,7 +1926,7 @@ interface EventListener {
   (evt: Event): void;
 }
 
-// type XPathNSResolver = ((prefix: string | null) => string | null) | { lookupNamespaceURI(prefix: string | null): string | null; };
+type XPathNSResolver = ((prefix: string | null) => string | null) | { lookupNamespaceURI(prefix: string | null): string | null; };
 
 // /** The ANGLE_instanced_arrays extension is part of the WebGL API and allows to draw the same object, or groups of similar objects multiple times, if they share the same vertex data, primitive count and type. */
 // interface ANGLE_instanced_arrays {
@@ -3454,16 +3454,17 @@ declare var CSSStyleSheet: {
 //   scrollPathIntoView(path: Path2D): void;
 // }
 
-// interface CaretPosition {
-//   readonly offset: number;
-//   readonly offsetNode: Node;
-//   getClientRect(): DOMRect | null;
-// }
+interface CaretPosition {
+  readonly offset: number;
+  readonly offsetNode: Placeholder;
+  //readonly offsetNode: Node;
+  getClientRect(): DOMRect | null;
+}
 
-// declare var CaretPosition: {
-//   prototype: CaretPosition;
-//   new(): CaretPosition;
-// };
+declare var CaretPosition: {
+  prototype: CaretPosition;
+  new(): CaretPosition;
+};
 
 /** The ChannelMergerNode interface, often used in conjunction with its opposite, ChannelSplitterNode, reunites different mono inputs into a single output. Each input is used to fill a channel of the output. This is useful for accessing each channels separately, e.g. for performing channel mixing where gain must be separately controlled on each channel. */
 interface ChannelMergerNode extends AudioNode {
@@ -4010,18 +4011,18 @@ declare var DOMException: {
 //   fromRect(other?: DOMRectInit): DOMQuad;
 // };
 
-// interface DOMRect extends DOMRectReadOnly {
-//   height: number;
-//   width: number;
-//   x: number;
-//   y: number;
-// }
+interface DOMRect extends DOMRectReadOnly {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
 
-// declare var DOMRect: {
-//   prototype: DOMRect;
-//   new(x?: number, y?: number, width?: number, height?: number): DOMRect;
-//   fromRect(other?: DOMRectInit): DOMRect;
-// };
+declare var DOMRect: {
+  prototype: DOMRect;
+  new(x?: number, y?: number, width?: number, height?: number): DOMRect;
+  fromRect(other?: DOMRectInit): DOMRect;
+};
 
 // type SVGRect = DOMRect;
 // declare var SVGRect: typeof DOMRect;
@@ -4037,23 +4038,23 @@ declare var DOMException: {
 //   new(): DOMRectList;
 // };
 
-// interface DOMRectReadOnly {
-//   readonly bottom: number;
-//   readonly height: number;
-//   readonly left: number;
-//   readonly right: number;
-//   readonly top: number;
-//   readonly width: number;
-//   readonly x: number;
-//   readonly y: number;
-//   toJSON(): any;
-// }
+interface DOMRectReadOnly {
+  readonly bottom: number;
+  readonly height: number;
+  readonly left: number;
+  readonly right: number;
+  readonly top: number;
+  readonly width: number;
+  readonly x: number;
+  readonly y: number;
+  toJSON(): any;
+}
 
-// declare var DOMRectReadOnly: {
-//   prototype: DOMRectReadOnly;
-//   new(x?: number, y?: number, width?: number, height?: number): DOMRectReadOnly;
-//   fromRect(other?: DOMRectInit): DOMRectReadOnly;
-// };
+declare var DOMRectReadOnly: {
+  prototype: DOMRectReadOnly;
+  new(x?: number, y?: number, width?: number, height?: number): DOMRectReadOnly;
+  fromRect(other?: DOMRectInit): DOMRectReadOnly;
+};
 
 // interface DOMSettableTokenList extends DOMTokenList {
 //   value: string;
@@ -5000,24 +5001,30 @@ interface DocumentAndElementEventHandlers {
 //   new(): DocumentFragment;
 // };
 
-// interface DocumentOrShadowRoot {
-//   readonly activeElement: Element | null;
-//   /**
-//    * Returns document's fullscreen element.
-//    */
-//   readonly fullscreenElement: Element | null;
-//   readonly pointerLockElement: Element | null;
-//   /**
-//    * Retrieves a collection of styleSheet objects representing the style sheets that correspond to each instance of a link or style object in the document.
-//    */
-//   readonly styleSheets: StyleSheetList;
-//   caretPositionFromPoint(x: number, y: number): CaretPosition | null;
-//   /** @deprecated */
-//   caretRangeFromPoint(x: number, y: number): Range;
-//   elementFromPoint(x: number, y: number): Element | null;
-//   elementsFromPoint(x: number, y: number): Element[];
-//   getSelection(): Selection | null;
-// }
+interface DocumentOrShadowRoot {
+  readonly activeElement: Placeholder | null;
+  //readonly activeElement: Element | null;
+  /**
+   * Returns document's fullscreen element.
+   */
+  readonly fullscreenElement: Placeholder | null;
+  //readonly fullscreenElement: Element | null;
+  readonly pointerLockElement: Placeholder | null;
+  //readonly pointerLockElement: Element | null;
+  /**
+   * Retrieves a collection of styleSheet objects representing the style sheets that correspond to each instance of a link or style object in the document.
+   */
+  readonly styleSheets: StyleSheetList;
+  caretPositionFromPoint(x: number, y: number): CaretPosition | null;
+  /** @deprecated */
+  caretRangeFromPoint(x: number, y: number): Placeholder;
+  //caretRangeFromPoint(x: number, y: number): Range;
+  elementFromPoint(x: number, y: number): Placeholder | null;
+  //elementFromPoint(x: number, y: number): Element | null;
+  elementsFromPoint(x: number, y: number): Placeholder[];
+  //elementsFromPoint(x: number, y: number): Element[];
+  getSelection(): Selection | null;
+}
 
 // interface DocumentTimeline extends AnimationTimeline {
 // }
@@ -6587,7 +6594,7 @@ interface GlobalEventHandlers {
 // }
 
 // /** Any HTML element. Some elements directly implement this interface, while others implement it via an interface that inherits it. */
-// interface HTMLElement extends Element, DocumentAndElementEventHandlers, ElementCSSInlineStyle, ElementCSSInlineStyle, ElementContentEditable, GlobalEventHandlers, HTMLOrSVGElement {
+// interface HTMLElement extends Element, DocumentAndElementEventHandlers, ElementCSSInlineStyle, ElementContentEditable, GlobalEventHandlers, HTMLOrSVGElement {
 //   accessKey: string;
 //   readonly accessKeyLabel: string;
 //   autocapitalize: string;
@@ -11074,12 +11081,13 @@ declare var MouseEvent: {
 //   readonly previousElementSibling: Element | null;
 // }
 
-// interface NonElementParentNode {
-//   /**
-//    * Returns the first element within node's descendants whose ID is elementId.
-//    */
-//   getElementById(elementId: string): Element | null;
-// }
+interface NonElementParentNode {
+  /**
+   * Returns the first element within node's descendants whose ID is elementId.
+   */
+  getElementById(elementId: string): Placeholder | null;
+  //getElementById(elementId: string): Element | null;
+}
 
 // interface NotificationEventMap {
 //   "click": Event;
@@ -14859,37 +14867,48 @@ declare var SecurityPolicyViolationEvent: {
   new(type: string, eventInitDict?: SecurityPolicyViolationEventInit): SecurityPolicyViolationEvent;
 };
 
-// /** A Selection object represents the range of text selected by the user or the current position of the caret. To obtain a Selection object for examination or modification, call Window.getSelection(). */
-// interface Selection {
-//   readonly anchorNode: Node | null;
-//   readonly anchorOffset: number;
-//   readonly focusNode: Node | null;
-//   readonly focusOffset: number;
-//   readonly isCollapsed: boolean;
-//   readonly rangeCount: number;
-//   readonly type: string;
-//   addRange(range: Range): void;
-//   collapse(node: Node | null, offset?: number): void;
-//   collapseToEnd(): void;
-//   collapseToStart(): void;
-//   containsNode(node: Node, allowPartialContainment?: boolean): boolean;
-//   deleteFromDocument(): void;
-//   empty(): void;
-//   extend(node: Node, offset?: number): void;
-//   getRangeAt(index: number): Range;
-//   removeAllRanges(): void;
-//   removeRange(range: Range): void;
-//   selectAllChildren(node: Node): void;
-//   setBaseAndExtent(anchorNode: Node, anchorOffset: number, focusNode: Node, focusOffset: number): void;
-//   setPosition(node: Node | null, offset?: number): void;
-//   toString(): string;
-// }
+/** A Selection object represents the range of text selected by the user or the current position of the caret. To obtain a Selection object for examination or modification, call Window.getSelection(). */
+interface Selection {
+  readonly anchorNode: Placeholder | null;
+  //readonly anchorNode: Node | null;
+  readonly anchorOffset: number;
+  readonly focusNode: Placeholder | null;
+  //readonly focusNode: Node | null;
+  readonly focusOffset: number;
+  readonly isCollapsed: boolean;
+  readonly rangeCount: number;
+  readonly type: string;
+  addRange(range: Placeholder): void;
+  //addRange(range: Range): void;
+  collapse(node: Placeholder | null, offset?: number): void;
+  //collapse(node: Node | null, offset?: number): void;
+  collapseToEnd(): void;
+  collapseToStart(): void;
+  containsNode(node: Placeholder, allowPartialContainment?: boolean): boolean;
+  //containsNode(node: Node, allowPartialContainment?: boolean): boolean;
+  deleteFromDocument(): void;
+  empty(): void;
+  extend(node: Placeholder, offset?: number): void;
+  //extend(node: Node, offset?: number): void;
+  getRangeAt(index: number): Placeholder;
+  //getRangeAt(index: number): Range;
+  removeAllRanges(): void;
+  removeRange(range: Placeholder): void;
+  //removeRange(range: Range): void;
+  selectAllChildren(node: Placeholder): void;
+  //selectAllChildren(node: Node): void;
+  setBaseAndExtent(anchorNode: Placeholder, anchorOffset: number, focusNode: Placeholder, focusOffset: number): void;
+  //setBaseAndExtent(anchorNode: Node, anchorOffset: number, focusNode: Node, focusOffset: number): void;
+  setPosition(node: Placeholder | null, offset?: number): void;
+  //setPosition(node: Node | null, offset?: number): void;
+  toString(): string;
+}
 
-// declare var Selection: {
-//   prototype: Selection;
-//   new(): Selection;
-//   toString(): string;
-// };
+declare var Selection: {
+  prototype: Selection;
+  new(): Selection;
+  toString(): string;
+};
 
 // interface ServiceUIFrameContext {
 //   getCachedFrameMessage(key: string): string;
@@ -15412,17 +15431,17 @@ declare var StyleSheet: {
   new(): StyleSheet;
 };
 
-// /** A list of StyleSheet. */
-// interface StyleSheetList {
-//   readonly length: number;
-//   item(index: number): CSSStyleSheet | null;
-//   [index: number]: CSSStyleSheet;
-// }
+/** A list of StyleSheet. */
+interface StyleSheetList {
+  readonly length: number;
+  item(index: number): CSSStyleSheet | null;
+  [index: number]: CSSStyleSheet;
+}
 
-// declare var StyleSheetList: {
-//   prototype: StyleSheetList;
-//   new(): StyleSheetList;
-// };
+declare var StyleSheetList: {
+  prototype: StyleSheetList;
+  new(): StyleSheetList;
+};
 
 // /** This Web Crypto API interface provides a number of low-level cryptographic functions. It is accessed via the Crypto.subtle properties available in a window context (via Window.crypto). */
 // interface SubtleCrypto {
@@ -18912,59 +18931,65 @@ interface WritableStreamDefaultWriter<W = any> {
 //   new(): XPathEvaluator;
 // };
 
-// interface XPathEvaluatorBase {
-//   createExpression(expression: string, resolver?: XPathNSResolver | null): XPathExpression;
-//   createNSResolver(nodeResolver: Node): XPathNSResolver;
-//   evaluate(expression: string, contextNode: Node, resolver?: XPathNSResolver | null, type?: number, result?: XPathResult | null): XPathResult;
-// }
+interface XPathEvaluatorBase {
+  createExpression(expression: string, resolver?: XPathNSResolver | null): XPathExpression;
+  createNSResolver(nodeResolver: Placeholder): XPathNSResolver;
+  //createNSResolver(nodeResolver: Node): XPathNSResolver;
+  evaluate(expression: string, contextNode: Placeholder, resolver?: XPathNSResolver | null, type?: number, result?: XPathResult | null): XPathResult;
+  //evaluate(expression: string, contextNode: Node, resolver?: XPathNSResolver | null, type?: number, result?: XPathResult | null): XPathResult;
+}
 
-// /** This interface is a compiled XPath expression that can be evaluated on a document or specific node to return information its DOM tree. */
-// interface XPathExpression {
-//   evaluate(contextNode: Node, type?: number, result?: XPathResult | null): XPathResult;
-// }
+/** This interface is a compiled XPath expression that can be evaluated on a document or specific node to return information its DOM tree. */
+interface XPathExpression {
+  evaluate(contextNode: Placeholder, type?: number, result?: XPathResult | null): XPathResult;
+  //evaluate(contextNode: Node, type?: number, result?: XPathResult | null): XPathResult;
+}
 
-// declare var XPathExpression: {
-//   prototype: XPathExpression;
-//   new(): XPathExpression;
-// };
+declare var XPathExpression: {
+  prototype: XPathExpression;
+  new(): XPathExpression;
+};
 
-// /** The results generated by evaluating an XPath expression within the context of a given node. */
-// interface XPathResult {
-//   readonly booleanValue: boolean;
-//   readonly invalidIteratorState: boolean;
-//   readonly numberValue: number;
-//   readonly resultType: number;
-//   readonly singleNodeValue: Node | null;
-//   readonly snapshotLength: number;
-//   readonly stringValue: string;
-//   iterateNext(): Node | null;
-//   snapshotItem(index: number): Node | null;
-//   readonly ANY_TYPE: number;
-//   readonly ANY_UNORDERED_NODE_TYPE: number;
-//   readonly BOOLEAN_TYPE: number;
-//   readonly FIRST_ORDERED_NODE_TYPE: number;
-//   readonly NUMBER_TYPE: number;
-//   readonly ORDERED_NODE_ITERATOR_TYPE: number;
-//   readonly ORDERED_NODE_SNAPSHOT_TYPE: number;
-//   readonly STRING_TYPE: number;
-//   readonly UNORDERED_NODE_ITERATOR_TYPE: number;
-//   readonly UNORDERED_NODE_SNAPSHOT_TYPE: number;
-// }
+/** The results generated by evaluating an XPath expression within the context of a given node. */
+interface XPathResult {
+  readonly booleanValue: boolean;
+  readonly invalidIteratorState: boolean;
+  readonly numberValue: number;
+  readonly resultType: number;
+  readonly singleNodeValue: Placeholder | null;
+  //readonly singleNodeValue: Node | null;
+  readonly snapshotLength: number;
+  readonly stringValue: string;
+  iterateNext(): Placeholder | null;
+  //iterateNext(): Node | null;
+  snapshotItem(index: number): Placeholder | null;
+  //snapshotItem(index: number): Node | null;
+  readonly ANY_TYPE: number;
+  readonly ANY_UNORDERED_NODE_TYPE: number;
+  readonly BOOLEAN_TYPE: number;
+  readonly FIRST_ORDERED_NODE_TYPE: number;
+  readonly NUMBER_TYPE: number;
+  readonly ORDERED_NODE_ITERATOR_TYPE: number;
+  readonly ORDERED_NODE_SNAPSHOT_TYPE: number;
+  readonly STRING_TYPE: number;
+  readonly UNORDERED_NODE_ITERATOR_TYPE: number;
+  readonly UNORDERED_NODE_SNAPSHOT_TYPE: number;
+}
 
-// declare var XPathResult: {
-//   prototype: XPathResult;
-//   new(): XPathResult;
-//   readonly ANY_TYPE: number;
-//   readonly ANY_UNORDERED_NODE_TYPE: number;
-//   readonly BOOLEAN_TYPE: number;
-//   readonly FIRST_ORDERED_NODE_TYPE: number;
-//   readonly NUMBER_TYPE: number;
-//   readonly ORDERED_NODE_ITERATOR_TYPE: number;
-//   readonly ORDERED_NODE_SNAPSHOT_TYPE: number;
-//   readonly STRING_TYPE: number;
-//   readonly UNORDERED_NODE_ITERATOR_TYPE: number;
-//   readonly UNORDERED_NODE_SNAPSHOT_TYPE: number;
-// };
+declare var XPathResult: {
+  prototype: XPathResult;
+  new(): XPathResult;
+  readonly ANY_TYPE: number;
+  readonly ANY_UNORDERED_NODE_TYPE: number;
+  readonly BOOLEAN_TYPE: number;
+  readonly FIRST_ORDERED_NODE_TYPE: number;
+  readonly NUMBER_TYPE: number;
+  readonly ORDERED_NODE_ITERATOR_TYPE: number;
+  readonly ORDERED_NODE_SNAPSHOT_TYPE: number;
+  readonly STRING_TYPE: number;
+  readonly UNORDERED_NODE_ITERATOR_TYPE: number;
+  readonly UNORDERED_NODE_SNAPSHOT_TYPE: number;
+};
 
 // /** An XSLTProcessor applies an XSLT stylesheet transformation to an XML document to produce a new XML document as output. It has methods to load the XSLT stylesheet, to manipulate <xsl:param> parameter values, and to apply the transformation to documents. */
 // interface XSLTProcessor {
