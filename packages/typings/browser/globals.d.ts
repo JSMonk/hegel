@@ -551,9 +551,9 @@ interface GainOptions extends AudioNodeOptions {
 //   tag?: string;
 // }
 
-// interface GetRootNodeOptions {
-//   composed?: boolean;
-// }
+interface GetRootNodeOptions {
+  composed?: boolean;
+}
 
 // interface HashChangeEventInit extends EventInit {
 //   newURL?: string;
@@ -3501,30 +3501,30 @@ declare var ChannelSplitterNode: {
 //   new(): CharacterData;
 // };
 
-// interface ChildNode extends Node {
-//   /**
-//    * Inserts nodes just after node, while replacing strings in nodes with equivalent Text nodes.
-//    * 
-//    * Throws a "HierarchyRequestError" DOMException if the constraints of the node tree are violated.
-//    */
-//   after(...nodes: (Node | string)[]): void;
-//   /**
-//    * Inserts nodes just before node, while replacing strings in nodes with equivalent Text nodes.
-//    * 
-//    * Throws a "HierarchyRequestError" DOMException if the constraints of the node tree are violated.
-//    */
-//   before(...nodes: (Node | string)[]): void;
-//   /**
-//    * Removes node.
-//    */
-//   remove(): void;
-//   /**
-//    * Replaces node with nodes, while replacing strings in nodes with equivalent Text nodes.
-//    * 
-//    * Throws a "HierarchyRequestError" DOMException if the constraints of the node tree are violated.
-//    */
-//   replaceWith(...nodes: (Node | string)[]): void;
-// }
+interface ChildNode extends Node {
+  /**
+   * Inserts nodes just after node, while replacing strings in nodes with equivalent Text nodes.
+   * 
+   * Throws a "HierarchyRequestError" DOMException if the constraints of the node tree are violated.
+   */
+  after(...nodes: (Node | string)[]): void;
+  /**
+   * Inserts nodes just before node, while replacing strings in nodes with equivalent Text nodes.
+   * 
+   * Throws a "HierarchyRequestError" DOMException if the constraints of the node tree are violated.
+   */
+  before(...nodes: (Node | string)[]): void;
+  /**
+   * Removes node.
+   */
+  remove(): void;
+  /**
+   * Replaces node with nodes, while replacing strings in nodes with equivalent Text nodes.
+   * 
+   * Throws a "HierarchyRequestError" DOMException if the constraints of the node tree are violated.
+   */
+  replaceWith(...nodes: (Node | string)[]): void;
+}
 
 // interface ClientRect {
 //   bottom: number;
@@ -10782,216 +10782,219 @@ declare var MouseEvent: {
 //   readonly storage: StorageManager;
 // }
 
-// /** Node is an interface from which a number of DOM API object types inherit. It allows those types to be treated similarly; for example, inheriting the same set of methods, or being tested in the same way. */
-// interface Node extends EventTarget {
-//   /**
-//    * Returns node's node document's document base URL.
-//    */
-//   readonly baseURI: string;
-//   /**
-//    * Returns the children.
-//    */
-//   readonly childNodes: NodeListOf<ChildNode>;
-//   /**
-//    * Returns the first child.
-//    */
-//   readonly firstChild: ChildNode | null;
-//   /**
-//    * Returns true if node is connected and false otherwise.
-//    */
-//   readonly isConnected: boolean;
-//   /**
-//    * Returns the last child.
-//    */
-//   readonly lastChild: ChildNode | null;
-//   /** @deprecated */
-//   readonly namespaceURI: string | null;
-//   /**
-//    * Returns the next sibling.
-//    */
-//   readonly nextSibling: ChildNode | null;
-//   /**
-//    * Returns a string appropriate for the type of node.
-//    */
-//   readonly nodeName: string;
-//   /**
-//    * Returns the type of node.
-//    */
-//   readonly nodeType: number;
-//   nodeValue: string | null;
-//   /**
-//    * Returns the node document. Returns null for documents.
-//    */
-//   readonly ownerDocument: Document | null;
-//   /**
-//    * Returns the parent element.
-//    */
-//   readonly parentElement: HTMLElement | null;
-//   /**
-//    * Returns the parent.
-//    */
-//   readonly parentNode: Node & ParentNode | null;
-//   /**
-//    * Returns the previous sibling.
-//    */
-//   readonly previousSibling: ChildNode | null;
-//   textContent: string | null;
-//   appendChild<T extends Node>(newChild: T): T;
-//   /**
-//    * Returns a copy of node. If deep is true, the copy also includes the node's descendants.
-//    */
-//   cloneNode(deep?: boolean): Node;
-//   /**
-//    * Returns a bitmask indicating the position of other relative to node.
-//    */
-//   compareDocumentPosition(other: Node): number;
-//   /**
-//    * Returns true if other is an inclusive descendant of node, and false otherwise.
-//    */
-//   contains(other: Node | null): boolean;
-//   /**
-//    * Returns node's root.
-//    */
-//   getRootNode(options?: GetRootNodeOptions): Node;
-//   /**
-//    * Returns whether node has children.
-//    */
-//   hasChildNodes(): boolean;
-//   insertBefore<T extends Node>(newChild: T, refChild: Node | null): T;
-//   isDefaultNamespace(namespace: string | null): boolean;
-//   /**
-//    * Returns whether node and otherNode have the same properties.
-//    */
-//   isEqualNode(otherNode: Node | null): boolean;
-//   isSameNode(otherNode: Node | null): boolean;
-//   lookupNamespaceURI(prefix: string | null): string | null;
-//   lookupPrefix(namespace: string | null): string | null;
-//   /**
-//    * Removes empty exclusive Text nodes and concatenates the data of remaining contiguous exclusive Text nodes into the first of their nodes.
-//    */
-//   normalize(): void;
-//   removeChild<T extends Node>(oldChild: T): T;
-//   replaceChild<T extends Node>(newChild: Node, oldChild: T): T;
-//   readonly ATTRIBUTE_NODE: number;
-//   /**
-//    * node is a CDATASection node.
-//    */
-//   readonly CDATA_SECTION_NODE: number;
-//   /**
-//    * node is a Comment node.
-//    */
-//   readonly COMMENT_NODE: number;
-//   /**
-//    * node is a DocumentFragment node.
-//    */
-//   readonly DOCUMENT_FRAGMENT_NODE: number;
-//   /**
-//    * node is a document.
-//    */
-//   readonly DOCUMENT_NODE: number;
-//   /**
-//    * Set when other is a descendant of node.
-//    */
-//   readonly DOCUMENT_POSITION_CONTAINED_BY: number;
-//   /**
-//    * Set when other is an ancestor of node.
-//    */
-//   readonly DOCUMENT_POSITION_CONTAINS: number;
-//   /**
-//    * Set when node and other are not in the same tree.
-//    */
-//   readonly DOCUMENT_POSITION_DISCONNECTED: number;
-//   /**
-//    * Set when other is following node.
-//    */
-//   readonly DOCUMENT_POSITION_FOLLOWING: number;
-//   readonly DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: number;
-//   /**
-//    * Set when other is preceding node.
-//    */
-//   readonly DOCUMENT_POSITION_PRECEDING: number;
-//   /**
-//    * node is a doctype.
-//    */
-//   readonly DOCUMENT_TYPE_NODE: number;
-//   /**
-//    * node is an element.
-//    */
-//   readonly ELEMENT_NODE: number;
-//   readonly ENTITY_NODE: number;
-//   readonly ENTITY_REFERENCE_NODE: number;
-//   readonly NOTATION_NODE: number;
-//   /**
-//    * node is a ProcessingInstruction node.
-//    */
-//   readonly PROCESSING_INSTRUCTION_NODE: number;
-//   /**
-//    * node is a Text node.
-//    */
-//   readonly TEXT_NODE: number;
-// }
+/** Node is an interface from which a number of DOM API object types inherit. It allows those types to be treated similarly; for example, inheriting the same set of methods, or being tested in the same way. */
+interface Node extends EventTarget {
+  /**
+   * Returns node's node document's document base URL.
+   */
+  readonly baseURI: string;
+  /**
+   * Returns the children.
+   */
+  readonly childNodes: NodeListOf<ChildNode>;
+  /**
+   * Returns the first child.
+   */
+  readonly firstChild: ChildNode | null;
+  /**
+   * Returns true if node is connected and false otherwise.
+   */
+  readonly isConnected: boolean;
+  /**
+   * Returns the last child.
+   */
+  readonly lastChild: ChildNode | null;
+  /** @deprecated */
+  readonly namespaceURI: string | null;
+  /**
+   * Returns the next sibling.
+   */
+  readonly nextSibling: ChildNode | null;
+  /**
+   * Returns a string appropriate for the type of node.
+   */
+  readonly nodeName: string;
+  /**
+   * Returns the type of node.
+   */
+  readonly nodeType: number;
+  nodeValue: string | null;
+  /**
+   * Returns the node document. Returns null for documents.
+   */
+  readonly ownerDocument: Placeholder | null;
+  //readonly ownerDocument: Document | null;
+  /**
+   * Returns the parent element.
+   */
+  readonly parentElement: Placeholder | null;
+  //readonly parentElement: HTMLElement | null;
+  /**
+   * Returns the parent.
+   */
+  readonly parentNode: Node & Placeholder | null;
+  //readonly parentNode: Node & ParentNode | null;
+  /**
+   * Returns the previous sibling.
+   */
+  readonly previousSibling: ChildNode | null;
+  textContent: string | null;
+  appendChild<T extends Node>(newChild: T): T;
+  /**
+   * Returns a copy of node. If deep is true, the copy also includes the node's descendants.
+   */
+  cloneNode(deep?: boolean): Node;
+  /**
+   * Returns a bitmask indicating the position of other relative to node.
+   */
+  compareDocumentPosition(other: Node): number;
+  /**
+   * Returns true if other is an inclusive descendant of node, and false otherwise.
+   */
+  contains(other: Node | null): boolean;
+  /**
+   * Returns node's root.
+   */
+  getRootNode(options?: GetRootNodeOptions): Node;
+  /**
+   * Returns whether node has children.
+   */
+  hasChildNodes(): boolean;
+  insertBefore<T extends Node>(newChild: T, refChild: Node | null): T;
+  isDefaultNamespace(namespace: string | null): boolean;
+  /**
+   * Returns whether node and otherNode have the same properties.
+   */
+  isEqualNode(otherNode: Node | null): boolean;
+  isSameNode(otherNode: Node | null): boolean;
+  lookupNamespaceURI(prefix: string | null): string | null;
+  lookupPrefix(namespace: string | null): string | null;
+  /**
+   * Removes empty exclusive Text nodes and concatenates the data of remaining contiguous exclusive Text nodes into the first of their nodes.
+   */
+  normalize(): void;
+  removeChild<T extends Node>(oldChild: T): T;
+  replaceChild<T extends Node>(newChild: Node, oldChild: T): T;
+  readonly ATTRIBUTE_NODE: number;
+  /**
+   * node is a CDATASection node.
+   */
+  readonly CDATA_SECTION_NODE: number;
+  /**
+   * node is a Comment node.
+   */
+  readonly COMMENT_NODE: number;
+  /**
+   * node is a DocumentFragment node.
+   */
+  readonly DOCUMENT_FRAGMENT_NODE: number;
+  /**
+   * node is a document.
+   */
+  readonly DOCUMENT_NODE: number;
+  /**
+   * Set when other is a descendant of node.
+   */
+  readonly DOCUMENT_POSITION_CONTAINED_BY: number;
+  /**
+   * Set when other is an ancestor of node.
+   */
+  readonly DOCUMENT_POSITION_CONTAINS: number;
+  /**
+   * Set when node and other are not in the same tree.
+   */
+  readonly DOCUMENT_POSITION_DISCONNECTED: number;
+  /**
+   * Set when other is following node.
+   */
+  readonly DOCUMENT_POSITION_FOLLOWING: number;
+  readonly DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: number;
+  /**
+   * Set when other is preceding node.
+   */
+  readonly DOCUMENT_POSITION_PRECEDING: number;
+  /**
+   * node is a doctype.
+   */
+  readonly DOCUMENT_TYPE_NODE: number;
+  /**
+   * node is an element.
+   */
+  readonly ELEMENT_NODE: number;
+  readonly ENTITY_NODE: number;
+  readonly ENTITY_REFERENCE_NODE: number;
+  readonly NOTATION_NODE: number;
+  /**
+   * node is a ProcessingInstruction node.
+   */
+  readonly PROCESSING_INSTRUCTION_NODE: number;
+  /**
+   * node is a Text node.
+   */
+  readonly TEXT_NODE: number;
+}
 
-// declare var Node: {
-//   prototype: Node;
-//   new(): Node;
-//   readonly ATTRIBUTE_NODE: number;
-//   /**
-//    * node is a CDATASection node.
-//    */
-//   readonly CDATA_SECTION_NODE: number;
-//   /**
-//    * node is a Comment node.
-//    */
-//   readonly COMMENT_NODE: number;
-//   /**
-//    * node is a DocumentFragment node.
-//    */
-//   readonly DOCUMENT_FRAGMENT_NODE: number;
-//   /**
-//    * node is a document.
-//    */
-//   readonly DOCUMENT_NODE: number;
-//   /**
-//    * Set when other is a descendant of node.
-//    */
-//   readonly DOCUMENT_POSITION_CONTAINED_BY: number;
-//   /**
-//    * Set when other is an ancestor of node.
-//    */
-//   readonly DOCUMENT_POSITION_CONTAINS: number;
-//   /**
-//    * Set when node and other are not in the same tree.
-//    */
-//   readonly DOCUMENT_POSITION_DISCONNECTED: number;
-//   /**
-//    * Set when other is following node.
-//    */
-//   readonly DOCUMENT_POSITION_FOLLOWING: number;
-//   readonly DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: number;
-//   /**
-//    * Set when other is preceding node.
-//    */
-//   readonly DOCUMENT_POSITION_PRECEDING: number;
-//   /**
-//    * node is a doctype.
-//    */
-//   readonly DOCUMENT_TYPE_NODE: number;
-//   /**
-//    * node is an element.
-//    */
-//   readonly ELEMENT_NODE: number;
-//   readonly ENTITY_NODE: number;
-//   readonly ENTITY_REFERENCE_NODE: number;
-//   readonly NOTATION_NODE: number;
-//   /**
-//    * node is a ProcessingInstruction node.
-//    */
-//   readonly PROCESSING_INSTRUCTION_NODE: number;
-//   /**
-//    * node is a Text node.
-//    */
-//   readonly TEXT_NODE: number;
-// };
+declare var Node: {
+  prototype: Node;
+  new(): Node;
+  readonly ATTRIBUTE_NODE: number;
+  /**
+   * node is a CDATASection node.
+   */
+  readonly CDATA_SECTION_NODE: number;
+  /**
+   * node is a Comment node.
+   */
+  readonly COMMENT_NODE: number;
+  /**
+   * node is a DocumentFragment node.
+   */
+  readonly DOCUMENT_FRAGMENT_NODE: number;
+  /**
+   * node is a document.
+   */
+  readonly DOCUMENT_NODE: number;
+  /**
+   * Set when other is a descendant of node.
+   */
+  readonly DOCUMENT_POSITION_CONTAINED_BY: number;
+  /**
+   * Set when other is an ancestor of node.
+   */
+  readonly DOCUMENT_POSITION_CONTAINS: number;
+  /**
+   * Set when node and other are not in the same tree.
+   */
+  readonly DOCUMENT_POSITION_DISCONNECTED: number;
+  /**
+   * Set when other is following node.
+   */
+  readonly DOCUMENT_POSITION_FOLLOWING: number;
+  readonly DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: number;
+  /**
+   * Set when other is preceding node.
+   */
+  readonly DOCUMENT_POSITION_PRECEDING: number;
+  /**
+   * node is a doctype.
+   */
+  readonly DOCUMENT_TYPE_NODE: number;
+  /**
+   * node is an element.
+   */
+  readonly ELEMENT_NODE: number;
+  readonly ENTITY_NODE: number;
+  readonly ENTITY_REFERENCE_NODE: number;
+  readonly NOTATION_NODE: number;
+  /**
+   * node is a ProcessingInstruction node.
+   */
+  readonly PROCESSING_INSTRUCTION_NODE: number;
+  /**
+   * node is a Text node.
+   */
+  readonly TEXT_NODE: number;
+};
 
 // /** An object used to filter the nodes in a NodeIterator or TreeWalker. They don't know anything about the DOM or how to traverse nodes; they just know how to evaluate a single node against the provided filter. */
 // interface NodeFilter {
@@ -11034,41 +11037,41 @@ declare var MouseEvent: {
 //   new(): NodeIterator;
 // };
 
-// /** NodeList objects are collections of nodes, usually returned by properties such as Node.childNodes and methods such as document.querySelectorAll(). */
-// interface NodeList {
-//   /**
-//    * Returns the number of nodes in the collection.
-//    */
-//   readonly length: number;
-//   /**
-//    * Returns the node with index index from the collection. The nodes are sorted in tree order.
-//    */
-//   item(index: number): Node | null;
-//   /**
-//    * Performs the specified action for each node in an list.
-//    * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the list.
-//    * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
-//    */
-//   forEach(callbackfn: (value: Node, key: number, parent: NodeList) => void, thisArg?: any): void;
-//   [index: number]: Node;
-// }
+/** NodeList objects are collections of nodes, usually returned by properties such as Node.childNodes and methods such as document.querySelectorAll(). */
+interface NodeList {
+  /**
+   * Returns the number of nodes in the collection.
+   */
+  readonly length: number;
+  /**
+   * Returns the node with index index from the collection. The nodes are sorted in tree order.
+   */
+  item(index: number): Node | null;
+  /**
+   * Performs the specified action for each node in an list.
+   * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the list.
+   * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+   */
+  forEach(callbackfn: (value: Node, key: number, parent: NodeList) => void, thisArg?: any): void;
+  [index: number]: Node;
+}
 
-// declare var NodeList: {
-//   prototype: NodeList;
-//   new(): NodeList;
-// };
+declare var NodeList: {
+  prototype: NodeList;
+  new(): NodeList;
+};
 
-// interface NodeListOf<TNode extends Node> extends NodeList {
-//   length: number;
-//   item(index: number): TNode;
-//   /**
-//    * Performs the specified action for each node in an list.
-//    * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the list.
-//    * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
-//    */
-//   forEach(callbackfn: (value: TNode, key: number, parent: NodeListOf<TNode>) => void, thisArg?: any): void;
-//   [index: number]: TNode;
-// }
+interface NodeListOf<TNode extends Node> extends NodeList {
+  length: number;
+  item(index: number): TNode;
+  /**
+   * Performs the specified action for each node in an list.
+   * @param callbackfn  A function that accepts up to three arguments. forEach calls the callbackfn function one time for each element in the list.
+   * @param thisArg  An object to which the this keyword can refer in the callbackfn function. If thisArg is omitted, undefined is used as the this value.
+   */
+  forEach(callbackfn: (value: TNode, key: number, parent: NodeListOf<TNode>) => void, thisArg?: any): void;
+  [index: number]: TNode;
+}
 
 // interface NonDocumentTypeChildNode {
 //   /**
@@ -13008,7 +13011,7 @@ interface ReadableStreamDefaultReader<R = any> {
 // }
 
 // /** All of the SVG DOM interfaces that correspond directly to elements in the SVG language derive from the SVGElement interface. */
-// interface SVGElement extends Element, DocumentAndElementEventHandlers, DocumentAndElementEventHandlers, ElementCSSInlineStyle, GlobalEventHandlers, GlobalEventHandlers, HTMLOrSVGElement, SVGElementInstance {
+// interface SVGElement extends Element, DocumentAndElementEventHandlers, ElementCSSInlineStyle, GlobalEventHandlers, HTMLOrSVGElement, SVGElementInstance {
 //   /** @deprecated */
 //   readonly className: any;
 //   readonly ownerSVGElement: SVGSVGElement | null;
@@ -13024,15 +13027,17 @@ interface ReadableStreamDefaultReader<R = any> {
 //   new(): SVGElement;
 // };
 
-// interface SVGElementInstance extends EventTarget {
-//   readonly correspondingElement: SVGElement;
-//   readonly correspondingUseElement: SVGUseElement;
-// }
+interface SVGElementInstance extends EventTarget {
+  readonly correspondingElement: Placeholder;
+  //readonly correspondingElement: SVGElement;
+  readonly correspondingUseElement: Placeholder;
+  //readonly correspondingUseElement: SVGUseElement;
+}
 
-// declare var SVGElementInstance: {
-//   prototype: SVGElementInstance;
-//   new(): SVGElementInstance;
-// };
+declare var SVGElementInstance: {
+  prototype: SVGElementInstance;
+  new(): SVGElementInstance;
+};
 
 // interface SVGElementInstanceList {
 //   /** @deprecated */
