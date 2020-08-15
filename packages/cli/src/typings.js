@@ -12,7 +12,6 @@ import type {
 } from "@hegel/core";
 
 const typings = dirname(require.resolve("@hegel/typings"));
-const nodejs = join(typings, "nodejs/globals.d.ts");
 const standard = join(typings, "standard/index.d.ts");
 
 async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {   
@@ -51,15 +50,20 @@ async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
   globalScope.typeScope.body = typesBody;
 }
 
+//TODO@Soremwar
+//Global file should always exist
+//The supported environments should be verified on config check
 export async function mixTypeDefinitions(
   config: Config,
   prepareAST: (string, boolean) => Promise<ExtendedFile>
 ) {
   const standardAST = await prepareAST(standard, true);
-  let environmentAST: ExtendedFile;
+  let environmentAST: ExtendedFile | null;
   if(config.environment){
     const environment_globals = join(typings, `${config.environment}/globals.d.ts`);
-    environmentAST = await prepareAST(environment_globals, true);
+    if(existsSync(environment_globals)){
+      environmentAST = await prepareAST(environment_globals, true);
+    }
   }
   return async globalScope => {
     await mixLibraryToGlobal(standardAST, globalScope);
