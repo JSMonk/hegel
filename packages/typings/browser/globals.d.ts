@@ -74,11 +74,11 @@ interface AnalyserOptions extends AudioNodeOptions {
   smoothingTimeConstant?: number;
 }
 
-// interface AnimationEventInit extends EventInit {
-//   animationName?: string;
-//   elapsedTime?: number;
-//   pseudoElement?: string;
-// }
+interface AnimationEventInit extends EventInit {
+  animationName?: string;
+  elapsedTime?: number;
+  pseudoElement?: string;
+}
 
 interface AnimationPlaybackEventInit extends EventInit {
   currentTime?: number | null;
@@ -414,9 +414,9 @@ interface DoubleRange {
   min?: number;
 }
 
-// interface DragEventInit extends MouseEventInit {
-//   dataTransfer?: DataTransfer | null;
-// }
+interface DragEventInit extends MouseEventInit {
+  dataTransfer?: DataTransfer | null;
+}
 
 interface DynamicsCompressorOptions extends AudioNodeOptions {
   attack?: number;
@@ -465,13 +465,13 @@ interface EffectTiming {
 //   extends?: string;
 // }
 
-// interface ErrorEventInit extends EventInit {
-//   colno?: number;
-//   error?: any;
-//   filename?: string;
-//   lineno?: number;
-//   message?: string;
-// }
+interface ErrorEventInit extends EventInit {
+  colno?: number;
+  error?: any;
+  filename?: string;
+  lineno?: number;
+  message?: string;
+}
 
 interface EventInit {
   bubbles?: boolean;
@@ -666,13 +666,13 @@ interface GainOptions extends AudioNodeOptions {
 //   name: string;
 // }
 
-// interface KeyboardEventInit extends EventModifierInit {
-//   code?: string;
-//   isComposing?: boolean;
-//   key?: string;
-//   location?: number;
-//   repeat?: boolean;
-// }
+interface KeyboardEventInit extends EventModifierInit {
+  code?: string;
+  isComposing?: boolean;
+  key?: string;
+  location?: number;
+  repeat?: boolean;
+}
 
 interface Keyframe {
   composite?: CompositeOperationOrAuto;
@@ -839,17 +839,17 @@ interface KeyframeEffectOptions extends EffectTiming {
 //   sysex?: boolean;
 // }
 
-// interface MouseEventInit extends EventModifierInit {
-//   button?: number;
-//   buttons?: number;
-//   clientX?: number;
-//   clientY?: number;
-//   movementX?: number;
-//   movementY?: number;
-//   relatedTarget?: EventTarget | null;
-//   screenX?: number;
-//   screenY?: number;
-// }
+interface MouseEventInit extends EventModifierInit {
+  button?: number;
+  buttons?: number;
+  clientX?: number;
+  clientY?: number;
+  movementX?: number;
+  movementY?: number;
+  relatedTarget?: EventTarget | null;
+  screenX?: number;
+  screenY?: number;
+}
 
 // interface MultiCacheQueryOptions extends CacheQueryOptions {
 //   cacheName?: string;
@@ -1053,18 +1053,18 @@ interface PipeOptions {
   signal?: AbortSignal;
 }
 
-// interface PointerEventInit extends MouseEventInit {
-//   height?: number;
-//   isPrimary?: boolean;
-//   pointerId?: number;
-//   pointerType?: string;
-//   pressure?: number;
-//   tangentialPressure?: number;
-//   tiltX?: number;
-//   tiltY?: number;
-//   twist?: number;
-//   width?: number;
-// }
+interface PointerEventInit extends MouseEventInit {
+  height?: number;
+  isPrimary?: boolean;
+  pointerId?: number;
+  pointerType?: string;
+  pressure?: number;
+  tangentialPressure?: number;
+  tiltX?: number;
+  tiltY?: number;
+  twist?: number;
+  width?: number;
+}
 
 // interface PopStateEventInit extends EventInit {
 //   state?: any;
@@ -1080,11 +1080,11 @@ interface PipeOptions {
 //   transfer?: any[];
 // }
 
-// interface ProgressEventInit extends EventInit {
-//   lengthComputable?: boolean;
-//   loaded?: number;
-//   total?: number;
-// }
+interface ProgressEventInit extends EventInit {
+  lengthComputable?: boolean;
+  loaded?: number;
+  total?: number;
+}
 
 // interface PromiseRejectionEventInit extends EventInit {
 //   promise: Promise<any>;
@@ -1692,18 +1692,18 @@ interface ReadableStreamReadValueResult<T> {
 //   top?: number;
 // }
 
-// interface SecurityPolicyViolationEventInit extends EventInit {
-//   blockedURI?: string;
-//   columnNumber?: number;
-//   documentURI?: string;
-//   effectiveDirective?: string;
-//   lineNumber?: number;
-//   originalPolicy?: string;
-//   referrer?: string;
-//   sourceFile?: string;
-//   statusCode?: number;
-//   violatedDirective?: string;
-// }
+interface SecurityPolicyViolationEventInit extends EventInit {
+  blockedURI?: string;
+  columnNumber?: number;
+  documentURI?: string;
+  effectiveDirective?: string;
+  lineNumber?: number;
+  originalPolicy?: string;
+  referrer?: string;
+  sourceFile?: string;
+  statusCode?: number;
+  violatedDirective?: string;
+}
 
 // interface ServiceWorkerMessageEventInit extends EventInit {
 //   data?: any;
@@ -1784,29 +1784,29 @@ interface StereoPannerOptions extends AudioNodeOptions {
 //   written?: number;
 // }
 
-// interface TouchEventInit extends EventModifierInit {
-//   changedTouches?: Touch[];
-//   targetTouches?: Touch[];
-//   touches?: Touch[];
-// }
+interface TouchEventInit extends EventModifierInit {
+  changedTouches?: Touch[];
+  targetTouches?: Touch[];
+  touches?: Touch[];
+}
 
-// interface TouchInit {
-//   altitudeAngle?: number;
-//   azimuthAngle?: number;
-//   clientX?: number;
-//   clientY?: number;
-//   force?: number;
-//   identifier: number;
-//   pageX?: number;
-//   pageY?: number;
-//   radiusX?: number;
-//   radiusY?: number;
-//   rotationAngle?: number;
-//   screenX?: number;
-//   screenY?: number;
-//   target: EventTarget;
-//   touchType?: TouchType;
-// }
+interface TouchInit {
+  altitudeAngle?: number;
+  azimuthAngle?: number;
+  clientX?: number;
+  clientY?: number;
+  force?: number;
+  identifier: number;
+  pageX?: number;
+  pageY?: number;
+  radiusX?: number;
+  radiusY?: number;
+  rotationAngle?: number;
+  screenX?: number;
+  screenY?: number;
+  target: EventTarget;
+  touchType?: TouchType;
+}
 
 // interface TrackEventInit extends EventInit {
 //   track?: TextTrack | null;
@@ -1820,11 +1820,11 @@ interface StereoPannerOptions extends AudioNodeOptions {
 //   writableType?: undefined;
 // }
 
-// interface TransitionEventInit extends EventInit {
-//   elapsedTime?: number;
-//   propertyName?: string;
-//   pseudoElement?: string;
-// }
+interface TransitionEventInit extends EventInit {
+  elapsedTime?: number;
+  propertyName?: string;
+  pseudoElement?: string;
+}
 
 interface UIEventInit extends EventInit {
   detail?: number;
@@ -1900,12 +1900,12 @@ interface WaveShaperOptions extends AudioNodeOptions {
 //   statusMessage?: string;
 // }
 
-// interface WheelEventInit extends MouseEventInit {
-//   deltaMode?: number;
-//   deltaX?: number;
-//   deltaY?: number;
-//   deltaZ?: number;
-// }
+interface WheelEventInit extends MouseEventInit {
+  deltaMode?: number;
+  deltaX?: number;
+  deltaY?: number;
+  deltaZ?: number;
+}
 
 // interface WorkerOptions {
 //   credentials?: RequestCredentials;
@@ -2093,17 +2093,17 @@ declare var AnimationEffect: {
   new(): AnimationEffect;
 };
 
-// /** Events providing information related to animations. */
-// interface AnimationEvent extends Event {
-//   readonly animationName: string;
-//   readonly elapsedTime: number;
-//   readonly pseudoElement: string;
-// }
+/** Events providing information related to animations. */
+interface AnimationEvent extends Event {
+  readonly animationName: string;
+  readonly elapsedTime: number;
+  readonly pseudoElement: string;
+}
 
-// declare var AnimationEvent: {
-//   prototype: AnimationEvent;
-//   new(type: string, animationEventInitDict?: AnimationEventInit): AnimationEvent;
-// };
+declare var AnimationEvent: {
+  prototype: AnimationEvent;
+  new(type: string, animationEventInitDict?: AnimationEventInit): AnimationEvent;
+};
 
 // interface AnimationFrameProvider {
 //   cancelAnimationFrame(handle: number): void;
@@ -4086,10 +4086,10 @@ declare var DOMException: {
 //   new(): DOMStringList;
 // };
 
-// /** Used by the dataset HTML attribute to represent data for custom attributes added to elements. */
-// interface DOMStringMap {
-//   [name: string]: string | undefined;
-// }
+/** Used by the dataset HTML attribute to represent data for custom attributes added to elements. */
+interface DOMStringMap {
+  [name: string]: string | undefined;
+}
 
 // declare var DOMStringMap: {
 //   prototype: DOMStringMap;
@@ -5040,18 +5040,18 @@ interface DocumentAndElementEventHandlers {
 //   new(): DocumentType;
 // };
 
-// /** A DOM event that represents a drag and drop interaction. The user initiates a drag by placing a pointer device (such as a mouse) on the touch surface and then dragging the pointer to a new location (such as another DOM element). Applications are free to interpret a drag and drop interaction in an application-specific way. */
-// interface DragEvent extends MouseEvent {
-//   /**
-//    * Returns the DataTransfer object for the event.
-//    */
-//   readonly dataTransfer: DataTransfer | null;
-// }
+/** A DOM event that represents a drag and drop interaction. The user initiates a drag by placing a pointer device (such as a mouse) on the touch surface and then dragging the pointer to a new location (such as another DOM element). Applications are free to interpret a drag and drop interaction in an application-specific way. */
+interface DragEvent extends MouseEvent {
+  /**
+   * Returns the DataTransfer object for the event.
+   */
+  readonly dataTransfer: DataTransfer | null;
+}
 
-// declare var DragEvent: {
-//   prototype: DragEvent;
-//   new(type: string, eventInitDict?: DragEventInit): DragEvent;
-// };
+declare var DragEvent: {
+  prototype: DragEvent;
+  new(type: string, eventInitDict?: DragEventInit): DragEvent;
+};
 
 /** Inherits properties from its parent, AudioNode. */
 interface DynamicsCompressorNode extends AudioNode {
@@ -5271,19 +5271,19 @@ declare var DynamicsCompressorNode: {
 //   readonly isContentEditable: boolean;
 // }
 
-// /** Events providing information related to errors in scripts or in files. */
-// interface ErrorEvent extends Event {
-//   readonly colno: number;
-//   readonly error: any;
-//   readonly filename: string;
-//   readonly lineno: number;
-//   readonly message: string;
-// }
+/** Events providing information related to errors in scripts or in files. */
+interface ErrorEvent extends Event {
+  readonly colno: number;
+  readonly error: any;
+  readonly filename: string;
+  readonly lineno: number;
+  readonly message: string;
+}
 
-// declare var ErrorEvent: {
-//   prototype: ErrorEvent;
-//   new(type: string, eventInitDict?: ErrorEventInit): ErrorEvent;
-// };
+declare var ErrorEvent: {
+  prototype: ErrorEvent;
+  new(type: string, eventInitDict?: ErrorEventInit): ErrorEvent;
+};
 
 /** An event which takes place in the DOM. */
 interface Event {
@@ -5535,15 +5535,15 @@ interface FileList {
 //   readonly LOADING: number;
 // };
 
-// /** Focus-related events like focus, blur, focusin, or focusout. */
-// interface FocusEvent extends UIEvent {
-//   readonly relatedTarget: EventTarget | null;
-// }
+/** Focus-related events like focus, blur, focusin, or focusout. */
+interface FocusEvent extends UIEvent {
+  readonly relatedTarget: EventTarget | null;
+}
 
-// declare var FocusEvent: {
-//   prototype: FocusEvent;
-//   new(type: string, eventInitDict?: FocusEventInit): FocusEvent;
-// };
+declare var FocusEvent: {
+  prototype: FocusEvent;
+  new(type: string, eventInitDict?: FocusEventInit): FocusEvent;
+};
 
 // interface FocusNavigationEvent extends Event {
 //   readonly navigationReason: NavigationReason;
@@ -5683,367 +5683,367 @@ declare var GainNode: {
 //   watchPosition(successCallback: PositionCallback, errorCallback?: PositionErrorCallback, options?: PositionOptions): number;
 // }
 
-// interface GlobalEventHandlersEventMap {
-//   "abort": UIEvent;
-//   "animationcancel": AnimationEvent;
-//   "animationend": AnimationEvent;
-//   "animationiteration": AnimationEvent;
-//   "animationstart": AnimationEvent;
-//   "auxclick": MouseEvent;
-//   "blur": FocusEvent;
-//   "cancel": Event;
-//   "canplay": Event;
-//   "canplaythrough": Event;
-//   "change": Event;
-//   "click": MouseEvent;
-//   "close": Event;
-//   "contextmenu": MouseEvent;
-//   "cuechange": Event;
-//   "dblclick": MouseEvent;
-//   "drag": DragEvent;
-//   "dragend": DragEvent;
-//   "dragenter": DragEvent;
-//   "dragexit": Event;
-//   "dragleave": DragEvent;
-//   "dragover": DragEvent;
-//   "dragstart": DragEvent;
-//   "drop": DragEvent;
-//   "durationchange": Event;
-//   "emptied": Event;
-//   "ended": Event;
-//   "error": ErrorEvent;
-//   "focus": FocusEvent;
-//   "focusin": FocusEvent;
-//   "focusout": FocusEvent;
-//   "gotpointercapture": PointerEvent;
-//   "input": Event;
-//   "invalid": Event;
-//   "keydown": KeyboardEvent;
-//   "keypress": KeyboardEvent;
-//   "keyup": KeyboardEvent;
-//   "load": Event;
-//   "loadeddata": Event;
-//   "loadedmetadata": Event;
-//   "loadstart": Event;
-//   "lostpointercapture": PointerEvent;
-//   "mousedown": MouseEvent;
-//   "mouseenter": MouseEvent;
-//   "mouseleave": MouseEvent;
-//   "mousemove": MouseEvent;
-//   "mouseout": MouseEvent;
-//   "mouseover": MouseEvent;
-//   "mouseup": MouseEvent;
-//   "pause": Event;
-//   "play": Event;
-//   "playing": Event;
-//   "pointercancel": PointerEvent;
-//   "pointerdown": PointerEvent;
-//   "pointerenter": PointerEvent;
-//   "pointerleave": PointerEvent;
-//   "pointermove": PointerEvent;
-//   "pointerout": PointerEvent;
-//   "pointerover": PointerEvent;
-//   "pointerup": PointerEvent;
-//   "progress": ProgressEvent;
-//   "ratechange": Event;
-//   "reset": Event;
-//   "resize": UIEvent;
-//   "scroll": Event;
-//   "securitypolicyviolation": SecurityPolicyViolationEvent;
-//   "seeked": Event;
-//   "seeking": Event;
-//   "select": Event;
-//   "selectionchange": Event;
-//   "selectstart": Event;
-//   "stalled": Event;
-//   "submit": Event;
-//   "suspend": Event;
-//   "timeupdate": Event;
-//   "toggle": Event;
-//   "touchcancel": TouchEvent;
-//   "touchend": TouchEvent;
-//   "touchmove": TouchEvent;
-//   "touchstart": TouchEvent;
-//   "transitioncancel": TransitionEvent;
-//   "transitionend": TransitionEvent;
-//   "transitionrun": TransitionEvent;
-//   "transitionstart": TransitionEvent;
-//   "volumechange": Event;
-//   "waiting": Event;
-//   "wheel": WheelEvent;
-// }
+interface GlobalEventHandlersEventMap {
+  "abort": UIEvent;
+  "animationcancel": AnimationEvent;
+  "animationend": AnimationEvent;
+  "animationiteration": AnimationEvent;
+  "animationstart": AnimationEvent;
+  "auxclick": MouseEvent;
+  "blur": FocusEvent;
+  "cancel": Event;
+  "canplay": Event;
+  "canplaythrough": Event;
+  "change": Event;
+  "click": MouseEvent;
+  "close": Event;
+  "contextmenu": MouseEvent;
+  "cuechange": Event;
+  "dblclick": MouseEvent;
+  "drag": DragEvent;
+  "dragend": DragEvent;
+  "dragenter": DragEvent;
+  "dragexit": Event;
+  "dragleave": DragEvent;
+  "dragover": DragEvent;
+  "dragstart": DragEvent;
+  "drop": DragEvent;
+  "durationchange": Event;
+  "emptied": Event;
+  "ended": Event;
+  "error": ErrorEvent;
+  "focus": FocusEvent;
+  "focusin": FocusEvent;
+  "focusout": FocusEvent;
+  "gotpointercapture": PointerEvent;
+  "input": Event;
+  "invalid": Event;
+  "keydown": KeyboardEvent;
+  "keypress": KeyboardEvent;
+  "keyup": KeyboardEvent;
+  "load": Event;
+  "loadeddata": Event;
+  "loadedmetadata": Event;
+  "loadstart": Event;
+  "lostpointercapture": PointerEvent;
+  "mousedown": MouseEvent;
+  "mouseenter": MouseEvent;
+  "mouseleave": MouseEvent;
+  "mousemove": MouseEvent;
+  "mouseout": MouseEvent;
+  "mouseover": MouseEvent;
+  "mouseup": MouseEvent;
+  "pause": Event;
+  "play": Event;
+  "playing": Event;
+  "pointercancel": PointerEvent;
+  "pointerdown": PointerEvent;
+  "pointerenter": PointerEvent;
+  "pointerleave": PointerEvent;
+  "pointermove": PointerEvent;
+  "pointerout": PointerEvent;
+  "pointerover": PointerEvent;
+  "pointerup": PointerEvent;
+  "progress": ProgressEvent<EventTarget>;
+  "ratechange": Event;
+  "reset": Event;
+  "resize": UIEvent;
+  "scroll": Event;
+  "securitypolicyviolation": SecurityPolicyViolationEvent;
+  "seeked": Event;
+  "seeking": Event;
+  "select": Event;
+  "selectionchange": Event;
+  "selectstart": Event;
+  "stalled": Event;
+  "submit": Event;
+  "suspend": Event;
+  "timeupdate": Event;
+  "toggle": Event;
+  "touchcancel": TouchEvent;
+  "touchend": TouchEvent;
+  "touchmove": TouchEvent;
+  "touchstart": TouchEvent;
+  "transitioncancel": TransitionEvent;
+  "transitionend": TransitionEvent;
+  "transitionrun": TransitionEvent;
+  "transitionstart": TransitionEvent;
+  "volumechange": Event;
+  "waiting": Event;
+  "wheel": WheelEvent;
+}
 
-// interface GlobalEventHandlers {
-//   /**
-//    * Fires when the user aborts the download.
-//    * @param ev The event.
-//    */
-//   onabort: ((this: GlobalEventHandlers, ev: UIEvent) => any) | null;
-//   onanimationcancel: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null;
-//   onanimationend: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null;
-//   onanimationiteration: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null;
-//   onanimationstart: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null;
-//   onauxclick: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   /**
-//    * Fires when the object loses the input focus.
-//    * @param ev The focus event.
-//    */
-//   onblur: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null;
-//   oncancel: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when playback is possible, but would require further buffering.
-//    * @param ev The event.
-//    */
-//   oncanplay: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   oncanplaythrough: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Fires when the contents of the object or selection have changed.
-//    * @param ev The event.
-//    */
-//   onchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Fires when the user clicks the left mouse button on the object
-//    * @param ev The mouse event.
-//    */
-//   onclick: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   onclose: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Fires when the user clicks the right mouse button in the client area, opening the context menu.
-//    * @param ev The mouse event.
-//    */
-//   oncontextmenu: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   oncuechange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Fires when the user double-clicks the object.
-//    * @param ev The mouse event.
-//    */
-//   ondblclick: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   /**
-//    * Fires on the source object continuously during a drag operation.
-//    * @param ev The event.
-//    */
-//   ondrag: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
-//   /**
-//    * Fires on the source object when the user releases the mouse at the close of a drag operation.
-//    * @param ev The event.
-//    */
-//   ondragend: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
-//   /**
-//    * Fires on the target element when the user drags the object to a valid drop target.
-//    * @param ev The drag event.
-//    */
-//   ondragenter: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
-//   ondragexit: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Fires on the target object when the user moves the mouse out of a valid drop target during a drag operation.
-//    * @param ev The drag event.
-//    */
-//   ondragleave: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
-//   /**
-//    * Fires on the target element continuously while the user drags the object over a valid drop target.
-//    * @param ev The event.
-//    */
-//   ondragover: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
-//   /**
-//    * Fires on the source object when the user starts to drag a text selection or selected object.
-//    * @param ev The event.
-//    */
-//   ondragstart: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
-//   ondrop: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
-//   /**
-//    * Occurs when the duration attribute is updated.
-//    * @param ev The event.
-//    */
-//   ondurationchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when the media element is reset to its initial state.
-//    * @param ev The event.
-//    */
-//   onemptied: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when the end of playback is reached.
-//    * @param ev The event
-//    */
-//   onended: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Fires when an error occurs during object loading.
-//    * @param ev The event.
-//    */
-//   onerror: OnErrorEventHandler;
-//   /**
-//    * Fires when the object receives focus.
-//    * @param ev The event.
-//    */
-//   onfocus: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null;
-//   ongotpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   oninput: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   oninvalid: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Fires when the user presses a key.
-//    * @param ev The keyboard event
-//    */
-//   onkeydown: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any) | null;
-//   /**
-//    * Fires when the user presses an alphanumeric key.
-//    * @param ev The event.
-//    */
-//   onkeypress: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any) | null;
-//   /**
-//    * Fires when the user releases a key.
-//    * @param ev The keyboard event
-//    */
-//   onkeyup: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any) | null;
-//   /**
-//    * Fires immediately after the browser loads the object.
-//    * @param ev The event.
-//    */
-//   onload: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when media data is loaded at the current playback position.
-//    * @param ev The event.
-//    */
-//   onloadeddata: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when the duration and dimensions of the media have been determined.
-//    * @param ev The event.
-//    */
-//   onloadedmetadata: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when Internet Explorer begins looking for media data.
-//    * @param ev The event.
-//    */
-//   onloadstart: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   onlostpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   /**
-//    * Fires when the user clicks the object with either mouse button.
-//    * @param ev The mouse event.
-//    */
-//   onmousedown: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   onmouseenter: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   onmouseleave: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   /**
-//    * Fires when the user moves the mouse over the object.
-//    * @param ev The mouse event.
-//    */
-//   onmousemove: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   /**
-//    * Fires when the user moves the mouse pointer outside the boundaries of the object.
-//    * @param ev The mouse event.
-//    */
-//   onmouseout: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   /**
-//    * Fires when the user moves the mouse pointer into the object.
-//    * @param ev The mouse event.
-//    */
-//   onmouseover: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   /**
-//    * Fires when the user releases a mouse button while the mouse is over the object.
-//    * @param ev The mouse event.
-//    */
-//   onmouseup: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
-//   /**
-//    * Occurs when playback is paused.
-//    * @param ev The event.
-//    */
-//   onpause: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when the play method is requested.
-//    * @param ev The event.
-//    */
-//   onplay: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when the audio or video has started playing.
-//    * @param ev The event.
-//    */
-//   onplaying: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   onpointercancel: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   onpointerdown: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   onpointerenter: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   onpointerleave: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   onpointermove: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   onpointerout: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   onpointerover: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   onpointerup: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
-//   /**
-//    * Occurs to indicate progress while downloading media data.
-//    * @param ev The event.
-//    */
-//   onprogress: ((this: GlobalEventHandlers, ev: ProgressEvent) => any) | null;
-//   /**
-//    * Occurs when the playback rate is increased or decreased.
-//    * @param ev The event.
-//    */
-//   onratechange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Fires when the user resets a form.
-//    * @param ev The event.
-//    */
-//   onreset: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   onresize: ((this: GlobalEventHandlers, ev: UIEvent) => any) | null;
-//   /**
-//    * Fires when the user repositions the scroll box in the scroll bar on the object.
-//    * @param ev The event.
-//    */
-//   onscroll: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   onsecuritypolicyviolation: ((this: GlobalEventHandlers, ev: SecurityPolicyViolationEvent) => any) | null;
-//   /**
-//    * Occurs when the seek operation ends.
-//    * @param ev The event.
-//    */
-//   onseeked: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when the current playback position is moved.
-//    * @param ev The event.
-//    */
-//   onseeking: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Fires when the current selection changes.
-//    * @param ev The event.
-//    */
-//   onselect: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   onselectionchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   onselectstart: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when the download has stopped.
-//    * @param ev The event.
-//    */
-//   onstalled: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   onsubmit: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs if the load operation has been intentionally halted.
-//    * @param ev The event.
-//    */
-//   onsuspend: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs to indicate the current playback position.
-//    * @param ev The event.
-//    */
-//   ontimeupdate: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   ontoggle: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   ontouchcancel?: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null;
-//   ontouchend?: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null;
-//   ontouchmove?: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null;
-//   ontouchstart?: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null;
-//   ontransitioncancel: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null;
-//   ontransitionend: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null;
-//   ontransitionrun: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null;
-//   ontransitionstart: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null;
-//   /**
-//    * Occurs when the volume is changed, or playback is muted or unmuted.
-//    * @param ev The event.
-//    */
-//   onvolumechange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   /**
-//    * Occurs when playback stops because the next frame of a video resource is not available.
-//    * @param ev The event.
-//    */
-//   onwaiting: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-//   onwheel: ((this: GlobalEventHandlers, ev: WheelEvent) => any) | null;
-//   addEventListener<K extends keyof GlobalEventHandlersEventMap>(type: K, listener: (this: GlobalEventHandlers, ev: GlobalEventHandlersEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof GlobalEventHandlersEventMap>(type: K, listener: (this: GlobalEventHandlers, ev: GlobalEventHandlersEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+interface GlobalEventHandlers {
+  /**
+   * Fires when the user aborts the download.
+   * @param ev The event.
+   */
+  onabort: ((this: GlobalEventHandlers, ev: UIEvent) => any) | null;
+  onanimationcancel: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null;
+  onanimationend: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null;
+  onanimationiteration: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null;
+  onanimationstart: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null;
+  onauxclick: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  /**
+   * Fires when the object loses the input focus.
+   * @param ev The focus event.
+   */
+  onblur: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null;
+  oncancel: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when playback is possible, but would require further buffering.
+   * @param ev The event.
+   */
+  oncanplay: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  oncanplaythrough: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Fires when the contents of the object or selection have changed.
+   * @param ev The event.
+   */
+  onchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Fires when the user clicks the left mouse button on the object
+   * @param ev The mouse event.
+   */
+  onclick: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  onclose: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Fires when the user clicks the right mouse button in the client area, opening the context menu.
+   * @param ev The mouse event.
+   */
+  oncontextmenu: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  oncuechange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Fires when the user double-clicks the object.
+   * @param ev The mouse event.
+   */
+  ondblclick: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  /**
+   * Fires on the source object continuously during a drag operation.
+   * @param ev The event.
+   */
+  ondrag: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
+  /**
+   * Fires on the source object when the user releases the mouse at the close of a drag operation.
+   * @param ev The event.
+   */
+  ondragend: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
+  /**
+   * Fires on the target element when the user drags the object to a valid drop target.
+   * @param ev The drag event.
+   */
+  ondragenter: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
+  ondragexit: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Fires on the target object when the user moves the mouse out of a valid drop target during a drag operation.
+   * @param ev The drag event.
+   */
+  ondragleave: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
+  /**
+   * Fires on the target element continuously while the user drags the object over a valid drop target.
+   * @param ev The event.
+   */
+  ondragover: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
+  /**
+   * Fires on the source object when the user starts to drag a text selection or selected object.
+   * @param ev The event.
+   */
+  ondragstart: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
+  ondrop: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null;
+  /**
+   * Occurs when the duration attribute is updated.
+   * @param ev The event.
+   */
+  ondurationchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when the media element is reset to its initial state.
+   * @param ev The event.
+   */
+  onemptied: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when the end of playback is reached.
+   * @param ev The event
+   */
+  onended: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Fires when an error occurs during object loading.
+   * @param ev The event.
+   */
+  onerror: OnErrorEventHandler;
+  /**
+   * Fires when the object receives focus.
+   * @param ev The event.
+   */
+  onfocus: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null;
+  ongotpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  oninput: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  oninvalid: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Fires when the user presses a key.
+   * @param ev The keyboard event
+   */
+  onkeydown: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any) | null;
+  /**
+   * Fires when the user presses an alphanumeric key.
+   * @param ev The event.
+   */
+  onkeypress: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any) | null;
+  /**
+   * Fires when the user releases a key.
+   * @param ev The keyboard event
+   */
+  onkeyup: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any) | null;
+  /**
+   * Fires immediately after the browser loads the object.
+   * @param ev The event.
+   */
+  onload: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when media data is loaded at the current playback position.
+   * @param ev The event.
+   */
+  onloadeddata: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when the duration and dimensions of the media have been determined.
+   * @param ev The event.
+   */
+  onloadedmetadata: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when Internet Explorer begins looking for media data.
+   * @param ev The event.
+   */
+  onloadstart: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  onlostpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  /**
+   * Fires when the user clicks the object with either mouse button.
+   * @param ev The mouse event.
+   */
+  onmousedown: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  onmouseenter: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  onmouseleave: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  /**
+   * Fires when the user moves the mouse over the object.
+   * @param ev The mouse event.
+   */
+  onmousemove: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  /**
+   * Fires when the user moves the mouse pointer outside the boundaries of the object.
+   * @param ev The mouse event.
+   */
+  onmouseout: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  /**
+   * Fires when the user moves the mouse pointer into the object.
+   * @param ev The mouse event.
+   */
+  onmouseover: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  /**
+   * Fires when the user releases a mouse button while the mouse is over the object.
+   * @param ev The mouse event.
+   */
+  onmouseup: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null;
+  /**
+   * Occurs when playback is paused.
+   * @param ev The event.
+   */
+  onpause: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when the play method is requested.
+   * @param ev The event.
+   */
+  onplay: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when the audio or video has started playing.
+   * @param ev The event.
+   */
+  onplaying: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  onpointercancel: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  onpointerdown: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  onpointerenter: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  onpointerleave: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  onpointermove: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  onpointerout: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  onpointerover: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  onpointerup: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null;
+  /**
+   * Occurs to indicate progress while downloading media data.
+   * @param ev The event.
+   */
+  onprogress: ((this: GlobalEventHandlers, ev: ProgressEvent<EventTarget>) => any) | null;
+  /**
+   * Occurs when the playback rate is increased or decreased.
+   * @param ev The event.
+   */
+  onratechange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Fires when the user resets a form.
+   * @param ev The event.
+   */
+  onreset: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  onresize: ((this: GlobalEventHandlers, ev: UIEvent) => any) | null;
+  /**
+   * Fires when the user repositions the scroll box in the scroll bar on the object.
+   * @param ev The event.
+   */
+  onscroll: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  onsecuritypolicyviolation: ((this: GlobalEventHandlers, ev: SecurityPolicyViolationEvent) => any) | null;
+  /**
+   * Occurs when the seek operation ends.
+   * @param ev The event.
+   */
+  onseeked: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when the current playback position is moved.
+   * @param ev The event.
+   */
+  onseeking: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Fires when the current selection changes.
+   * @param ev The event.
+   */
+  onselect: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  onselectionchange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  onselectstart: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when the download has stopped.
+   * @param ev The event.
+   */
+  onstalled: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  onsubmit: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs if the load operation has been intentionally halted.
+   * @param ev The event.
+   */
+  onsuspend: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs to indicate the current playback position.
+   * @param ev The event.
+   */
+  ontimeupdate: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  ontoggle: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  ontouchcancel?: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null;
+  ontouchend?: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null;
+  ontouchmove?: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null;
+  ontouchstart?: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null;
+  ontransitioncancel: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null;
+  ontransitionend: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null;
+  ontransitionrun: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null;
+  ontransitionstart: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null;
+  /**
+   * Occurs when the volume is changed, or playback is muted or unmuted.
+   * @param ev The event.
+   */
+  onvolumechange: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  /**
+   * Occurs when playback stops because the next frame of a video resource is not available.
+   * @param ev The event.
+   */
+  onwaiting: ((this: GlobalEventHandlers, ev: Event) => any) | null;
+  onwheel: ((this: GlobalEventHandlers, ev: WheelEvent) => any) | null;
+  addEventListener<K extends keyof GlobalEventHandlersEventMap>(type: K, listener: (this: GlobalEventHandlers, ev: GlobalEventHandlersEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof GlobalEventHandlersEventMap>(type: K, listener: (this: GlobalEventHandlers, ev: GlobalEventHandlersEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
 // interface HTMLAllCollection {
 //   /**
@@ -8001,14 +8001,14 @@ declare var GainNode: {
 //   new(): HTMLOptionsCollection;
 // };
 
-// interface HTMLOrSVGElement {
-//   autofocus: boolean;
-//   readonly dataset: DOMStringMap;
-//   nonce?: string;
-//   tabIndex: number;
-//   blur(): void;
-//   focus(options?: any): void;
-// }
+interface HTMLOrSVGElement {
+  autofocus: boolean;
+  readonly dataset: DOMStringMap;
+  nonce?: string;
+  tabIndex: number;
+  blur(): void;
+  focus(options?: any): void;
+}
 
 // /** Provides properties and methods (beyond those inherited from HTMLElement) for manipulating the layout and presentation of <output> elements. */
 // interface HTMLOutputElement extends HTMLElement {
@@ -9664,38 +9664,38 @@ interface InnerHTML {
 //   new(intersectionObserverEntryInit: IntersectionObserverEntryInit): IntersectionObserverEntry;
 // };
 
-// /** KeyboardEvent objects describe a user interaction with the keyboard; each event describes a single interaction between the user and a key (or combination of a key with modifier keys) on the keyboard. */
-// interface KeyboardEvent extends UIEvent {
-//   readonly altKey: boolean;
-//   /** @deprecated */
-//   char: string;
-//   /** @deprecated */
-//   readonly charCode: number;
-//   readonly code: string;
-//   readonly ctrlKey: boolean;
-//   readonly isComposing: boolean;
-//   readonly key: string;
-//   /** @deprecated */
-//   readonly keyCode: number;
-//   readonly location: number;
-//   readonly metaKey: boolean;
-//   readonly repeat: boolean;
-//   readonly shiftKey: boolean;
-//   getModifierState(keyArg: string): boolean;
-//   readonly DOM_KEY_LOCATION_LEFT: number;
-//   readonly DOM_KEY_LOCATION_NUMPAD: number;
-//   readonly DOM_KEY_LOCATION_RIGHT: number;
-//   readonly DOM_KEY_LOCATION_STANDARD: number;
-// }
+/** KeyboardEvent objects describe a user interaction with the keyboard; each event describes a single interaction between the user and a key (or combination of a key with modifier keys) on the keyboard. */
+interface KeyboardEvent extends UIEvent {
+  readonly altKey: boolean;
+  /** @deprecated */
+  char: string;
+  /** @deprecated */
+  readonly charCode: number;
+  readonly code: string;
+  readonly ctrlKey: boolean;
+  readonly isComposing: boolean;
+  readonly key: string;
+  /** @deprecated */
+  readonly keyCode: number;
+  readonly location: number;
+  readonly metaKey: boolean;
+  readonly repeat: boolean;
+  readonly shiftKey: boolean;
+  getModifierState(keyArg: string): boolean;
+  readonly DOM_KEY_LOCATION_LEFT: number;
+  readonly DOM_KEY_LOCATION_NUMPAD: number;
+  readonly DOM_KEY_LOCATION_RIGHT: number;
+  readonly DOM_KEY_LOCATION_STANDARD: number;
+}
 
-// declare var KeyboardEvent: {
-//   prototype: KeyboardEvent;
-//   new(type: string, eventInitDict?: KeyboardEventInit): KeyboardEvent;
-//   readonly DOM_KEY_LOCATION_LEFT: number;
-//   readonly DOM_KEY_LOCATION_NUMPAD: number;
-//   readonly DOM_KEY_LOCATION_RIGHT: number;
-//   readonly DOM_KEY_LOCATION_STANDARD: number;
-// };
+declare var KeyboardEvent: {
+  prototype: KeyboardEvent;
+  new(type: string, eventInitDict?: KeyboardEventInit): KeyboardEvent;
+  readonly DOM_KEY_LOCATION_LEFT: number;
+  readonly DOM_KEY_LOCATION_NUMPAD: number;
+  readonly DOM_KEY_LOCATION_RIGHT: number;
+  readonly DOM_KEY_LOCATION_STANDARD: number;
+};
 
 // interface KeyframeEffect extends AnimationEffect {
 //   composite: CompositeOperation;
@@ -10543,35 +10543,36 @@ interface InnerHTML {
 //   new(): MimeTypeArray;
 // };
 
-// /** Events that occur due to the user interacting with a pointing device (such as a mouse). Common events using this interface include click, dblclick, mouseup, mousedown. */
-// interface MouseEvent extends UIEvent {
-//   readonly altKey: boolean;
-//   readonly button: number;
-//   readonly buttons: number;
-//   readonly clientX: number;
-//   readonly clientY: number;
-//   readonly ctrlKey: boolean;
-//   readonly metaKey: boolean;
-//   readonly movementX: number;
-//   readonly movementY: number;
-//   readonly offsetX: number;
-//   readonly offsetY: number;
-//   readonly pageX: number;
-//   readonly pageY: number;
-//   readonly relatedTarget: EventTarget | null;
-//   readonly screenX: number;
-//   readonly screenY: number;
-//   readonly shiftKey: boolean;
-//   readonly x: number;
-//   readonly y: number;
-//   getModifierState(keyArg: string): boolean;
-//   initMouseEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean, buttonArg: number, relatedTargetArg: EventTarget | null): void;
-// }
+/** Events that occur due to the user interacting with a pointing device (such as a mouse). Common events using this interface include click, dblclick, mouseup, mousedown. */
+interface MouseEvent extends UIEvent {
+  readonly altKey: boolean;
+  readonly button: number;
+  readonly buttons: number;
+  readonly clientX: number;
+  readonly clientY: number;
+  readonly ctrlKey: boolean;
+  readonly metaKey: boolean;
+  readonly movementX: number;
+  readonly movementY: number;
+  readonly offsetX: number;
+  readonly offsetY: number;
+  readonly pageX: number;
+  readonly pageY: number;
+  readonly relatedTarget: EventTarget | null;
+  readonly screenX: number;
+  readonly screenY: number;
+  readonly shiftKey: boolean;
+  readonly x: number;
+  readonly y: number;
+  getModifierState(keyArg: string): boolean;
+  initMouseEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Placeholder, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean, buttonArg: number, relatedTargetArg: EventTarget | null): void;
+  //initMouseEvent(typeArg: string, canBubbleArg: boolean, cancelableArg: boolean, viewArg: Window, detailArg: number, screenXArg: number, screenYArg: number, clientXArg: number, clientYArg: number, ctrlKeyArg: boolean, altKeyArg: boolean, shiftKeyArg: boolean, metaKeyArg: boolean, buttonArg: number, relatedTargetArg: EventTarget | null): void;
+}
 
-// declare var MouseEvent: {
-//   prototype: MouseEvent;
-//   new(type: string, eventInitDict?: MouseEventInit): MouseEvent;
-// };
+declare var MouseEvent: {
+  prototype: MouseEvent;
+  new(type: string, eventInitDict?: MouseEventInit): MouseEvent;
+};
 
 // /** Provides event properties that are specific to modifications to the Document Object Model (DOM) hierarchy and nodes. */
 // interface MutationEvent extends Event {
@@ -11781,24 +11782,24 @@ declare var PeriodicWave: {
 //   new(): PluginArray;
 // };
 
-// /** The state of a DOM event produced by a pointer such as the geometry of the contact point, the device type that generated the event, the amount of pressure that was applied on the contact surface, etc. */
-// interface PointerEvent extends MouseEvent {
-//   readonly height: number;
-//   readonly isPrimary: boolean;
-//   readonly pointerId: number;
-//   readonly pointerType: string;
-//   readonly pressure: number;
-//   readonly tangentialPressure: number;
-//   readonly tiltX: number;
-//   readonly tiltY: number;
-//   readonly twist: number;
-//   readonly width: number;
-// }
+/** The state of a DOM event produced by a pointer such as the geometry of the contact point, the device type that generated the event, the amount of pressure that was applied on the contact surface, etc. */
+interface PointerEvent extends MouseEvent {
+  readonly height: number;
+  readonly isPrimary: boolean;
+  readonly pointerId: number;
+  readonly pointerType: string;
+  readonly pressure: number;
+  readonly tangentialPressure: number;
+  readonly tiltX: number;
+  readonly tiltY: number;
+  readonly twist: number;
+  readonly width: number;
+}
 
-// declare var PointerEvent: {
-//   prototype: PointerEvent;
-//   new(type: string, eventInitDict?: PointerEventInit): PointerEvent;
-// };
+declare var PointerEvent: {
+  prototype: PointerEvent;
+  new(type: string, eventInitDict?: PointerEventInit): PointerEvent;
+};
 
 // /** PopStateEvent is an event handler for the popstate event on the window. */
 // interface PopStateEvent extends Event {
@@ -11839,18 +11840,18 @@ declare var PeriodicWave: {
 //   new(): ProcessingInstruction;
 // };
 
-// /** Events measuring progress of an underlying process, like an HTTP request (for an XMLHttpRequest, or the loading of the underlying resource of an <img>, <audio>, <video>, <style> or <link>). */
-// interface ProgressEvent<T extends EventTarget = EventTarget> extends Event {
-//   readonly lengthComputable: boolean;
-//   readonly loaded: number;
-//   readonly target: T | null;
-//   readonly total: number;
-// }
+/** Events measuring progress of an underlying process, like an HTTP request (for an XMLHttpRequest, or the loading of the underlying resource of an <img>, <audio>, <video>, <style> or <link>). */
+interface ProgressEvent<T extends EventTarget = EventTarget> extends Event {
+  readonly lengthComputable: boolean;
+  readonly loaded: number;
+  readonly target: T | null;
+  readonly total: number;
+}
 
-// declare var ProgressEvent: {
-//   prototype: ProgressEvent;
-//   new(type: string, eventInitDict?: ProgressEventInit): ProgressEvent;
-// };
+declare var ProgressEvent: {
+  prototype: ProgressEvent<EventTarget>;
+  new(type: string, eventInitDict?: ProgressEventInit): ProgressEvent<EventTarget>;
+};
 
 // interface PromiseRejectionEvent extends Event {
 //   readonly promise: Promise<any>;
@@ -14839,24 +14840,24 @@ declare var ScriptProcessorNode: {
   new(): ScriptProcessorNode;
 };
 
-// /** Inherits from Event, and represents the event object of an event sent on a document or worker when its content security policy is violated. */
-// interface SecurityPolicyViolationEvent extends Event {
-//   readonly blockedURI: string;
-//   readonly columnNumber: number;
-//   readonly documentURI: string;
-//   readonly effectiveDirective: string;
-//   readonly lineNumber: number;
-//   readonly originalPolicy: string;
-//   readonly referrer: string;
-//   readonly sourceFile: string;
-//   readonly statusCode: number;
-//   readonly violatedDirective: string;
-// }
+/** Inherits from Event, and represents the event object of an event sent on a document or worker when its content security policy is violated. */
+interface SecurityPolicyViolationEvent extends Event {
+  readonly blockedURI: string;
+  readonly columnNumber: number;
+  readonly documentURI: string;
+  readonly effectiveDirective: string;
+  readonly lineNumber: number;
+  readonly originalPolicy: string;
+  readonly referrer: string;
+  readonly sourceFile: string;
+  readonly statusCode: number;
+  readonly violatedDirective: string;
+}
 
-// declare var SecurityPolicyViolationEvent: {
-//   prototype: SecurityPolicyViolationEvent;
-//   new(type: string, eventInitDict?: SecurityPolicyViolationEventInit): SecurityPolicyViolationEvent;
-// };
+declare var SecurityPolicyViolationEvent: {
+  prototype: SecurityPolicyViolationEvent;
+  new(type: string, eventInitDict?: SecurityPolicyViolationEventInit): SecurityPolicyViolationEvent;
+};
 
 // /** A Selection object represents the range of text selected by the user or the current position of the caret. To obtain a Selection object for examination or modification, call Window.getSelection(). */
 // interface Selection {
@@ -15828,57 +15829,57 @@ declare var StereoPannerNode: {
 //   new(): TimeRanges;
 // };
 
-// /** A single contact point on a touch-sensitive device. The contact point is commonly a finger or stylus and the device may be a touchscreen or trackpad. */
-// interface Touch {
-//   readonly altitudeAngle: number;
-//   readonly azimuthAngle: number;
-//   readonly clientX: number;
-//   readonly clientY: number;
-//   readonly force: number;
-//   readonly identifier: number;
-//   readonly pageX: number;
-//   readonly pageY: number;
-//   readonly radiusX: number;
-//   readonly radiusY: number;
-//   readonly rotationAngle: number;
-//   readonly screenX: number;
-//   readonly screenY: number;
-//   readonly target: EventTarget;
-//   readonly touchType: TouchType;
-// }
+/** A single contact point on a touch-sensitive device. The contact point is commonly a finger or stylus and the device may be a touchscreen or trackpad. */
+interface Touch {
+  readonly altitudeAngle: number;
+  readonly azimuthAngle: number;
+  readonly clientX: number;
+  readonly clientY: number;
+  readonly force: number;
+  readonly identifier: number;
+  readonly pageX: number;
+  readonly pageY: number;
+  readonly radiusX: number;
+  readonly radiusY: number;
+  readonly rotationAngle: number;
+  readonly screenX: number;
+  readonly screenY: number;
+  readonly target: EventTarget;
+  readonly touchType: TouchType;
+}
 
-// declare var Touch: {
-//   prototype: Touch;
-//   new(touchInitDict: TouchInit): Touch;
-// };
+declare var Touch: {
+  prototype: Touch;
+  new(touchInitDict: TouchInit): Touch;
+};
 
-// /** An event sent when the state of contacts with a touch-sensitive surface changes. This surface can be a touch screen or trackpad, for example. The event can describe one or more points of contact with the screen and includes support for detecting movement, addition and removal of contact points, and so forth. */
-// interface TouchEvent extends UIEvent {
-//   readonly altKey: boolean;
-//   readonly changedTouches: TouchList;
-//   readonly ctrlKey: boolean;
-//   readonly metaKey: boolean;
-//   readonly shiftKey: boolean;
-//   readonly targetTouches: TouchList;
-//   readonly touches: TouchList;
-// }
+/** An event sent when the state of contacts with a touch-sensitive surface changes. This surface can be a touch screen or trackpad, for example. The event can describe one or more points of contact with the screen and includes support for detecting movement, addition and removal of contact points, and so forth. */
+interface TouchEvent extends UIEvent {
+  readonly altKey: boolean;
+  readonly changedTouches: TouchList;
+  readonly ctrlKey: boolean;
+  readonly metaKey: boolean;
+  readonly shiftKey: boolean;
+  readonly targetTouches: TouchList;
+  readonly touches: TouchList;
+}
 
-// declare var TouchEvent: {
-//   prototype: TouchEvent;
-//   new(type: string, eventInitDict?: TouchEventInit): TouchEvent;
-// };
+declare var TouchEvent: {
+  prototype: TouchEvent;
+  new(type: string, eventInitDict?: TouchEventInit): TouchEvent;
+};
 
-// /** A list of contact points on a touch surface. For example, if the user has three fingers on the touch surface (such as a screen or trackpad), the corresponding TouchList object would have one Touch object for each finger, for a total of three entries. */
-// interface TouchList {
-//   readonly length: number;
-//   item(index: number): Touch | null;
-//   [index: number]: Touch;
-// }
+/** A list of contact points on a touch surface. For example, if the user has three fingers on the touch surface (such as a screen or trackpad), the corresponding TouchList object would have one Touch object for each finger, for a total of three entries. */
+interface TouchList {
+  readonly length: number;
+  item(index: number): Touch | null;
+  [index: number]: Touch;
+}
 
-// declare var TouchList: {
-//   prototype: TouchList;
-//   new(): TouchList;
-// };
+declare var TouchList: {
+  prototype: TouchList;
+  new(): TouchList;
+};
 
 // /** The TrackEvent interface, part of the HTML DOM specification, is used for events which represent changes to the set of available tracks on an HTML media element; these events are addtrack and removetrack. */
 // interface TrackEvent extends Event {
@@ -15910,17 +15911,17 @@ declare var StereoPannerNode: {
 //   terminate(): void;
 // }
 
-// /** Events providing information related to transitions. */
-// interface TransitionEvent extends Event {
-//   readonly elapsedTime: number;
-//   readonly propertyName: string;
-//   readonly pseudoElement: string;
-// }
+/** Events providing information related to transitions. */
+interface TransitionEvent extends Event {
+  readonly elapsedTime: number;
+  readonly propertyName: string;
+  readonly pseudoElement: string;
+}
 
-// declare var TransitionEvent: {
-//   prototype: TransitionEvent;
-//   new(type: string, transitionEventInitDict?: TransitionEventInit): TransitionEvent;
-// };
+declare var TransitionEvent: {
+  prototype: TransitionEvent;
+  new(type: string, transitionEventInitDict?: TransitionEventInit): TransitionEvent;
+};
 
 // /** The nodes of a document subtree and a position within them. */
 // interface TreeWalker {
@@ -15942,18 +15943,18 @@ declare var StereoPannerNode: {
 //   new(): TreeWalker;
 // };
 
-// /** Simple user interface events. */
-// interface UIEvent extends Event {
-//   readonly detail: number;
-//   readonly view: Window | null;
-//   /** @deprecated */
-//   readonly which: number;
-// }
+/** Simple user interface events. */
+interface UIEvent extends Event {
+  readonly detail: number;
+  readonly view: any | null;
+  /** @deprecated */
+  readonly which: number;
+}
 
-// declare var UIEvent: {
-//   prototype: UIEvent;
-//   new(type: string, eventInitDict?: UIEventInit): UIEvent;
-// };
+declare var UIEvent: {
+  prototype: UIEvent;
+  new(type: string, eventInitDict?: UIEventInit): UIEvent;
+};
 
 // /** The URL interface represents an object providing static methods used for creating object URLs. */
 // interface URL {
@@ -18335,24 +18336,24 @@ declare var WaveShaperNode: {
 //   readonly OPEN: number;
 // };
 
-// /** Events that occur due to the user moving a mouse wheel or similar input device. */
-// interface WheelEvent extends MouseEvent {
-//   readonly deltaMode: number;
-//   readonly deltaX: number;
-//   readonly deltaY: number;
-//   readonly deltaZ: number;
-//   readonly DOM_DELTA_LINE: number;
-//   readonly DOM_DELTA_PAGE: number;
-//   readonly DOM_DELTA_PIXEL: number;
-// }
+/** Events that occur due to the user moving a mouse wheel or similar input device. */
+interface WheelEvent extends MouseEvent {
+  readonly deltaMode: number;
+  readonly deltaX: number;
+  readonly deltaY: number;
+  readonly deltaZ: number;
+  readonly DOM_DELTA_LINE: number;
+  readonly DOM_DELTA_PAGE: number;
+  readonly DOM_DELTA_PIXEL: number;
+}
 
-// declare var WheelEvent: {
-//   prototype: WheelEvent;
-//   new(type: string, eventInitDict?: WheelEventInit): WheelEvent;
-//   readonly DOM_DELTA_LINE: number;
-//   readonly DOM_DELTA_PAGE: number;
-//   readonly DOM_DELTA_PIXEL: number;
-// };
+declare var WheelEvent: {
+  prototype: WheelEvent;
+  new(type: string, eventInitDict?: WheelEventInit): WheelEvent;
+  readonly DOM_DELTA_LINE: number;
+  readonly DOM_DELTA_PAGE: number;
+  readonly DOM_DELTA_PIXEL: number;
+};
 
 // interface WindowEventMap extends GlobalEventHandlersEventMap, WindowEventHandlersEventMap {
 //   "abort": UIEvent;
@@ -19214,9 +19215,9 @@ interface FunctionStringCallback {
 //   (event: Event): string | null;
 // }
 
-// interface OnErrorEventHandlerNonNull {
-//   (event: Event | string, source?: string, lineno?: number, colno?: number, error?: Error): any;
-// }
+interface OnErrorEventHandlerNonNull {
+  (event: Event | string, source?: string, lineno?: number, colno?: number, error?: Error): any;
+}
 
 // interface PerformanceObserverCallback {
 //   (entries: PerformanceObserverEntryList, observer: PerformanceObserver): void;
@@ -19926,7 +19927,7 @@ type BlobPart = BufferSource | Blob | string;
 // type HTMLOrSVGScriptElement = HTMLScriptElement | SVGScriptElement;
 // type ImageBitmapSource = CanvasImageSource | Blob | ImageData;
 // type MediaProvider = MediaStream | MediaSource | Blob;
-// type OnErrorEventHandler = OnErrorEventHandlerNonNull | null;
+type OnErrorEventHandler = OnErrorEventHandlerNonNull | null;
 // type OnBeforeUnloadEventHandler = OnBeforeUnloadEventHandlerNonNull | null;
 // type TimerHandler = string | Function;
 // type ConstrainULong = number | ConstrainULongRange;
