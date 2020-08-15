@@ -17,6 +17,7 @@ and limitations under the License.
 
 /// <reference no-default-lib="true"/>
 
+type Placeholder = any;
 
 /////////////////////////////
 /// DOM APIs
@@ -79,10 +80,10 @@ interface AddEventListenerOptions extends EventListenerOptions {
 //   pseudoElement?: string;
 // }
 
-// interface AnimationPlaybackEventInit extends EventInit {
-//   currentTime?: number | null;
-//   timelineTime?: number | null;
-// }
+interface AnimationPlaybackEventInit extends EventInit {
+  currentTime?: number | null;
+  timelineTime?: number | null;
+}
 
 // interface AssertionOptions {
 //   allowList?: ScopedCredentialDescriptor[];
@@ -189,10 +190,10 @@ interface AddEventListenerOptions extends EventListenerOptions {
 //   type?: BiquadFilterType;
 // }
 
-// interface BlobPropertyBag {
-//   endings?: EndingType;
-//   type?: string;
-// }
+interface BlobPropertyBag {
+  endings?: EndingType;
+  type?: string;
+}
 
 // interface ByteLengthChunk {
 //   byteLength?: number;
@@ -231,63 +232,63 @@ interface AddEventListenerOptions extends EventListenerOptions {
 //   type?: ClientTypes;
 // }
 
-// interface ClipboardEventInit extends EventInit {
-//   clipboardData?: DataTransfer | null;
-// }
+interface ClipboardEventInit extends EventInit {
+  clipboardData?: DataTransfer | null;
+}
 
-// interface CloseEventInit extends EventInit {
-//   code?: number;
-//   reason?: string;
-//   wasClean?: boolean;
-// }
+interface CloseEventInit extends EventInit {
+  code?: number;
+  reason?: string;
+  wasClean?: boolean;
+}
 
-// interface CompositionEventInit extends UIEventInit {
-//   data?: string;
-// }
+interface CompositionEventInit extends UIEventInit {
+  data?: string;
+}
 
-// interface ComputedEffectTiming extends EffectTiming {
-//   activeDuration?: number;
-//   currentIteration?: number | null;
-//   endTime?: number;
-//   localTime?: number | null;
-//   progress?: number | null;
-// }
+interface ComputedEffectTiming extends EffectTiming {
+  activeDuration?: number;
+  currentIteration?: number | null;
+  endTime?: number;
+  localTime?: number | null;
+  progress?: number | null;
+}
 
-// interface ComputedKeyframe {
-//   composite: CompositeOperationOrAuto;
-//   computedOffset: number;
-//   easing: string;
-//   offset: number | null;
-//   [property: string]: string | number | null | undefined;
-// }
+interface ComputedKeyframe {
+  composite: CompositeOperationOrAuto;
+  computedOffset: number;
+  easing: string;
+  offset: number | null;
+  [property: string]: string | number | null | undefined;
+}
 
-// interface ConfirmSiteSpecificExceptionsInformation extends ExceptionInformation {
-//   arrayOfDomainStrings?: string[];
-// }
+interface ConfirmSiteSpecificExceptionsInformation extends ExceptionInformation {
+  arrayOfDomainStrings?: string[];
+}
 
-// interface ConstantSourceOptions {
-//   offset?: number;
-// }
+interface ConstantSourceOptions {
+  offset?: number;
+}
 
-// interface ConstrainBooleanParameters {
-//   exact?: boolean;
-//   ideal?: boolean;
-// }
+interface ConstrainBooleanParameters {
+  exact?: boolean;
+  ideal?: boolean;
+}
 
-// interface ConstrainDOMStringParameters {
-//   exact?: string | string[];
-//   ideal?: string | string[];
-// }
+interface ConstrainDOMStringParameters {
+  exact?: string | string[];
+  ideal?: string | string[];
+}
 
-// interface ConstrainDoubleRange extends DoubleRange {
-//   exact?: number;
-//   ideal?: number;
-// }
+interface ConstrainDoubleRange extends DoubleRange {
+  exact?: number;
+  ideal?: number;
+}
 
-// interface ConstrainULongRange extends ULongRange {
-//   exact?: number;
-//   ideal?: number;
-// }
+interface ConstrainULongRange extends ULongRange {
+  exact?: number;
+  ideal?: number;
+}
 
 // interface ConstrainVideoFacingModeParameters {
 //   exact?: VideoFacingModeEnum | VideoFacingModeEnum[];
@@ -408,10 +409,10 @@ interface AddEventListenerOptions extends EventListenerOptions {
 //   originTime?: number;
 // }
 
-// interface DoubleRange {
-//   max?: number;
-//   min?: number;
-// }
+interface DoubleRange {
+  max?: number;
+  min?: number;
+}
 
 // interface DragEventInit extends MouseEventInit {
 //   dataTransfer?: DataTransfer | null;
@@ -445,16 +446,16 @@ interface AddEventListenerOptions extends EventListenerOptions {
 //   hash: HashAlgorithmIdentifier;
 // }
 
-// interface EffectTiming {
-//   delay?: number;
-//   direction?: PlaybackDirection;
-//   duration?: number | string;
-//   easing?: string;
-//   endDelay?: number;
-//   fill?: FillMode;
-//   iterationStart?: number;
-//   iterations?: number;
-// }
+interface EffectTiming {
+  delay?: number;
+  direction?: PlaybackDirection;
+  duration?: number | string;
+  easing?: string;
+  endDelay?: number;
+  fill?: FillMode;
+  iterationStart?: number;
+  iterations?: number;
+}
 
 // interface ElementCreationOptions {
 //   is?: string;
@@ -482,57 +483,57 @@ interface EventListenerOptions {
   capture?: boolean;
 }
 
-// interface EventModifierInit extends UIEventInit {
-//   altKey?: boolean;
-//   ctrlKey?: boolean;
-//   metaKey?: boolean;
-//   modifierAltGraph?: boolean;
-//   modifierCapsLock?: boolean;
-//   modifierFn?: boolean;
-//   modifierFnLock?: boolean;
-//   modifierHyper?: boolean;
-//   modifierNumLock?: boolean;
-//   modifierScrollLock?: boolean;
-//   modifierSuper?: boolean;
-//   modifierSymbol?: boolean;
-//   modifierSymbolLock?: boolean;
-//   shiftKey?: boolean;
-// }
+interface EventModifierInit extends UIEventInit {
+  altKey?: boolean;
+  ctrlKey?: boolean;
+  metaKey?: boolean;
+  modifierAltGraph?: boolean;
+  modifierCapsLock?: boolean;
+  modifierFn?: boolean;
+  modifierFnLock?: boolean;
+  modifierHyper?: boolean;
+  modifierNumLock?: boolean;
+  modifierScrollLock?: boolean;
+  modifierSuper?: boolean;
+  modifierSymbol?: boolean;
+  modifierSymbolLock?: boolean;
+  shiftKey?: boolean;
+}
 
-// interface EventSourceInit {
-//   withCredentials?: boolean;
-// }
+interface EventSourceInit {
+  withCredentials?: boolean;
+}
 
-// interface ExceptionInformation {
-//   domain?: string | null;
-// }
+interface ExceptionInformation {
+  domain?: string | null;
+}
 
-// interface FilePropertyBag extends BlobPropertyBag {
-//   lastModified?: number;
-// }
+interface FilePropertyBag extends BlobPropertyBag {
+  lastModified?: number;
+}
 
-// interface FocusEventInit extends UIEventInit {
-//   relatedTarget?: EventTarget | null;
-// }
+interface FocusEventInit extends UIEventInit {
+  relatedTarget?: EventTarget | null;
+}
 
-// interface FocusNavigationEventInit extends EventInit {
-//   navigationReason?: string | null;
-//   originHeight?: number;
-//   originLeft?: number;
-//   originTop?: number;
-//   originWidth?: number;
-// }
+interface FocusNavigationEventInit extends EventInit {
+  navigationReason?: string | null;
+  originHeight?: number;
+  originLeft?: number;
+  originTop?: number;
+  originWidth?: number;
+}
 
-// interface FocusNavigationOrigin {
-//   originHeight?: number;
-//   originLeft?: number;
-//   originTop?: number;
-//   originWidth?: number;
-// }
+interface FocusNavigationOrigin {
+  originHeight?: number;
+  originLeft?: number;
+  originTop?: number;
+  originWidth?: number;
+}
 
-// interface FocusOptions {
-//   preventScroll?: boolean;
-// }
+interface FocusOptions {
+  preventScroll?: boolean;
+}
 
 // interface FullscreenOptions {
 //   navigationUI?: FullscreenNavigationUI;
@@ -673,21 +674,21 @@ interface EventListenerOptions {
 //   repeat?: boolean;
 // }
 
-// interface Keyframe {
-//   composite?: CompositeOperationOrAuto;
-//   easing?: string;
-//   offset?: number | null;
-//   [property: string]: string | number | null | undefined;
-// }
+interface Keyframe {
+  composite?: CompositeOperationOrAuto;
+  easing?: string;
+  offset?: number | null;
+  [property: string]: string | number | null | undefined;
+}
 
-// interface KeyframeAnimationOptions extends KeyframeEffectOptions {
-//   id?: string;
-// }
+interface KeyframeAnimationOptions extends KeyframeEffectOptions {
+  id?: string;
+}
 
-// interface KeyframeEffectOptions extends EffectTiming {
-//   composite?: CompositeOperation;
-//   iterationComposite?: IterationCompositeOperation;
-// }
+interface KeyframeEffectOptions extends EffectTiming {
+  composite?: CompositeOperation;
+  iterationComposite?: IterationCompositeOperation;
+}
 
 // interface MediaElementAudioSourceOptions {
 //   mediaElement: HTMLMediaElement;
@@ -923,16 +924,16 @@ interface EventListenerOptions {
 //   sampleRate: number;
 // }
 
-// interface OptionalEffectTiming {
-//   delay?: number;
-//   direction?: PlaybackDirection;
-//   duration?: number | string;
-//   easing?: string;
-//   endDelay?: number;
-//   fill?: FillMode;
-//   iterationStart?: number;
-//   iterations?: number;
-// }
+interface OptionalEffectTiming {
+  delay?: number;
+  direction?: PlaybackDirection;
+  duration?: number | string;
+  easing?: string;
+  endDelay?: number;
+  fill?: FillMode;
+  iterationStart?: number;
+  iterations?: number;
+}
 
 // interface OscillatorOptions extends AudioNodeOptions {
 //   detune?: number;
@@ -1045,12 +1046,12 @@ interface EventListenerOptions {
 //   name: PermissionName;
 // }
 
-// interface PipeOptions {
-//   preventAbort?: boolean;
-//   preventCancel?: boolean;
-//   preventClose?: boolean;
-//   signal?: AbortSignal;
-// }
+interface PipeOptions {
+  preventAbort?: boolean;
+  preventCancel?: boolean;
+  preventClose?: boolean;
+  signal?: AbortSignal;
+}
 
 // interface PointerEventInit extends MouseEventInit {
 //   height?: number;
@@ -1090,12 +1091,12 @@ interface EventListenerOptions {
 //   reason?: any;
 // }
 
-// interface PropertyIndexedKeyframes {
-//   composite?: CompositeOperationOrAuto | CompositeOperationOrAuto[];
-//   easing?: string | string[];
-//   offset?: number | (number | null)[];
-//   [property: string]: string | string[] | number | null | (number | null)[] | undefined;
-// }
+interface PropertyIndexedKeyframes {
+  composite?: CompositeOperationOrAuto | CompositeOperationOrAuto[];
+  easing?: string | string[];
+  offset?: number | (number | null)[];
+  [property: string]: string | string[] | number | null | (number | null)[] | undefined;
+}
 
 // interface PublicKeyCredentialCreationOptions {
 //   attestation?: AttestationConveyancePreference;
@@ -1159,10 +1160,10 @@ interface EventListenerOptions {
 //   userVisibleOnly?: boolean;
 // }
 
-// interface QueuingStrategy<T = any> {
-//   highWaterMark?: number;
-//   size?: QueuingStrategySizeCallback<T>;
-// }
+interface QueuingStrategy<T = any> {
+  highWaterMark?: number;
+  size?: QueuingStrategySizeCallback<T>;
+}
 
 // interface RTCAnswerOptions extends RTCOfferAnswerOptions {
 // }
@@ -1539,15 +1540,15 @@ interface EventListenerOptions {
 //   selectedCandidatePairId?: string;
 // }
 
-// interface ReadableStreamReadDoneResult<T> {
-//   done: true;
-//   value?: T;
-// }
+interface ReadableStreamReadDoneResult<T> {
+  done: true;
+  value?: T;
+}
 
-// interface ReadableStreamReadValueResult<T> {
-//   done: false;
-//   value: T;
-// }
+interface ReadableStreamReadValueResult<T> {
+  done: false;
+  value: T;
+}
 
 // interface RegistrationOptions {
 //   scope?: string;
@@ -1825,38 +1826,38 @@ interface EventListenerOptions {
 //   pseudoElement?: string;
 // }
 
-// interface UIEventInit extends EventInit {
-//   detail?: number;
-//   view?: Window | null;
-// }
+interface UIEventInit extends EventInit {
+  detail?: number;
+  view?: Placeholder | null;
+}
 
-// interface ULongRange {
-//   max?: number;
-//   min?: number;
-// }
+interface ULongRange {
+  max?: number;
+  min?: number;
+}
 
-// interface UnderlyingByteSource {
-//   autoAllocateChunkSize?: number;
-//   cancel?: ReadableStreamErrorCallback;
-//   pull?: ReadableByteStreamControllerCallback;
-//   start?: ReadableByteStreamControllerCallback;
-//   type: "bytes";
-// }
+interface UnderlyingByteSource {
+  autoAllocateChunkSize?: number;
+  cancel?: ReadableStreamErrorCallback;
+  pull?: ReadableByteStreamControllerCallback;
+  start?: ReadableByteStreamControllerCallback;
+  type: "bytes";
+}
 
-// interface UnderlyingSink<W = any> {
-//   abort?: WritableStreamErrorCallback;
-//   close?: WritableStreamDefaultControllerCloseCallback;
-//   start?: WritableStreamDefaultControllerStartCallback;
-//   type?: undefined;
-//   write?: WritableStreamDefaultControllerWriteCallback<W>;
-// }
+interface UnderlyingSink<W = any> {
+  abort?: WritableStreamErrorCallback;
+  close?: WritableStreamDefaultControllerCloseCallback;
+  start?: WritableStreamDefaultControllerStartCallback;
+  type?: undefined;
+  write?: WritableStreamDefaultControllerWriteCallback<W>;
+}
 
-// interface UnderlyingSource<R = any> {
-//   cancel?: ReadableStreamErrorCallback;
-//   pull?: ReadableStreamDefaultControllerCallback<R>;
-//   start?: ReadableStreamDefaultControllerCallback<R>;
-//   type?: undefined;
-// }
+interface UnderlyingSource<R = any> {
+  cancel?: ReadableStreamErrorCallback;
+  pull?: ReadableStreamDefaultControllerCallback<R>;
+  start?: ReadableStreamDefaultControllerCallback<R>;
+  type?: undefined;
+}
 
 // interface VRDisplayEventInit extends EventInit {
 //   display: VRDisplay;
@@ -1940,7 +1941,7 @@ interface AbortController {
   /**
    * Returns the AbortSignal object associated with this object.
    */
-  readonly signal: any;
+  readonly signal: AbortSignal;
   // readonly signal: AbortSignal;
   /**
    * Invoking this method will set this object's AbortSignal's aborted flag and signal to any observers that the associated activity is to be aborted.
@@ -1957,23 +1958,23 @@ interface AbortSignalEventMap {
   "abort": Event;
 }
 
-// /** A signal object that allows you to communicate with a DOM request (such as a Fetch) and abort it if required via an AbortController object. */
-// interface AbortSignal extends EventTarget {
-//   /**
-//    * Returns true if this AbortSignal's AbortController has signaled to abort, and false otherwise.
-//    */
-//   readonly aborted: boolean;
-//   onabort: ((this: AbortSignal, ev: Event) => any) | null;
-//   addEventListener<K extends keyof AbortSignalEventMap>(type: K, listener: (this: AbortSignal, ev: AbortSignalEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof AbortSignalEventMap>(type: K, listener: (this: AbortSignal, ev: AbortSignalEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+/** A signal object that allows you to communicate with a DOM request (such as a Fetch) and abort it if required via an AbortController object. */
+interface AbortSignal extends EventTarget {
+  /**
+   * Returns true if this AbortSignal's AbortController has signaled to abort, and false otherwise.
+   */
+  readonly aborted: boolean;
+  onabort: ((this: AbortSignal, ev: Event) => any) | null;
+  addEventListener<K extends keyof AbortSignalEventMap>(type: K, listener: (this: AbortSignal, ev: AbortSignalEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof AbortSignalEventMap>(type: K, listener: (this: AbortSignal, ev: AbortSignalEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
-// declare var AbortSignal: {
-//   prototype: AbortSignal;
-//   new(): AbortSignal;
-// };
+declare var AbortSignal: {
+  prototype: AbortSignal;
+  new(): AbortSignal;
+};
 
 // interface AbstractRange {
 //   /**
@@ -2041,56 +2042,56 @@ interface AbortSignalEventMap {
 //   new(context: BaseAudioContext, options?: AnalyserOptions): AnalyserNode;
 // };
 
-// interface Animatable {
-//   animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions): Animation;
-//   getAnimations(): Animation[];
-// }
+interface Animatable {
+  animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions): Animation;
+  getAnimations(): Animation[];
+}
 
-// interface AnimationEventMap {
-//   "cancel": AnimationPlaybackEvent;
-//   "finish": AnimationPlaybackEvent;
-// }
+interface AnimationEventMap {
+  "cancel": AnimationPlaybackEvent;
+  "finish": AnimationPlaybackEvent;
+}
 
-// interface Animation extends EventTarget {
-//   currentTime: number | null;
-//   effect: AnimationEffect | null;
-//   readonly finished: Promise<Animation>;
-//   id: string;
-//   oncancel: ((this: Animation, ev: AnimationPlaybackEvent) => any) | null;
-//   onfinish: ((this: Animation, ev: AnimationPlaybackEvent) => any) | null;
-//   readonly pending: boolean;
-//   readonly playState: AnimationPlayState;
-//   playbackRate: number;
-//   readonly ready: Promise<Animation>;
-//   startTime: number | null;
-//   timeline: AnimationTimeline | null;
-//   cancel(): void;
-//   finish(): void;
-//   pause(): void;
-//   play(): void;
-//   reverse(): void;
-//   updatePlaybackRate(playbackRate: number): void;
-//   addEventListener<K extends keyof AnimationEventMap>(type: K, listener: (this: Animation, ev: AnimationEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof AnimationEventMap>(type: K, listener: (this: Animation, ev: AnimationEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+interface Animation extends EventTarget {
+  currentTime: number | null;
+  effect: AnimationEffect | null;
+  readonly finished: Promise<Animation>;
+  id: string;
+  oncancel: ((this: Animation, ev: AnimationPlaybackEvent) => any) | null;
+  onfinish: ((this: Animation, ev: AnimationPlaybackEvent) => any) | null;
+  readonly pending: boolean;
+  readonly playState: AnimationPlayState;
+  playbackRate: number;
+  readonly ready: Promise<Animation>;
+  startTime: number | null;
+  timeline: AnimationTimeline | null;
+  cancel(): void;
+  finish(): void;
+  pause(): void;
+  play(): void;
+  reverse(): void;
+  updatePlaybackRate(playbackRate: number): void;
+  addEventListener<K extends keyof AnimationEventMap>(type: K, listener: (this: Animation, ev: AnimationEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof AnimationEventMap>(type: K, listener: (this: Animation, ev: AnimationEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
-// declare var Animation: {
-//   prototype: Animation;
-//   new(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null): Animation;
-// };
+declare var Animation: {
+  prototype: Animation;
+  new(effect?: AnimationEffect | null, timeline?: AnimationTimeline | null): Animation;
+};
 
-// interface AnimationEffect {
-//   getComputedTiming(): ComputedEffectTiming;
-//   getTiming(): EffectTiming;
-//   updateTiming(timing?: OptionalEffectTiming): void;
-// }
+interface AnimationEffect {
+  getComputedTiming(): ComputedEffectTiming;
+  getTiming(): EffectTiming;
+  updateTiming(timing?: OptionalEffectTiming): void;
+}
 
-// declare var AnimationEffect: {
-//   prototype: AnimationEffect;
-//   new(): AnimationEffect;
-// };
+declare var AnimationEffect: {
+  prototype: AnimationEffect;
+  new(): AnimationEffect;
+};
 
 // /** Events providing information related to animations. */
 // interface AnimationEvent extends Event {
@@ -2109,24 +2110,24 @@ interface AbortSignalEventMap {
 //   requestAnimationFrame(callback: FrameRequestCallback): number;
 // }
 
-// interface AnimationPlaybackEvent extends Event {
-//   readonly currentTime: number | null;
-//   readonly timelineTime: number | null;
-// }
+interface AnimationPlaybackEvent extends Event {
+  readonly currentTime: number | null;
+  readonly timelineTime: number | null;
+}
 
-// declare var AnimationPlaybackEvent: {
-//   prototype: AnimationPlaybackEvent;
-//   new(type: string, eventInitDict?: AnimationPlaybackEventInit): AnimationPlaybackEvent;
-// };
+declare var AnimationPlaybackEvent: {
+  prototype: AnimationPlaybackEvent;
+  new(type: string, eventInitDict?: AnimationPlaybackEventInit): AnimationPlaybackEvent;
+};
 
-// interface AnimationTimeline {
-//   readonly currentTime: number | null;
-// }
+interface AnimationTimeline {
+  readonly currentTime: number | null;
+}
 
-// declare var AnimationTimeline: {
-//   prototype: AnimationTimeline;
-//   new(): AnimationTimeline;
-// };
+declare var AnimationTimeline: {
+  prototype: AnimationTimeline;
+  new(): AnimationTimeline;
+};
 
 // interface ApplicationCacheEventMap {
 //   "cached": Event;
@@ -2534,20 +2535,20 @@ interface AbortSignalEventMap {
 //   new(context: BaseAudioContext, options?: BiquadFilterOptions): BiquadFilterNode;
 // };
 
-// /** A file-like object of immutable, raw data. Blobs represent data that isn't necessarily in a JavaScript-native format. The File interface is based on Blob, inheriting blob functionality and expanding it to support files on the user's system. */
-// interface Blob {
-//   readonly size: number;
-//   readonly type: string;
-//   arrayBuffer(): Promise<ArrayBuffer>;
-//   slice(start?: number, end?: number, contentType?: string): Blob;
-//   stream(): ReadableStream<any>;
-//   text(): Promise<string>;
-// }
+/** A file-like object of immutable, raw data. Blobs represent data that isn't necessarily in a JavaScript-native format. The File interface is based on Blob, inheriting blob functionality and expanding it to support files on the user's system. */
+interface Blob {
+  readonly size: number;
+  readonly type: string;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  slice(start?: number, end?: number, contentType?: string): Blob;
+  stream(): ReadableStream<any>;
+  text(): Promise<string>;
+}
 
-// declare var Blob: {
-//   prototype: Blob;
-//   new(blobParts?: BlobPart[], options?: BlobPropertyBag): Blob;
-// };
+declare var Blob: {
+  prototype: Blob;
+  new(blobParts?: BlobPart[], options?: BlobPropertyBag): Blob;
+};
 
 // interface Body {
 //   readonly body: ReadableStream<Uint8Array> | null;
@@ -3558,10 +3559,10 @@ interface AbortSignalEventMap {
 //   new(): Clipboard;
 // };
 
-// /** Events providing information related to modification of the clipboard, that is cut, copy, and paste events. */
-// interface ClipboardEvent extends Event {
-//   readonly clipboardData: DataTransfer | null;
-// }
+/** Events providing information related to modification of the clipboard, that is cut, copy, and paste events. */
+interface ClipboardEvent extends Event {
+  readonly clipboardData: DataTransfer | null;
+}
 
 // declare var ClipboardEvent: {
 //   prototype: ClipboardEvent;
@@ -4179,112 +4180,112 @@ interface AbortSignalEventMap {
 //   new(): DataCue;
 // };
 
-// /** Used to hold the data that is being dragged during a drag and drop operation. It may hold one or more data items, each of one or more data types. For more information about drag and drop, see HTML Drag and Drop API. */
-// interface DataTransfer {
-//   /**
-//    * Returns the kind of operation that is currently selected. If the kind of operation isn't one of those that is allowed by the effectAllowed attribute, then the operation will fail.
-//    * 
-//    * Can be set, to change the selected operation.
-//    * 
-//    * The possible values are "none", "copy", "link", and "move".
-//    */
-//   dropEffect: string;
-//   /**
-//    * Returns the kinds of operations that are to be allowed.
-//    * 
-//    * Can be set (during the dragstart event), to change the allowed operations.
-//    * 
-//    * The possible values are "none", "copy", "copyLink", "copyMove", "link", "linkMove", "move", "all", and "uninitialized",
-//    */
-//   effectAllowed: string;
-//   /**
-//    * Returns a FileList of the files being dragged, if any.
-//    */
-//   readonly files: FileList;
-//   /**
-//    * Returns a DataTransferItemList object, with the drag data.
-//    */
-//   readonly items: DataTransferItemList;
-//   /**
-//    * Returns a frozen array listing the formats that were set in the dragstart event. In addition, if any files are being dragged, then one of the types will be the string "Files".
-//    */
-//   readonly types: ReadonlyArray<string>;
-//   /**
-//    * Removes the data of the specified formats. Removes all data if the argument is omitted.
-//    */
-//   clearData(format?: string): void;
-//   /**
-//    * Returns the specified data. If there is no such data, returns the empty string.
-//    */
-//   getData(format: string): string;
-//   /**
-//    * Adds the specified data.
-//    */
-//   setData(format: string, data: string): void;
-//   /**
-//    * Uses the given element to update the drag feedback, replacing any previously specified feedback.
-//    */
-//   setDragImage(image: Element, x: number, y: number): void;
-// }
+/** Used to hold the data that is being dragged during a drag and drop operation. It may hold one or more data items, each of one or more data types. For more information about drag and drop, see HTML Drag and Drop API. */
+interface DataTransfer {
+  /**
+   * Returns the kind of operation that is currently selected. If the kind of operation isn't one of those that is allowed by the effectAllowed attribute, then the operation will fail.
+   * 
+   * Can be set, to change the selected operation.
+   * 
+   * The possible values are "none", "copy", "link", and "move".
+   */
+  dropEffect: string;
+  /**
+   * Returns the kinds of operations that are to be allowed.
+   * 
+   * Can be set (during the dragstart event), to change the allowed operations.
+   * 
+   * The possible values are "none", "copy", "copyLink", "copyMove", "link", "linkMove", "move", "all", and "uninitialized",
+   */
+  effectAllowed: string;
+  /**
+   * Returns a FileList of the files being dragged, if any.
+   */
+  readonly files: FileList;
+  /**
+   * Returns a DataTransferItemList object, with the drag data.
+   */
+  readonly items: DataTransferItemList;
+  /**
+   * Returns a frozen array listing the formats that were set in the dragstart event. In addition, if any files are being dragged, then one of the types will be the string "Files".
+   */
+  readonly types: ReadonlyArray<string>;
+  /**
+   * Removes the data of the specified formats. Removes all data if the argument is omitted.
+   */
+  clearData(format?: string): void;
+  /**
+   * Returns the specified data. If there is no such data, returns the empty string.
+   */
+  getData(format: string): string;
+  /**
+   * Adds the specified data.
+   */
+  setData(format: string, data: string): void;
+  /**
+   * Uses the given element to update the drag feedback, replacing any previously specified feedback.
+   */
+  setDragImage(image: Placeholder, x: number, y: number): void;
+}
 
-// declare var DataTransfer: {
-//   prototype: DataTransfer;
-//   new(): DataTransfer;
-// };
+declare var DataTransfer: {
+  prototype: DataTransfer;
+  new(): DataTransfer;
+};
 
-// /** One drag data item. During a drag operation, each drag event has a dataTransfer property which contains a list of drag data items. Each item in the list is a DataTransferItem object. */
-// interface DataTransferItem {
-//   /**
-//    * Returns the drag data item kind, one of: "string", "file".
-//    */
-//   readonly kind: string;
-//   /**
-//    * Returns the drag data item type string.
-//    */
-//   readonly type: string;
-//   /**
-//    * Returns a File object, if the drag data item kind is File.
-//    */
-//   getAsFile(): File | null;
-//   /**
-//    * Invokes the callback with the string data as the argument, if the drag data item kind is text.
-//    */
-//   getAsString(callback: FunctionStringCallback | null): void;
-//   webkitGetAsEntry(): any;
-// }
+/** One drag data item. During a drag operation, each drag event has a dataTransfer property which contains a list of drag data items. Each item in the list is a DataTransferItem object. */
+interface DataTransferItem {
+  /**
+   * Returns the drag data item kind, one of: "string", "file".
+   */
+  readonly kind: string;
+  /**
+   * Returns the drag data item type string.
+   */
+  readonly type: string;
+  /**
+   * Returns a File object, if the drag data item kind is File.
+   */
+  getAsFile(): File | null;
+  /**
+   * Invokes the callback with the string data as the argument, if the drag data item kind is text.
+   */
+  getAsString(callback: FunctionStringCallback | null): void;
+  webkitGetAsEntry(): any;
+}
 
-// declare var DataTransferItem: {
-//   prototype: DataTransferItem;
-//   new(): DataTransferItem;
-// };
+declare var DataTransferItem: {
+  prototype: DataTransferItem;
+  new(): DataTransferItem;
+};
 
-// /** A list of DataTransferItem objects representing items being dragged. During a drag operation, each DragEvent has a dataTransfer property and that property is a DataTransferItemList. */
-// interface DataTransferItemList {
-//   /**
-//    * Returns the number of items in the drag data store.
-//    */
-//   readonly length: number;
-//   /**
-//    * Adds a new entry for the given data to the drag data store. If the data is plain text then a type string has to be provided also.
-//    */
-//   add(data: string, type: string): DataTransferItem | null;
-//   add(data: File): DataTransferItem | null;
-//   /**
-//    * Removes all the entries in the drag data store.
-//    */
-//   clear(): void;
-//   item(index: number): DataTransferItem;
-//   /**
-//    * Removes the indexth entry in the drag data store.
-//    */
-//   remove(index: number): void;
-//   [name: number]: DataTransferItem;
-// }
+/** A list of DataTransferItem objects representing items being dragged. During a drag operation, each DragEvent has a dataTransfer property and that property is a DataTransferItemList. */
+interface DataTransferItemList {
+  /**
+   * Returns the number of items in the drag data store.
+   */
+  readonly length: number;
+  /**
+   * Adds a new entry for the given data to the drag data store. If the data is plain text then a type string has to be provided also.
+   */
+  add(data: string, type: string): DataTransferItem | null;
+  add(data: File): DataTransferItem | null;
+  /**
+   * Removes all the entries in the drag data store.
+   */
+  clear(): void;
+  item(index: number): DataTransferItem;
+  /**
+   * Removes the indexth entry in the drag data store.
+   */
+  remove(index: number): void;
+  [name: number]: DataTransferItem;
+}
 
-// declare var DataTransferItemList: {
-//   prototype: DataTransferItemList;
-//   new(): DataTransferItemList;
-// };
+declare var DataTransferItemList: {
+  prototype: DataTransferItemList;
+  new(): DataTransferItemList;
+};
 
 // interface DeferredPermissionRequest {
 //   readonly id: number;
@@ -4889,21 +4890,21 @@ interface AbortSignalEventMap {
 //   new(): Document;
 // };
 
-// interface DocumentAndElementEventHandlersEventMap {
-//   "copy": ClipboardEvent;
-//   "cut": ClipboardEvent;
-//   "paste": ClipboardEvent;
-// }
+interface DocumentAndElementEventHandlersEventMap {
+  "copy": ClipboardEvent;
+  "cut": ClipboardEvent;
+  "paste": ClipboardEvent;
+}
 
-// interface DocumentAndElementEventHandlers {
-//   oncopy: ((this: DocumentAndElementEventHandlers, ev: ClipboardEvent) => any) | null;
-//   oncut: ((this: DocumentAndElementEventHandlers, ev: ClipboardEvent) => any) | null;
-//   onpaste: ((this: DocumentAndElementEventHandlers, ev: ClipboardEvent) => any) | null;
-//   addEventListener<K extends keyof DocumentAndElementEventHandlersEventMap>(type: K, listener: (this: DocumentAndElementEventHandlers, ev: DocumentAndElementEventHandlersEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-//   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   removeEventListener<K extends keyof DocumentAndElementEventHandlersEventMap>(type: K, listener: (this: DocumentAndElementEventHandlers, ev: DocumentAndElementEventHandlersEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-//   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
+interface DocumentAndElementEventHandlers {
+  oncopy: ((this: DocumentAndElementEventHandlers, ev: ClipboardEvent) => any) | null;
+  oncut: ((this: DocumentAndElementEventHandlers, ev: ClipboardEvent) => any) | null;
+  onpaste: ((this: DocumentAndElementEventHandlers, ev: ClipboardEvent) => any) | null;
+  addEventListener<K extends keyof DocumentAndElementEventHandlersEventMap>(type: K, listener: (this: DocumentAndElementEventHandlers, ev: DocumentAndElementEventHandlersEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+  addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+  removeEventListener<K extends keyof DocumentAndElementEventHandlersEventMap>(type: K, listener: (this: DocumentAndElementEventHandlers, ev: DocumentAndElementEventHandlersEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+  removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+}
 
 // interface DocumentEvent {
 //   createEvent(eventInterface: "AnimationEvent"): AnimationEvent;
@@ -5467,23 +5468,23 @@ declare var EventTarget: {
 //   new(): External;
 // };
 
-// /** Provides information about files and allows JavaScript in a web page to access their content. */
-// interface File extends Blob {
-//   readonly lastModified: number;
-//   readonly name: string;
-// }
+/** Provides information about files and allows JavaScript in a web page to access their content. */
+interface File extends Blob {
+  readonly lastModified: number;
+  readonly name: string;
+}
 
 // declare var File: {
 //   prototype: File;
 //   new(fileBits: BlobPart[], fileName: string, options?: FilePropertyBag): File;
 // };
 
-// /** An object of this type is returned by the files property of the HTML <input> element; this lets you access the list of files selected with the <input type="file"> element. It's also used for a list of files dropped into web content when using the drag and drop API; see the DataTransfer object for details on this usage. */
-// interface FileList {
-//   readonly length: number;
-//   item(index: number): File | null;
-//   [index: number]: File;
-// }
+/** An object of this type is returned by the files property of the HTML <input> element; this lets you access the list of files selected with the <input type="file"> element. It's also used for a list of files dropped into web content when using the drag and drop API; see the DataTransfer object for details on this usage. */
+interface FileList {
+  readonly length: number;
+  item(index: number): File | null;
+  [index: number]: File;
+}
 
 // declare var FileList: {
 //   prototype: FileList;
@@ -12508,57 +12509,57 @@ declare var EventTarget: {
 //   toString(): string;
 // };
 
-// interface ReadableByteStreamController {
-//   readonly byobRequest: ReadableStreamBYOBRequest | undefined;
-//   readonly desiredSize: number | null;
-//   close(): void;
-//   enqueue(chunk: ArrayBufferView): void;
-//   error(error?: any): void;
-// }
+interface ReadableByteStreamController {
+  readonly byobRequest: ReadableStreamBYOBRequest | undefined;
+  readonly desiredSize: number | null;
+  close(): void;
+  enqueue(chunk: ArrayBufferView): void;
+  error(error?: any): void;
+}
 
-// /** This Streams API interface represents a readable stream of byte data. The Fetch API offers a concrete instance of a ReadableStream through the body property of a Response object. */
-// interface ReadableStream<R = any> {
-//   readonly locked: boolean;
-//   cancel(reason?: any): Promise<void>;
-//   getReader(options: { mode: "byob" }): ReadableStreamBYOBReader;
-//   getReader(): ReadableStreamDefaultReader<R>;
-//   pipeThrough<T>({ writable, readable }: { writable: WritableStream<R>, readable: ReadableStream<T> }, options?: PipeOptions): ReadableStream<T>;
-//   pipeTo(dest: WritableStream<R>, options?: PipeOptions): Promise<void>;
-//   tee(): [ReadableStream<R>, ReadableStream<R>];
-// }
+/** This Streams API interface represents a readable stream of byte data. The Fetch API offers a concrete instance of a ReadableStream through the body property of a Response object. */
+interface ReadableStream<R = any> {
+  readonly locked: boolean;
+  cancel(reason?: any): Promise<void>;
+  getReader(options: { mode: "byob" }): ReadableStreamBYOBReader;
+  getReader(): ReadableStreamDefaultReader<R>;
+  pipeThrough<T>({ writable, readable }: { writable: WritableStream<R>, readable: ReadableStream<T> }, options?: PipeOptions): ReadableStream<T>;
+  pipeTo(dest: WritableStream<R>, options?: PipeOptions): Promise<void>;
+  tee(): [ReadableStream<R>, ReadableStream<R>];
+}
 
-// declare var ReadableStream: {
-//   prototype: ReadableStream;
-//   new(underlyingSource: UnderlyingByteSource, strategy?: { highWaterMark?: number, size?: undefined }): ReadableStream<Uint8Array>;
-//   new<R = any>(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>): ReadableStream<R>;
-// };
+declare var ReadableStream: {
+  prototype: ReadableStream<any>;
+  new(underlyingSource: UnderlyingByteSource, strategy?: { highWaterMark?: number, size?: undefined }): ReadableStream<Uint8Array>;
+  new<R = any>(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>): ReadableStream<R>;
+};
 
-// interface ReadableStreamBYOBReader {
-//   readonly closed: Promise<void>;
-//   cancel(reason?: any): Promise<void>;
-//   read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamReadResult<T>>;
-//   releaseLock(): void;
-// }
+interface ReadableStreamBYOBReader {
+  readonly closed: Promise<void>;
+  cancel(reason?: any): Promise<void>;
+  read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamReadResult<T>>;
+  releaseLock(): void;
+}
 
-// interface ReadableStreamBYOBRequest {
-//   readonly view: ArrayBufferView;
-//   respond(bytesWritten: number): void;
-//   respondWithNewView(view: ArrayBufferView): void;
-// }
+interface ReadableStreamBYOBRequest {
+  readonly view: ArrayBufferView;
+  respond(bytesWritten: number): void;
+  respondWithNewView(view: ArrayBufferView): void;
+}
 
-// interface ReadableStreamDefaultController<R = any> {
-//   readonly desiredSize: number | null;
-//   close(): void;
-//   enqueue(chunk: R): void;
-//   error(error?: any): void;
-// }
+interface ReadableStreamDefaultController<R = any> {
+  readonly desiredSize: number | null;
+  close(): void;
+  enqueue(chunk: R): void;
+  error(error?: any): void;
+}
 
-// interface ReadableStreamDefaultReader<R = any> {
-//   readonly closed: Promise<void>;
-//   cancel(reason?: any): Promise<void>;
-//   read(): Promise<ReadableStreamReadResult<R>>;
-//   releaseLock(): void;
-// }
+interface ReadableStreamDefaultReader<R = any> {
+  readonly closed: Promise<void>;
+  cancel(reason?: any): Promise<void>;
+  read(): Promise<ReadableStreamReadResult<R>>;
+  releaseLock(): void;
+}
 
 // interface ReadableStreamReader<R = any> {
 //   cancel(): Promise<void>;
@@ -18690,33 +18691,33 @@ declare var EventTarget: {
 //   new(): Worklet;
 // };
 
-// /** This Streams API interface provides a standard abstraction for writing streaming data to a destination, known as a sink. This object comes with built-in backpressure and queuing. */
-// interface WritableStream<W = any> {
-//   readonly locked: boolean;
-//   abort(reason?: any): Promise<void>;
-//   getWriter(): WritableStreamDefaultWriter<W>;
-// }
+/** This Streams API interface provides a standard abstraction for writing streaming data to a destination, known as a sink. This object comes with built-in backpressure and queuing. */
+interface WritableStream<W = any> {
+  readonly locked: boolean;
+  abort(reason?: any): Promise<void>;
+  getWriter(): WritableStreamDefaultWriter<W>;
+}
 
-// declare var WritableStream: {
-//   prototype: WritableStream;
-//   new<W = any>(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>): WritableStream<W>;
-// };
+declare var WritableStream: {
+  prototype: WritableStream<any>;
+  new<W = any>(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>): WritableStream<W>;
+};
 
-// /** This Streams API interface represents a controller allowing control of a WritableStream's state. When constructing a WritableStream, the underlying sink is given a corresponding WritableStreamDefaultController instance to manipulate. */
-// interface WritableStreamDefaultController {
-//   error(error?: any): void;
-// }
+/** This Streams API interface represents a controller allowing control of a WritableStream's state. When constructing a WritableStream, the underlying sink is given a corresponding WritableStreamDefaultController instance to manipulate. */
+interface WritableStreamDefaultController {
+  error(error?: any): void;
+}
 
-// /** This Streams API interface is the object returned by WritableStream.getWriter() and once created locks the < writer to the WritableStream ensuring that no other streams can write to the underlying sink. */
-// interface WritableStreamDefaultWriter<W = any> {
-//   readonly closed: Promise<void>;
-//   readonly desiredSize: number | null;
-//   readonly ready: Promise<void>;
-//   abort(reason?: any): Promise<void>;
-//   close(): Promise<void>;
-//   releaseLock(): void;
-//   write(chunk: W): Promise<void>;
-// }
+/** This Streams API interface is the object returned by WritableStream.getWriter() and once created locks the < writer to the WritableStream ensuring that no other streams can write to the underlying sink. */
+interface WritableStreamDefaultWriter<W = any> {
+  readonly closed: Promise<void>;
+  readonly desiredSize: number | null;
+  readonly ready: Promise<void>;
+  abort(reason?: any): Promise<void>;
+  close(): Promise<void>;
+  releaseLock(): void;
+  write(chunk: W): Promise<void>;
+}
 
 // /** An XML document. It inherits from the generic Document and does not add any specific methods or properties to it: nevertheless, several algorithms behave differently with the two types of documents. */
 // interface XMLDocument extends Document {
@@ -19179,9 +19180,9 @@ declare var console: Console;
 //   (time: number): void;
 // }
 
-// interface FunctionStringCallback {
-//   (data: string): void;
-// }
+interface FunctionStringCallback {
+  (data: string): void;
+}
 
 // interface IntersectionObserverCallback {
 //   (entries: IntersectionObserverEntry[], observer: IntersectionObserver): void;
@@ -19227,9 +19228,9 @@ declare var console: Console;
 //   (positionError: PositionError): void;
 // }
 
-// interface QueuingStrategySizeCallback<T = any> {
-//   (chunk: T): number;
-// }
+interface QueuingStrategySizeCallback<T = any> {
+  (chunk: T): number;
+}
 
 // interface RTCPeerConnectionErrorCallback {
 //   (error: DOMException): void;
@@ -19243,17 +19244,17 @@ declare var console: Console;
 //   (report: RTCStatsReport): void;
 // }
 
-// interface ReadableByteStreamControllerCallback {
-//   (controller: ReadableByteStreamController): void | PromiseLike<void>;
-// }
+interface ReadableByteStreamControllerCallback {
+  (controller: ReadableByteStreamController): void | PromiseLike<void>;
+}
 
-// interface ReadableStreamDefaultControllerCallback<R> {
-//   (controller: ReadableStreamDefaultController<R>): void | PromiseLike<void>;
-// }
+interface ReadableStreamDefaultControllerCallback<R> {
+  (controller: ReadableStreamDefaultController<R>): void | PromiseLike<void>;
+}
 
-// interface ReadableStreamErrorCallback {
-//   (reason: any): void | PromiseLike<void>;
-// }
+interface ReadableStreamErrorCallback {
+  (reason: any): void | PromiseLike<void>;
+}
 
 // interface TransformStreamDefaultControllerCallback<O> {
 //   (controller: TransformStreamDefaultController<O>): void | PromiseLike<void>;
@@ -19267,21 +19268,21 @@ declare var console: Console;
 //   (): void;
 // }
 
-// interface WritableStreamDefaultControllerCloseCallback {
-//   (): void | PromiseLike<void>;
-// }
+interface WritableStreamDefaultControllerCloseCallback {
+  (): void | PromiseLike<void>;
+}
 
-// interface WritableStreamDefaultControllerStartCallback {
-//   (controller: WritableStreamDefaultController): void | PromiseLike<void>;
-// }
+interface WritableStreamDefaultControllerStartCallback {
+  (controller: WritableStreamDefaultController): void | PromiseLike<void>;
+}
 
-// interface WritableStreamDefaultControllerWriteCallback<W> {
-//   (chunk: W, controller: WritableStreamDefaultController): void | PromiseLike<void>;
-// }
+interface WritableStreamDefaultControllerWriteCallback<W> {
+  (chunk: W, controller: WritableStreamDefaultController): void | PromiseLike<void>;
+}
 
-// interface WritableStreamErrorCallback {
-//   (reason: any): void | PromiseLike<void>;
-// }
+interface WritableStreamErrorCallback {
+  (reason: any): void | PromiseLike<void>;
+}
 
 // interface HTMLElementTagNameMap {
 //   "a": HTMLAnchorElement;
@@ -19913,7 +19914,7 @@ declare var console: Console;
 // type HeadersInit = Headers | string[][] | {[key: string]: string};
 // type BodyInit = Blob | BufferSource | FormData | URLSearchParams | ReadableStream<Uint8Array> | string;
 // type RequestInfo = Request | string;
-// type BlobPart = BufferSource | Blob | string;
+type BlobPart = BufferSource | Blob | string;
 // type DOMHighResTimeStamp = number;
 // type RenderingContext = CanvasRenderingContext2D | ImageBitmapRenderingContext | WebGLRenderingContext | WebGL2RenderingContext;
 // type HTMLOrSVGImageElement = HTMLImageElement | SVGImageElement;
@@ -19931,183 +19932,183 @@ declare var console: Console;
 // type ConstrainBoolean = boolean | ConstrainBooleanParameters;
 // type ConstrainDOMString = string | string[] | ConstrainDOMStringParameters;
 // type PerformanceEntryList = PerformanceEntry[];
-// type ReadableStreamReadResult<T> = ReadableStreamReadValueResult<T> | ReadableStreamReadDoneResult<T>;
-// type VibratePattern = number | number[];
-// type COSEAlgorithmIdentifier = number;
+type ReadableStreamReadResult<T> = ReadableStreamReadValueResult<T> | ReadableStreamReadDoneResult<T>;
+type VibratePattern = number | number[];
+type COSEAlgorithmIdentifier = number;
 // type AuthenticatorSelectionList = AAGUID[];
 // type AAGUID = BufferSource;
-// type AuthenticationExtensionsSupported = string[];
-// type UvmEntry = number[];
+type AuthenticationExtensionsSupported = string[];
+type UvmEntry = number[];
 // type UvmEntries = UvmEntry[];
 // type AlgorithmIdentifier = string | Algorithm;
 // type HashAlgorithmIdentifier = AlgorithmIdentifier;
-// type BigInteger = Uint8Array;
-// type NamedCurve = string;
-// type GLenum = number;
-// type GLboolean = boolean;
-// type GLbitfield = number;
-// type GLint = number;
-// type GLsizei = number;
-// type GLintptr = number;
-// type GLsizeiptr = number;
-// type GLuint = number;
-// type GLfloat = number;
-// type GLclampf = number;
+type BigInteger = Uint8Array;
+type NamedCurve = string;
+type GLenum = number;
+type GLboolean = boolean;
+type GLbitfield = number;
+type GLint = number;
+type GLsizei = number;
+type GLintptr = number;
+type GLsizeiptr = number;
+type GLuint = number;
+type GLfloat = number;
+type GLclampf = number;
 // type TexImageSource = ImageBitmap | ImageData | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement | OffscreenCanvas;
 // type Float32List = Float32Array | GLfloat[];
 // type Int32List = Int32Array | GLint[];
-// type GLint64 = number;
-// type GLuint64 = number;
+type GLint64 = number;
+type GLuint64 = number;
 // type Uint32List = Uint32Array | GLuint[];
-// type BufferSource = ArrayBufferView | ArrayBuffer;
+type BufferSource = ArrayBufferView | ArrayBuffer;
 // type DOMTimeStamp = number;
 // type LineAndPositionSetting = number | AutoKeyword;
-// type FormDataEntryValue = File | string;
-// type InsertPosition = "beforebegin" | "afterbegin" | "beforeend" | "afterend";
+type FormDataEntryValue = File | string;
+type InsertPosition = "beforebegin" | "afterbegin" | "beforeend" | "afterend";
 // type IDBValidKey = number | string | Date | BufferSource | IDBArrayKey;
-// type MutationRecordType = "attributes" | "characterData" | "childList";
-// type IDBKeyPath = string;
+type MutationRecordType = "attributes" | "characterData" | "childList";
+type IDBKeyPath = string;
 // type Transferable = ArrayBuffer | MessagePort | ImageBitmap | OffscreenCanvas;
 // type RTCIceGatherCandidate = RTCIceCandidateDictionary | RTCIceCandidateComplete;
 // type RTCTransport = RTCDtlsTransport | RTCSrtpSdesTransport;
 // /** @deprecated */
 // type MouseWheelEvent = WheelEvent;
 // type WindowProxy = Window;
-// type AlignSetting = "center" | "end" | "left" | "right" | "start";
-// type AnimationPlayState = "finished" | "idle" | "paused" | "running";
-// type AppendMode = "segments" | "sequence";
-// type AttestationConveyancePreference = "direct" | "indirect" | "none";
-// type AudioContextLatencyCategory = "balanced" | "interactive" | "playback";
-// type AudioContextState = "closed" | "running" | "suspended";
-// type AuthenticatorAttachment = "cross-platform" | "platform";
-// type AuthenticatorTransport = "ble" | "internal" | "nfc" | "usb";
-// type AutoKeyword = "auto";
-// type AutomationRate = "a-rate" | "k-rate";
-// type BinaryType = "arraybuffer" | "blob";
-// type BiquadFilterType = "allpass" | "bandpass" | "highpass" | "highshelf" | "lowpass" | "lowshelf" | "notch" | "peaking";
-// type CanPlayTypeResult = "" | "maybe" | "probably";
-// type CanvasDirection = "inherit" | "ltr" | "rtl";
-// type CanvasFillRule = "evenodd" | "nonzero";
-// type CanvasLineCap = "butt" | "round" | "square";
-// type CanvasLineJoin = "bevel" | "miter" | "round";
-// type CanvasTextAlign = "center" | "end" | "left" | "right" | "start";
-// type CanvasTextBaseline = "alphabetic" | "bottom" | "hanging" | "ideographic" | "middle" | "top";
-// type ChannelCountMode = "clamped-max" | "explicit" | "max";
-// type ChannelInterpretation = "discrete" | "speakers";
-// type ClientTypes = "all" | "sharedworker" | "window" | "worker";
-// type ColorSpaceConversion = "default" | "none";
-// type CompositeOperation = "accumulate" | "add" | "replace";
-// type CompositeOperationOrAuto = "accumulate" | "add" | "auto" | "replace";
-// type CredentialMediationRequirement = "optional" | "required" | "silent";
-// type DOMParserSupportedType = "application/xhtml+xml" | "application/xml" | "image/svg+xml" | "text/html" | "text/xml";
-// type DirectionSetting = "" | "lr" | "rl";
-// type DisplayCaptureSurfaceType = "application" | "browser" | "monitor" | "window";
-// type DistanceModelType = "exponential" | "inverse" | "linear";
-// type DocumentReadyState = "complete" | "interactive" | "loading";
-// type EndOfStreamError = "decode" | "network";
-// type EndingType = "native" | "transparent";
-// type FillMode = "auto" | "backwards" | "both" | "forwards" | "none";
-// type FullscreenNavigationUI = "auto" | "hide" | "show";
-// type GamepadHand = "" | "left" | "right";
-// type GamepadHapticActuatorType = "vibration";
-// type GamepadMappingType = "" | "standard";
-// type IDBCursorDirection = "next" | "nextunique" | "prev" | "prevunique";
-// type IDBRequestReadyState = "done" | "pending";
-// type IDBTransactionMode = "readonly" | "readwrite" | "versionchange";
-// type ImageOrientation = "flipY" | "none";
-// type ImageSmoothingQuality = "high" | "low" | "medium";
-// type IterationCompositeOperation = "accumulate" | "replace";
-// type KeyFormat = "jwk" | "pkcs8" | "raw" | "spki";
-// type KeyType = "private" | "public" | "secret";
-// type KeyUsage = "decrypt" | "deriveBits" | "deriveKey" | "encrypt" | "sign" | "unwrapKey" | "verify" | "wrapKey";
-// type LineAlignSetting = "center" | "end" | "start";
-// type ListeningState = "active" | "disambiguation" | "inactive";
-// type MSCredentialType = "FIDO_2_0";
-// type MSTransportType = "BT" | "Embedded" | "NFC" | "USB";
-// type MSWebViewPermissionState = "allow" | "defer" | "deny" | "unknown";
-// type MSWebViewPermissionType = "geolocation" | "media" | "pointerlock" | "unlimitedIndexedDBQuota" | "webnotifications";
-// type MediaDeviceKind = "audioinput" | "audiooutput" | "videoinput";
-// type MediaKeyMessageType = "individualization-request" | "license-release" | "license-renewal" | "license-request";
-// type MediaKeySessionType = "persistent-license" | "temporary";
-// type MediaKeyStatus = "expired" | "internal-error" | "output-downscaled" | "output-restricted" | "released" | "status-pending" | "usable";
-// type MediaKeysRequirement = "not-allowed" | "optional" | "required";
-// type MediaStreamTrackState = "ended" | "live";
-// type NavigationReason = "down" | "left" | "right" | "up";
-// type NavigationType = "back_forward" | "navigate" | "prerender" | "reload";
-// type NotificationDirection = "auto" | "ltr" | "rtl";
-// type NotificationPermission = "default" | "denied" | "granted";
-// type OffscreenRenderingContextId = "2d" | "bitmaprenderer" | "webgl" | "webgl2";
-// type OrientationLockType = "any" | "landscape" | "landscape-primary" | "landscape-secondary" | "natural" | "portrait" | "portrait-primary" | "portrait-secondary";
-// type OrientationType = "landscape-primary" | "landscape-secondary" | "portrait-primary" | "portrait-secondary";
-// type OscillatorType = "custom" | "sawtooth" | "sine" | "square" | "triangle";
-// type OverSampleType = "2x" | "4x" | "none";
-// type PanningModelType = "HRTF" | "equalpower";
-// type PaymentComplete = "fail" | "success" | "unknown";
-// type PaymentShippingType = "delivery" | "pickup" | "shipping";
-// type PermissionName = "accelerometer" | "ambient-light-sensor" | "background-sync" | "bluetooth" | "camera" | "clipboard" | "device-info" | "geolocation" | "gyroscope" | "magnetometer" | "microphone" | "midi" | "notifications" | "persistent-storage" | "push" | "speaker";
-// type PermissionState = "denied" | "granted" | "prompt";
-// type PlaybackDirection = "alternate" | "alternate-reverse" | "normal" | "reverse";
-// type PositionAlignSetting = "auto" | "center" | "line-left" | "line-right";
-// type PremultiplyAlpha = "default" | "none" | "premultiply";
-// type PublicKeyCredentialType = "public-key";
-// type PushEncryptionKeyName = "auth" | "p256dh";
-// type PushPermissionState = "denied" | "granted" | "prompt";
-// type RTCBundlePolicy = "balanced" | "max-bundle" | "max-compat";
-// type RTCDataChannelState = "closed" | "closing" | "connecting" | "open";
-// type RTCDegradationPreference = "balanced" | "maintain-framerate" | "maintain-resolution";
-// type RTCDtlsRole = "auto" | "client" | "server";
-// type RTCDtlsTransportState = "closed" | "connected" | "connecting" | "failed" | "new";
-// type RTCDtxStatus = "disabled" | "enabled";
-// type RTCErrorDetailType = "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error";
-// type RTCIceCandidateType = "host" | "prflx" | "relay" | "srflx";
-// type RTCIceComponent = "rtcp" | "rtp";
-// type RTCIceConnectionState = "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new";
-// type RTCIceCredentialType = "oauth" | "password";
-// type RTCIceGatherPolicy = "all" | "nohost" | "relay";
-// type RTCIceGathererState = "complete" | "gathering" | "new";
-// type RTCIceGatheringState = "complete" | "gathering" | "new";
-// type RTCIceProtocol = "tcp" | "udp";
-// type RTCIceRole = "controlled" | "controlling" | "unknown";
-// type RTCIceTcpCandidateType = "active" | "passive" | "so";
-// type RTCIceTransportPolicy = "all" | "relay";
-// type RTCIceTransportState = "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new";
-// type RTCPeerConnectionState = "closed" | "connected" | "connecting" | "disconnected" | "failed" | "new";
-// type RTCPriorityType = "high" | "low" | "medium" | "very-low";
-// type RTCRtcpMuxPolicy = "negotiate" | "require";
-// type RTCRtpTransceiverDirection = "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped";
-// type RTCSctpTransportState = "closed" | "connected" | "connecting";
-// type RTCSdpType = "answer" | "offer" | "pranswer" | "rollback";
-// type RTCSignalingState = "closed" | "have-local-offer" | "have-local-pranswer" | "have-remote-offer" | "have-remote-pranswer" | "stable";
-// type RTCStatsIceCandidatePairState = "cancelled" | "failed" | "frozen" | "inprogress" | "succeeded" | "waiting";
-// type RTCStatsIceCandidateType = "host" | "peerreflexive" | "relayed" | "serverreflexive";
-// type RTCStatsType = "candidatepair" | "datachannel" | "inboundrtp" | "localcandidate" | "outboundrtp" | "remotecandidate" | "session" | "track" | "transport";
-// type ReadyState = "closed" | "ended" | "open";
-// type ReferrerPolicy = "" | "no-referrer" | "no-referrer-when-downgrade" | "origin" | "origin-when-cross-origin" | "same-origin" | "strict-origin" | "strict-origin-when-cross-origin" | "unsafe-url";
-// type RequestCache = "default" | "force-cache" | "no-cache" | "no-store" | "only-if-cached" | "reload";
-// type RequestCredentials = "include" | "omit" | "same-origin";
-// type RequestDestination = "" | "audio" | "audioworklet" | "document" | "embed" | "font" | "image" | "manifest" | "object" | "paintworklet" | "report" | "script" | "sharedworker" | "style" | "track" | "video" | "worker" | "xslt";
-// type RequestMode = "cors" | "navigate" | "no-cors" | "same-origin";
-// type RequestRedirect = "error" | "follow" | "manual";
-// type ResizeQuality = "high" | "low" | "medium" | "pixelated";
-// type ResponseType = "basic" | "cors" | "default" | "error" | "opaque" | "opaqueredirect";
-// type ScopedCredentialType = "ScopedCred";
-// type ScrollBehavior = "auto" | "smooth";
-// type ScrollLogicalPosition = "center" | "end" | "nearest" | "start";
-// type ScrollRestoration = "auto" | "manual";
-// type ScrollSetting = "" | "up";
-// type SelectionMode = "end" | "preserve" | "select" | "start";
-// type ServiceWorkerState = "activated" | "activating" | "installed" | "installing" | "parsed" | "redundant";
-// type ServiceWorkerUpdateViaCache = "all" | "imports" | "none";
-// type ShadowRootMode = "closed" | "open";
-// type SpeechSynthesisErrorCode = "audio-busy" | "audio-hardware" | "canceled" | "interrupted" | "invalid-argument" | "language-unavailable" | "network" | "not-allowed" | "synthesis-failed" | "synthesis-unavailable" | "text-too-long" | "voice-unavailable";
-// type TextTrackKind = "captions" | "chapters" | "descriptions" | "metadata" | "subtitles";
-// type TextTrackMode = "disabled" | "hidden" | "showing";
-// type TouchType = "direct" | "stylus";
-// type Transport = "ble" | "nfc" | "usb";
-// type UserVerificationRequirement = "discouraged" | "preferred" | "required";
-// type VRDisplayEventReason = "mounted" | "navigation" | "requested" | "unmounted";
-// type VideoFacingModeEnum = "environment" | "left" | "right" | "user";
-// type VisibilityState = "hidden" | "visible";
-// type WebGLPowerPreference = "default" | "high-performance" | "low-power";
-// type WorkerType = "classic" | "module";
-// type XMLHttpRequestResponseType = "" | "arraybuffer" | "blob" | "document" | "json" | "text";
+type AlignSetting = "center" | "end" | "left" | "right" | "start";
+type AnimationPlayState = "finished" | "idle" | "paused" | "running";
+type AppendMode = "segments" | "sequence";
+type AttestationConveyancePreference = "direct" | "indirect" | "none";
+type AudioContextLatencyCategory = "balanced" | "interactive" | "playback";
+type AudioContextState = "closed" | "running" | "suspended";
+type AuthenticatorAttachment = "cross-platform" | "platform";
+type AuthenticatorTransport = "ble" | "internal" | "nfc" | "usb";
+type AutoKeyword = "auto";
+type AutomationRate = "a-rate" | "k-rate";
+type BinaryType = "arraybuffer" | "blob";
+type BiquadFilterType = "allpass" | "bandpass" | "highpass" | "highshelf" | "lowpass" | "lowshelf" | "notch" | "peaking";
+type CanPlayTypeResult = "" | "maybe" | "probably";
+type CanvasDirection = "inherit" | "ltr" | "rtl";
+type CanvasFillRule = "evenodd" | "nonzero";
+type CanvasLineCap = "butt" | "round" | "square";
+type CanvasLineJoin = "bevel" | "miter" | "round";
+type CanvasTextAlign = "center" | "end" | "left" | "right" | "start";
+type CanvasTextBaseline = "alphabetic" | "bottom" | "hanging" | "ideographic" | "middle" | "top";
+type ChannelCountMode = "clamped-max" | "explicit" | "max";
+type ChannelInterpretation = "discrete" | "speakers";
+type ClientTypes = "all" | "sharedworker" | "window" | "worker";
+type ColorSpaceConversion = "default" | "none";
+type CompositeOperation = "accumulate" | "add" | "replace";
+type CompositeOperationOrAuto = "accumulate" | "add" | "auto" | "replace";
+type CredentialMediationRequirement = "optional" | "required" | "silent";
+type DOMParserSupportedType = "application/xhtml+xml" | "application/xml" | "image/svg+xml" | "text/html" | "text/xml";
+type DirectionSetting = "" | "lr" | "rl";
+type DisplayCaptureSurfaceType = "application" | "browser" | "monitor" | "window";
+type DistanceModelType = "exponential" | "inverse" | "linear";
+type DocumentReadyState = "complete" | "interactive" | "loading";
+type EndOfStreamError = "decode" | "network";
+type EndingType = "native" | "transparent";
+type FillMode = "auto" | "backwards" | "both" | "forwards" | "none";
+type FullscreenNavigationUI = "auto" | "hide" | "show";
+type GamepadHand = "" | "left" | "right";
+type GamepadHapticActuatorType = "vibration";
+type GamepadMappingType = "" | "standard";
+type IDBCursorDirection = "next" | "nextunique" | "prev" | "prevunique";
+type IDBRequestReadyState = "done" | "pending";
+type IDBTransactionMode = "readonly" | "readwrite" | "versionchange";
+type ImageOrientation = "flipY" | "none";
+type ImageSmoothingQuality = "high" | "low" | "medium";
+type IterationCompositeOperation = "accumulate" | "replace";
+type KeyFormat = "jwk" | "pkcs8" | "raw" | "spki";
+type KeyType = "private" | "public" | "secret";
+type KeyUsage = "decrypt" | "deriveBits" | "deriveKey" | "encrypt" | "sign" | "unwrapKey" | "verify" | "wrapKey";
+type LineAlignSetting = "center" | "end" | "start";
+type ListeningState = "active" | "disambiguation" | "inactive";
+type MSCredentialType = "FIDO_2_0";
+type MSTransportType = "BT" | "Embedded" | "NFC" | "USB";
+type MSWebViewPermissionState = "allow" | "defer" | "deny" | "unknown";
+type MSWebViewPermissionType = "geolocation" | "media" | "pointerlock" | "unlimitedIndexedDBQuota" | "webnotifications";
+type MediaDeviceKind = "audioinput" | "audiooutput" | "videoinput";
+type MediaKeyMessageType = "individualization-request" | "license-release" | "license-renewal" | "license-request";
+type MediaKeySessionType = "persistent-license" | "temporary";
+type MediaKeyStatus = "expired" | "internal-error" | "output-downscaled" | "output-restricted" | "released" | "status-pending" | "usable";
+type MediaKeysRequirement = "not-allowed" | "optional" | "required";
+type MediaStreamTrackState = "ended" | "live";
+type NavigationReason = "down" | "left" | "right" | "up";
+type NavigationType = "back_forward" | "navigate" | "prerender" | "reload";
+type NotificationDirection = "auto" | "ltr" | "rtl";
+type NotificationPermission = "default" | "denied" | "granted";
+type OffscreenRenderingContextId = "2d" | "bitmaprenderer" | "webgl" | "webgl2";
+type OrientationLockType = "any" | "landscape" | "landscape-primary" | "landscape-secondary" | "natural" | "portrait" | "portrait-primary" | "portrait-secondary";
+type OrientationType = "landscape-primary" | "landscape-secondary" | "portrait-primary" | "portrait-secondary";
+type OscillatorType = "custom" | "sawtooth" | "sine" | "square" | "triangle";
+type OverSampleType = "2x" | "4x" | "none";
+type PanningModelType = "HRTF" | "equalpower";
+type PaymentComplete = "fail" | "success" | "unknown";
+type PaymentShippingType = "delivery" | "pickup" | "shipping";
+type PermissionName = "accelerometer" | "ambient-light-sensor" | "background-sync" | "bluetooth" | "camera" | "clipboard" | "device-info" | "geolocation" | "gyroscope" | "magnetometer" | "microphone" | "midi" | "notifications" | "persistent-storage" | "push" | "speaker";
+type PermissionState = "denied" | "granted" | "prompt";
+type PlaybackDirection = "alternate" | "alternate-reverse" | "normal" | "reverse";
+type PositionAlignSetting = "auto" | "center" | "line-left" | "line-right";
+type PremultiplyAlpha = "default" | "none" | "premultiply";
+type PublicKeyCredentialType = "public-key";
+type PushEncryptionKeyName = "auth" | "p256dh";
+type PushPermissionState = "denied" | "granted" | "prompt";
+type RTCBundlePolicy = "balanced" | "max-bundle" | "max-compat";
+type RTCDataChannelState = "closed" | "closing" | "connecting" | "open";
+type RTCDegradationPreference = "balanced" | "maintain-framerate" | "maintain-resolution";
+type RTCDtlsRole = "auto" | "client" | "server";
+type RTCDtlsTransportState = "closed" | "connected" | "connecting" | "failed" | "new";
+type RTCDtxStatus = "disabled" | "enabled";
+type RTCErrorDetailType = "data-channel-failure" | "dtls-failure" | "fingerprint-failure" | "hardware-encoder-error" | "hardware-encoder-not-available" | "idp-bad-script-failure" | "idp-execution-failure" | "idp-load-failure" | "idp-need-login" | "idp-timeout" | "idp-tls-failure" | "idp-token-expired" | "idp-token-invalid" | "sctp-failure" | "sdp-syntax-error";
+type RTCIceCandidateType = "host" | "prflx" | "relay" | "srflx";
+type RTCIceComponent = "rtcp" | "rtp";
+type RTCIceConnectionState = "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new";
+type RTCIceCredentialType = "oauth" | "password";
+type RTCIceGatherPolicy = "all" | "nohost" | "relay";
+type RTCIceGathererState = "complete" | "gathering" | "new";
+type RTCIceGatheringState = "complete" | "gathering" | "new";
+type RTCIceProtocol = "tcp" | "udp";
+type RTCIceRole = "controlled" | "controlling" | "unknown";
+type RTCIceTcpCandidateType = "active" | "passive" | "so";
+type RTCIceTransportPolicy = "all" | "relay";
+type RTCIceTransportState = "checking" | "closed" | "completed" | "connected" | "disconnected" | "failed" | "new";
+type RTCPeerConnectionState = "closed" | "connected" | "connecting" | "disconnected" | "failed" | "new";
+type RTCPriorityType = "high" | "low" | "medium" | "very-low";
+type RTCRtcpMuxPolicy = "negotiate" | "require";
+type RTCRtpTransceiverDirection = "inactive" | "recvonly" | "sendonly" | "sendrecv" | "stopped";
+type RTCSctpTransportState = "closed" | "connected" | "connecting";
+type RTCSdpType = "answer" | "offer" | "pranswer" | "rollback";
+type RTCSignalingState = "closed" | "have-local-offer" | "have-local-pranswer" | "have-remote-offer" | "have-remote-pranswer" | "stable";
+type RTCStatsIceCandidatePairState = "cancelled" | "failed" | "frozen" | "inprogress" | "succeeded" | "waiting";
+type RTCStatsIceCandidateType = "host" | "peerreflexive" | "relayed" | "serverreflexive";
+type RTCStatsType = "candidatepair" | "datachannel" | "inboundrtp" | "localcandidate" | "outboundrtp" | "remotecandidate" | "session" | "track" | "transport";
+type ReadyState = "closed" | "ended" | "open";
+type ReferrerPolicy = "" | "no-referrer" | "no-referrer-when-downgrade" | "origin" | "origin-when-cross-origin" | "same-origin" | "strict-origin" | "strict-origin-when-cross-origin" | "unsafe-url";
+type RequestCache = "default" | "force-cache" | "no-cache" | "no-store" | "only-if-cached" | "reload";
+type RequestCredentials = "include" | "omit" | "same-origin";
+type RequestDestination = "" | "audio" | "audioworklet" | "document" | "embed" | "font" | "image" | "manifest" | "object" | "paintworklet" | "report" | "script" | "sharedworker" | "style" | "track" | "video" | "worker" | "xslt";
+type RequestMode = "cors" | "navigate" | "no-cors" | "same-origin";
+type RequestRedirect = "error" | "follow" | "manual";
+type ResizeQuality = "high" | "low" | "medium" | "pixelated";
+type ResponseType = "basic" | "cors" | "default" | "error" | "opaque" | "opaqueredirect";
+type ScopedCredentialType = "ScopedCred";
+type ScrollBehavior = "auto" | "smooth";
+type ScrollLogicalPosition = "center" | "end" | "nearest" | "start";
+type ScrollRestoration = "auto" | "manual";
+type ScrollSetting = "" | "up";
+type SelectionMode = "end" | "preserve" | "select" | "start";
+type ServiceWorkerState = "activated" | "activating" | "installed" | "installing" | "parsed" | "redundant";
+type ServiceWorkerUpdateViaCache = "all" | "imports" | "none";
+type ShadowRootMode = "closed" | "open";
+type SpeechSynthesisErrorCode = "audio-busy" | "audio-hardware" | "canceled" | "interrupted" | "invalid-argument" | "language-unavailable" | "network" | "not-allowed" | "synthesis-failed" | "synthesis-unavailable" | "text-too-long" | "voice-unavailable";
+type TextTrackKind = "captions" | "chapters" | "descriptions" | "metadata" | "subtitles";
+type TextTrackMode = "disabled" | "hidden" | "showing";
+type TouchType = "direct" | "stylus";
+type Transport = "ble" | "nfc" | "usb";
+type UserVerificationRequirement = "discouraged" | "preferred" | "required";
+type VRDisplayEventReason = "mounted" | "navigation" | "requested" | "unmounted";
+type VideoFacingModeEnum = "environment" | "left" | "right" | "user";
+type VisibilityState = "hidden" | "visible";
+type WebGLPowerPreference = "default" | "high-performance" | "low-power";
+type WorkerType = "classic" | "module";
+type XMLHttpRequestResponseType = "" | "arraybuffer" | "blob" | "document" | "json" | "text";
