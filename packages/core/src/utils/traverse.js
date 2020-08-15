@@ -404,6 +404,77 @@ function convertArraySpreadIntoConcat(currentNode: Node) {
   return currentNode;
 }
 
+function getNameForArrayPattern(pattern: Node) {
+  let identifier = pattern;
+  while (identifier.type !== NODE.IDENTIFIER) {
+    switch(identifier.type) {
+      case NODE.ARRAY_PATTERN: identifier = identifier.elements[0]; break;
+      case NODE.REST_ELEMENT: identifier = identifier.argument; break;
+      case NODE.ASSIGNMENT_PATTERN: identifier = identifier.left; break;
+      case NODE.OBJECT_PATTERN: identifier = identifier.properties[0].value; break;
+    }
+  }
+  return `[${identifier.name}]`;
+}
+
+function patternElementIntoDeclarator(currentNode: Node, index: number, init: Node) {
+  switch(currentNode.type) {
+    case NODE.IDENTIFIER: 
+    case NODE.ARRAY_PATTERN:
+    case NODE.OBJECT_PATTERN:
+      return {
+        type: NODE.VARIABLE_DECLARATOR,
+        id: currentNode,
+        loc: currentNode.loc,
+        init: {
+          type: NODE.MEMBER_EXPRESSION,
+          computed: true,
+          object: init,
+          loc: currentNode.loc,
+          property: {
+            type: NODE.NUMERIC_LITERAL,
+            value: index,
+            loc: currentNode.loc
+          }
+        }
+      }; 
+  }
+}
+
+function declarationPatternIntoAssignments(currentNode: Node) {
+  const pattern = currentNode.id;
+  const identifier = {
+    type: NODE.IDENTIFIER,
+    loc: currentNode.id.loc,
+    name: getNameForArrayPattern(pattern)
+  };
+  currentNode.id = identifier;
+  return [
+    currentNode,
+    ...pattern.elements.map(
+      (node, index) => patternElementIntoDeclarator(node, index, identifier)
+    )
+  ]; 
+}
+
+function convertArrayPatternIntoAssignments(currentNode: Node) {
+  if (
+    currentNode.type !== NODE.VARIABLE_DECLARATION ||
+    !currentNode.declarations.some(declaration => declaration.id.type === NODE.ARRAY_PATTERN)
+  ) {
+    return currentNode; 
+  }
+  currentNode.declarations = currentNode.declarations.flatMap(
+    decl => {
+      switch(decl.id.type) {
+        case NODE.ARRAY_PATTERN: return declarationPatternIntoAssignments(decl);
+      }
+      return [decl];
+    }
+  );
+  return convertArrayPatternIntoAssignments(currentNode);
+}
+
 function removeNodesWhichConteindInElse(
   alternateBody: Array<Node>,
   inferencedBody: Array<Node>
@@ -507,7 +578,8 @@ const getCurrentNode = compose(
   mixParentToClassObjectAndFunction,
   sortClassMembers,
   convertObjectSpreadIntoAssign,
-  convertArraySpreadIntoConcat
+  convertArraySpreadIntoConcat,
+  convertArrayPatternIntoAssignments
 );
 
 export type Handler = (
