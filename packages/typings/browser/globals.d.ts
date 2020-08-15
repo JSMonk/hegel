@@ -2296,32 +2296,24 @@ declare var AudioListener: {
   new(): AudioListener;
 };
 
+//TODO:Soremwar Uncomment context property (breaks implementation)
 /** A generic interface for representing an audio processing module. Examples include: */
-// interface AudioNode extends EventTarget {
-//   channelCount: number;
-//   channelCountMode: ChannelCountMode;
-//   channelInterpretation: ChannelInterpretation;
-//   readonly context: BaseAudioContext;
-//   readonly numberOfInputs: number;
-//   readonly numberOfOutputs: number;
-//   connect(destinationNode: AudioNode, output?: number, input?: number): AudioNode;
-//   connect(destinationParam: AudioParam, output?: number): void;
-//   disconnect(): void;
-//   disconnect(output: number): void;
-//   disconnect(destinationNode: AudioNode): void;
-//   disconnect(destinationNode: AudioNode, output: number): void;
-//   disconnect(destinationNode: AudioNode, output: number, input: number): void;
-//   disconnect(destinationParam: AudioParam): void;
-//   disconnect(destinationParam: AudioParam, output: number): void;
-// }
-
-// declare var AudioNode: {
-//   prototype: AudioNode;
-//   new(): AudioNode;
-// };
-
-//TODO:Soremwar use real AudioNode interface
 interface AudioNode extends EventTarget {
+  channelCount: number;
+  channelCountMode: ChannelCountMode;
+  channelInterpretation: ChannelInterpretation;
+  //readonly context: BaseAudioContext;
+  readonly numberOfInputs: number;
+  readonly numberOfOutputs: number;
+  connect(destinationNode: AudioNode, output?: number, input?: number): AudioNode;
+  connect(destinationParam: AudioParam, output?: number): void;
+  disconnect(): void;
+  disconnect(output: number): void;
+  disconnect(destinationNode: AudioNode): void;
+  disconnect(destinationNode: AudioNode, output: number): void;
+  disconnect(destinationNode: AudioNode, output: number, input: number): void;
+  disconnect(destinationParam: AudioParam): void;
+  disconnect(destinationParam: AudioParam, output: number): void;
 }
 
 declare var AudioNode: {
