@@ -492,6 +492,42 @@ function convertArrayPatternIntoAssignments(currentNode: Node) {
   return convertArrayPatternIntoAssignments(currentNode);
 }
 
+function convertArrayPatternFunctionParamsIntoAssign(currentNode: Node) {
+  if (
+    !NODE.isFunction(currentNode) ||
+    !currentNode.params.some(param => { param = param.left || param; return param.type === NODE.ARRAY_PATTERN })
+  ) {
+    return currentNode;
+  }
+  const declarations = [];
+  currentNode.params = currentNode.params.map((param, index) => {
+    const isAssignmentPattern = param.type === NODE.ASSIGNMENT_PATTERN;
+    const arg = isAssignmentPattern ? param.left : param;
+    if (arg.type !== NODE.ARRAY_PATTERN) {
+      return param;
+    }
+    const newArg = {
+      ...arg,
+      type: NODE.IDENTIFIER,
+      name: `arg:${index}`,
+      loc: arg.loc
+    };
+    declarations.push({
+      type: NODE.VARIABLE_DECLARATOR,
+      id: arg,
+      init: newArg,
+      loc: arg.loc,
+    }); 
+    return isAssignmentPattern ? { ...param, left: newArg } : newArg;
+  });
+  currentNode.body.body.unshift({
+    type: NODE.VARIABLE_DECLARATION,
+    kind: "let",
+    declarations 
+  });
+  return currentNode;
+}
+
 function removeNodesWhichConteindInElse(
   alternateBody: Array<Node>,
   inferencedBody: Array<Node>
@@ -596,7 +632,8 @@ const getCurrentNode = compose(
   sortClassMembers,
   convertObjectSpreadIntoAssign,
   convertArraySpreadIntoConcat,
-  convertArrayPatternIntoAssignments
+  convertArrayPatternIntoAssignments,
+  convertArrayPatternFunctionParamsIntoAssign
 );
 
 export type Handler = (
