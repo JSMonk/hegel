@@ -218,6 +218,9 @@ const fillModuleScope = (
       case NODE.LOGICAL_EXPRESSION:
       case NODE.CONDITIONAL_EXPRESSION:
       case NODE.SWITCH_CASE:
+        if (currentNode.operator === "??") {
+          break;
+        }
         refinement(
           currentNode,
           getParentForNode(currentNode, parentNode, typeGraph),

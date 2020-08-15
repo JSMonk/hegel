@@ -412,35 +412,37 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.LOGICAL_EXPRESSION:
-      args = [
-        addCallToTypeGraph(
-          node.left.body,
-          moduleScope,
-          // $FlowIssue
-          moduleScope.scopes.get(VariableScope.getName(node.left)),
-          node.left,
-          pre,
-          middle,
-          post,
-          meta
-        ).result,
-        addCallToTypeGraph(
-          node.right.body,
-          moduleScope,
-          // $FlowIssue
-          moduleScope.scopes.get(VariableScope.getName(node.right)),
-          node.right,
-          pre,
-          middle,
-          post,
-          meta
-        ).result
-      ];
-      let leftArg = args[0];
-      leftArg = leftArg instanceof VariableInfo ? leftArg.type : leftArg;
-      leftArg =
-        node.operator === "&&" ? pickFalsy(leftArg) : pickTruthy(leftArg);
-      args[0] = leftArg || args[0];
+      if (node.operator !== "??") {
+        args = [
+          addCallToTypeGraph(
+            node.left.body,
+            moduleScope,
+            // $FlowIssue
+            moduleScope.scopes.get(VariableScope.getName(node.left)),
+            node.left,
+            pre,
+            middle,
+            post,
+            meta
+          ).result,
+          addCallToTypeGraph(
+            node.right.body,
+            moduleScope,
+            // $FlowIssue
+            moduleScope.scopes.get(VariableScope.getName(node.right)),
+            node.right,
+            pre,
+            middle,
+            post,
+            meta
+          ).result
+        ];
+        let leftArg = args[0];
+        leftArg = leftArg instanceof VariableInfo ? leftArg.type : leftArg;
+        leftArg =
+          node.operator === "&&" ? pickFalsy(leftArg) : pickTruthy(leftArg);
+        args[0] = leftArg || args[0];
+      }
     case NODE.BINARY_EXPRESSION:
       args = args || [
         addCallToTypeGraph(

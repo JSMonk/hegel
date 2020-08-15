@@ -405,16 +405,7 @@ function convertArraySpreadIntoConcat(currentNode: Node) {
 }
 
 function getNameForArrayPattern(pattern: Node) {
-  let identifier = pattern;
-  while (identifier.type !== NODE.IDENTIFIER) {
-    switch(identifier.type) {
-      case NODE.ARRAY_PATTERN: identifier = identifier.elements[0]; break;
-      case NODE.REST_ELEMENT: identifier = identifier.argument; break;
-      case NODE.ASSIGNMENT_PATTERN: identifier = identifier.left; break;
-      case NODE.OBJECT_PATTERN: identifier = identifier.properties[0].value; break;
-    }
-  }
-  return `[${identifier.name}]`;
+  return `[${pattern.loc.start.line}:${pattern.loc.start.column}]`;
 }
 
 function patternElementIntoDeclarator(currentNode: Node, index: number, init: Node) {
@@ -438,6 +429,32 @@ function patternElementIntoDeclarator(currentNode: Node, index: number, init: No
           }
         }
       }; 
+    case NODE.REST_ELEMENT:
+      return {
+        type: NODE.VARIABLE_DECLARATOR,
+        id: currentNode.argument,
+        loc: currentNode.loc,
+        init: {
+          type: NODE.CALL_EXPRESSION,
+          loc: currentNode.loc,
+          arguments: [{ type: NODE.NUMERIC_LITERAL, value: index }],
+          callee: {
+            type: NODE.MEMBER_EXPRESSION,
+            loc: currentNode.loc,
+            object: init,
+            property: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "slice" }
+          },
+        }
+      };
+    case NODE.ASSIGNMENT_PATTERN:
+     const identifier = patternElementIntoDeclarator(currentNode.left, index, init);
+     identifier.init = {
+       type: NODE.LOGICAL_EXPRESSION,
+       operator: "??",
+       left: identifier.init,
+       right: currentNode.right
+     };
+     return identifier;
   }
 }
 

@@ -980,6 +980,25 @@ const mixBaseOperators = moduleScope => {
       )
     ],
     [
+      "??",
+      genericFunction(
+        typeScope,
+        parent => [
+          ["A", TypeVar.term("A", { parent })],
+          ["B", TypeVar.term("B", { parent })]
+        ],
+        l => [
+          UnionType.term(null, {}, [Type.Undefined, Type.Null, l.body.get("A")]),
+          l.body.get("B")
+        ],
+        l =>
+          UnionType.term("A | B", { parent: l }, [
+            l.body.get("A"),
+            l.body.get("B")
+          ])
+      )
+    ],
+    [
       "?:",
       genericFunction(
         typeScope,
