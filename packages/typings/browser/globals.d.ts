@@ -1976,33 +1976,35 @@ declare var AbortSignal: {
   new(): AbortSignal;
 };
 
-// interface AbstractRange {
-//   /**
-//    * Returns true if range is collapsed, and false otherwise.
-//    */
-//   readonly collapsed: boolean;
-//   /**
-//    * Returns range's end node.
-//    */
-//   readonly endContainer: Node;
-//   /**
-//    * Returns range's end offset.
-//    */
-//   readonly endOffset: number;
-//   /**
-//    * Returns range's start node.
-//    */
-//   readonly startContainer: Node;
-//   /**
-//    * Returns range's start offset.
-//    */
-//   readonly startOffset: number;
-// }
+interface AbstractRange {
+  /**
+   * Returns true if range is collapsed, and false otherwise.
+   */
+  readonly collapsed: boolean;
+  /**
+   * Returns range's end node.
+   */
+  readonly endContainer: Placeholder;
+  //readonly endContainer: Node;
+  /**
+   * Returns range's end offset.
+   */
+  readonly endOffset: number;
+  /**
+   * Returns range's start node.
+   */
+  readonly startContainer: Placeholder;
+  //readonly startContainer: Node;
+  /**
+   * Returns range's start offset.
+   */
+  readonly startOffset: number;
+}
 
-// declare var AbstractRange: {
-//   prototype: AbstractRange;
-//   new(): AbstractRange;
-// };
+declare var AbstractRange: {
+  prototype: AbstractRange;
+  new(): AbstractRange;
+};
 
 // interface AbstractWorkerEventMap {
 //   "error": ErrorEvent;
