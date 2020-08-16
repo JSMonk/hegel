@@ -420,6 +420,9 @@ function patternElementIntoDeclarator(
   index: number,
   properties?: Array<Node>
 ) {
+  if (currentNode === null) {
+    return null;
+  }
   switch(currentNode.type) {
     case NODE.ASSIGNMENT_PATTERN:
      const identifier = patternElementIntoDeclarator(currentNode.left, init, index, properties);
@@ -515,12 +518,12 @@ function patternDeclarationIntoAssignments(currentNode: Node) {
   currentNode.id = identifier;
   const isObjectPattern = pattern.type === NODE.OBJECT_PATTERN;
   const properties = isObjectPattern ? [] : undefined;
-  const elements =   isObjectPattern ? pattern.properties : pattern.elements;
+  const elements = isObjectPattern ? pattern.properties : pattern.elements;
   return [
     currentNode,
-    ...elements.map(
-      (node, index) => patternElementIntoDeclarator(node, identifier, index, properties)
-    )
+    ...elements
+      .map((node, index) => patternElementIntoDeclarator(node, identifier, index, properties))
+      .filter(n => n !== null)
   ]; 
 }
 
