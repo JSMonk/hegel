@@ -589,7 +589,7 @@ const afterFillierActions = (
           !isTypeDefinitions &&
           currentNode.init !== null &&
           currentNode.id != null &&
-          (currentNode.id.name[0] === "[" || currentNode.id.name[0] === "{") &&
+          currentNode.id.name[0] === "[" &&
           !(
              newType instanceof TupleType ||
              newType instanceof CollectionType ||
@@ -599,7 +599,7 @@ const afterFillierActions = (
              )
            )
         ) {
-          newType = CollectionType.Array.root.applyGeneric([getIteratorValueType(newType)]);
+          newType = CollectionType.Array.root.applyGeneric([getIteratorValueType(newType, currentNode.init)]);
         }
         if (
           currentNode.id != null &&

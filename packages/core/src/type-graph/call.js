@@ -284,6 +284,7 @@ export function addCallToTypeGraph(
         // $FlowIssue
         moduleScope.addPosition(node.id, variableType);
       }
+      currentScope.body.delete(node.id.name);
       const init =
         node.init === null
           ? {
@@ -303,6 +304,7 @@ export function addCallToTypeGraph(
                 isImmutable: variableType.type instanceof $AppliedImmutable
               }
             );
+      currentScope.body.set(node.id.name, variableType);
       inferenced = init.inferenced;
       targetName = "init";
       args = [variableType, init.result];

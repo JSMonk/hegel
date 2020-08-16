@@ -5,8 +5,10 @@ import { TypeScope } from "../type-graph/type-scope";
 import { UnionType } from "../type-graph/types/union-type";
 import { ObjectType } from "../type-graph/types/object-type";
 import { GenericType } from "../type-graph/types/generic-type";
+import { $BottomType } from "../type-graph/types/bottom-type";
 import { FunctionType } from "../type-graph/types/function-type";
 import { VariableInfo } from "../type-graph/variable-info";
+import { CollectionType } from "../type-graph/types/collection-type";
 import { $AppliedStrictUnion } from "../type-graph/types/strict-union-type";
 
 const zeroMetaLocation = new Meta();
@@ -23,9 +25,7 @@ export const genericFunction = (
   );
   let genericArguments = getGenericArguments(localTypeScope);
   genericArguments.forEach(([key, type]) => localTypeScope.body.set(key, type));
-  genericArguments = genericArguments.map(([, t]) =>
-    Object.assign(t, { isUserDefined: true })
-  );
+  genericArguments = genericArguments.map(([, t]) => { t.isUserDefined = true; return t; });
   const parametersTypes = getTypeParameters(localTypeScope);
   const returnType = getReturnType(localTypeScope);
   return GenericType.term(
@@ -45,6 +45,22 @@ export const genericFunction = (
 const mixBaseOperators = moduleScope => {
   const typeScope = moduleScope.typeScope;
   const operators = [
+    // We need it for rest operator inside object pattern
+    [
+      "Object::Omit",
+      genericFunction(
+        typeScope,
+        parent => {
+          const O = TypeVar.term("O", { parent }, ObjectType.Object);
+          O.isUserDefined = true;
+          const K = TypeVar.term("K", { parent }, new $BottomType({}, typeScope.body.get("$Keys"), [O]));
+          K.isUserDefined = true;
+          return [["O", O], ["K", K]];
+        },
+        l => [l.body.get("O"), CollectionType.Array.root.applyGeneric([l.body.get("K")])],
+        l => new $BottomType({}, typeScope.body.get("$Omit"), [l.body.get("O"), l.body.get("K")])
+      )
+    ],
     [
       "+",
       genericFunction(

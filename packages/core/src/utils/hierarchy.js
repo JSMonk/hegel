@@ -61,7 +61,7 @@ export function dropAllGlobals() {
 function defineOrFindObject(Class, name, scope) {
   const type = Class[name];
   type.root = ObjectType.term(name, {}, []);
-  scope.body.set("Object", type);
+  scope.body.set(name, type);
 }
 
 function defineOrFindGeneric(Class, name, scope) {

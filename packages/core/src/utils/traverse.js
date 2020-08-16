@@ -404,15 +404,53 @@ function convertArraySpreadIntoConcat(currentNode: Node) {
   return currentNode;
 }
 
-function getNameForArrayPattern(pattern: Node) {
-  return `[${pattern.loc.start.line}:${pattern.loc.start.column}]`;
+function getNameForPattern(pattern: Node) {
+  let left = "{";
+  let right = "}";
+  if (pattern.type === NODE.ARRAY_PATTERN) {
+    left = "[";
+    right = "]";
+  }
+  return `${left}${pattern.loc.start.line}:${pattern.loc.start.column}${right}`;
 }
 
-function patternElementIntoDeclarator(currentNode: Node, index: number, init: Node) {
+function patternElementIntoDeclarator(
+  currentNode: Node,
+  init: Node,
+  index: number,
+  properties?: Array<Node>
+) {
   switch(currentNode.type) {
+    case NODE.ASSIGNMENT_PATTERN:
+     const identifier = patternElementIntoDeclarator(currentNode.left, init, index, properties);
+     identifier.init = {
+       type: NODE.LOGICAL_EXPRESSION,
+       operator: "??",
+       left: identifier.init,
+       right: currentNode.right
+     };
+     return identifier;
+    case NODE.OBJECT_PROPERTY:
+      properties.push(
+        currentNode.key.type === NODE.IDENTIFIER
+          ? { type: NODE.STRING_LITERAL, value: currentNode.key.name }
+          : currentNode.key
+      );
+      return {
+        type: NODE.VARIABLE_DECLARATOR,
+        id: currentNode.value,
+        loc: currentNode.loc,
+        init: {
+          computed: currentNode.key.type !== NODE.IDENTIFIER,
+          type: NODE.MEMBER_EXPRESSION,
+          object: init,
+          loc: currentNode.loc,
+          property: currentNode.key
+        }
+      };
+    case NODE.OBJECT_PATTERN:
     case NODE.IDENTIFIER: 
     case NODE.ARRAY_PATTERN:
-    case NODE.OBJECT_PATTERN:
       return {
         type: NODE.VARIABLE_DECLARATOR,
         id: currentNode,
@@ -430,72 +468,86 @@ function patternElementIntoDeclarator(currentNode: Node, index: number, init: No
         }
       }; 
     case NODE.REST_ELEMENT:
-      return {
-        type: NODE.VARIABLE_DECLARATOR,
-        id: currentNode.argument,
-        loc: currentNode.loc,
-        init: {
-          type: NODE.CALL_EXPRESSION,
-          loc: currentNode.loc,
-          arguments: [{ type: NODE.NUMERIC_LITERAL, value: index }],
-          callee: {
-            type: NODE.MEMBER_EXPRESSION,
+      return properties === undefined 
+        ? {
+            type: NODE.VARIABLE_DECLARATOR,
+            id: currentNode.argument,
             loc: currentNode.loc,
-            object: init,
-            property: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "slice" }
-          },
-        }
-      };
-    case NODE.ASSIGNMENT_PATTERN:
-     const identifier = patternElementIntoDeclarator(currentNode.left, index, init);
-     identifier.init = {
-       type: NODE.LOGICAL_EXPRESSION,
-       operator: "??",
-       left: identifier.init,
-       right: currentNode.right
-     };
-     return identifier;
+            init: {
+              type: NODE.CALL_EXPRESSION,
+              loc: currentNode.loc,
+              arguments: [{ type: NODE.NUMERIC_LITERAL, value: index }],
+              callee: {
+                type: NODE.MEMBER_EXPRESSION,
+                loc: currentNode.loc,
+                object: init,
+                property: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "slice" }
+              },
+            }
+          }
+        : {
+            type: NODE.VARIABLE_DECLARATOR,
+            id: currentNode.argument,
+            loc: currentNode.loc,
+            init: {
+              type: NODE.CALL_EXPRESSION,
+              loc: currentNode.loc,
+              arguments: [
+                init,
+                {
+                  type: NODE.ARRAY_EXPRESSION,
+                  elements: properties
+                }
+              ],
+              callee: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "Object::Omit" }
+            }
+          };
   }
 }
 
-function declarationPatternIntoAssignments(currentNode: Node) {
+function patternDeclarationIntoAssignments(currentNode: Node) {
   const pattern = currentNode.id;
   const identifier = {
     type: NODE.IDENTIFIER,
     loc: currentNode.id.loc,
-    name: getNameForArrayPattern(pattern)
+    name: getNameForPattern(pattern)
   };
   currentNode.id = identifier;
+  const isObjectPattern = pattern.type === NODE.OBJECT_PATTERN;
+  const properties = isObjectPattern ? [] : undefined;
+  const elements =   isObjectPattern ? pattern.properties : pattern.elements;
   return [
     currentNode,
-    ...pattern.elements.map(
-      (node, index) => patternElementIntoDeclarator(node, index, identifier)
+    ...elements.map(
+      (node, index) => patternElementIntoDeclarator(node, identifier, index, properties)
     )
   ]; 
 }
 
-function convertArrayPatternIntoAssignments(currentNode: Node) {
+function convertPatternIntoAssignments(currentNode: Node) {
   if (
     currentNode.type !== NODE.VARIABLE_DECLARATION ||
-    !currentNode.declarations.some(declaration => declaration.id.type === NODE.ARRAY_PATTERN)
+    !currentNode.declarations.some(declaration => { 
+      declaration = declaration.id.left || declaration.id;
+      return declaration.type === NODE.ARRAY_PATTERN || declaration.type === NODE.OBJECT_PATTERN
+    })
   ) {
     return currentNode; 
   }
   currentNode.declarations = currentNode.declarations.flatMap(
-    decl => {
-      switch(decl.id.type) {
-        case NODE.ARRAY_PATTERN: return declarationPatternIntoAssignments(decl);
-      }
-      return [decl];
-    }
+    decl => 
+      decl.id.type === NODE.IDENTIFIER ? [decl] : patternDeclarationIntoAssignments(decl)
   );
-  return convertArrayPatternIntoAssignments(currentNode);
+  return convertPatternIntoAssignments(currentNode);
 }
 
-function convertArrayPatternFunctionParamsIntoAssign(currentNode: Node) {
+function convertPatternFunctionParamsIntoAssign(currentNode: Node) {
   if (
     !NODE.isFunction(currentNode) ||
-    !currentNode.params.some(param => { param = param.left || param; return param.type === NODE.ARRAY_PATTERN })
+    !currentNode.params.some(param => { 
+      param = param.left || param;
+      return param.type === NODE.ARRAY_PATTERN || param.type === NODE.OBJECT_PATTERN;
+    })
   ) {
     return currentNode;
   }
@@ -632,8 +684,8 @@ const getCurrentNode = compose(
   sortClassMembers,
   convertObjectSpreadIntoAssign,
   convertArraySpreadIntoConcat,
-  convertArrayPatternIntoAssignments,
-  convertArrayPatternFunctionParamsIntoAssign
+  convertPatternIntoAssignments,
+  convertPatternFunctionParamsIntoAssign
 );
 
 export type Handler = (
