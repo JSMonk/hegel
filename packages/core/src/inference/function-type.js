@@ -506,7 +506,7 @@ export function implicitApplyGeneric(
         }
         root = principal;
       }
-      appliedArgumentsTypes.set(variable, root);
+      appliedArgumentsTypes.set(variable, Type.getTypeRoot(root));
     }
     if (maybeBottom instanceof $BottomType) {
       maybeBottom.unrootSubordinateType();

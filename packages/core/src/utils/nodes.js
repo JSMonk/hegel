@@ -75,7 +75,9 @@ export const EXPRESSIONS_TYPES = {
   THIS_EXPRESSION: "ThisExpression",
   TS_EXPRESSION_WITH_TYPE_ARGUMENTS: "TSExpressionWithTypeArguments",
   REST_ELEMENT: "RestElement",
-  SPREAD_ELEMENT: "SpreadElement"
+  SPREAD_ELEMENT: "SpreadElement",
+  ARRAY_PATTERN: "ArrayPattern",
+  OBJECT_PATTERN: "ObjectPattern"
 };
 
 export const OBJECT_PROPERTIES = {

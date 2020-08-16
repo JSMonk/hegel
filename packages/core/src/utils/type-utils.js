@@ -1000,7 +1000,22 @@ export function isFalsy(type: Type) {
   return getFalsy().includes(type);
 }
 
-export function getIteratorValueType(iterator: Type, isIterable: boolean) {
+export function getIteratorValueType(iterator: Type, loc: SourceLocation) {
+  if (iterator instanceof TypeVar && !iterator.isUserDefined) {
+    iterator.root = new $BottomType({}, CollectionType.Array.root, [
+      Object.assign(Object.create(TypeVar.prototype), iterator)
+    ]);
+  }
+  const CommonIterable = ObjectType.Iterable.root.applyGeneric([Type.Unknown]);
+  const CommonIterator = ObjectType.Iterator.root.applyGeneric([Type.Unknown]);
+  const isIterable = CommonIterable.isPrincipalTypeFor(iterator);
+  const isIterator = CommonIterator.isPrincipalTypeFor(iterator);
+  if (!isIterable && !isIterator) {
+    throw new HegelError(
+      `Type '${String(iterator.name)}' must have a '[Symbol.iterator]()' method that returns an iterator.`,
+      loc
+    );
+  }
   iterator = iterator.getOponentType(iterator);
   const $SymbolConstructor = Type.find("SymbolConstructor"); 
   const $ReturnType = Type.find("$ReturnType"); 
@@ -1018,3 +1033,5 @@ export function getIteratorValueType(iterator: Type, isIterable: boolean) {
   }
   return ValueType;  
 }
+
+

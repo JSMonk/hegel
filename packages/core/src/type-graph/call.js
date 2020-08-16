@@ -284,6 +284,7 @@ export function addCallToTypeGraph(
         // $FlowIssue
         moduleScope.addPosition(node.id, variableType);
       }
+      currentScope.body.delete(node.id.name);
       const init =
         node.init === null
           ? {
@@ -303,6 +304,7 @@ export function addCallToTypeGraph(
                 isImmutable: variableType.type instanceof $AppliedImmutable
               }
             );
+      currentScope.body.set(node.id.name, variableType);
       inferenced = init.inferenced;
       targetName = "init";
       args = [variableType, init.result];
@@ -412,35 +414,37 @@ export function addCallToTypeGraph(
       );
       break;
     case NODE.LOGICAL_EXPRESSION:
-      args = [
-        addCallToTypeGraph(
-          node.left.body,
-          moduleScope,
-          // $FlowIssue
-          moduleScope.scopes.get(VariableScope.getName(node.left)),
-          node.left,
-          pre,
-          middle,
-          post,
-          meta
-        ).result,
-        addCallToTypeGraph(
-          node.right.body,
-          moduleScope,
-          // $FlowIssue
-          moduleScope.scopes.get(VariableScope.getName(node.right)),
-          node.right,
-          pre,
-          middle,
-          post,
-          meta
-        ).result
-      ];
-      let leftArg = args[0];
-      leftArg = leftArg instanceof VariableInfo ? leftArg.type : leftArg;
-      leftArg =
-        node.operator === "&&" ? pickFalsy(leftArg) : pickTruthy(leftArg);
-      args[0] = leftArg || args[0];
+      if (node.operator !== "??") {
+        args = [
+          addCallToTypeGraph(
+            node.left.body,
+            moduleScope,
+            // $FlowIssue
+            moduleScope.scopes.get(VariableScope.getName(node.left)),
+            node.left,
+            pre,
+            middle,
+            post,
+            meta
+          ).result,
+          addCallToTypeGraph(
+            node.right.body,
+            moduleScope,
+            // $FlowIssue
+            moduleScope.scopes.get(VariableScope.getName(node.right)),
+            node.right,
+            pre,
+            middle,
+            post,
+            meta
+          ).result
+        ];
+        let leftArg = args[0];
+        leftArg = leftArg instanceof VariableInfo ? leftArg.type : leftArg;
+        leftArg =
+          node.operator === "&&" ? pickFalsy(leftArg) : pickTruthy(leftArg);
+        args[0] = leftArg || args[0];
+      }
     case NODE.BINARY_EXPRESSION:
       args = args || [
         addCallToTypeGraph(
@@ -613,21 +617,10 @@ export function addCallToTypeGraph(
         post,
         meta
       ).result;
-      args = [target];
       const maybeIterableType = target instanceof VariableInfo ? target.type : target;
-      const CommonIterable = ObjectType.Iterable.root.applyGeneric([Type.Unknown]);
-      const CommonIterator = ObjectType.Iterator.root.applyGeneric([Type.Unknown]);
-      const isIterable = CommonIterable.isPrincipalTypeFor(maybeIterableType);
-      const isIterator = CommonIterator.isPrincipalTypeFor(maybeIterableType);
-      if (isIterable || isIterator) {
-        return {
-          result: getIteratorValueType(maybeIterableType, isIterable)
-        };
-      }
-      throw new HegelError(
-        `Type '${String(maybeIterableType.name)}' must have a '[Symbol.iterator]()' method that returns an iterator.`,
-        node.of.loc
-      );
+      return {
+        result: getIteratorValueType(maybeIterableType, node.of)
+      };
     case NODE.MEMBER_EXPRESSION:
       const propertyName =
         node.property.type === NODE.PRIVATE_NAME
@@ -938,18 +931,8 @@ export function addCallToTypeGraph(
                 : UnionType.term(null, {}, [Type.Undefined, resultType.valueType])
             );
           }
-          const CommonIterable = ObjectType.Iterable.root.applyGeneric([Type.Unknown]);
-          const CommonIterator = ObjectType.Iterator.root.applyGeneric([Type.Unknown]);
-          const isIterable = CommonIterable.isPrincipalTypeFor(resultType);
-          const isIterator = CommonIterator.isPrincipalTypeFor(resultType);
-          if (isIterable || isIterator) {
-              const element = getIteratorValueType(resultType, isIterable);
-              return restOfArguments.fill(UnionType.term(null, {}, [Type.Undefined, element]));
-          }
-          throw new HegelError(
-            `Type '${String(resultType.name)}' must have a '[Symbol.iterator]()' method that returns an iterator.`,
-            n.loc
-          );
+          const element = getIteratorValueType(resultType, n.loc);
+          return restOfArguments.fill(UnionType.term(null, {}, [Type.Undefined, element]));
         }
         return result;
       });

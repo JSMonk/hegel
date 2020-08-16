@@ -404,6 +404,186 @@ function convertArraySpreadIntoConcat(currentNode: Node) {
   return currentNode;
 }
 
+function getNameForPattern(pattern: Node) {
+  let left = "{";
+  let right = "}";
+  if (pattern.type === NODE.ARRAY_PATTERN) {
+    left = "[";
+    right = "]";
+  }
+  return `${left}${pattern.loc.start.line}:${pattern.loc.start.column}${right}`;
+}
+
+function patternElementIntoDeclarator(
+  currentNode: Node,
+  init: Node,
+  index: number,
+  properties?: Array<Node>
+) {
+  if (currentNode === null) {
+    return null;
+  }
+  switch(currentNode.type) {
+    case NODE.ASSIGNMENT_PATTERN:
+     const identifier = patternElementIntoDeclarator(currentNode.left, init, index, properties);
+     identifier.init = {
+       type: NODE.LOGICAL_EXPRESSION,
+       operator: "??",
+       left: identifier.init,
+       right: currentNode.right
+     };
+     return identifier;
+    case NODE.OBJECT_PROPERTY:
+      properties.push(
+        currentNode.key.type === NODE.IDENTIFIER
+          ? { type: NODE.STRING_LITERAL, value: currentNode.key.name }
+          : currentNode.key
+      );
+      currentNode.isPattern = true;
+      return {
+        type: NODE.VARIABLE_DECLARATOR,
+        id: currentNode.value,
+        loc: currentNode.loc,
+        init: {
+          computed: currentNode.key.type !== NODE.IDENTIFIER,
+          type: NODE.MEMBER_EXPRESSION,
+          object: init,
+          loc: currentNode.loc,
+          property: currentNode.key
+        }
+      };
+    case NODE.OBJECT_PATTERN:
+    case NODE.IDENTIFIER: 
+    case NODE.ARRAY_PATTERN:
+      return {
+        type: NODE.VARIABLE_DECLARATOR,
+        id: currentNode,
+        loc: currentNode.loc,
+        init: {
+          type: NODE.MEMBER_EXPRESSION,
+          computed: true,
+          object: init,
+          loc: currentNode.loc,
+          property: {
+            type: NODE.NUMERIC_LITERAL,
+            value: index,
+            loc: currentNode.loc
+          }
+        }
+      }; 
+    case NODE.REST_ELEMENT:
+      return properties === undefined 
+        ? {
+            type: NODE.VARIABLE_DECLARATOR,
+            id: currentNode.argument,
+            loc: currentNode.loc,
+            init: {
+              type: NODE.CALL_EXPRESSION,
+              loc: currentNode.loc,
+              arguments: [{ type: NODE.NUMERIC_LITERAL, value: index }],
+              callee: {
+                type: NODE.MEMBER_EXPRESSION,
+                loc: currentNode.loc,
+                object: init,
+                property: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "slice" }
+              },
+            }
+          }
+        : {
+            type: NODE.VARIABLE_DECLARATOR,
+            id: currentNode.argument,
+            loc: currentNode.loc,
+            init: {
+              type: NODE.CALL_EXPRESSION,
+              loc: currentNode.loc,
+              arguments: [
+                init,
+                {
+                  type: NODE.ARRAY_EXPRESSION,
+                  elements: properties
+                }
+              ],
+              callee: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "Object::Omit" }
+            }
+          };
+  }
+}
+
+function patternDeclarationIntoAssignments(currentNode: Node) {
+  const pattern = currentNode.id;
+  const identifier = {
+    type: NODE.IDENTIFIER,
+    loc: currentNode.id.loc,
+    name: getNameForPattern(pattern)
+  };
+  currentNode.id = identifier;
+  const isObjectPattern = pattern.type === NODE.OBJECT_PATTERN;
+  const properties = isObjectPattern ? [] : undefined;
+  const elements = isObjectPattern ? pattern.properties : pattern.elements;
+  return [
+    currentNode,
+    ...elements
+      .map((node, index) => patternElementIntoDeclarator(node, identifier, index, properties))
+      .filter(n => n !== null)
+  ]; 
+}
+
+function convertPatternIntoAssignments(currentNode: Node) {
+  if (
+    currentNode.type !== NODE.VARIABLE_DECLARATION ||
+    !currentNode.declarations.some(declaration => { 
+      declaration = declaration.id.left || declaration.id;
+      return declaration.type === NODE.ARRAY_PATTERN || declaration.type === NODE.OBJECT_PATTERN
+    })
+  ) {
+    return currentNode; 
+  }
+  currentNode.declarations = currentNode.declarations.flatMap(
+    decl => 
+      decl.id.type === NODE.IDENTIFIER ? [decl] : patternDeclarationIntoAssignments(decl)
+  );
+  return convertPatternIntoAssignments(currentNode);
+}
+
+function convertPatternFunctionParamsIntoAssign(currentNode: Node) {
+  if (
+    !NODE.isFunction(currentNode) ||
+    !currentNode.params.some(param => { 
+      param = param.left || param;
+      return param.type === NODE.ARRAY_PATTERN || param.type === NODE.OBJECT_PATTERN;
+    })
+  ) {
+    return currentNode;
+  }
+  const declarations = [];
+  currentNode.params = currentNode.params.map((param, index) => {
+    const isAssignmentPattern = param.type === NODE.ASSIGNMENT_PATTERN;
+    const arg = isAssignmentPattern ? param.left : param;
+    if (arg.type !== NODE.ARRAY_PATTERN && arg.type !== NODE.OBJECT_PATTERN) {
+      return param;
+    }
+    const newArg = {
+      ...arg,
+      type: NODE.IDENTIFIER,
+      name: `arg:${index}`,
+      loc: arg.loc
+    };
+    declarations.push({
+      type: NODE.VARIABLE_DECLARATOR,
+      id: arg,
+      init: newArg,
+      loc: arg.loc,
+    }); 
+    return isAssignmentPattern ? { ...param, left: newArg } : newArg;
+  });
+  currentNode.body.body.unshift({
+    type: NODE.VARIABLE_DECLARATION,
+    kind: "let",
+    declarations 
+  });
+  return currentNode;
+}
+
 function removeNodesWhichConteindInElse(
   alternateBody: Array<Node>,
   inferencedBody: Array<Node>
@@ -507,7 +687,9 @@ const getCurrentNode = compose(
   mixParentToClassObjectAndFunction,
   sortClassMembers,
   convertObjectSpreadIntoAssign,
-  convertArraySpreadIntoConcat
+  convertArraySpreadIntoConcat,
+  convertPatternIntoAssignments,
+  convertPatternFunctionParamsIntoAssign
 );
 
 export type Handler = (

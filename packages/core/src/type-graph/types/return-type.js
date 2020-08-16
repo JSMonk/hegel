@@ -1,6 +1,7 @@
 import HegelError from "../../utils/errors";
 import { Type } from "./type";
 import { TypeVar } from "./type-var";
+import { UnionType } from "./union-type";
 import { TypeScope } from "../type-scope";
 import { GenericType } from "./generic-type";
 import { FunctionType } from "./function-type";
@@ -40,6 +41,13 @@ export class $ReturnType extends GenericType {
     isCalledAsBottom = false
   ) {
     let [target, ...genericParameters] = parameters;
+    if (target instanceof UnionType) {
+      return UnionType.term(
+        null,
+        {},
+        target.variants.map(a => this.applyGeneric([a, ...genericParameters], loc, shouldBeMemoize, isCalledAsBottom))
+      );      
+    }
     const oldGenericArguments = this.genericArguments;
     if (target instanceof GenericType) {
       this.genericArguments = this.genericArguments.concat(

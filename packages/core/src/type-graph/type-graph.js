@@ -10,6 +10,7 @@ import HegelError, { UnreachableError } from "../utils/errors";
 import { Type } from "./types/type";
 import { Meta } from "./meta/meta";
 import { TypeVar } from "./types/type-var";
+import { TupleType } from "./types/tuple-type";
 import { UnionType } from "./types/union-type";
 import { TypeScope } from "./type-scope";
 import { refinement } from "../inference/refinement";
@@ -18,6 +19,7 @@ import { GenericType } from "./types/generic-type";
 import { FunctionType } from "./types/function-type";
 import { VariableInfo } from "./variable-info";
 import { VariableScope } from "./variable-scope";
+import { CollectionType } from "./types/collection-type";
 import { IgnorableArray } from "../utils/ignore";
 import { getVariableType } from "../utils/variable-utils";
 import { addVariableToGraph } from "../utils/variable-utils";
@@ -32,6 +34,7 @@ import {
   dropAllGlobals
 } from "../utils/hierarchy";
 import {
+  getIteratorValueType,
   addTypeNodeToTypeGraph,
   getTypeFromTypeAnnotation
 } from "../utils/type-utils";
@@ -215,6 +218,9 @@ const fillModuleScope = (
       case NODE.LOGICAL_EXPRESSION:
       case NODE.CONDITIONAL_EXPRESSION:
       case NODE.SWITCH_CASE:
+        if (currentNode.operator === "??") {
+          break;
+        }
         refinement(
           currentNode,
           getParentForNode(currentNode, parentNode, typeGraph),
@@ -408,6 +414,9 @@ const middlefillModuleScope = (
       case NODE.CLASS_METHOD:
       case NODE.CLASS_PRIVATE_METHOD:
       case NODE.CLASS_PRIVATE_PROPERTY:
+        if (currentNode.isPattern) {
+          break;
+        }
         addPropertyNodeToThis(
           currentNode,
           parentNode,
@@ -562,7 +571,7 @@ const afterFillierActions = (
         break;
       case NODE.VARIABLE_DECLARATOR:
         const variableInfo = currentScope.findVariable(currentNode.id);
-        const newTypeOrVar =
+        let newTypeOrVar =
           isTypeDefinitions && currentNode.init === null
             ? Type.Unknown
             : addCallToTypeGraph(
@@ -574,15 +583,33 @@ const afterFillierActions = (
                 middlecompute,
                 postcompute
               );
+        let newType =
+          newTypeOrVar.result instanceof VariableInfo
+            ? newTypeOrVar.result.type
+            : newTypeOrVar.result;
+        const isArrayPattern = currentNode.id.name[0] === "[";
+        // Needed for destruction syntax
+        if (
+          !isTypeDefinitions &&
+          currentNode.init !== null &&
+          currentNode.id != null &&
+          isArrayPattern &&
+          !(
+             newType instanceof TupleType ||
+             newType instanceof CollectionType ||
+             (
+               newType instanceof UnionType &&
+               newType.variants.every(a =>  a instanceof TupleType || a instanceof CollectionType)
+             )
+           )
+        ) {
+          newType = CollectionType.Array.root.applyGeneric([getIteratorValueType(newType, currentNode.init)]);
+        }
         if (
           currentNode.id != null &&
           currentNode.id.typeAnnotation == undefined &&
           currentNode.init !== null
         ) {
-          const newType =
-            newTypeOrVar.result instanceof VariableInfo
-              ? newTypeOrVar.result.type
-              : newTypeOrVar.result;
           variableInfo.type = getVariableType(
             variableInfo,
             newType,

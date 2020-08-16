@@ -122,9 +122,13 @@ function checkSingleCall(
   typeScope: TypeScope,
   errors: Array<HegelError>
 ): void {
-  const givenArgumentsTypes = call.arguments.map(
-    t => (t instanceof VariableInfo ? t.type : t)
-  );
+  const givenArgumentsTypes = call.arguments.map(t => {
+     t = t instanceof VariableInfo ? t.type : t;
+     if (t instanceof TypeVar) {
+      t._isUserDefined = true;
+     }
+     return t;
+  });
   const targetFunctionType = getCallTarget(call);
   const targetArguments = targetFunctionType.argumentsTypes;
   const requiredTargetArguments = targetArguments.filter(

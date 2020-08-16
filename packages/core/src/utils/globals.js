@@ -17,7 +17,9 @@ const mixBaseGlobals = moduleScope => {
     ["boolean", UnionType.Boolean],
     ["symbol", Type.Symbol]
   ];
-  const globals = [["undefined", new VariableInfo(Type.Undefined)]];
+  const globals = [
+    ["undefined", new VariableInfo(Type.Undefined)]
+  ];
   for (const [name, type] of globalTypes) {
     typeScope.body.set(name, type);
     type.parent = typeScope;
