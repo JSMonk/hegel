@@ -439,6 +439,7 @@ function patternElementIntoDeclarator(
           ? { type: NODE.STRING_LITERAL, value: currentNode.key.name }
           : currentNode.key
       );
+      currentNode.isPattern = true;
       return {
         type: NODE.VARIABLE_DECLARATOR,
         id: currentNode.value,
@@ -558,7 +559,7 @@ function convertPatternFunctionParamsIntoAssign(currentNode: Node) {
   currentNode.params = currentNode.params.map((param, index) => {
     const isAssignmentPattern = param.type === NODE.ASSIGNMENT_PATTERN;
     const arg = isAssignmentPattern ? param.left : param;
-    if (arg.type !== NODE.ARRAY_PATTERN) {
+    if (arg.type !== NODE.ARRAY_PATTERN && arg.type !== NODE.OBJECT_PATTERN) {
       return param;
     }
     const newArg = {

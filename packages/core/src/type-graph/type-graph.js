@@ -414,6 +414,9 @@ const middlefillModuleScope = (
       case NODE.CLASS_METHOD:
       case NODE.CLASS_PRIVATE_METHOD:
       case NODE.CLASS_PRIVATE_PROPERTY:
+        if (currentNode.isPattern) {
+          break;
+        }
         addPropertyNodeToThis(
           currentNode,
           parentNode,
