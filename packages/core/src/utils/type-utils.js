@@ -1001,6 +1001,11 @@ export function isFalsy(type: Type) {
 }
 
 export function getIteratorValueType(iterator: Type, loc: SourceLocation) {
+  if (iterator instanceof TypeVar && !iterator.isUserDefined) {
+    iterator.root = new $BottomType({}, CollectionType.Array.root, [
+      Object.assign(Object.create(TypeVar.prototype), iterator)
+    ]);
+  }
   const CommonIterable = ObjectType.Iterable.root.applyGeneric([Type.Unknown]);
   const CommonIterator = ObjectType.Iterator.root.applyGeneric([Type.Unknown]);
   const isIterable = CommonIterable.isPrincipalTypeFor(iterator);

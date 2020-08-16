@@ -587,12 +587,13 @@ const afterFillierActions = (
           newTypeOrVar.result instanceof VariableInfo
             ? newTypeOrVar.result.type
             : newTypeOrVar.result;
+        const isArrayPattern = currentNode.id.name[0] === "[";
         // Needed for destruction syntax
         if (
           !isTypeDefinitions &&
           currentNode.init !== null &&
           currentNode.id != null &&
-          currentNode.id.name[0] === "[" &&
+          isArrayPattern &&
           !(
              newType instanceof TupleType ||
              newType instanceof CollectionType ||
