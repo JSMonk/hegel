@@ -226,9 +226,9 @@ export class GenericType<T: Type> extends Type {
       if (newSubordinateType === this.subordinateType) {
         return this.endChanges(this);
       }
-      const newGenericArguments = this.genericArguments.filter(arg =>
-        newSubordinateType.contains(arg)
-      );
+      const newGenericArguments = this.genericArguments
+        .filter(arg => newSubordinateType.contains(arg))
+        .map(a => a.changeAll(sourceTypes, targetTypes, typeScope));
       if (newGenericArguments.length === 0) {
         return this.endChanges(newSubordinateType);
       }
