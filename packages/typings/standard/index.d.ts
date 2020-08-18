@@ -246,7 +246,7 @@ interface Array<T> {
   findIndex(fn: (el: T) => boolean): number;
   // Fills array with [value] from [start] index (0 by default) to [end] (length of array by default).
   // Changes source array and returns it.
-  fill(value: T, start?: number, end?: number): T[];
+  fill<A = T>(...args: [A] | [T, number] | [T, number, number]): A[];
   //     /**
   //       * Returns the index of the last occurrence of a specified value in an array.
   //       * @param searchElement The value to locate in the array.
@@ -5117,8 +5117,8 @@ interface ArrayConstructor {
   // new creates an instance of Array<T>
   // @throws {TypeError} in case len + argCount > 2**53 - 1
   // @throws {RangeError} in case len + argCount > 2**32 - 1
+  <T = unknown>(...args: [] | [number] | Array<T[]> | T[]): (T | undefined)[] | $Throws<TypeError | RangeError>;
   new <T = unknown>(...args: [] | [number] | Array<T[]> | T[]): (T | undefined)[] | $Throws<TypeError | RangeError>;
-  <T>(...items: T[]): T[];
   isArray(arg: any): arg is Array<any>;
   readonly prototype: Array<any>;
   from(

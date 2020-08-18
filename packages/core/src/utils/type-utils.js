@@ -1001,7 +1001,7 @@ export function isFalsy(type: Type) {
 }
 
 export function getIteratorValueType(iterator: Type, loc: SourceLocation) {
-  if (iterator instanceof TypeVar && !iterator.isUserDefined) {
+  if (iterator instanceof TypeVar && !iterator.isUserDefined && iterator.root === undefined) {
     iterator.root = new $BottomType({}, CollectionType.Array.root, [
       Object.assign(Object.create(TypeVar.prototype), iterator)
     ]);
