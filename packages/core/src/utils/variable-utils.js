@@ -173,19 +173,19 @@ export function getSuperTypeOf(
 }
 
 export function getVariableType(
-  variable: VariableInfo<Type> | void,
+  variable: VariableInfo<Type> | Type | void,
   newType: Type,
   typeScope: TypeScope,
-  inferenced: boolean = false,
-  freezed: boolean = false
+  inferenced: boolean = false
 ): Type {
-  if (variable && variable.type !== Type.Unknown) {
-    return variable.type;
+  const type = variable === undefined || variable instanceof Type  ? variable : variable.type;
+  if (type && type !== Type.Unknown) {
+    return type;
   }
   if (
     !inferenced ||
     newType instanceof $AppliedImmutable ||
-    (variable &&
+    (variable instanceof VariableInfo &&
       variable.isConstant &&
       (newType.constructor === Type || newType.constructor === TupleType))
   ) {

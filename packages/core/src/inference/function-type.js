@@ -421,6 +421,9 @@ function resolveOuterTypeVarsFromCall(
       if (!shouldSetNewRoot) {
         continue;
       }
+      if (call.targetName === "===" || call.targetName === "!==") {
+        root = getVariableType(Type.Unknown, root, typeScope, true);
+      }
       variable.root = root;
       if (
         callTargetType instanceof GenericType &&
