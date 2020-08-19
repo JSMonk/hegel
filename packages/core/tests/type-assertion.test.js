@@ -3,7 +3,7 @@ import createTypeGraph from "../src/type-graph/type-graph";
 import { Type } from "../src/type-graph/types/type";
 import { prepareAST, mixTypeDefinitions, getModuleAST } from "./preparation";
 
-describe("Variable declrataion and assignment", () => {
+describe("Variable declaration and assignment", () => {
   test("Simple typed const declaration with number literal type", async () => {
     const sourceAST = prepareAST(`
       const a: 2 = 2; 

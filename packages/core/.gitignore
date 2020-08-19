@@ -1,2 +1,3 @@
 tests/testing.test.js
 jest.testing.config.js
+test262/

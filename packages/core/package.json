@@ -14,7 +14,8 @@
     "build:watch": "yarn build -- --watch",
     "build:dev": "yarn build -- --source-maps",
     "build:clean": "rm -rf build",
-    "test": "jest"
+    "test": "jest",
+    "test-262": "node tests/run-262.js"
   },
   "license": "MIT",
   "dependencies": {
@@ -28,6 +29,7 @@
     "@babel/preset-env": "^7.8.4",
     "@babel/preset-flow": "^7.8.3",
     "babel-jest": "^26.0.1",
-    "jest": "^26.0.1"
+    "jest": "^26.0.1",
+    "test262-stream": "^1.3.0"
   }
 }
