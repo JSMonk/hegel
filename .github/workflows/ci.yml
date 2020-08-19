@@ -14,3 +14,14 @@ jobs:
           node-version: "14.x"
       - run: yarn install
       - run: yarn test
+  lint:
+    name: Lint test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
+      - run: yarn install
+      - run: yarn lint
