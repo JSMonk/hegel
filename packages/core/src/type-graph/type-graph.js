@@ -31,33 +31,33 @@ import { addCallToTypeGraph, addPropertyToThis, addMethodToThis } from "./call";
 import {
   setupBaseHierarchy,
   setupFullHierarchy,
-  dropAllGlobals
+  dropAllGlobals,
 } from "../utils/hierarchy";
 import {
   getIteratorValueType,
   addTypeNodeToTypeGraph,
-  getTypeFromTypeAnnotation
+  getTypeFromTypeAnnotation,
 } from "../utils/type-utils";
 import {
   isSideEffectCall,
   addFunctionToTypeGraph,
-  addFunctionNodeToTypeGraph
+  addFunctionNodeToTypeGraph,
 } from "../utils/function-utils";
 import {
   addClassToTypeGraph,
   addThisToClassScope,
   addObjectToTypeGraph,
   addPropertyNodeToThis,
-  addClassScopeToTypeGraph
+  addClassScopeToTypeGraph,
 } from "../utils/class-utils";
 import {
   prepareGenericFunctionType,
-  inferenceFunctionTypeByScope
+  inferenceFunctionTypeByScope,
 } from "../inference/function-type";
 import {
   getParentForNode,
   getScopeFromNode,
-  addScopeToTypeGraph
+  addScopeToTypeGraph,
 } from "../utils/scope-utils";
 import type { CallableArguments } from "./meta/call-meta";
 import type { TraverseMeta, Handler } from "../utils/traverse";
@@ -97,7 +97,7 @@ const addTypeAlias = (
   typeScope.body.set(typeName, self);
   const genericArguments =
     node.typeParameters &&
-    node.typeParameters.params.map(typeAnnotation =>
+    node.typeParameters.params.map((typeAnnotation) =>
       getTypeFromTypeAnnotation(
         { typeAnnotation },
         localTypeScope,
@@ -177,7 +177,7 @@ const fillModuleScope = (
     switch (currentNode.type) {
       case NODE.VARIABLE_DECLARATION:
         if (currentNode.init != undefined) {
-          currentNode.declarations.forEach(a =>
+          currentNode.declarations.forEach((a) =>
             Object.assign(a, { init: currentNode.init })
           );
         }
@@ -595,15 +595,17 @@ const afterFillierActions = (
           currentNode.id != null &&
           isArrayPattern &&
           !(
-             newType instanceof TupleType ||
-             newType instanceof CollectionType ||
-             (
-               newType instanceof UnionType &&
-               newType.variants.every(a =>  a instanceof TupleType || a instanceof CollectionType)
-             )
-           )
+            newType instanceof TupleType ||
+            newType instanceof CollectionType ||
+            (newType instanceof UnionType &&
+              newType.variants.every(
+                (a) => a instanceof TupleType || a instanceof CollectionType
+              ))
+          )
         ) {
-          newType = CollectionType.Array.root.applyGeneric([getIteratorValueType(newType, currentNode.init)]);
+          newType = CollectionType.Array.root.applyGeneric([
+            getIteratorValueType(newType, currentNode.init),
+          ]);
         }
         if (
           currentNode.id != null &&
@@ -643,7 +645,7 @@ const afterFillierActions = (
         errorVariable.type = inferenceErrorType(currentNode, moduleScope);
         errorVariable.type = UnionType.term(null, {}, [
           Type.Unknown,
-          errorVariable.type
+          errorVariable.type,
         ]);
         if (moduleScope instanceof PositionedModuleScope) {
           moduleScope.addPosition(currentNode.catchBlock.param, errorVariable);
@@ -778,7 +780,7 @@ const afterFillierActions = (
         ) {
           // $FlowIssue - Type refinements
           prepareGenericFunctionType(functionScope);
-          if (fnType.genericArguments.some(a => !a.isUserDefined)) {
+          if (fnType.genericArguments.some((a) => !a.isUserDefined)) {
             inferenceFunctionTypeByScope(
               // $FlowIssue - Type refinements
               functionScope,
@@ -883,7 +885,7 @@ export async function createModuleScope(
     null,
     { errors }
   );
-  module.scopes.forEach(scope =>
+  module.scopes.forEach((scope) =>
     checkCalls(file.path, scope, typeScope, errors)
   );
   checkCalls(file.path, module, typeScope, errors);
@@ -900,7 +902,7 @@ async function createGlobalScope(
     (Program, boolean) => Promise<ModuleScope | PositionedModuleScope>
   ) => Promise<ModuleScope | PositionedModuleScope>,
   isTypeDefinitions: boolean = false,
-  mixTypeDefinitions: ModuleScope => void | Promise<void> = a => {},
+  mixTypeDefinitions: (ModuleScope) => void | Promise<void> = (a) => {},
   withPositions?: boolean = false
 ): Promise<
   [Array<ModuleScope | PositionedModuleScope>, Array<HegelError>, ModuleScope]
@@ -931,7 +933,7 @@ async function createGlobalScope(
     loc: SourceLocation
   ) => getModuleTypeGraph(path, currentPath, loc, createDependencyModuleScope);
   const modules = await Promise.all(
-    files.map(module =>
+    files.map((module) =>
       createModuleScope(
         module,
         errors,

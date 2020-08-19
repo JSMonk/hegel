@@ -9,13 +9,13 @@ type Tree =
   | {
       body: Array<Node> | Node,
       kind?: ?string,
-      loc: SourceLocation
+      loc: SourceLocation,
     };
 
 export type TraverseMeta = {
   kind?: ?string,
   previousBodyState?: Array<Node>,
-  errors: Array<HegelError>
+  errors: Array<HegelError>,
 };
 
 export const compose = (...fns: Array<Function>) => (...args: Array<any>) => {
@@ -36,10 +36,10 @@ function mixBodyToArrowFunctionExpression(currentNode: Node) {
       {
         type: NODE.RETURN_STATEMENT,
         argument: currentNode.body,
-        loc: currentNode.body.loc
-      }
+        loc: currentNode.body.loc,
+      },
     ],
-    loc: currentNode.body.loc
+    loc: currentNode.body.loc,
   };
   return currentNode;
 }
@@ -68,16 +68,16 @@ function mixBlockToLogicalOperator(currentNode: Node) {
     body: currentNode.left,
     loc: {
       start: currentNode.loc.start,
-      end: currentNode.loc.start
-    }
+      end: currentNode.loc.start,
+    },
   };
   currentNode.right = {
     type: NODE.BLOCK_STATEMENT,
     body: currentNode.right,
     loc: {
       start: currentNode.loc.end,
-      end: currentNode.loc.end
-    }
+      end: currentNode.loc.end,
+    },
   };
   return currentNode;
 }
@@ -94,16 +94,16 @@ function mixBlockToConditionalExpression(currentNode: Node) {
     body: currentNode.consequent,
     loc: {
       start: currentNode.loc.start,
-      end: currentNode.loc.start
-    }
+      end: currentNode.loc.start,
+    },
   };
   currentNode.alternate = {
     type: NODE.BLOCK_STATEMENT,
     body: currentNode.alternate,
     loc: {
       start: currentNode.loc.end,
-      end: currentNode.loc.end
-    }
+      end: currentNode.loc.end,
+    },
   };
   return currentNode;
 }
@@ -126,7 +126,7 @@ function mixBlockForStatements(currentNode: Node) {
     currentNode.alternate = {
       type: NODE.BLOCK_STATEMENT,
       body: [currentNode.alternate],
-      loc: currentNode.alternate.loc
+      loc: currentNode.alternate.loc,
     };
   }
   const propertyName =
@@ -137,7 +137,7 @@ function mixBlockForStatements(currentNode: Node) {
   currentNode[propertyName] = {
     type: NODE.BLOCK_STATEMENT,
     body: [currentNode[propertyName]],
-    loc: currentNode[propertyName].loc
+    loc: currentNode[propertyName].loc,
   };
   return currentNode;
 }
@@ -164,7 +164,7 @@ function mixBlockToCaseStatement(currentNode: Node) {
     $case.consequent = {
       type: NODE.BLOCK_STATEMENT,
       loc: $case.loc,
-      body
+      body,
     };
   }
   return currentNode;
@@ -188,9 +188,9 @@ function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
       declarations: [
         {
           ...currentNode.left.declarations[0],
-          init: getInitFor(currentNode)
-        }
-      ]
+          init: getInitFor(currentNode),
+        },
+      ],
     };
     currentNode.left = undefined;
   }
@@ -198,7 +198,7 @@ function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
     type: NODE.BLOCK_STATEMENT,
     body: [init, currentNode],
     isCustom: true,
-    loc: init.loc
+    loc: init.loc,
   };
 }
 
@@ -213,7 +213,7 @@ function mixExportInfo(currentNode: Node) {
     return {
       type: NODE.EXPORT_LIST,
       exportKind: currentNode.exportKind,
-      specifiers: currentNode.specifiers
+      specifiers: currentNode.specifiers,
     };
   }
   return currentNode.declaration.type !== NODE.VARIABLE_DECLARATION
@@ -222,14 +222,16 @@ function mixExportInfo(currentNode: Node) {
         exportAs:
           currentNode.type === NODE.EXPORT_DEFAULT_DECLARATION
             ? "default"
-            : currentNode.declaration.id.name
+            : currentNode.declaration.id.name,
       }
     : {
         ...currentNode.declaration,
-        declarations: currentNode.declaration.declarations.map(declaration => ({
-          ...declaration,
-          exportAs: declaration.id.name
-        }))
+        declarations: currentNode.declaration.declarations.map(
+          (declaration) => ({
+            ...declaration,
+            exportAs: declaration.id.name,
+          })
+        ),
       };
 }
 
@@ -241,8 +243,8 @@ function mixTryCatchInfo(currentNode: Node) {
     ...currentNode,
     block: {
       ...currentNode.block,
-      catchBlock: currentNode.handler
-    }
+      catchBlock: currentNode.handler,
+    },
   };
 }
 
@@ -268,7 +270,7 @@ function copyLocOfNode(node) {
 function convertObjectSpreadIntoAssign(currentNode: Node) {
   if (
     currentNode.type !== NODE.OBJECT_EXPRESSION ||
-    !currentNode.properties.some(p => p.type === NODE.SPREAD_ELEMENT)
+    !currentNode.properties.some((p) => p.type === NODE.SPREAD_ELEMENT)
   ) {
     return currentNode;
   }
@@ -288,10 +290,11 @@ function convertObjectSpreadIntoAssign(currentNode: Node) {
       if (lastObject === undefined) {
         lastObject = {
           ...currentNode,
-          loc: lastProperty === undefined 
-            ? copyLocOfNode(currentNode)
-            : { start: lastProperty.loc.end },
-          properties: [property]
+          loc:
+            lastProperty === undefined
+              ? copyLocOfNode(currentNode)
+              : { start: lastProperty.loc.end },
+          properties: [property],
         };
         objects.push(lastObject);
       } else {
@@ -304,7 +307,11 @@ function convertObjectSpreadIntoAssign(currentNode: Node) {
     lastObject.loc.end = lastProperty.loc.end;
   }
   if (objects.length === 1) {
-    objects.unshift({ type: NODE.OBJECT_EXPRESSION, properties: [], loc: copyLocOfNode(currentNode) });
+    objects.unshift({
+      type: NODE.OBJECT_EXPRESSION,
+      properties: [],
+      loc: copyLocOfNode(currentNode),
+    });
   }
   Object.assign(currentNode, {
     type: NODE.CALL_EXPRESSION,
@@ -314,9 +321,9 @@ function convertObjectSpreadIntoAssign(currentNode: Node) {
       type: NODE.MEMBER_EXPRESSION,
       loc: currentNode.loc,
       object: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "Object" },
-      property: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "assign" }
+      property: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "assign" },
     },
-    properties: undefined
+    properties: undefined,
   });
   return currentNode;
 }
@@ -324,7 +331,7 @@ function convertObjectSpreadIntoAssign(currentNode: Node) {
 function convertArraySpreadIntoConcat(currentNode: Node) {
   if (
     currentNode.type !== NODE.ARRAY_EXPRESSION ||
-    !currentNode.elements.some(p => p.type === NODE.SPREAD_ELEMENT)
+    !currentNode.elements.some((p) => p.type === NODE.SPREAD_ELEMENT)
   ) {
     return currentNode;
   }
@@ -344,15 +351,15 @@ function convertArraySpreadIntoConcat(currentNode: Node) {
           object: {
             type: NODE.IDENTIFIER,
             loc: currentNode.loc,
-            name: "Array"
+            name: "Array",
           },
           property: {
             type: NODE.IDENTIFIER,
             loc: currentNode.loc,
-            name: "from"
-          }
+            name: "from",
+          },
         },
-        elements: undefined
+        elements: undefined,
       });
       lastArray = undefined;
     } else {
@@ -360,7 +367,7 @@ function convertArraySpreadIntoConcat(currentNode: Node) {
         lastArray = {
           ...currentNode,
           elements: [element],
-          loc: currentNode.loc
+          loc: currentNode.loc,
         };
         arrays.push(lastArray);
       } else {
@@ -376,13 +383,13 @@ function convertArraySpreadIntoConcat(currentNode: Node) {
           object: {
             type: NODE.IDENTIFIER,
             loc: currentNode.loc,
-            name: "Array"
+            name: "Array",
           },
           property: {
             type: NODE.IDENTIFIER,
             loc: currentNode.loc,
-            name: "from"
-          }
+            name: "from",
+          },
         }
       : {
           type: NODE.MEMBER_EXPRESSION,
@@ -391,15 +398,15 @@ function convertArraySpreadIntoConcat(currentNode: Node) {
           property: {
             type: NODE.IDENTIFIER,
             loc: currentNode.loc,
-            name: "concat"
-          }
+            name: "concat",
+          },
         };
   Object.assign(currentNode, {
     type: NODE.CALL_EXPRESSION,
     loc: currentNode.loc,
     arguments: arrays,
     callee,
-    elements: undefined
+    elements: undefined,
   });
   return currentNode;
 }
@@ -423,16 +430,21 @@ function patternElementIntoDeclarator(
   if (currentNode === null) {
     return null;
   }
-  switch(currentNode.type) {
+  switch (currentNode.type) {
     case NODE.ASSIGNMENT_PATTERN:
-     const identifier = patternElementIntoDeclarator(currentNode.left, init, index, properties);
-     identifier.init = {
-       type: NODE.LOGICAL_EXPRESSION,
-       operator: "??",
-       left: identifier.init,
-       right: currentNode.right
-     };
-     return identifier;
+      const identifier = patternElementIntoDeclarator(
+        currentNode.left,
+        init,
+        index,
+        properties
+      );
+      identifier.init = {
+        type: NODE.LOGICAL_EXPRESSION,
+        operator: "??",
+        left: identifier.init,
+        right: currentNode.right,
+      };
+      return identifier;
     case NODE.OBJECT_PROPERTY:
       properties.push(
         currentNode.key.type === NODE.IDENTIFIER
@@ -449,11 +461,11 @@ function patternElementIntoDeclarator(
           type: NODE.MEMBER_EXPRESSION,
           object: init,
           loc: currentNode.loc,
-          property: currentNode.key
-        }
+          property: currentNode.key,
+        },
       };
     case NODE.OBJECT_PATTERN:
-    case NODE.IDENTIFIER: 
+    case NODE.IDENTIFIER:
     case NODE.ARRAY_PATTERN:
       return {
         type: NODE.VARIABLE_DECLARATOR,
@@ -467,12 +479,12 @@ function patternElementIntoDeclarator(
           property: {
             type: NODE.NUMERIC_LITERAL,
             value: index,
-            loc: currentNode.loc
-          }
-        }
-      }; 
+            loc: currentNode.loc,
+          },
+        },
+      };
     case NODE.REST_ELEMENT:
-      return properties === undefined 
+      return properties === undefined
         ? {
             type: NODE.VARIABLE_DECLARATOR,
             id: currentNode.argument,
@@ -485,9 +497,13 @@ function patternElementIntoDeclarator(
                 type: NODE.MEMBER_EXPRESSION,
                 loc: currentNode.loc,
                 object: init,
-                property: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "slice" }
+                property: {
+                  type: NODE.IDENTIFIER,
+                  loc: currentNode.loc,
+                  name: "slice",
+                },
               },
-            }
+            },
           }
         : {
             type: NODE.VARIABLE_DECLARATOR,
@@ -500,11 +516,15 @@ function patternElementIntoDeclarator(
                 init,
                 {
                   type: NODE.ARRAY_EXPRESSION,
-                  elements: properties
-                }
+                  elements: properties,
+                },
               ],
-              callee: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "Object::Omit" }
-            }
+              callee: {
+                type: NODE.IDENTIFIER,
+                loc: currentNode.loc,
+                name: "Object::Omit",
+              },
+            },
           };
   }
 }
@@ -514,7 +534,7 @@ function patternDeclarationIntoAssignments(currentNode: Node) {
   const identifier = {
     type: NODE.IDENTIFIER,
     loc: currentNode.id.loc,
-    name: getNameForPattern(pattern)
+    name: getNameForPattern(pattern),
   };
   currentNode.id = identifier;
   const isObjectPattern = pattern.type === NODE.OBJECT_PATTERN;
@@ -523,24 +543,30 @@ function patternDeclarationIntoAssignments(currentNode: Node) {
   return [
     currentNode,
     ...elements
-      .map((node, index) => patternElementIntoDeclarator(node, identifier, index, properties))
-      .filter(n => n !== null)
-  ]; 
+      .map((node, index) =>
+        patternElementIntoDeclarator(node, identifier, index, properties)
+      )
+      .filter((n) => n !== null),
+  ];
 }
 
 function convertPatternIntoAssignments(currentNode: Node) {
   if (
     currentNode.type !== NODE.VARIABLE_DECLARATION ||
-    !currentNode.declarations.some(declaration => { 
+    !currentNode.declarations.some((declaration) => {
       declaration = declaration.id.left || declaration.id;
-      return declaration.type === NODE.ARRAY_PATTERN || declaration.type === NODE.OBJECT_PATTERN
+      return (
+        declaration.type === NODE.ARRAY_PATTERN ||
+        declaration.type === NODE.OBJECT_PATTERN
+      );
     })
   ) {
-    return currentNode; 
+    return currentNode;
   }
-  currentNode.declarations = currentNode.declarations.flatMap(
-    decl => 
-      decl.id.type === NODE.IDENTIFIER ? [decl] : patternDeclarationIntoAssignments(decl)
+  currentNode.declarations = currentNode.declarations.flatMap((decl) =>
+    decl.id.type === NODE.IDENTIFIER
+      ? [decl]
+      : patternDeclarationIntoAssignments(decl)
   );
   return convertPatternIntoAssignments(currentNode);
 }
@@ -548,9 +574,11 @@ function convertPatternIntoAssignments(currentNode: Node) {
 function convertPatternFunctionParamsIntoAssign(currentNode: Node) {
   if (
     !NODE.isFunction(currentNode) ||
-    !currentNode.params.some(param => { 
+    !currentNode.params.some((param) => {
       param = param.left || param;
-      return param.type === NODE.ARRAY_PATTERN || param.type === NODE.OBJECT_PATTERN;
+      return (
+        param.type === NODE.ARRAY_PATTERN || param.type === NODE.OBJECT_PATTERN
+      );
     })
   ) {
     return currentNode;
@@ -566,20 +594,20 @@ function convertPatternFunctionParamsIntoAssign(currentNode: Node) {
       ...arg,
       type: NODE.IDENTIFIER,
       name: `arg:${index}`,
-      loc: arg.loc
+      loc: arg.loc,
     };
     declarations.push({
       type: NODE.VARIABLE_DECLARATOR,
       id: arg,
       init: newArg,
       loc: arg.loc,
-    }); 
+    });
     return isAssignmentPattern ? { ...param, left: newArg } : newArg;
   });
   currentNode.body.body.unshift({
     type: NODE.VARIABLE_DECLARATION,
     kind: "let",
-    declarations 
+    declarations,
   });
   return currentNode;
 }
@@ -604,7 +632,7 @@ function mixElseIfReturnOrThrowExisted(
     parentNode === undefined ||
     currentNode.type !== NODE.IF_STATEMENT ||
     currentNode.consequent.body.findIndex(
-      node =>
+      (node) =>
         node.type === NODE.RETURN_STATEMENT ||
         node.type === NODE.BREAK_STATEMENT ||
         node.type === NODE.CONTINUE_STATEMENT ||
@@ -627,15 +655,15 @@ function mixElseIfReturnOrThrowExisted(
     body: [],
     loc: {
       start: currentNode.loc.end,
-      end: currentNode.loc.end
-    }
+      end: currentNode.loc.end,
+    },
   };
   const inferencedAlternate = body.splice(indexOfSlice + 1);
   alternate.body = alternate.body.concat(inferencedAlternate);
   removeNodesWhichConteindInElse(inferencedAlternate, previousBodyState);
   return {
     ...currentNode,
-    alternate
+    alternate,
   };
 }
 
@@ -663,8 +691,8 @@ const getBody = (currentNode: any) =>
     ...ensureArray(currentNode.elements),
     ...ensureArray(currentNode.cases),
     ...ensureArray(currentNode.expressions),
-    ...ensureArray(currentNode.arguments).filter(a => !NODE.isFunction(a)),
-    ...ensureArray(currentNode.consequent)
+    ...ensureArray(currentNode.arguments).filter((a) => !NODE.isFunction(a)),
+    ...ensureArray(currentNode.consequent),
   ].filter(Boolean);
 
 const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
@@ -728,7 +756,7 @@ function traverseTree(
     const newMeta = {
       ...meta,
       previousBodyState: body,
-      kind: currentNode.kind
+      kind: currentNode.kind,
     };
     try {
       for (i = 0; i < body.length; i++) {

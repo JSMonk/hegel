@@ -12,20 +12,22 @@ const Wrapped = styled.div`
   height: 100%;
 
   @media (max-width: 1198px) {
-     flex-basis: 100%;
-     height: auto;
+    flex-basis: 100%;
+    height: auto;
   }
 `;
 
 const Section = styled.section`
-  background-color: ${props =>
+  background-color: ${(props) =>
     props.mode === "dark" ? "#2D3747" : "#CED4DE"};
 
   & li::before {
-    background-color: ${props => props.mode === "dark" ? "#13161f" : "#f6f8fa"}
+    background-color: ${(props) =>
+      props.mode === "dark" ? "#13161f" : "#f6f8fa"};
   }
   & li ${Wrapped} {
-    background-color: ${props => props.mode === "dark" ? "#13161f" : "#f6f8fa"}
+    background-color: ${(props) =>
+      props.mode === "dark" ? "#13161f" : "#f6f8fa"};
   }
 `;
 
@@ -49,9 +51,9 @@ const List = styled.ul`
   & > li:nth-child(2n + 1)::before {
     left: 50%;
   }
-  
+
   @media (max-width: 1198px) {
-     padding-bottom: 20px;
+    padding-bottom: 20px;
   }
 `;
 
@@ -65,7 +67,7 @@ const ListItem = styled.li`
     z-index: 1;
   }
   &::before {
-    content: '';
+    content: "";
     top: 0;
     left: 0;
     position: absolute;
@@ -73,13 +75,13 @@ const ListItem = styled.li`
     width: 50%;
     z-index: 0;
     height: 100%;
-    
+
     @media (max-width: 1198px) {
-       display: none;
+      display: none;
     }
   }
   @media (max-width: 1198px) {
-     min-height: auto;
+    min-height: auto;
   }
 `;
 
@@ -91,7 +93,7 @@ const Title = styled.h2`
   margin: 0;
   min-height: 130px;
   @media (max-width: 1198px) {
-     flex-basis: 100%;
+    flex-basis: 100%;
   }
 `;
 
@@ -103,7 +105,7 @@ const Errored = styled.div`
     margin: 0;
     border-radius: 0;
   }
-  ${props =>
+  ${(props) =>
     !props.error
       ? ""
       : `& ${props.error} {
@@ -188,7 +190,9 @@ export function KillerFeatures() {
             <Title>Type Inference</Title>
             <Wrapped>
               <Errored>
-                <Code className="language-typescript">{TYPE_INFERENCE_CODE}</Code>
+                <Code className="language-typescript">
+                  {TYPE_INFERENCE_CODE}
+                </Code>
               </Errored>
             </Wrapped>
           </Container>

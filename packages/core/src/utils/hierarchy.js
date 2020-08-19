@@ -45,7 +45,8 @@ export function setupFullHierarchy(globalTypeScope) {
     Extend interface "SymbolConstructor" defined in @hegel/typings/standard/index.d.ts:125
     with callable property <T extends string = "">(description?: T): Symbol<T> and
     "for" method  <T extends string>(T): Symbol<T>
-  */ 
+  */
+
   $Symbol.defineSymbolConstructorMethods();
 }
 

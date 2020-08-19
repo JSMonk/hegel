@@ -12,19 +12,19 @@ import { createObjectWith, mergeObjectsTypes } from "../utils/type-utils";
 import {
   getPropertyChaining,
   getTypesFromVariants,
-  mergeRefinementsVariants
+  mergeRefinementsVariants,
 } from "../utils/inference-utils";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
   Node,
   MemberExpression,
   StringLiteral,
-  Identifier
+  Identifier,
 } from "@babel/parser";
 
 type RefinemantableIn = {
   left: StringLiteral,
-  right: Identifier
+  right: Identifier,
 };
 
 function inIdentifier(
@@ -55,7 +55,7 @@ function inIdentifier(
         refinementedVariants,
         alternateVariants,
         typeScope
-      )
+      ),
     ];
   }
   if (
@@ -67,9 +67,9 @@ function inIdentifier(
       targetNode.name,
       ObjectType.term(null, { isSoft: true }, [
         ...type.properties,
-        [propertyName, new VariableInfo(Type.Unknown, currentScope)]
+        [propertyName, new VariableInfo(Type.Unknown, currentScope)],
       ]),
-      type
+      type,
     ];
   }
 }
@@ -110,14 +110,14 @@ function refinementProperty(
               createObjectWith(propertyName, Type.Unknown, typeScope),
               typeScope
             ),
-            property.type
+            property.type,
           ];
         }
         return existed ? [propertyType, undefined] : [undefined, propertyType];
       }
       const [
         refinementedVariants,
-        alternateVariants
+        alternateVariants,
       ] = propertyType.variants.reduce(
         ([refinementedVariants, alternateVariants], variant) =>
           variant instanceof ObjectType && variant.getPropertyType(propertyName)
@@ -155,7 +155,7 @@ function refinementProperty(
   if (variableType instanceof UnionType) {
     const [
       refinementedVariants,
-      alternateVariants
+      alternateVariants,
     ] = variableType.variants.reduce(
       ([refinementedVariants, alternateVariants], variant) => {
         const isNotAlternateVariant =
@@ -177,7 +177,7 @@ function refinementProperty(
         }
         const [
           refinementedType,
-          alternateType
+          alternateType,
         ] = refinementedTypeAndAlternateType;
         return [
           refinementedType
@@ -190,7 +190,7 @@ function refinementProperty(
                     typeScope
                   ),
                   typeScope
-                )
+                ),
               ])
             : refinementedVariants,
           alternateType
@@ -203,9 +203,9 @@ function refinementProperty(
                     typeScope
                   ),
                   typeScope
-                )
+                ),
               ])
-            : alternateVariants
+            : alternateVariants,
         ];
       },
       [[], []]
@@ -278,7 +278,7 @@ export function inRefinement(
   }
   const {
     left: propertyNameNode,
-    right: targetNode
+    right: targetNode,
   }: RefinemantableIn = currentRefinementNode;
   const propertyName = propertyNameNode.value;
   let refinementedType, alternateType, name;

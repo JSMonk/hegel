@@ -8,10 +8,7 @@
   },
   "publisher": "JSMonk",
   "icon": "images/logo.png",
-  "categories": [
-    "Programming Languages",
-    "Linters"
-  ],
+  "categories": ["Programming Languages", "Linters"],
   "repository": {
     "type": "git",
     "url": "https://github.com/JSMonk/hegel"
@@ -33,11 +30,7 @@
         },
         "hegelLanguageServer.trace.server": {
           "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
+          "enum": ["off", "messages", "verbose"],
           "default": "off",
           "description": "Traces the communication between VSCode and the hegelLanguageServer service."
         }
@@ -46,11 +39,7 @@
     "languages": [
       {
         "id": "javascript",
-        "extensions": [
-          ".js",
-          ".cjs",
-          ".mjs"
-        ]
+        "extensions": [".js", ".cjs", ".mjs"]
       }
     ]
   },

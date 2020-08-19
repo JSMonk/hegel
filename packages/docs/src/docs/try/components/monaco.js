@@ -15,7 +15,7 @@ export async function buildAndMountEditor(setEditor, currentTheme, id) {
   const content = restoreContent();
   monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: true,
-    noSyntaxValidation: true
+    noSyntaxValidation: true,
   });
   monaco.languages.registerHoverProvider("javascript", { provideHover });
   monaco.editor.defineTheme("dark", DARK_THEME);
@@ -25,7 +25,7 @@ export async function buildAndMountEditor(setEditor, currentTheme, id) {
     value: content,
     theme: currentTheme,
     language: "javascript",
-    minimap: { enabled: false }
+    minimap: { enabled: false },
   });
   const model = editor.getModel();
   const handler = createLogicHandler(monaco, model);
@@ -57,7 +57,7 @@ async function provideHover(_, position) {
   }
   const type = await hegel.getTypeByLocation({
     line: position.lineNumber,
-    column: position.column
+    column: position.column,
   });
   return type && { contents: [{ value: js(getTypeTooltip(type)) }] };
 }
@@ -78,7 +78,7 @@ function createLogicHandler(monaco, model) {
         model,
         PLAYGROUND,
         errors
-          .filter(error => "loc" in error && error.loc !== undefined)
+          .filter((error) => "loc" in error && error.loc !== undefined)
           .map(({ loc, message }) => formatDiagnostic(loc, message))
       );
     }, 300);
@@ -86,9 +86,9 @@ function createLogicHandler(monaco, model) {
 }
 
 // Disabling TypeScript Hints
-LanguageFeatureRegistry.prototype.ordered = function(model) {
+LanguageFeatureRegistry.prototype.ordered = function (model) {
   const result = [];
-  this._orderedForEach(model, entry => result.push(entry.provider));
+  this._orderedForEach(model, (entry) => result.push(entry.provider));
   return result.slice(-1);
 };
 
@@ -110,7 +110,7 @@ function formatDiagnostic(loc = { start: {}, end: {} }, message) {
     endLineNumber: loc.end.line,
     startColumn: loc.start.column + 1,
     endColumn: loc.end.column + 1,
-    message
+    message,
   };
 }
 

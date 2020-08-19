@@ -2,7 +2,7 @@ import { Type } from "../type-graph/types/type";
 import { UnionType } from "../type-graph/types/union-type";
 import { VariableInfo } from "../type-graph/variable-info";
 
-const mixBaseGlobals = moduleScope => {
+const mixBaseGlobals = (moduleScope) => {
   const typeScope = moduleScope.typeScope;
   const globalTypes = [
     ["unknown", Type.Unknown],
@@ -15,11 +15,9 @@ const mixBaseGlobals = moduleScope => {
     [true, Type.True],
     [false, Type.False],
     ["boolean", UnionType.Boolean],
-    ["symbol", Type.Symbol]
+    ["symbol", Type.Symbol],
   ];
-  const globals = [
-    ["undefined", new VariableInfo(Type.Undefined)]
-  ];
+  const globals = [["undefined", new VariableInfo(Type.Undefined)]];
   for (const [name, type] of globalTypes) {
     typeScope.body.set(name, type);
     type.parent = typeScope;

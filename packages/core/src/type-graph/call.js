@@ -31,17 +31,17 @@ import { addToThrowable, findThrowableBlock } from "../utils/throwable";
 import { THIS_TYPE, CALLABLE, CONSTRUCTABLE } from "./constants";
 import {
   getRawFunctionType,
-  getInvocationType
+  getInvocationType,
 } from "../inference/function-type";
-import { 
+import {
   getWrapperType,
   getIteratorValueType,
-  getTypeFromTypeAnnotation
+  getTypeFromTypeAnnotation,
 } from "../utils/type-utils";
 import {
   getParentForNode,
   findNearestTypeScope,
-  findNearestScopeByType
+  findNearestScopeByType,
 } from "../utils/scope-utils";
 import type { Handler } from "../utils/traverse";
 import type { CallableArguments } from "./meta/call-meta";
@@ -51,12 +51,12 @@ import type {
   ObjectMethod,
   ClassProperty,
   ObjectProperty,
-  SourceLocation
+  SourceLocation,
 } from "@babel/core";
 
 type CallResult = {
   inferenced?: boolean,
-  result: CallableArguments
+  result: CallableArguments,
 };
 
 type CallableMeta = {
@@ -64,7 +64,7 @@ type CallableMeta = {
   isForInit?: boolean,
   isTypeDefinitions?: boolean,
   isImmutable?: boolean,
-  skipAddingCalls?: boolean
+  skipAddingCalls?: boolean,
 };
 
 export function addCallToTypeGraph(
@@ -89,7 +89,7 @@ export function addCallToTypeGraph(
   if (node == null) {
     return {
       result: Type.Undefined,
-      inferenced: false
+      inferenced: false,
     };
   }
   if (node.type === NODE.EXPRESSION_STATEMENT) {
@@ -108,8 +108,8 @@ export function addCallToTypeGraph(
       right: {
         type: NODE.IDENTIFIER,
         name: "undefined",
-        loc: node.loc
-      }
+        loc: node.loc,
+      },
     };
   }
   switch (node.type) {
@@ -117,7 +117,7 @@ export function addCallToTypeGraph(
       throw new HegelError("Type cast does not exist in Hegel", node.loc);
     case NODE.TEMPLATE_LITERAL:
       args = node.expressions.map(
-        expression =>
+        (expression) =>
           addCallToTypeGraph(
             expression,
             moduleScope,
@@ -129,7 +129,7 @@ export function addCallToTypeGraph(
             meta
           ).result
       );
-      argsLocations = node.expressions.map(node => node.loc);
+      argsLocations = node.expressions.map((node) => node.loc);
       targetName = "tamplate literal";
       target = new FunctionType(
         targetName,
@@ -150,7 +150,7 @@ export function addCallToTypeGraph(
           middle,
           post,
           meta
-        ).result
+        ).result,
       ];
       break;
     case NODE.WHILE_STATEMENT:
@@ -165,7 +165,7 @@ export function addCallToTypeGraph(
           middle,
           post,
           meta
-        ).result
+        ).result,
       ];
       break;
     case NODE.DO_WHILE_STATEMENT:
@@ -180,7 +180,7 @@ export function addCallToTypeGraph(
           middle,
           post,
           meta
-        ).result
+        ).result,
       ];
       break;
     case NODE.FOR_STATEMENT:
@@ -200,7 +200,7 @@ export function addCallToTypeGraph(
               meta
             ).result
           : Type.Undefined,
-        Type.Unknown
+        Type.Unknown,
       ];
       break;
     case NODE.FUNCTION_EXPRESSION:
@@ -237,17 +237,16 @@ export function addCallToTypeGraph(
         selfObject instanceof $BottomType
           ? selfObject.subordinateMagicType.subordinateType
           : selfObject;
-      const _propertyName = getPropertyName(
-        node,
-        node => addCallToTypeGraph(
-              node,
-              moduleScope,
-              currentScope,
-              parentNode,
-              pre,
-              middle,
-              post,
-              {...meta, skipAddingCalls: true }
+      const _propertyName = getPropertyName(node, (node) =>
+        addCallToTypeGraph(
+          node,
+          moduleScope,
+          currentScope,
+          parentNode,
+          pre,
+          middle,
+          post,
+          { ...meta, skipAddingCalls: true }
         )
       );
       const propertyType = selfObject.properties.get(_propertyName);
@@ -258,7 +257,7 @@ export function addCallToTypeGraph(
         node.value === null
           ? {
               result: Type.Undefined,
-              inferenced: false
+              inferenced: false,
             }
           : addCallToTypeGraph(
               node.value,
@@ -273,7 +272,7 @@ export function addCallToTypeGraph(
       inferenced = value.inferenced;
       args = [
         node.typeAnnotation != null ? propertyType : value.result,
-        value.result
+        value.result,
       ];
       targetName = "=";
       target = currentScope.findVariable({ name: targetName, loc: node.loc });
@@ -289,7 +288,7 @@ export function addCallToTypeGraph(
         node.init === null
           ? {
               result: Type.Undefined,
-              inferenced: false
+              inferenced: false,
             }
           : addCallToTypeGraph(
               node.init,
@@ -301,7 +300,7 @@ export function addCallToTypeGraph(
               post,
               {
                 ...meta,
-                isImmutable: variableType.type instanceof $AppliedImmutable
+                isImmutable: variableType.type instanceof $AppliedImmutable,
               }
             );
       currentScope.body.set(node.id.name, variableType);
@@ -333,7 +332,7 @@ export function addCallToTypeGraph(
             : error.result,
           typeScope,
           error.inferenced
-        )
+        ),
       ];
       targetName = "throw";
       target = currentScope.findVariable(
@@ -354,7 +353,7 @@ export function addCallToTypeGraph(
         currentScope
           .getParentsUntil(nearestFn)
           .every(
-            parent =>
+            (parent) =>
               parent.creator === "block" ||
               parent.creator === "catch" ||
               parent.creator === "default-case"
@@ -401,7 +400,7 @@ export function addCallToTypeGraph(
           middle,
           post,
           meta
-        ).result
+        ).result,
       ];
       targetName = "await";
       target = currentScope.findVariable(
@@ -437,7 +436,7 @@ export function addCallToTypeGraph(
             middle,
             post,
             meta
-          ).result
+          ).result,
         ];
         let leftArg = args[0];
         leftArg = leftArg instanceof VariableInfo ? leftArg.type : leftArg;
@@ -466,7 +465,7 @@ export function addCallToTypeGraph(
           middle,
           post,
           meta
-        ).result
+        ).result,
       ];
       targetName = node.operator === "+" ? "b+" : node.operator;
       targetName = node.operator === "-" ? "b-" : targetName;
@@ -539,7 +538,7 @@ export function addCallToTypeGraph(
       let fType = fn.declaration.type;
       fType = fType instanceof GenericType ? fType.subordinateType : fType;
       args = [
-        fType.isAsync && !argType.isPromise() ? argType.promisify() : argType
+        fType.isAsync && !argType.isPromise() ? argType.promisify() : argType,
       ];
       const declaration =
         fn.declaration.type instanceof GenericType
@@ -564,7 +563,7 @@ export function addCallToTypeGraph(
         currentScope
           .getParentsUntil(fn)
           .every(
-            parent =>
+            (parent) =>
               parent.creator === "block" || parent.creator === "default-case"
           );
       currentScope = fn;
@@ -582,7 +581,7 @@ export function addCallToTypeGraph(
           middle,
           post,
           meta
-        ).result
+        ).result,
       ];
       target = currentScope.findVariable({ name: targetName, loc: node.loc });
       break;
@@ -597,10 +596,10 @@ export function addCallToTypeGraph(
           middle,
           post,
           meta
-        ).result
+        ).result,
       ];
       targetName = "Object.keys";
-      args = args.map(a => (a instanceof VariableInfo ? a.type : a));
+      args = args.map((a) => (a instanceof VariableInfo ? a.type : a));
       target = new $Keys().applyGeneric(args, node.loc);
       // $FlowIssue
       target = new FunctionType(targetName, {}, args, target);
@@ -617,9 +616,10 @@ export function addCallToTypeGraph(
         post,
         meta
       ).result;
-      const maybeIterableType = target instanceof VariableInfo ? target.type : target;
+      const maybeIterableType =
+        target instanceof VariableInfo ? target.type : target;
       return {
-        result: getIteratorValueType(maybeIterableType, node.of)
+        result: getIteratorValueType(maybeIterableType, node.of),
       };
     case NODE.MEMBER_EXPRESSION:
       const propertyName =
@@ -655,16 +655,16 @@ export function addCallToTypeGraph(
               middle,
               post,
               meta
-            ).result
+            ).result,
       ];
       targetName = ".";
-      genericArguments = args.map(
-        t => (t instanceof VariableInfo ? t.type : t)
+      genericArguments = args.map((t) =>
+        t instanceof VariableInfo ? t.type : t
       );
       const lts = new TypeScope(typeScope);
       const argsTypes = [
         TypeVar.new("A", { parent: lts }, undefined, undefined, true),
-        TypeVar.new("B", { parent: lts }, undefined, undefined, true)
+        TypeVar.new("B", { parent: lts }, undefined, undefined, true),
       ];
       const property = new $BottomType(
         { isForAssign: meta.isForAssign },
@@ -712,7 +712,7 @@ export function addCallToTypeGraph(
           middle,
           post,
           meta
-        ).result
+        ).result,
       ];
       targetName = "?:";
       target = currentScope.findVariable({ name: targetName, loc: node.loc });
@@ -744,7 +744,7 @@ export function addCallToTypeGraph(
       args = [
         ObjectType.Object.isPrincipalTypeFor(potentialArgument)
           ? potentialArgument
-          : defaultObject
+          : defaultObject,
       ];
       targetName = "new";
       target = currentScope.findVariable({ name: targetName, loc: node.loc });
@@ -758,14 +758,14 @@ export function addCallToTypeGraph(
           {
             type: NODE.ARRAY_EXPRESSION,
             loc: node.quasi.loc,
-            elements: node.quasi.quasis.map(a => ({
+            elements: node.quasi.quasis.map((a) => ({
               ...a,
               type: NODE.STRING_LITERAL,
-              value: a.value.raw
-            }))
+              value: a.value.raw,
+            })),
           },
-          ...node.quasi.expressions
-        ]
+          ...node.quasi.expressions,
+        ],
       };
     case NODE.CALL_EXPRESSION:
       if (
@@ -843,12 +843,11 @@ export function addCallToTypeGraph(
             ? target
             : // $FlowIssue
               new VariableInfo(target, currentScope);
-        targetType =
-          /*::target.type !== undefined ?*/ target.type /*:: : targetType*/;
+        targetType = target.type !== undefined ? target.type : targetType;
       }
       genericArguments =
         node.typeArguments &&
-        node.typeArguments.params.map(arg =>
+        node.typeArguments.params.map((arg) =>
           getTypeFromTypeAnnotation(
             { typeAnnotation: arg },
             typeScope,
@@ -899,13 +898,16 @@ export function addCallToTypeGraph(
         argsLocations.push(n.loc);
         // $FlowIssue
         const defaultArg = (fnType.argumentsTypes || [])[i];
-        if (n.type === NODE.FUNCTION_EXPRESSION || n.type === NODE.ARROW_FUNCTION_EXPRESSION) {
+        if (
+          n.type === NODE.FUNCTION_EXPRESSION ||
+          n.type === NODE.ARROW_FUNCTION_EXPRESSION
+        ) {
           return defaultArg;
         }
         const isSpreadElement = n.type === NODE.SPREAD_ELEMENT;
         if (isSpreadElement) {
           n = n.argument;
-        } 
+        }
         const { result } = addCallToTypeGraph(
           n,
           moduleScope,
@@ -917,22 +919,28 @@ export function addCallToTypeGraph(
           { ...meta, isImmutable: defaultArg instanceof $AppliedImmutable }
         );
         if (isSpreadElement) {
-          let resultType = result instanceof VariableInfo ? result.type : result;
+          let resultType =
+            result instanceof VariableInfo ? result.type : result;
           resultType = resultType.getOponentType(resultType);
           if (resultType instanceof TupleType) {
-            return resultType.items; 
+            return resultType.items;
           }
           const length = fnType.argumentsTypes.length - i;
           const restOfArguments = Array.from({ length });
           if (resultType instanceof CollectionType) {
             return restOfArguments.fill(
-              defaultArg instanceof RestArgument 
+              defaultArg instanceof RestArgument
                 ? resultType.valueType
-                : UnionType.term(null, {}, [Type.Undefined, resultType.valueType])
+                : UnionType.term(null, {}, [
+                    Type.Undefined,
+                    resultType.valueType,
+                  ])
             );
           }
           const element = getIteratorValueType(resultType, n.loc);
-          return restOfArguments.fill(UnionType.term(null, {}, [Type.Undefined, element]));
+          return restOfArguments.fill(
+            UnionType.term(null, {}, [Type.Undefined, element])
+          );
         }
         return result;
       });
@@ -1037,7 +1045,7 @@ export function addCallToTypeGraph(
     case NODE.THIS_EXPRESSION:
       const selfVar = currentScope.findVariable({
         name: THIS_TYPE,
-        loc: node.loc
+        loc: node.loc,
       });
       const nearestFunctionScope = findNearestScopeByType(
         VariableScope.FUNCTION_TYPE,
@@ -1051,7 +1059,7 @@ export function addCallToTypeGraph(
           selfVar.type instanceof $BottomType
             ? selfVar.type.subordinateMagicType.subordinateType
             : selfVar.type,
-        inferenced: false
+        inferenced: false,
       };
     case NODE.SEQUENCE_EXPRESSION:
       return addCallToTypeGraph(
@@ -1079,7 +1087,7 @@ export function addCallToTypeGraph(
           meta.isImmutable
         ),
         isLiteral: true,
-        inferenced: true
+        inferenced: true,
       };
   }
   if (target === null || args === null) {
@@ -1101,12 +1109,12 @@ export function addCallToTypeGraph(
     dropUnknown: targetName === "=" || targetName === "init",
     genericArguments:
       genericArguments &&
-      genericArguments.map(a => (a instanceof Type ? a : a.type))
+      genericArguments.map((a) => (a instanceof Type ? a : a.type)),
   };
-  const getResult = targetType => {
+  const getResult = (targetType) => {
     const { result, inferenced: localInferenced } = invoke({
       ...options,
-      targetType
+      targetType,
     });
     inferenced = inferenced || localInferenced;
     return result;
@@ -1133,14 +1141,18 @@ export function addCallToTypeGraph(
     currentScope.calls.push(callMeta);
   }
   const invocationType = result instanceof VariableInfo ? result.type : result;
-  if (currentScope === moduleScope && invocationType.parent.priority > TypeScope.MODULE_SCOPE_PRIORITY) {
-    const getArgumentTypeName = arg => String((arg instanceof VariableInfo ? arg.type : arg).name);
+  if (
+    currentScope === moduleScope &&
+    invocationType.parent.priority > TypeScope.MODULE_SCOPE_PRIORITY
+  ) {
+    const getArgumentTypeName = (arg) =>
+      String((arg instanceof VariableInfo ? arg.type : arg).name);
     throw new HegelError(
-      `Could not deduce type "${
-        String(invocationType.name)
-      }" arising from the arguments${
-        args.length > 0 ? " " : ""
-      }${args.map(getArgumentTypeName).toString()}.
+      `Could not deduce type "${String(
+        invocationType.name
+      )}" arising from the arguments${args.length > 0 ? " " : ""}${args
+        .map(getArgumentTypeName)
+        .toString()}.
 Please, provide type parameters for the call or provide default type value for parameters
 of "${String(targetType.name)}" function.`,
       node.loc
@@ -1162,7 +1174,7 @@ function invoke({
   args,
   node,
   meta,
-  dropUnknown
+  dropUnknown,
 }) {
   if (targetType instanceof $AppliedImmutable) {
     targetType = targetType.readonly;
@@ -1199,7 +1211,7 @@ function invoke({
           middle,
           post
         ),
-        inferenced: false
+        inferenced: false,
       };
     }
     if (
@@ -1220,7 +1232,7 @@ function invoke({
         const genericArguments = func.declaration.type.genericArguments;
         genericArguments.push(invocationType);
         const fn = Type.getTypeRoot(targetType);
-        fn.argumentsTypes.forEach(arg => {
+        fn.argumentsTypes.forEach((arg) => {
           if (
             arg instanceof TypeVar &&
             !arg.isUserDefined &&
@@ -1235,7 +1247,7 @@ function invoke({
       result: invocationType,
       inferenced:
         isInferencedTypeVar(targetType) &&
-        isInferencedTypeVar(invocationType, true)
+        isInferencedTypeVar(invocationType, true),
     };
   } catch (e) {
     if (e.loc === undefined) {
@@ -1268,18 +1280,17 @@ export function addPropertyToThis(
     parentNode,
     moduleScope
   );
-  const propertyName = getPropertyName(
-        currentNode,
-        node => addCallToTypeGraph(
-            node,
-            moduleScope,
-            currentScope,
-            parentNode,
-            precompute,
-            middlecompute,
-            postcompute,
-            { skipAddingCalls: true }
-        )
+  const propertyName = getPropertyName(currentNode, (node) =>
+    addCallToTypeGraph(
+      node,
+      moduleScope,
+      currentScope,
+      parentNode,
+      precompute,
+      middlecompute,
+      postcompute,
+      { skipAddingCalls: true }
+    )
   );
   const currentClassScope: any = findNearestScopeByType(
     [VariableScope.CLASS_TYPE, VariableScope.OBJECT_TYPE],
@@ -1323,7 +1334,7 @@ export function addPropertyToThis(
     false,
     false,
     currentNode.type === NODE.CLASS_PRIVATE_METHOD ||
-    currentNode.type === NODE.CLASS_PRIVATE_PROPERTY
+      currentNode.type === NODE.CLASS_PRIVATE_PROPERTY
   );
   if (!(selfType instanceof ObjectType)) {
     throw new Error("Never!!!");
@@ -1397,17 +1408,16 @@ export function addMethodToThis(
   if (classScope.isProcessed) {
     return;
   }
-  const propertyName = getPropertyName(
-    currentNode,
-    node => addCallToTypeGraph(
-          node,
-          moduleScope,
-          currentScope,
-          parentNode,
-          pre,
-          middle,
-          post,
-          { skipAddingCalls: true }
+  const propertyName = getPropertyName(currentNode, (node) =>
+    addCallToTypeGraph(
+      node,
+      moduleScope,
+      currentScope,
+      parentNode,
+      pre,
+      middle,
+      post,
+      { skipAddingCalls: true }
     )
   );
   const isPrivate = currentNode.type === NODE.CLASS_PRIVATE_METHOD;
@@ -1433,8 +1443,10 @@ export function addMethodToThis(
     existedProperty instanceof VariableInfo ? existedProperty.type : undefined;
   currentNode.expected = currentNode.expected || expectedType;
   let fn:
-    | VariableInfo<FunctionType>
-    | VariableInfo<GenericType<FunctionType>> = addFunctionToTypeGraph(
+    | VariableInfo/*:: <FunctionType> */
+    | VariableInfo/*:: <
+        GenericType/*:: <FunctionType> */
+      > */ = addFunctionToTypeGraph(
     currentNode,
     parentNode,
     moduleScope,
@@ -1444,7 +1456,7 @@ export function addMethodToThis(
     isTypeDefinitions
   );
   if (isPrivate) {
-    fn = new VariableInfo<any>(
+    fn = new VariableInfo/*:: <any> */(
       fn.type,
       fn.parent,
       fn.meta,
@@ -1500,7 +1512,7 @@ export function addMethodToThis(
       const additionalArray =
         fnType instanceof GenericType
           ? fnType.genericArguments.filter(
-              a => a !== fnType.subordinateType.returnType
+              (a) => a !== fnType.subordinateType.returnType
             )
           : [];
       const genericArguments = Array.from(

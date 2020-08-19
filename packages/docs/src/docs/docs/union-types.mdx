@@ -5,7 +5,8 @@ menu: Type Annotations
 ---
 
 # Union Types
----------------------
+
+---
 
 Sometimes you need more than one type or need to concrete values from any of existed type. A simple example when you need values from two different types is `repeat` function, which is waiting argument as `number` or `string` and repeat given argument `n` times:
 
@@ -27,7 +28,7 @@ function repeat(target: unknown, times: number): unknown {
   }
 
   // Error: Property "repeat" does not exist in "unknown"
-  return target.repeat(times); 
+  return target.repeat(times);
 }
 ```
 
@@ -43,7 +44,7 @@ function repeat(target, times) {
     return target.repeat(times);
   }
   throw new TypeError(`Expected string or number, got '${typeof target}'.`);
-} 
+}
 
 const result = repeat(false, 4);
 ```
@@ -80,7 +81,7 @@ function repeat(target: string | number, times: number): string | number {
     return target ** times;
   }
   return target.repeat(times);
-} 
+}
 
 // Error: Type "false" is incompatible with type "number | string"
 const result = repeat(false, 4);
@@ -92,12 +93,12 @@ Also, union types are usefull when you want to pick only concrete values from so
 
 ```typescript
 function createResponse(status: "Success" | "Failed") {
-  return { status }
+  return { status };
 }
 
 let response = createResponse("Success");
-response     = createResponse("Failed");
+response = createResponse("Failed");
 
 // Error: Type "'Custom String'" is incompatible with type "'Failed' | 'Success'"
-response     = createResponse("Custom String");
+response = createResponse("Custom String");
 ```

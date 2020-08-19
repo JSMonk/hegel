@@ -19,7 +19,7 @@ import type {
   StringLiteral,
   NumberLiteral,
   BooleanLiteral,
-  MemberExpression
+  MemberExpression,
 } from "@babel/parser";
 
 function isEqualOperator(node: Node) {
@@ -82,7 +82,7 @@ function getRefinmentType(stringNode: Node): Type {
     case "object":
       return UnionType.term("{ ... } | null", {}, [
         ObjectType.term("{ ... }", { isSoft: true }, []),
-        Type.Null
+        Type.Null,
       ]);
   }
   throw new HegelError(
@@ -102,7 +102,7 @@ function refinementVariants(
   if (variant.isPrincipalTypeFor(refinementType)) {
     return [
       refinementedVariants.concat([refinementType]),
-      alternateVariants.concat([variant])
+      alternateVariants.concat([variant]),
     ];
   }
   return [refinementedVariants, alternateVariants.concat([variant])];

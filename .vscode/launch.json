@@ -16,7 +16,9 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}/client.js",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages/language-server/build"]
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/language-server/build"
+      ]
     }
   ]
 }

@@ -11,7 +11,7 @@ type ValidKey<T> = string | number | T;
 
 export function unique<T>(
   arr: Array<T>,
-  getKey: T => ValidKey<T> = x => x
+  getKey: (T) => ValidKey<T> = (x) => x
 ): Array<T> {
   const filterObject: { [key: ValidKey<T>]: T } = {};
   for (let i = 0; i < arr.length; i++) {

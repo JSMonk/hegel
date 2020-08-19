@@ -2,10 +2,10 @@
 const dtsrc = {
   sourceType: "module",
   strictMode: false,
-  plugins: ["typescript"]
+  plugins: ["typescript"],
 };
 
-/** 
+/**
  * Settings for processing JavaScript files with up to ECMAScript 2020 version and some
  * proposals at stage 3 and 4.
  */
@@ -14,7 +14,7 @@ const babelrc = {
   plugins: [
     ["flow", { all: true }],
     "bigInt",
-    "classProperties",   
+    "classProperties",
     "classPrivateMethods",
     "classPrivateProperties",
     "@babel/plugin-syntax-bigint",
@@ -24,8 +24,8 @@ const babelrc = {
     "@babel/plugin-syntax-dynamic-import",
     "@babel/plugin-proposal-nullish-coalescing-operator",
     "@babel/plugin-proposal-optional-catch-binding",
-    "@babel/plugin-proposal-optional-chaining"
-  ]
+    "@babel/plugin-proposal-optional-chaining",
+  ],
 };
 
 exports.dtsrc = dtsrc;

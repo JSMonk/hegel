@@ -7,8 +7,13 @@ export class $ThrowsResult extends Type {
   static get name() {
     return "$ThrowsResult";
   }
-  
-  static term(name: mixed, meta?: TypeMeta = {}, errorType, ...args: Array<any>) {
+
+  static term(
+    name: mixed,
+    meta?: TypeMeta = {},
+    errorType,
+    ...args: Array<any>
+  ) {
     name = name === null ? $ThrowsResult.getName(errorType) : name;
     const scope = meta.parent || Type.GlobalTypeScope;
     const existed = scope.findTypeWithName(name);
@@ -17,7 +22,7 @@ export class $ThrowsResult extends Type {
     }
     return existed;
   }
-  
+
   static getName(errorType) {
     return `$Throws<${String(errorType.name)}>`;
   }

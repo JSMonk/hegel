@@ -21,15 +21,18 @@ import { $StrictUnion } from "../type-graph/types/strict-union-type";
 import { $PropertyType } from "../type-graph/types/property-type";
 import { $Intersection } from "../type-graph/types/intersection-type";
 
-const mixUtilityTypes = moduleScope => {
+const mixUtilityTypes = (moduleScope) => {
   const typeScope = moduleScope.typeScope;
   const utilityTypes = new Map([
     [
       "$PropertyType",
-      new $PropertyType($PropertyType.name, { parent: typeScope })
+      new $PropertyType($PropertyType.name, { parent: typeScope }),
     ],
     ["$InstanceOf", new $InstanceOf($InstanceOf.name, { parent: typeScope })],
-    ["$StrictUnion", new $StrictUnion($StrictUnion.name, { parent: typeScope })],
+    [
+      "$StrictUnion",
+      new $StrictUnion($StrictUnion.name, { parent: typeScope }),
+    ],
     ["$Keys", new $Keys($Keys.name, { parent: typeScope })],
     ["$Entries", new $Entries($Entries.name, { parent: typeScope })],
     ["$Values", new $Values($Values.name, { parent: typeScope })],
@@ -40,7 +43,7 @@ const mixUtilityTypes = moduleScope => {
     ["$TypeOf", new $TypeOf($TypeOf.name, { parent: typeScope })],
     [
       "$Intersection",
-      new $Intersection($Intersection.name, { parent: typeScope })
+      new $Intersection($Intersection.name, { parent: typeScope }),
     ],
     ["$Throws", new $Throws($Throws.name, { parent: typeScope })],
     ["$Immutable", new $Immutable($Immutable.name, { parent: typeScope })],

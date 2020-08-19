@@ -64,7 +64,7 @@ describe("Simple global variable nodes", () => {
     );
     expect(error.loc).toEqual({
       start: { line: 2, column: 15 },
-      end: { line: 2, column: 18 }
+      end: { line: 2, column: 18 },
     });
   });
   test("Creating global module variable with unknown type", async () => {
@@ -616,9 +616,9 @@ describe("Simple objects with property typing", () => {
       true
     );
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ 'a': (number, string) => undefined }")).toBe(
-      true
-    );
+    expect(
+      obj.type === Type.find("{ 'a': (number, string) => undefined }")
+    ).toBe(true);
     expect(obj.type.properties.get("a").type).toBe(
       actualAScope.declaration.type
     );
@@ -1453,12 +1453,12 @@ describe("Issues", () => {
     expect(errors[0].loc).toEqual({
       end: {
         column: 45,
-        line: 2
+        line: 2,
       },
       start: {
         column: 12,
-        line: 2
-      }
+        line: 2,
+      },
     });
   });
   test("Issue #113: Rest arguments don't work with generics 01", async () => {
@@ -1668,12 +1668,12 @@ describe("Issues", () => {
     expect(errors[0].loc).toEqual({
       end: {
         column: 21,
-        line: 8
+        line: 8,
       },
       start: {
         column: 12,
-        line: 8
-      }
+        line: 8,
+      },
     });
   });
 
@@ -1715,7 +1715,10 @@ describe("Issues", () => {
     );
 
     expect(errors.length).toBe(0);
-    expect(module.body.get("myGenericNumber").type === Type.find("GenericNumber<number>"))
+    expect(
+      module.body.get("myGenericNumber").type ===
+        Type.find("GenericNumber<number>")
+    );
   });
 
   test("Issue #271: Custom generic class should work if it has a property", async () => {
@@ -1737,6 +1740,9 @@ describe("Issues", () => {
       mixTypeDefinitions()
     );
     expect(errors.length).toBe(0);
-    expect(module.body.get("myGenericNumber").type === Type.find("GenericNumber<number>"))
+    expect(
+      module.body.get("myGenericNumber").type ===
+        Type.find("GenericNumber<number>")
+    );
   });
 });

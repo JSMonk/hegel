@@ -9,40 +9,40 @@
  * from the set of enabled trace event categories.
  */
 export interface Tracing {
-    /**
-     * A comma-separated list of the trace event categories covered by this
-     * `Tracing` object.
-     */
-    readonly categories: string;
+  /**
+   * A comma-separated list of the trace event categories covered by this
+   * `Tracing` object.
+   */
+  readonly categories: string;
 
-    /**
-     * Disables this `Tracing` object.
-     *
-     * Only trace event categories _not_ covered by other enabled `Tracing`
-     * objects and _not_ specified by the `--trace-event-categories` flag
-     * will be disabled.
-     */
-    disable(): void;
+  /**
+   * Disables this `Tracing` object.
+   *
+   * Only trace event categories _not_ covered by other enabled `Tracing`
+   * objects and _not_ specified by the `--trace-event-categories` flag
+   * will be disabled.
+   */
+  disable(): void;
 
-    /**
-     * Enables this `Tracing` object for the set of categories covered by
-     * the `Tracing` object.
-     */
-    enable(): void;
+  /**
+   * Enables this `Tracing` object for the set of categories covered by
+   * the `Tracing` object.
+   */
+  enable(): void;
 
-    /**
-     * `true` only if the `Tracing` object has been enabled.
-     */
-    readonly enabled: boolean;
+  /**
+   * `true` only if the `Tracing` object has been enabled.
+   */
+  readonly enabled: boolean;
 }
 
 export interface CreateTracingOptions {
-    /**
-     * An array of trace category names. Values included in the array are
-     * coerced to a string when possible. An error will be thrown if the
-     * value cannot be coerced.
-     */
-    categories: string[];
+  /**
+   * An array of trace category names. Values included in the array are
+   * coerced to a string when possible. An error will be thrown if the
+   * value cannot be coerced.
+   */
+  categories: string[];
 }
 
 /**

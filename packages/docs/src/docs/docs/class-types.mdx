@@ -5,7 +5,8 @@ menu: Type Annotations
 ---
 
 # Class Types
-----------------
+
+---
 
 The same as in other "analyzers" Hegel doesn't provide a special syntax for class (only type syntax for properties and methods). You can define class the same as in JavaScript, but Hegel will create a type for this class and it's constructor.
 
@@ -29,10 +30,13 @@ const UserConstructor = User;
 ## Class Methods
 
 As with [Function Types](/docs/function-types), Hegel provides syntax for argument types and return type;
+
 ```typescript
 class Fighter {
   tellTheRules(isNewbee: boolean): string {
-    return isNewbee ? "I don't know the rules." : `
+    return isNewbee
+      ? "I don't know the rules."
+      : `
       1. You do not talk about Fight Club.
       2. You DO NOT talk about Fight Club.
       3. If someone yells “stop!”, goes limp, or taps out, the fight is over.
@@ -53,7 +57,9 @@ If you want to use a class field you must define it first and give it an annotat
 class Fighter {
   tellTheRules(): string {
     // Error: Property "isNewbie" does not exist in "Fighter"
-    return this.isNewbie ? "I don't know the rules." : `
+    return this.isNewbie
+      ? "I don't know the rules."
+      : `
       1. You do not talk about Fight Club.
       2. You DO NOT talk about Fight Club.
       3. If someone yells “stop!”, goes limp, or taps out, the fight is over.
@@ -73,7 +79,9 @@ class Fighter {
   isNewbie: boolean = true;
 
   tellTheRules(): string {
-    return this.isNewbie ? "I don't know the rules." : `
+    return this.isNewbie
+      ? "I don't know the rules."
+      : `
       1. You do not talk about Fight Club.
       2. You DO NOT talk about Fight Club.
       3. If someone yells “stop!”, goes limp, or taps out, the fight is over.
@@ -86,7 +94,7 @@ class Fighter {
 }
 ```
 
-> If you are already familiar with TypeScript, Hegel does not provide accessibility modifiers like `public`, `private` or `protected`. 
+> If you are already familiar with TypeScript, Hegel does not provide accessibility modifiers like `public`, `private` or `protected`.
 
 ## Static Members
 

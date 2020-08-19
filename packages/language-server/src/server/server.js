@@ -8,7 +8,7 @@ const {
   IPCMessageReader,
   IPCMessageWriter,
   createConnection,
-  TextDocumentSyncKind
+  TextDocumentSyncKind,
 } = require("vscode-languageserver");
 
 const documents = new TextDocuments(TextDocument);
@@ -23,7 +23,7 @@ connection.onInitialize(() => ({
     hoverProvider: true,
     completionProvider: {
       resolveProvider: true,
-      triggerCharacters: ['.']
+      triggerCharacters: ["."],
     },
   },
 }));

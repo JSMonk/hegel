@@ -5,7 +5,8 @@ menu: For Potential Contributors
 ---
 
 # Architecture Overview
-----------------
+
+---
 
 In this overview we will talk mostly about the Core of Hegel. It should help you to get a high-level understanding of the Hegel architecture.
 
@@ -16,12 +17,14 @@ So, AST conversion starts from tree traverse which is placed in [`src/utils/trav
 In traverse we have 3 steps:
 
 #### **Precompute**
+
 [The Precompute step](#precomute) is a step in `traverseTree` function inside [`src/utils/traverse.js`](https://github.com/JSMonk/hegel/tree/master/packages/core/src/utils/traverse.js) which process AST node before the node children was processed.
 
 It's needed to add initial information about [variables](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/variable-info.js) and [scopes](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/variable-scope.js). Also, we use [Precompute](#precomute) for type refinement (which main logic is placed in [src/inference/refinement.js](https://github.com/JSMonk/hegel/tree/master/packages/core/src/inference/refinement.js)).
 
 #### **Middlecompute**
-The most simple type of computation. The step processes node children one-by-one without deep processing. It's needed because JavaScript contains hoisting. 
+
+The most simple type of computation. The step processes node children one-by-one without deep processing. It's needed because JavaScript contains hoisting.
 
 ```javascript
 const a = getA();
@@ -49,7 +52,7 @@ class Main {
 
 #### **Postcompute**
 
-In oposite to [Precompute step](#precompute), [Postcompute step](#postcumpute) processes AST node after all node's children were processed. 
+In oposite to [Precompute step](#precompute), [Postcompute step](#postcumpute) processes AST node after all node's children were processed.
 We use the step for [type inference](#type-inference) (which main logic is placed in [`src/inference` directory](https://github.com/JSMonk/hegel/tree/master/packages/core/src/inference/)) and collecting of [Calls Infromation](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/meta/call-meta.js). The [Calls Infromation](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/meta/call-meta.js) is used in [Checking Step](#checking-step)
 
 ### Type Inference
@@ -111,10 +114,9 @@ const obj = {
   },
   b() {
     return this.c;
-  }
-}
+  },
+};
 ```
-
 
 So, we need to add methods and properties lazily. First of all, we add all methods and properties raw nodes in object/class type (We make it in [Middlecompute step](#middlecompute)), and, if we try to access a property or method then we traverse saved node and infer the type of the method or property (We make it by [Scope](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/scope.js) static method `addAndTraverseNodeWithType`).
 
@@ -155,7 +157,7 @@ isSuperTypeFor(anotherType: Type): boolean {
 }
 ```
 
-#### $BottomType
+#### \$BottomType
 
 One of the interesting architecture decisions is [`$BottomType`](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/bottom-type.js). This type behaves like a `Promise` in types world. It means that when we want to apply [GenericType](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/union-type.js) (which behaves like a function in types world) any [TypeVar](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/type-var.js) we can reduce the cost of [`changeAll` function](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/type.js) and instead of deep changing of generic arguments to another type variables, we can return [`$BottomType`](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/bottom-type.js) which say that we want to apply new type variables instead old ones, and if we will replace a new type variable to a specific type instead of one more call of `changeAll`, we only change new type variable to a specific type and that's all.
 

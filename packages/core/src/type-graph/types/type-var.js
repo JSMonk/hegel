@@ -97,7 +97,11 @@ export class TypeVar extends Type {
     ) {
       return false;
     }
-    if (type instanceof TypeVar && type.constraint !== undefined && this.constraint !== undefined) {
+    if (
+      type instanceof TypeVar &&
+      type.constraint !== undefined &&
+      this.constraint !== undefined
+    ) {
       return this.constraint.isPrincipalTypeFor(type.constraint);
     }
     return super.isPrincipalTypeFor(type);
@@ -125,7 +129,7 @@ export class TypeVar extends Type {
   ): Type {
     const indexOfNewRootType = sourceTypes.findIndex(
       // $FlowIssue
-      a => a.equalsTo(this, true, true)
+      (a) => a.equalsTo(this, true, true)
     );
     if (indexOfNewRootType !== -1) {
       return targetTypes[indexOfNewRootType];

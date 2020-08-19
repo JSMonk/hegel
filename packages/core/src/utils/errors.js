@@ -9,7 +9,8 @@ export interface Sourcable {
   source: string;
 }
 
-export default class HegelError extends Error implements Locationable, Sourcable {
+export default class HegelError extends Error
+  implements Locationable, Sourcable {
   loc: SourceLocation;
   source: string;
 
@@ -18,7 +19,7 @@ export default class HegelError extends Error implements Locationable, Sourcable
     this.source = source;
     this.loc = loc && {
       end: loc.end,
-      start: loc.start
+      start: loc.start,
     };
   }
 }
@@ -30,7 +31,7 @@ export class UnreachableError extends Error implements Locationable {
     super("");
     this.loc = {
       end: loc.end,
-      start: loc.start
+      start: loc.start,
     };
   }
 }

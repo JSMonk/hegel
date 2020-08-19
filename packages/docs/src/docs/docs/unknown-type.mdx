@@ -5,7 +5,8 @@ menu: Type Annotations
 ---
 
 # Unknown Type
----------------------
+
+---
 
 Sometimes you don't know which type will come as function argument/variable value/object property value.
 As example [`JSON.parse`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse). This function can return array of any types, object with any properties or any valid JSON value like string, number, boolean and etc.
@@ -54,7 +55,6 @@ Or operator:
 
 ```typescript
 function waitingFor(value: unknown) {
-
   // Error: Type "unknown" is incompatible with type "string"
   return `Awesome ${value}`;
 }

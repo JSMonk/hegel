@@ -12,7 +12,7 @@ import type {
   ClassProperty,
   ObjectProperty,
   SourceLocation,
-  FunctionDeclaration
+  FunctionDeclaration,
 } from "@babel/core";
 
 export type GraphElement =

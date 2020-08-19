@@ -21,31 +21,32 @@ const Container = styled.div`
     line-height: 1.125;
     font-weight: 700;
   }
- 
+
   & > a {
     @media (max-width: 600px) {
-       display: none;
+      display: none;
     }
   }
 `;
 
 export const MainLink = styled.a`
-  border: 2px solid ${props => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
-  color: ${props => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
+  border: 2px solid
+    ${(props) => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
+  color: ${(props) => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
   text-decoration: none;
   padding: 5px 20px;
   margin-right: 24px;
   transition: all 0.3s ease 0s, color 0.3s ease 0s;
 
   &:hover {
-    color: ${props => (props.mode === "light" ? "#F5F6F7" : "#13161F")};
-    background-color: ${props =>
+    color: ${(props) => (props.mode === "light" ? "#F5F6F7" : "#13161F")};
+    background-color: ${(props) =>
       props.mode === "light" ? "#2D3747" : "#CED4DE"};
   }
 `;
 
-const heading = Tag => {
-  const Component = props => {
+const heading = (Tag) => {
+  const Component = (props) => {
     return !!props.id ? (
       <Tag {...props}>
         <a
@@ -54,8 +55,8 @@ const heading = Tag => {
             color: "inherit",
             textDecoration: "none",
             ":hover": {
-              textDecoration: "underline"
-            }
+              textDecoration: "underline",
+            },
           }}
         >
           {props.children}

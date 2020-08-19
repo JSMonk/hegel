@@ -43,7 +43,7 @@ export class $BottomType extends Type {
         meta,
         subordinateMagicType,
         genericArguments
-      )
+      ),
     };
     super(
       $BottomType.getName(subordinateMagicType.name, genericArguments),
@@ -57,7 +57,7 @@ export class $BottomType extends Type {
   }
 
   changeAll(sourceTypes, targetTypes, typeScope) {
-    if (sourceTypes.every(type => !this.canContain(type))) {
+    if (sourceTypes.every((type) => !this.canContain(type))) {
       return this;
     }
     const currentSelf = TypeVar.createSelf(
@@ -66,7 +66,7 @@ export class $BottomType extends Type {
     );
     if (
       this._changeStack !== null &&
-      this._changeStack.find(a => a.equalsTo(currentSelf))
+      this._changeStack.find((a) => a.equalsTo(currentSelf))
     ) {
       return currentSelf;
     }
@@ -77,11 +77,11 @@ export class $BottomType extends Type {
     let includedUndefined = false;
     let includedBottom = false;
     let includedTypeVar = false;
-    const includedSelfIndex = sourceTypes.findIndex(t => this.equalsTo(t));
+    const includedSelfIndex = sourceTypes.findIndex((t) => this.equalsTo(t));
     if (includedSelfIndex !== -1) {
       return this.endChanges(targetTypes[includedSelfIndex]);
     }
-    const mapper = argument => {
+    const mapper = (argument) => {
       if (argument instanceof $BottomType) {
         const newType = argument.changeAll(sourceTypes, targetTypes, typeScope);
         includedBottom = true;
@@ -89,15 +89,19 @@ export class $BottomType extends Type {
       }
 
       if (argument instanceof TypeVar) {
-        const argumentIndex = sourceTypes.findIndex(
-          a =>
-            argument instanceof $BottomType
-              ? argument.subordinateType === a
-              : a.equalsTo(argument)
+        const argumentIndex = sourceTypes.findIndex((a) =>
+          argument instanceof $BottomType
+            ? argument.subordinateType === a
+            : a.equalsTo(argument)
         );
-        const result = argumentIndex === -1
-          ? undefined 
-          : sourceTypes[argumentIndex].changeAll(sourceTypes, targetTypes, typeScope);
+        const result =
+          argumentIndex === -1
+            ? undefined
+            : sourceTypes[argumentIndex].changeAll(
+                sourceTypes,
+                targetTypes,
+                typeScope
+              );
         if (result === undefined) {
           includedUndefined = true;
         }
@@ -117,7 +121,7 @@ export class $BottomType extends Type {
     };
     try {
       const appliedParameters = this.genericArguments.map(mapper);
-      if (appliedParameters.every(a => a === undefined)) {
+      if (appliedParameters.every((a) => a === undefined)) {
         return this.endChanges(this);
       }
       if (includedUndefined) {
@@ -167,7 +171,7 @@ export class $BottomType extends Type {
         ? Type.getTypeRoot(this.subordinateMagicType)
         : this.subordinateMagicType;
     if ("subordinateType" in target) {
-      const parameters = this.genericArguments.map(t => {
+      const parameters = this.genericArguments.map((t) => {
         if (t instanceof $BottomType) {
           t = t.unpack(loc);
         }
@@ -197,7 +201,7 @@ export class $BottomType extends Type {
 
   applyGeneric(parameters, loc, shouldBeMemoize, isCalledAsBottom, ...args) {
     const returnType = parameters.some(
-      p => p instanceof TypeVar && p.isUserDefined
+      (p) => p instanceof TypeVar && p.isUserDefined
     )
       ? new $BottomType({}, this.subordinateMagicType, parameters, loc)
       : this.subordinateMagicType.applyGeneric(
@@ -230,7 +234,7 @@ export class $BottomType extends Type {
     const diff = subordinate.getDifference(type, withReverseUnion);
     this._alreadyProcessedWith = null;
     return "genericArguments" in subordinate
-      ? diff.map(diff => {
+      ? diff.map((diff) => {
           const index = subordinate.genericArguments.indexOf(diff.variable);
           if (index === -1) {
             return diff;
@@ -286,7 +290,7 @@ export class $BottomType extends Type {
     }
     this._alreadyProcessedWith = type;
     const result =
-      this.genericArguments.some(a => a.contains(type)) ||
+      this.genericArguments.some((a) => a.contains(type)) ||
       this.subordinateMagicType.contains(type);
     this._alreadyProcessedWith = null;
     return result;
@@ -298,7 +302,7 @@ export class $BottomType extends Type {
     }
     this._alreadyProcessedWith = type;
     const result =
-      this.genericArguments.some(a => a.weakContains(type)) ||
+      this.genericArguments.some((a) => a.weakContains(type)) ||
       this.subordinateMagicType.weakContains(type);
     this._alreadyProcessedWith = null;
     return result;
@@ -314,7 +318,7 @@ export class $BottomType extends Type {
     }
     this._alreadyProcessedWith = this;
     const sortedParents = [...this.genericArguments]
-      .map(a => a.getNextParent(typeScope))
+      .map((a) => a.getNextParent(typeScope))
       .sort((a, b) => b.priority - a.priority);
     for (const parent of sortedParents) {
       if (parent.priority <= typeScope.priority && parent !== typeScope) {

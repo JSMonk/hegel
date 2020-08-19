@@ -5,7 +5,8 @@ menu: Type Annotations
 ---
 
 # Function Types
----------------------
+
+---
 
 Functions have two places where you can annotate types: arguments (input) and the return value (output).
 
@@ -18,14 +19,14 @@ function sum1(a: number, b: number): number {
 // Function Expression
 const sum2 = function (a: number, b: number): number {
   return a + b;
-}
+};
 
 // Arrow Function Expression
 const sum3 = (a: number, b: number): number => a + b;
 
-let result = sum1(1, 2) // 👌!
-result     = sum2(1, 2) // 👌!
-result     = sum3(1, 2) // 👌!
+let result = sum1(1, 2); // 👌!
+result = sum2(1, 2); // 👌!
+result = sum3(1, 2); // 👌!
 
 // Error: Type "false" is incompatible with type "number"
 result = sum1(false, "");
@@ -39,11 +40,10 @@ result = sum3("1", "2");
 
 ## Function Returns
 
-As you understand, arguments types will be checked when you try to apply arguments to a function, but return type will be checked when you implement function logic. 
+As you understand, arguments types will be checked when you try to apply arguments to a function, but return type will be checked when you implement function logic.
 
 ```typescript
 function awesome(name: string): string {
-
   // Error: Type "2" is incompatible with type "string"
   return 2;
 }
@@ -61,8 +61,8 @@ function awesome(name: ?string) {
   return `Awesome, ${actualName}.`;
 }
 
-let result = awesome()             // 👌!
-result     = awesome("JavaScript") // 👌!
+let result = awesome(); // 👌!
+result = awesome("JavaScript"); // 👌!
 ```
 
 In JavaScript, we can also set a default value for optional arguments like this:
@@ -73,7 +73,7 @@ function awesome(name = "you") {
 }
 ```
 
-So, which type should the `name` argument be annotated with? You can see this demonstrated in the [Hegel Playground](/try#GYVwdgxgLglg9mABAQwO4FMDOcC26AUYyeAXIplAE4xgDmiAvIgEQCecIzAlIgN4BQiRJXRQQlJAAMAghmx4ANIgAkvIngC+AOkkBufhqA). 
+So, which type should the `name` argument be annotated with? You can see this demonstrated in the [Hegel Playground](/try#GYVwdgxgLglg9mABAQwO4FMDOcC26AUYyeAXIplAE4xgDmiAvIgEQCecIzAlIgN4BQiRJXRQQlJAAMAghmx4ANIgAkvIngC+AOkkBufhqA).
 If you hover over the function name and then on the argument name, you will see some magic; the function argument is `string | undefined` outside the function but `string` inside.
 
 ```typescript
@@ -82,8 +82,8 @@ function awesome(name: string = "you") {
   return `Awesome, ${name}.`;
 }
 
-let result = awesome()             // 👌!
-result     = awesome("JavaScript") // 👌!
+let result = awesome(); // 👌!
+result = awesome("JavaScript"); // 👌!
 ```
 
 ## Rest Argument
@@ -103,24 +103,26 @@ function sum(...numbers: Array<number>) {
   return numbers.reduce((a, b) => a + b, 0);
 }
 
-let result = sum();             // 👌!
-result     = sum(1);            // 👌!
-result     = sum(1, 2);         // 👌!
-result     = sum(1, 2, 42);     // 👌!
-result     = sum(1, 2, 42, 14); // 👌!
+let result = sum(); // 👌!
+result = sum(1); // 👌!
+result = sum(1, 2); // 👌!
+result = sum(1, 2, 42); // 👌!
+result = sum(1, 2, 42, 14); // 👌!
 // ...
 ```
 
 ```typescript
-function sum(...numbers: [number] | [number, number] | [number, number, number]) {
+function sum(
+  ...numbers: [number] | [number, number] | [number, number, number]
+) {
   return numbers.reduce((a, b) => a + b, 0);
 }
 
 // Error: Type "[]" is incompatible with type "...[number, number, number] | [number, number] | [number]"
 let result = sum();
-result     = sum(1);       // 👌!
-result     = sum(1, 2);    // 👌!
-result     = sum(1, 2, 3); // 👌!
+result = sum(1); // 👌!
+result = sum(1, 2); // 👌!
+result = sum(1, 2, 3); // 👌!
 
 // Error Type "[1, 2, 3, 4]" is incompatible with type "...[number, number, number] | [number, number] | [number]"
 result = sum(1, 2, 3, 4);
@@ -132,16 +134,17 @@ Sometimes, you need to annotate arguments or return types as a function. Hegel h
 
 ```typescript
 function twice(fn: (number) => number, arg: number) {
-   return fn(fn(arg)); 
+  return fn(fn(arg));
 }
 
 let result: number = 0;
 
 result = twice((a: number): number => a + 4, 4); // 👌!
-result = twice(                                  // 👌!
+result = twice(
+  // 👌!
   (a: number | string): number => (typeof a === "string" ? parseInt(a) : a) + 4,
   4
-); 
+);
 
 // Error: Type "(string) => number" is incompatible with type "(number) => number"
 result = twice((a: string): number => parseInt(a), 4);
@@ -154,7 +157,7 @@ result = twice((a: number): number | string => a, 4);
 ```
 
 > If you play with the previous example you will see the next rule of the function type:
-You can assign one function to another only if the actual argument types are wider than declared and the return type is more specific than declared. This rule sounds like: function is [contravariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by arguments and [covariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by return.
+> You can assign one function to another only if the actual argument types are wider than declared and the return type is more specific than declared. This rule sounds like: function is [contravariant](<https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)>) by arguments and [covariant](<https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)>) by return.
 
 A more classical and simple example of this rule:
 
@@ -175,15 +178,15 @@ function presentMyDog(goodBoy: Dog, dogPresenter: (Dog) => Dog): string {
 
 const nickolay = new Corgi("Nickolay");
 
-let result = '';
+let result = "";
 
-result = presentMyDog(nickolay, (goodBoy: Dog): Dog => goodBoy);     // 👌!
+result = presentMyDog(nickolay, (goodBoy: Dog): Dog => goodBoy); // 👌!
 result = presentMyDog(nickolay, (goodBoy: Animal): Dog => nickolay); // 👌!
 
 // Error: Type "(Corgi) => Dog" is incompatible with type "(Dog) => Dog"
 result = presentMyDog(nickolay, (goodBoy: Corgi): Dog => nickolay);
 
-result = presentMyDog(nickolay, (goodBoy: Dog): Corgi => nickolay);  // 👌!
+result = presentMyDog(nickolay, (goodBoy: Dog): Corgi => nickolay); // 👌!
 
 // Error: Type "(Dog) => Animal" is incompatible with type "(Dog) => Dog"
 result = presentMyDog(nickolay, (goodBoy: Dog): Animal => nickolay);

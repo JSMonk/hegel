@@ -24,7 +24,7 @@ export class RestArgument extends Type {
       parent:
         meta.parent === undefined || type.parent.priority > meta.parent.priority
           ? type.parent
-          : meta.parent
+          : meta.parent,
     };
     return super.term(name, newMeta, type, ...args);
   }
@@ -44,7 +44,7 @@ export class RestArgument extends Type {
       return this.getValueType(type.isSubtypeOf);
     }
     if (type instanceof UnionType) {
-      const variants = type.variants.map(t => this.getValueType(t));
+      const variants = type.variants.map((t) => this.getValueType(t));
       return variants.includes(undefined)
         ? undefined
         : UnionType.term(null, {}, variants);
@@ -64,13 +64,13 @@ export class RestArgument extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ) {
-    if (sourceTypes.every(type => !this.canContain(type))) {
+    if (sourceTypes.every((type) => !this.canContain(type))) {
       return this;
     }
     const currentSelf = TypeVar.createSelf(this.name, this.parent);
     if (
       this._changeStack !== null &&
-      this._changeStack.find(a => a.equalsTo(currentSelf))
+      this._changeStack.find((a) => a.equalsTo(currentSelf))
     ) {
       return currentSelf;
     }
@@ -177,7 +177,7 @@ export class FunctionType extends Type {
       params,
       this.prettyMode &&
         (params.length >= 4 ||
-          (params.some(param => String(param.name).includes("\n")) &&
+          (params.some((param) => String(param.name).includes("\n")) &&
             params.length !== 1))
     );
     const throwsPart = this.getThrowsPart(throws);
@@ -234,7 +234,7 @@ export class FunctionType extends Type {
     isMultyLine: boolean = false
   ) {
     return `(${isMultyLine ? "\n\t" : ""}${args
-      .map(param => {
+      .map((param) => {
         const isRest = param instanceof RestArgument;
         // $FlowIssue
         param = Type.getTypeRoot(isRest ? param.type : param);
@@ -277,7 +277,7 @@ export class FunctionType extends Type {
     targetTypes: Array<Type | RestArgument>,
     typeScope: TypeScope
   ): Type {
-    if (sourceTypes.every(type => !this.canContain(type))) {
+    if (sourceTypes.every((type) => !this.canContain(type))) {
       return this;
     }
     const currentSelf = TypeVar.createSelf(
@@ -286,7 +286,7 @@ export class FunctionType extends Type {
     );
     if (
       this._changeStack !== null &&
-      this._changeStack.find(a => a.equalsTo(currentSelf))
+      this._changeStack.find((a) => a.equalsTo(currentSelf))
     ) {
       return currentSelf;
     }
@@ -296,7 +296,7 @@ export class FunctionType extends Type {
         : [...this._changeStack, currentSelf];
     let isArgumentsChanged = false;
     try {
-      const newArguments = this.argumentsTypes.map(t => {
+      const newArguments = this.argumentsTypes.map((t) => {
         const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
         if (newT === t) {
           return t;
@@ -367,7 +367,7 @@ export class FunctionType extends Type {
       }
     }
     const anotherTypeRequiredArguments = anotherType.argumentsTypes.filter(
-      a => !a.isPrincipalTypeFor(Type.Undefined)
+      (a) => !a.isPrincipalTypeFor(Type.Undefined)
     );
     const result =
       this.returnType.isPrincipalTypeFor(anotherType.returnType) &&
@@ -400,11 +400,10 @@ export class FunctionType extends Type {
     if (type instanceof FunctionType) {
       const { argumentsTypes, returnType } = type;
       // $FlowIssue
-      const argumentsDiff = this.argumentsTypes.flatMap(
-        (arg, i) =>
-          argumentsTypes[i]
-            ? arg.getDifference(argumentsTypes[i], withReverseUnion)
-            : []
+      const argumentsDiff = this.argumentsTypes.flatMap((arg, i) =>
+        argumentsTypes[i]
+          ? arg.getDifference(argumentsTypes[i], withReverseUnion)
+          : []
       );
       const returnDiff = this.returnType.getDifference(
         returnType,
@@ -425,7 +424,7 @@ export class FunctionType extends Type {
     this._alreadyProcessedWith = type;
     const result =
       super.contains(type) ||
-      this.argumentsTypes.some(a => a.contains(type)) ||
+      this.argumentsTypes.some((a) => a.contains(type)) ||
       this.returnType.contains(type);
     this._alreadyProcessedWith = null;
     return result;
@@ -438,7 +437,7 @@ export class FunctionType extends Type {
     this._alreadyProcessedWith = type;
     const result =
       super.weakContains(type) ||
-      this.argumentsTypes.some(a => a.weakContains(type)) ||
+      this.argumentsTypes.some((a) => a.weakContains(type)) ||
       this.returnType.weakContains(type);
     this._alreadyProcessedWith = null;
     return result;
@@ -446,14 +445,14 @@ export class FunctionType extends Type {
 
   generalize(types: Array<TypeVar>, typeScope: TypeScope) {
     const localTypeScope = new TypeScope(typeScope);
-    const newArguments = this.argumentsTypes.map(arg =>
+    const newArguments = this.argumentsTypes.map((arg) =>
       arg.generalize(types, localTypeScope)
     );
     const newReturnType = this.returnType.generalize(types, localTypeScope);
     const maybeGenericTypes = newArguments.concat(newReturnType);
-    const newGenericArguments = types.filter(type =>
+    const newGenericArguments = types.filter((type) =>
       maybeGenericTypes.some(
-        arg => arg.weakContains(type) && !arg.containsAsGeneric(type)
+        (arg) => arg.weakContains(type) && !arg.containsAsGeneric(type)
       )
     );
     if (
@@ -493,7 +492,7 @@ export class FunctionType extends Type {
     this._alreadyProcessedWith = this;
     const sortedParents = this.argumentsTypes
       .concat([this.returnType])
-      .map(a => a.getNextParent(typeScope))
+      .map((a) => a.getNextParent(typeScope))
       .sort((a, b) => b.priority - a.priority);
     for (const parent of sortedParents) {
       if (parent.priority <= typeScope.priority && parent !== typeScope) {

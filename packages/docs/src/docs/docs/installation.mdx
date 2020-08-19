@@ -5,7 +5,8 @@ menu: Setup
 ---
 
 # Installation
----------------------
+
+---
 
 **Step 1**: check your [Node.js](https://nodejs.org/en/) version:
 
@@ -46,7 +47,7 @@ No errors!
 
 Also you need to setup a compiler which will strip away Hegel types. The same as Flow, you can choose between [Babel](https://babeljs.io/) and [flow-remove-types](https://www.npmjs.com/package/flow-remove-types).
 
-### Babel 
+### Babel
 
 ```bash
 $ npm i -D @babel/core @babel/cli @babel/preset-flow
@@ -71,7 +72,7 @@ Or you can add script inside your `package.json` `scripts` section:
 ```json
 {
   "scripts": {
-    "build": "babel directory_with_your_project_files/ -d compilation_destination_directory/",
+    "build": "babel directory_with_your_project_files/ -d compilation_destination_directory/"
   }
 }
 ```
@@ -79,6 +80,7 @@ Or you can add script inside your `package.json` `scripts` section:
 ### Flow Remove Types
 
 Install `flow-remove-types`:
+
 ```bash
 $ npm i -D flow-remove-types
 ```
@@ -88,12 +90,13 @@ And add next script inside your `package.json` `scripts` section:
 ```json
 {
   "scripts": {
-    "build": "flow-remove-types directory_with_your_project_files/ --out-dir compilation_destination_directory/ --all",
+    "build": "flow-remove-types directory_with_your_project_files/ --out-dir compilation_destination_directory/ --all"
   }
 }
 ```
 
 And run it by:
+
 ```bash
 $ npm run build
 ```

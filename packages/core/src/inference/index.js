@@ -28,12 +28,12 @@ export function inferenceTypeForNode(
   switch (currentNode.type) {
     case NODE.NUMERIC_LITERAL:
       result = Type.term(currentNode.value, {
-        isSubtypeOf: Type.Number
+        isSubtypeOf: Type.Number,
       });
       break;
     case NODE.BIGINT_LITERAL:
       result = Type.term(`${currentNode.value}n`, {
-        isSubtypeOf: Type.BigInt
+        isSubtypeOf: Type.BigInt,
       });
       break;
     case NODE.TEMPLATE_LITERAL:
@@ -41,7 +41,7 @@ export function inferenceTypeForNode(
       break;
     case NODE.STRING_LITERAL:
       result = Type.term(`'${currentNode.value}'`, {
-        isSubtypeOf: Type.String
+        isSubtypeOf: Type.String,
       });
       break;
     case NODE.BOOLEAN_LITERAL:

@@ -4,7 +4,8 @@ route: /docs/libraries
 ---
 
 # Libraries
----------------------
+
+---
 
 JavaScript program always contains specific libraries to solve the problem without copy-paste a problem solution between the projects. A lot of libraries exist in [NPM Registry](https://www.npmjs.com/). And to make program type safe we need to have some mechanism which will provide ability to annotate with types code which developer can't change.
 In order to handle this, Hegel supports the concept of a “library definition”.
@@ -25,7 +26,7 @@ Hegel will try to find type definition for specific library by the next algoryth
 
 1. Search inside defined ["typings" configuration section](/docs/configuration#typings) paths by the order they are defined inside the section.
 2. Search for typing path which are defined inside "types" section of specific package `package.json` file.
-3. Search for path of specific package with "d.ts" extension instead ".js" 
+3. Search for path of specific package with "d.ts" extension instead ".js"
 4. Try to inference types of specific package.
 
 Lets explore it by example:

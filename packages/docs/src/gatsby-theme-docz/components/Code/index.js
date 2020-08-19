@@ -51,14 +51,16 @@ export const Code = ({ children, className: outerClassName }) => {
 
   return (
     <Container>
-      {docs.withoutPlayground || language !== "typescript" ? null : <MainLink
-        as={Link}
-        target="_blank"
-        mode={theme.colorMode}
-        to={`/try#${encoded}`}
-      >
-        Playground
-      </MainLink>}
+      {docs.withoutPlayground || language !== "typescript" ? null : (
+        <MainLink
+          as={Link}
+          target="_blank"
+          mode={theme.colorMode}
+          to={`/try#${encoded}`}
+        >
+          Playground
+        </MainLink>
+      )}
       <Highlight
         {...defaultProps}
         code={children.trim()}
@@ -86,4 +88,4 @@ export const Code = ({ children, className: outerClassName }) => {
       </Highlight>
     </Container>
   );
-}
+};

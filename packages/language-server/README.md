@@ -1,6 +1,6 @@
 # @hegel/language-server
 
-This is an extension of [hegel](https://github.com/JSMonk/hegel) type system for VSCode. 
+This is an extension of [hegel](https://github.com/JSMonk/hegel) type system for VSCode.
 
 ## Features
 

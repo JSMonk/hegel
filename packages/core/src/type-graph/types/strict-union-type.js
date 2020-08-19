@@ -41,19 +41,21 @@ export class $AppliedStrictUnion extends Type {
   }
 
   equalsTo(type) {
-    return type instanceof $AppliedStrictUnion && this.oneOf.equalsTo(type.oneOf);
+    return (
+      type instanceof $AppliedStrictUnion && this.oneOf.equalsTo(type.oneOf)
+    );
   }
 
   isSuperTypeFor(type) {
     if (type instanceof $AppliedStrictUnion) {
       return this.oneOf.isSuperTypeFor(type.oneOf);
     }
-    return this.variants.some(t => t.isPrincipalTypeFor(type));
+    return this.variants.some((t) => t.isPrincipalTypeFor(type));
   }
 
   isPrincipalTypeFor(type) {
     type = this.getOponentType(type);
-    return this.equalsTo(type) || this.isSuperTypeFor(type); 
+    return this.equalsTo(type) || this.isSuperTypeFor(type);
   }
 
   contains(type) {

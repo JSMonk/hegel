@@ -7,14 +7,14 @@ import type {
   ModuleScope,
   VariableInfo,
   Type,
-  ExtendedFile
+  ExtendedFile,
 } from "@hegel/core";
 
 const typings = dirname(require.resolve("@hegel/typings"));
 const nodejs = join(typings, "nodejs/globals.d.ts");
 const standard = join(typings, "standard/index.d.ts");
 
-async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {   
+async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
   const errors: Array<HegelError> = [];
   const typingsScope = await createModuleScope(
     ast,
@@ -33,7 +33,7 @@ async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
   for (const entry of typingsScope.body.entries()) {
     if (entry === undefined) {
       continue;
-    } 
+    }
     const variable = entry[1];
     variable.parent = globalScope;
     void body.set(entry[0], variable);
@@ -41,7 +41,7 @@ async function mixLibraryToGlobal(ast, globalScope: ModuleScope) {
   for (const entry of typingsScope.typeScope.body.entries()) {
     if (entry === undefined) {
       continue;
-    } 
+    }
     const type = entry[1];
     type.parent = globalScope.typeScope;
     void typesBody.set(entry[0], type);
@@ -55,10 +55,11 @@ export async function mixTypeDefinitions(
   prepeareAST: (string, boolean) => Promise<ExtendedFile>
 ) {
   const standardAST = await prepeareAST(standard, true);
-  const nodejsAST = config.environment === "nodejs"
-    ? await prepeareAST(nodejs, true)
-    : undefined;
-  return async globalScope => {
+  const nodejsAST =
+    config.environment === "nodejs"
+      ? await prepeareAST(nodejs, true)
+      : undefined;
+  return async (globalScope) => {
     await mixLibraryToGlobal(standardAST, globalScope);
     if (nodejsAST !== undefined) {
       await mixLibraryToGlobal(nodejsAST, globalScope);

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 import meow from "meow";
 import { getLogger } from "./logger";
-import { getSources } from "./file-system";  
+import { getSources } from "./file-system";
 import { importModule } from "./module";
-import { createGlobalScope } from "@hegel/core"; 
+import { createGlobalScope } from "@hegel/core";
 import { createASTGenerator } from "./parser";
 import { mixTypeDefinitions } from "./typings";
 import { getConfig, createConfig } from "./config";
 import { getErrorsPrint, getVerdictPrint } from "./printer";
-import type { ErrorWithLocation } from "./printer"; 
-import type { ExtendedFile, HegelError } from "@hegel/core"; 
+import type { ErrorWithLocation } from "./printer";
+import type { ExtendedFile, HegelError } from "@hegel/core";
 
 const logger = getLogger();
 
@@ -22,13 +22,11 @@ Valid values for COMMAND:
  version     Print version number and exit
 `;
 
-const CLI = meow(helpMessage,
-  {
-    input: ["init"]
-  }
-);
+const CLI = meow(helpMessage, {
+  input: ["init"],
+});
 
-const COMMAND = CLI.input[0]; 
+const COMMAND = CLI.input[0];
 
 switch (COMMAND) {
   case "init":
@@ -53,7 +51,7 @@ async function main() {
     let errors: Array<ErrorWithLocation> = [];
     try {
       const asts: Array<ExtendedFile> = await Promise.all(
-        sources.map(file => getFileAST(file))
+        sources.map((file) => getFileAST(file))
       );
       const result = await createGlobalScope(
         asts,

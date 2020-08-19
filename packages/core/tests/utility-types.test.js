@@ -70,7 +70,9 @@ describe("Test $Keys", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A") === Type.find("'a' | 'b' | 'c' | unknown")).toBe(true);
+    expect(
+      typeScope.body.get("A") === Type.find("'a' | 'b' | 'c' | unknown")
+    ).toBe(true);
   });
   test("Should throw error with non-object target", async () => {
     const sourceAST = prepareAST(`
@@ -93,7 +95,10 @@ describe("Test $Entries", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A") === Type.find("['a', number] | ['b', string] | ['c', string]")).toBe(true);
+    expect(
+      typeScope.body.get("A") ===
+        Type.find("['a', number] | ['b', string] | ['c', string]")
+    ).toBe(true);
   });
   test("Simple test of object entries with soft object", async () => {
     const sourceAST = prepareAST(`
@@ -103,7 +108,10 @@ describe("Test $Entries", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A") === Type.find("['a', number] | ['b', string] | ['c', string] | unknown")).toBe(true);
+    expect(
+      typeScope.body.get("A") ===
+        Type.find("['a', number] | ['b', string] | ['c', string] | unknown")
+    ).toBe(true);
   });
   test("Should throw error with non-object target", async () => {
     const sourceAST = prepareAST(`
@@ -136,7 +144,9 @@ describe("Test $Values", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A") === Type.find("number | string | unknown")).toBe(true);
+    expect(
+      typeScope.body.get("A") === Type.find("number | string | unknown")
+    ).toBe(true);
   });
   test("Should throw error with non-object target", async () => {
     const sourceAST = prepareAST(`
@@ -160,7 +170,9 @@ describe("Test $Partial", () => {
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
     expect(typeScope.body.get("A")).toBe(
-      Type.find("{ 'a': 1 | undefined, 'b': 2 | undefined, 'c': 3 | undefined }")
+      Type.find(
+        "{ 'a': 1 | undefined, 'b': 2 | undefined, 'c': 3 | undefined }"
+      )
     );
   });
   test("Should throw error with non-object target", async () => {
@@ -184,7 +196,9 @@ describe("Test $Pick", () => {
     const [[actual], errors] = await createTypeGraph([sourceAST]);
     const typeScope = actual.typeScope;
     expect(errors.length).toEqual(0);
-    expect(typeScope.body.get("A") === Type.find("{ 'a': 1, 'b': 2 }")).toBe(true);
+    expect(typeScope.body.get("A") === Type.find("{ 'a': 1, 'b': 2 }")).toBe(
+      true
+    );
   });
   test("Should throw error with non-object first argument", async () => {
     const sourceAST = prepareAST(`

@@ -31,7 +31,9 @@ import type {
 
 export function getPropertyName(
   node: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod,
-  addCallToTypeGraph?: (ClassProperty | ObjectProperty | ClassMethod | ObjectMethod) => { result: Type | VariableInfo<any> }
+  addCallToTypeGraph?: (
+    ClassProperty | ObjectProperty | ClassMethod | ObjectMethod
+  ) => { result: Type | VariableInfo<any> }
 ) {
   const isPrivate =
     node.type === NODE.CLASS_PRIVATE_METHOD ||
@@ -46,7 +48,11 @@ export function getPropertyName(
     const { result } = addCallToTypeGraph(node.key);
     let type = result instanceof VariableInfo ? result.type : result;
     type = type.getOponentType(type);
-    const availableTypes = UnionType.term(null, {}, [Type.String, Type.Number, Type.Symbol]);
+    const availableTypes = UnionType.term(null, {}, [
+      Type.String,
+      Type.Number,
+      Type.Symbol,
+    ]);
     if (availableTypes.isPrincipalTypeFor(type)) {
       if (type instanceof TypeVar || type.isSubtypeOf === Type.Symbol) {
         return type;
@@ -58,23 +64,29 @@ export function getPropertyName(
         return String(type.name);
       }
       if (
-          !(type instanceof UnionType) &&
-          type !== Type.String &&
-          type !== Type.Number &&
-          type !== Type.Symbol
-        ) {
+        !(type instanceof UnionType) &&
+        type !== Type.String &&
+        type !== Type.Number &&
+        type !== Type.Symbol
+      ) {
         return String(type.name);
       }
     }
-    if (type instanceof TypeVar && !type.isUserDefined && type.constraint === undefined) {
+    if (
+      type instanceof TypeVar &&
+      !type.isUserDefined &&
+      type.constraint === undefined
+    ) {
       type.constraint = availableTypes;
       return type;
     }
     throw new HegelError(
-      `Only string, symbol or number values are available for object property constructing, your type is: ${String(type.name)}`,
+      `Only string, symbol or number values are available for object property constructing, your type is: ${String(
+        type.name
+      )}`,
       node.key.loc
     );
-  } 
+  }
   return node.key.name || `${node.key.value}`;
 }
 
@@ -121,7 +133,7 @@ export function getSuperTypeOf(
       ? UnionType.term(
           null,
           {},
-          type.variants.map(variant =>
+          type.variants.map((variant) =>
             getSuperTypeOf(variant, typeScope, withUnion)
           )
         )
@@ -144,24 +156,24 @@ export function getSuperTypeOf(
           : UnionType.term(
               null,
               {},
-              type.items.map(a => getSuperTypeOf(a, typeScope, withUnion))
+              type.items.map((a) => getSuperTypeOf(a, typeScope, withUnion))
             ),
         typeScope,
         true
-      )
+      ),
     ]);
   }
   if (type instanceof ObjectType) {
     const propertyTypes = [...type.properties.entries()].map(([key, v]) => [
       key,
-      v.type
+      v.type,
     ]);
     const newProperties = propertyTypes.map(([key, p]) => [
       key,
       // $FlowIssue
       Object.assign(new VariableInfo(), type.properties.get(key), {
-        type: getSuperTypeOf(p, typeScope, withUnion)
-      })
+        type: getSuperTypeOf(p, typeScope, withUnion),
+      }),
     ]);
     return ObjectType.term(
       ObjectType.getName(newProperties),
@@ -178,7 +190,10 @@ export function getVariableType(
   typeScope: TypeScope,
   inferenced: boolean = false
 ): Type {
-  const type = variable === undefined || variable instanceof Type  ? variable : variable.type;
+  const type =
+    variable === undefined || variable instanceof Type
+      ? variable
+      : variable.type;
   if (type && type !== Type.Unknown) {
     return type;
   }

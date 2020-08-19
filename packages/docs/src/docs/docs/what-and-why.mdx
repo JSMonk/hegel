@@ -2,8 +2,10 @@
 name: What & Why
 route: /docs
 ---
+
 # Introduction
----------------------
+
+---
 
 ## What is Hegel?
 
@@ -12,11 +14,15 @@ Hegel is a static type checker for JavaScript. It means that it is not a new lan
 ```typescript
 // Example from real life 😭
 class DataBase {
-  reconnect() { /* ... reconnect logic */}
+  reconnect() {
+    /* ... reconnect logic */
+  }
   dropDatabase() {}
 }
 class Fixture {
-  reconnect() { this.dropDatabase(); /* ... reconnect logic */}
+  reconnect() {
+    this.dropDatabase(); /* ... reconnect logic */
+  }
   dropDatabase() {}
 }
 
@@ -60,6 +66,7 @@ But we need to answer this question differently for different audiences. So, cho
 First of all, static analysis means that your code will be analyzed without actually running. So, static type analysis will analyze your code for any type of errors.
 
 Actually, there are 2 major benefits of static type analysis:
+
 1. Static type analysis finds and provides to you information about a type error that exists in your code during code writing. It not only gives you guarantees that your code will work without runtime type errors but in addition, it really saves a lot of time for finding and fixing errors, especially in big projects that contain a really long build step.
 2. When you use an instrument that provides type information of your variables, functions, methods, classes and etc - you have got a documentation of method usage without any additional efforts.
 
@@ -94,13 +101,13 @@ Hegel is targeting at really powerful type inference which gives an ability to w
 
 ```typescript
 // Type of "promisify" function is "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
-const promisify = fn => arg => Promise.resolve(fn(arg));
+const promisify = (fn) => (arg) => Promise.resolve(fn(arg));
 
 // Type of "id" function is "<_c>(_c) => Promise<_c>"
-const id = promisify(x => x);
+const id = promisify((x) => x);
 
 // Type of "result" variable is "Promise<number>"
-const result = id(42).then(x => x + x);
+const result = id(42).then((x) => x + x);
 ```
 
 > The same example in TypeScript (tested at version 3.7.5) will show 3 errors and inference `Promise<any>` type for "result" variable [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=1&ssc=1&pln=7&pc=1#code/PTAEBUE8AcFNQPYDNQCJoCcEFsCWBnXJSVUJAVwDsBjAF1wUtALQB4BHAcgBpRrOAfAAoh-AJSgAvANBcJ00KM7yZABSx58sDoNQAoao3y1QmHASKQpZJgoCGGAOZS1GgrAB0GWPgQAbADdYISRKIQdHMTEAbj09EAgYeGQ0XAATUgoaekZmfDZ+YXEXUHVzLVZC-UNKY2Y06zNNSyEADxLWmLiEqDhEFFRvfHI-WlIAh1w7ACM-eBZUMs1tSnJsadgMAWqjEyGRk0l6oQAWACYxD1oAC1gw9oV2gGpQTujQIA).
@@ -114,8 +121,8 @@ const doubles: Array<number> = [Math.PI, Math.E];
 
 // Error: Type "Array<number>" is incompatible with type "Array<number | string>"
 const numbersToShow: Array<number | string> = doubles;
-numbersToShow.push(42..toString(2));
-const rounded = doubles.map(double => double.toFixed());
+numbersToShow.push((42).toString(2));
+const rounded = doubles.map((double) => double.toFixed());
 ```
 
 > The same example in TypeScript (tested at version 3.7.5) will be valid, but uncaught type error will be thrown at runtime [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=4&ssc=11&pln=4&pc=4#code/MYewdgzgLgBAJiArgIwDYFMIC4YEEBO+AhgJ4A8YiAtsuvgHwwC8MA2gLJFQAWAdAAoBJADQxOPXgFEAugG4AUKEixKNOhAAqIAMrcQAdxwFi5VbXwwAPjGj4AlmADmjFghQYICs+q26DvAAdECG4ACgAWACZeXigdKHsnUMiAShSFAHoMmABVMGAiREduWA0SAPRJQhB8HDc0dFiQADE7AA90OBg7CBgwEFgiGAAzRHyoO3B5eo9eKiIA0Jn0ZkZlptaOuFC02SA).
@@ -127,17 +134,16 @@ Hegel implements inference and annotation for functions which gives an ability t
 ```typescript
 // Type of "assertIsTrue" function is "(boolean) => undefined throws TypeError"
 function assertIsTrue(arg) {
-    if (!arg) {
-        throw new TypeError("arg is invalid")
-    }
+  if (!arg) {
+    throw new TypeError("arg is invalid");
+  }
 }
 
 try {
-    assertIsTrue(false);
+  assertIsTrue(false);
 
   // Type of "e" variable is "TypeError | unknown"
-} catch (e) {
-}
+} catch (e) {}
 ```
 
 > The same example in TypeScript (tested at version 3.7.5) will inference e as "any" type [TypeScript Example](http://www.typescriptlang.org/play/index.html#code/GYVwdgxgLglg9mABAQwM6oKYCcoElUAqWIGAFMlgOYCUiA3gFCLOIzCKkCEFN9TLAqAAsscAO6IwGCQQCeABwwBRLKKykARD1apWYAG7IANjAAmG6v2YBfBrYZQssvgLSYc+IiVLBjmagDcdogQyFAQQhwYtIwCAPRxiHKKiHDsGhgaiIZYMMgARkYYOohaYLIadkA).
@@ -153,14 +159,11 @@ TypeScript provides a lot of additional syntax features and syntax sugar with ty
 enum UserStatus {
   Active,
   Muted,
-  Banned
+  Banned,
 }
 
 class User {
-  constructor(
-    public name: string,
-    public status: UserStatus
-  ) {}
+  constructor(public name: string, public status: UserStatus) {}
 }
 
 const Anatoly = new User("Anatoly", UserStatus.Active);
@@ -171,17 +174,17 @@ const Anatoly = new User("Anatoly", UserStatus.Active);
 const UserStatus = Object.freeze({
   Active: "Active",
   Muted: "Muted",
-  Banned: "Banned"
+  Banned: "Banned",
 });
 
 class User {
-    name: string;
-    status: $Values<$TypeOf<UserStatus>>
+  name: string;
+  status: $Values<$TypeOf<UserStatus>>;
 
-    constructor(name, status) {
-        this.name = name;
-        this.status = status;
-    }
+  constructor(name, status) {
+    this.name = name;
+    this.status = status;
+  }
 }
 
 const Anatoly = new User("Anatoly", UserStatus.Active);
@@ -211,7 +214,7 @@ As example Flow.js docs says: "Flow does not infer generic types. If you want so
 
 ```typescript
 // Type of "id" function is "<_a>(_a) => _a"
-const id = x => x;
+const id = (x) => x;
 // Type of "num" variable is "number"
 let num = id(4);
 // Type of "str" variable is "string"
@@ -229,15 +232,15 @@ Hegel implements inference and annotation for functions which gives an ability t
 ```typescript
 // Type of "assertIsTrue" function is "(boolean) => undefined throws TypeError"
 function assertIsTrue(arg) {
-    if (!arg) {
-        throw new TypeError("arg is invalid")
-    }
+  if (!arg) {
+    throw new TypeError("arg is invalid");
+  }
 }
 
 try {
-    assertIsTrue(false);
+  assertIsTrue(false);
 } catch (e) {
-    // Type of "e" variable is "TypeError | unknown"
+  // Type of "e" variable is "TypeError | unknown"
 }
 ```
 

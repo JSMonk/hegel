@@ -45,8 +45,15 @@ export class $ReturnType extends GenericType {
       return UnionType.term(
         null,
         {},
-        target.variants.map(a => this.applyGeneric([a, ...genericParameters], loc, shouldBeMemoize, isCalledAsBottom))
-      );      
+        target.variants.map((a) =>
+          this.applyGeneric(
+            [a, ...genericParameters],
+            loc,
+            shouldBeMemoize,
+            isCalledAsBottom
+          )
+        )
+      );
     }
     const oldGenericArguments = this.genericArguments;
     if (target instanceof GenericType) {

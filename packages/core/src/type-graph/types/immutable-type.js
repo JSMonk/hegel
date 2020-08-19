@@ -41,7 +41,7 @@ export class $AppliedImmutable extends Type {
       type = TupleType.ReadonlyArray.root.applyGeneric([type.valueType]);
     }
     if (type.isSimpleType()) {
-      meta = { ...meta, isSubtypeOf: type }; 
+      meta = { ...meta, isSubtypeOf: type };
     }
     super(name, meta);
     this.readonly = type;
