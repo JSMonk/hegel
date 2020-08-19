@@ -2,6 +2,8 @@
   "private": true,
   "scripts": {
     "test": "yarn workspace @hegel/core test",
+    "fix": "prettier --write .",
+    "lint": "prettier -l .",
     "build": "yarn build:core && yarn build:cli",
     "build:docs": "yarn workspace @hegel/docs build",
     "build:core": "yarn workspace @hegel/core build",
@@ -16,5 +18,18 @@
   ],
   "dependencies": {
     "flow-bin": "0.124.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.0.5"
+  },
+  "prettier": {
+    "overrides": [
+      {
+        "files": "*.js",
+        "options": {
+          "parser": "flow"
+        }
+      }
+    ]
   }
 }
