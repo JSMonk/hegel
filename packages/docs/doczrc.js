@@ -9,13 +9,13 @@ export default {
   public: "./public",
   themeConfig: {
     useColorSchemeMediaQuery: true,
-    initialColorMode: "dark"
+    initialColorMode: "dark",
   },
   menu: [
-     "What & Why",
+    "What & Why",
     {
       name: "Setup",
-      menu: ["Installation", "Editor Plugins"]
+      menu: ["Installation", "Editor Plugins"],
     },
     {
       name: "Type Annotations",
@@ -33,18 +33,18 @@ export default {
         "Type Aliases",
         "Generic Types",
         "Magic Types",
-        "Modules"
-      ]
+        "Modules",
+      ],
     },
     {
       name: "Type System",
-      menu: ["Type Compatibility", "Type Inference", "Type Refinement"]
+      menu: ["Type Compatibility", "Type Inference", "Type Refinement"],
     },
     "Configuration",
     "Libraries",
     {
       name: "For Potential Contributors",
-      menu: ["Architecture Overview"]
-    }
-  ]
+      menu: ["Architecture Overview"],
+    },
+  ],
 };

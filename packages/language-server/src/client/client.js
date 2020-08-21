@@ -4,7 +4,7 @@ import { TransportKind, LanguageClient } from "vscode-languageclient";
 let client;
 
 exports.activate = (context) => {
-  const serverModule = context.asAbsolutePath('server.js');
+  const serverModule = context.asAbsolutePath("server.js");
   const debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
 
   const serverOptions = {

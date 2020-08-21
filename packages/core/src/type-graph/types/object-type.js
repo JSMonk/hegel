@@ -13,7 +13,7 @@ import type {
   ClassProperty,
   ObjectProperty,
   ClassMethod,
-  ObjectMethod
+  ObjectMethod,
 } from "@babel/core";
 
 type ExtendedTypeMeta = { ...TypeMeta, isNominal?: boolean, isSoft?: boolean };
@@ -87,7 +87,10 @@ export class ObjectType extends Type {
     } }`;
   }
 
-  static multyLine(properties: Array<[string | TypeVar, Type]>, isSoft: boolean) {
+  static multyLine(
+    properties: Array<[string | TypeVar, Type]>,
+    isSoft: boolean
+  ) {
     return `{\n${properties
       .map(
         ([name, type]) =>
@@ -102,7 +105,9 @@ export class ObjectType extends Type {
   }
 
   static getPropertyString(propertyKey: string | TypeVar) {
-    return typeof propertyKey === "string" ? `'${propertyKey}'` : String(propertyKey.name);
+    return typeof propertyKey === "string"
+      ? `'${propertyKey}'`
+      : String(propertyKey.name);
   }
 
   isNominal: boolean;
@@ -125,7 +130,7 @@ export class ObjectType extends Type {
         : name;
     super(name, {
       isSubtypeOf: name === "Object" ? undefined : ObjectType.Object,
-      ...options
+      ...options,
     });
     this.isNominal = Boolean(options.isNominal);
     const filteredProperties = properties
@@ -141,9 +146,10 @@ export class ObjectType extends Type {
     _: boolean = false,
     isForInit: boolean = false
   ): ?Type | ClassProperty | ObjectProperty | ClassMethod | ObjectMethod {
-    const propertyName = property instanceof TypeVar || property.isSubtypeOf === Type.Symbol 
-      ? property 
-      : String(property);
+    const propertyName =
+      property instanceof TypeVar || property.isSubtypeOf === Type.Symbol
+        ? property
+        : String(property);
     let fieldOwner = this;
     let field = undefined;
     while (fieldOwner) {
@@ -197,13 +203,13 @@ export class ObjectType extends Type {
         !existedAnotherProperty &&
         !(
           maybeUnion instanceof UnionType &&
-          maybeUnion.variants.some(variant => variant !== Type.Undefined)
+          maybeUnion.variants.some((variant) => variant !== Type.Undefined)
         )
       ) {
         return false;
       }
       const anotherProperty = existedAnotherProperty || {
-        type: Type.Undefined
+        type: Type.Undefined,
       };
       /* $FlowIssue - flow doesn't type methods by name */
       if (!type[predicate](anotherProperty.type)) {
@@ -218,14 +224,14 @@ export class ObjectType extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ): Type {
-    if (sourceTypes.every(type => !this.canContain(type))) {
+    if (sourceTypes.every((type) => !this.canContain(type))) {
       const newName = this.getChangedName(sourceTypes, targetTypes);
       const name = String(this.name);
       return name[0] === "{" || newName === name
         ? this
         : // $FlowIssue
           Object.assign(new ObjectType("", {}, this.properties), this, {
-            name: newName
+            name: newName,
           });
     }
     const currentSelf = TypeVar.createSelf(
@@ -234,7 +240,7 @@ export class ObjectType extends Type {
     );
     if (
       this._changeStack !== null &&
-      this._changeStack.find(a => a.equalsTo(currentSelf))
+      this._changeStack.find((a) => a.equalsTo(currentSelf))
     ) {
       return currentSelf;
     }
@@ -254,31 +260,36 @@ export class ObjectType extends Type {
           targetTypes,
           typeScope
         );
-        let newKey = key instanceof TypeVar
-          ? key.changeAll(sourceTypes, targetTypes, typeScope)
-          : key;
-          if (typeof newKey !== "string" && !(newKey instanceof TypeVar)) {
-            newKey = this.getOponentType(newKey);
-            if (
-                newKey.isSubtypeOf !== Type.String &&
-                newKey.isSubtypeOf !== Type.Symbol &&
-                newKey.isSubtypeOf !== Type.Number
-            ) {
-              throw new HegelError(`Computed property type should be String, Symbol or Number literal type, but given "${String(newKey.name)}"`);
-            }
+        let newKey =
+          key instanceof TypeVar
+            ? key.changeAll(sourceTypes, targetTypes, typeScope)
+            : key;
+        if (typeof newKey !== "string" && !(newKey instanceof TypeVar)) {
+          newKey = this.getOponentType(newKey);
+          if (
+            newKey.isSubtypeOf !== Type.String &&
+            newKey.isSubtypeOf !== Type.Symbol &&
+            newKey.isSubtypeOf !== Type.Number
+          ) {
+            throw new HegelError(
+              `Computed property type should be String, Symbol or Number literal type, but given "${String(
+                newKey.name
+              )}"`
+            );
           }
-         if (newKey.isSubtypeOf === Type.String) {
+        }
+        if (newKey.isSubtypeOf === Type.String) {
           newKey = String(newKey.name).slice(1, -1);
-         } else if (key.isSubtypeOf === Type.Number) {
+        } else if (key.isSubtypeOf === Type.Number) {
           newKey = String(newKey.name);
-         }
+        }
         if (vInfo.type === newType && newKey === key) {
           return newProperties.push([key, vInfo]);
         }
         isAnyPropertyChanged = true;
         newProperties.push([
           newKey,
-          new VariableInfo(newType, vInfo.parent, vInfo.meta)
+          new VariableInfo(newType, vInfo.parent, vInfo.meta),
         ]);
       });
       const isSubtypeOf =
@@ -354,7 +365,7 @@ export class ObjectType extends Type {
           typeof type === "object" && "readonly" in type ? type.readonly : type;
         return (
           !(type instanceof UnionType) ||
-          !type.variants.some(t => t.equalsTo(Type.Undefined))
+          !type.variants.some((t) => t.equalsTo(Type.Undefined))
         );
       }
     );

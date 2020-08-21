@@ -12,7 +12,7 @@ import { CollectionType } from "../type-graph/types/collection-type";
 import { getMemberExressionTarget } from "../utils/common";
 import {
   getPropertyChaining,
-  getTypesFromVariants
+  getTypesFromVariants,
 } from "../utils/inference-utils";
 import { createObjectWith, mergeObjectsTypes } from "../utils/type-utils";
 import type { ModuleScope } from "../type-graph/module-scope";
@@ -24,7 +24,7 @@ import type {
   StringLiteral,
   NumericLiteral,
   BooleanLiteral,
-  MemberExpression
+  MemberExpression,
 } from "@babel/parser";
 
 function isIdentifierOrProperty(node: Node) {
@@ -104,21 +104,21 @@ function getRefinmentType(
 ): Type {
   const UNION = UnionType.term("undefined | null", {}, [
     Type.Undefined,
-    Type.Null
+    Type.Null,
   ]);
   const strict = isStrict(refinementNode);
   switch (value.type) {
     case NODE.NUMERIC_LITERAL:
       return Type.term(value.value, {
-        isSubtypeOf: Type.Number
+        isSubtypeOf: Type.Number,
       });
     case NODE.BIGINT_LITERAL:
       return Type.term(`${value.value}n`, {
-        isSubtypeOf: Type.BigInt
+        isSubtypeOf: Type.BigInt,
       });
     case NODE.STRING_LITERAL:
       return Type.term(`'${value.value}'`, {
-        isSubtypeOf: Type.String
+        isSubtypeOf: Type.String,
       });
     case NODE.BOOLEAN_LITERAL:
       return Type.term(value.value);
@@ -142,7 +142,7 @@ function refinementVariants(
   if (variant.isPrincipalTypeFor(refinementType)) {
     return [
       refinementedVariants.concat([refinementType]),
-      alternateVariants.concat([variant])
+      alternateVariants.concat([variant]),
     ];
   }
   return [refinementedVariants, alternateVariants.concat([variant])];
@@ -266,7 +266,7 @@ export function refinementProperty(
       if (property instanceof UnionType) {
         const [
           refinementedVariants,
-          alternateVariants
+          alternateVariants,
         ] = property.variants.reduce(
           (res, variant) => refinementVariants(res, variant, refinementType),
           [[], []]
@@ -285,7 +285,7 @@ export function refinementProperty(
             variableType,
             typeScope
           ),
-          propertyWith(currentPropertyName, alternate, variableType, typeScope)
+          propertyWith(currentPropertyName, alternate, variableType, typeScope),
         ];
       }
       if (refinementType.isPrincipalTypeFor(property)) {
@@ -299,11 +299,11 @@ export function refinementProperty(
             variableType,
             typeScope
           ),
-          variableType
+          variableType,
         ];
       }
       if (destructUnion && refinementType instanceof UnionType) {
-        const pickedVariants = refinementType.variants.filter(variant =>
+        const pickedVariants = refinementType.variants.filter((variant) =>
           property.isPrincipalTypeFor(variant)
         );
         return [
@@ -313,7 +313,7 @@ export function refinementProperty(
             variableType,
             typeScope
           ),
-          variableType
+          variableType,
         ];
       }
       return [undefined, variableType];
@@ -343,13 +343,13 @@ export function refinementProperty(
         nestedRefinement[1],
         variableType,
         typeScope
-      )
+      ),
     ];
   }
   if (variableType instanceof UnionType) {
     const [
       refinementedVariants,
-      alternateVariants
+      alternateVariants,
     ] = variableType.variants.reduce(
       ([refinementedVariants, alternateVariants], variant) => {
         const isNotAlternateVariant =
@@ -371,7 +371,7 @@ export function refinementProperty(
         }
         const [
           refinementedType,
-          alternateType
+          alternateType,
         ] = refinementedTypeAndAlternateType;
         return [
           refinementedType
@@ -379,7 +379,7 @@ export function refinementProperty(
             : refinementedVariants,
           alternateType
             ? alternateVariants.concat([alternateType])
-            : alternateVariants
+            : alternateVariants,
         ];
       },
       [[], []]

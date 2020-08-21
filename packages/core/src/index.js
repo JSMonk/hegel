@@ -6,10 +6,10 @@ import { VariableInfo as _VariableInfo } from "./type-graph/variable-info";
 import { VariableScope as _VariableScope } from "./type-graph/variable-scope";
 import {
   ModuleScope as _ModuleScope,
-  PositionedModuleScope as _PositionedModuleScope
+  PositionedModuleScope as _PositionedModuleScope,
 } from "./type-graph/module-scope";
 import _createGlobalScope, {
-  createModuleScope as _createModuleScope
+  createModuleScope as _createModuleScope,
 } from "./type-graph/type-graph";
 
 export const TypeScope = _TypeScope;

@@ -12,8 +12,9 @@ const Border = styled.div`
   box-sizing: border-box;
   border-radius: 5px;
   padding: 30px 10px 30px 0;
-  border: 1px solid ${props => (props.mode === "light" ? "#ced4de" : "#2d3747")};
-  background-color: ${props =>
+  border: 1px solid
+    ${(props) => (props.mode === "light" ? "#ced4de" : "#2d3747")};
+  background-color: ${(props) =>
     props.mode === "light" ? "#f5f6f7" : "#13161f"};
 `;
 
@@ -33,14 +34,11 @@ export function CodePlayground() {
       }
     };
   }, []);
-  React.useEffect(
-    () => {
-      if (editor) {
-        editor.setTheme(colorMode);
-      }
-    },
-    [colorMode, editor]
-  );
+  React.useEffect(() => {
+    if (editor) {
+      editor.setTheme(colorMode);
+    }
+  }, [colorMode, editor]);
   return (
     <Border mode={colorMode}>
       <PlaygroundContainer id={EDITOR_ID} />

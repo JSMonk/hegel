@@ -26,7 +26,7 @@ function getActualType(
     return Type.Undefined;
   }
   if (Array.isArray(actual)) {
-    const items = actual.map(a => getActualType(a, typeScope));
+    const items = actual.map((a) => getActualType(a, typeScope));
     return TupleType.term(TupleType.getName(items), {}, items);
   }
   if (actual instanceof VariableInfo) {
@@ -66,7 +66,7 @@ function isValidTypes(
         ? declaratedRootType.root
         : declaratedRootType;
     if (actualRootType instanceof UnionType) {
-      return actualRootType.variants.every(t =>
+      return actualRootType.variants.every((t) =>
         isValidTypes(
           targetName,
           declaratedRootType,
@@ -122,24 +122,22 @@ function checkSingleCall(
   typeScope: TypeScope,
   errors: Array<HegelError>
 ): void {
-  const givenArgumentsTypes = call.arguments.map(t => {
-     t = t instanceof VariableInfo ? t.type : t;
-     if (t instanceof TypeVar) {
+  const givenArgumentsTypes = call.arguments.map((t) => {
+    t = t instanceof VariableInfo ? t.type : t;
+    if (t instanceof TypeVar) {
       t._isUserDefined = true;
-     }
-     return t;
+    }
+    return t;
   });
   const targetFunctionType = getCallTarget(call);
   const targetArguments = targetFunctionType.argumentsTypes;
   const requiredTargetArguments = targetArguments.filter(
-    a =>  !(a instanceof RestArgument) && !a.isPrincipalTypeFor(Type.Undefined)
+    (a) => !(a instanceof RestArgument) && !a.isPrincipalTypeFor(Type.Undefined)
   );
   if (requiredTargetArguments.length > givenArgumentsTypes.length) {
     errors.push(
       new HegelError(
-        `${requiredTargetArguments.length} arguments are required. Given ${
-          givenArgumentsTypes.length
-        }.`,
+        `${requiredTargetArguments.length} arguments are required. Given ${givenArgumentsTypes.length}.`,
         call.loc,
         path
       )
@@ -150,9 +148,7 @@ function checkSingleCall(
   ) {
     errors.push(
       new HegelError(
-        `${targetArguments.length} arguments are expected. Given ${
-          givenArgumentsTypes.length
-        }.`,
+        `${targetArguments.length} arguments are expected. Given ${givenArgumentsTypes.length}.`,
         call.loc,
         path
       )
@@ -258,7 +254,7 @@ function isFunctionShouldNotCallReturn(returnType: Type, isAsync: boolean) {
     return true;
   }
   if (returnType instanceof UnionType) {
-    return returnType.variants.some(returnType =>
+    return returnType.variants.some((returnType) =>
       isFunctionShouldNotCallReturn(returnType, isAsync)
     );
   }

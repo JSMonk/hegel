@@ -69,7 +69,7 @@ export class GenericType<T: Type> extends Type {
     const isMultyLine = this.prettyMode && parameters.length >= 4;
     const isSplitterPresented =
       isMultyLine ||
-      parameters.some(a => a instanceof UnionType && a.variants.length >= 4);
+      parameters.some((a) => a instanceof UnionType && a.variants.length >= 4);
     return `${String(name)}<${
       isSplitterPresented ? "\n\t" : ""
     }${this.getParametersPart(parameters, isMultyLine)}${
@@ -105,7 +105,7 @@ export class GenericType<T: Type> extends Type {
     super(name, meta);
     this.subordinateType = type;
     this.localTypeScope = typeScope;
-    this.genericArguments = genericArguments.map(param => {
+    this.genericArguments = genericArguments.map((param) => {
       if (param.constraint != undefined && "unwrap" in param.constraint) {
         this.nestedRestriction = param.constraint.unwrap;
         param.constraint = undefined;
@@ -134,7 +134,7 @@ export class GenericType<T: Type> extends Type {
     ignoreLength?: boolean = false
   ) {
     const requiredParams = this.genericArguments.filter(
-      t => t.defaultType === undefined
+      (t) => t.defaultType === undefined
     );
     if (parameters.length < requiredParams.length) {
       throw new HegelError(
@@ -146,18 +146,17 @@ export class GenericType<T: Type> extends Type {
         loc
       );
     }
-    const genericArguments = this.genericArguments.map(
-      a =>
-        a.constraint !== undefined
-          ? new TypeVar(
-              String(a.name),
-              { isSubtypeOf: a.isSubtypeOf, parent: a.parent },
-              // $FlowIssue
-              a.constraint.changeAll(this.genericArguments, parameters),
-              a.defaultType,
-              a.isUserDefined
-            )
-          : a
+    const genericArguments = this.genericArguments.map((a) =>
+      a.constraint !== undefined
+        ? new TypeVar(
+            String(a.name),
+            { isSubtypeOf: a.isSubtypeOf, parent: a.parent },
+            // $FlowIssue
+            a.constraint.changeAll(this.genericArguments, parameters),
+            a.defaultType,
+            a.isUserDefined
+          )
+        : a
     );
     const wrongArgumentIndex = genericArguments.findIndex((arg, i) => {
       const parameter = parameters[i];
@@ -190,7 +189,7 @@ export class GenericType<T: Type> extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ): Type {
-    if (sourceTypes.every(type => !this.canContain(type))) {
+    if (sourceTypes.every((type) => !this.canContain(type))) {
       return this;
     }
     const currentSelf = TypeVar.createSelf(
@@ -199,17 +198,17 @@ export class GenericType<T: Type> extends Type {
     );
     [sourceTypes, targetTypes] = sourceTypes.reduce(
       ([newSourceTypes, newTargetTypes], sourceType, index) =>
-        this.genericArguments.find(a => sourceType.contains(a)) !== undefined
+        this.genericArguments.find((a) => sourceType.contains(a)) !== undefined
           ? [newSourceTypes, newTargetTypes]
           : [
               [...newSourceTypes, sourceType],
-              [...newTargetTypes, targetTypes[index]]
+              [...newTargetTypes, targetTypes[index]],
             ],
       [[], []]
     );
     if (
       this._changeStack !== null &&
-      this._changeStack.find(a => a.equalsTo(currentSelf))
+      this._changeStack.find((a) => a.equalsTo(currentSelf))
     ) {
       return currentSelf;
     }
@@ -227,8 +226,8 @@ export class GenericType<T: Type> extends Type {
         return this.endChanges(this);
       }
       const newGenericArguments = this.genericArguments
-        .filter(arg => newSubordinateType.contains(arg))
-        .map(a => a.changeAll(sourceTypes, targetTypes, typeScope));
+        .filter((arg) => newSubordinateType.contains(arg))
+        .map((a) => a.changeAll(sourceTypes, targetTypes, typeScope));
       if (newGenericArguments.length === 0) {
         return this.endChanges(newSubordinateType);
       }
@@ -290,7 +289,7 @@ export class GenericType<T: Type> extends Type {
         ) {
           const [
             nestedInsideUnion,
-            otherVariants
+            otherVariants,
           ] = appliedType.variants.reduce(
             ([nested, other], type) =>
               // $FlowIssue
@@ -342,7 +341,7 @@ export class GenericType<T: Type> extends Type {
         return appliedType;
       }
       if (t.constraint !== undefined && "oneOf" in t.constraint) {
-        const variant = t.constraint.variants.find(v =>
+        const variant = t.constraint.variants.find((v) =>
           v.isPrincipalTypeFor(appliedType)
         );
         if (variant !== undefined) {
@@ -412,8 +411,8 @@ export class GenericType<T: Type> extends Type {
     if (isBottomPresented) {
       const result = this.bottomizeWith(parameters, theMostPriorityParent, loc);
       return nestedTypesInsideUnion.length !== 0
-        // $FlowIssue
-        ? UnionType.term(null, {}, [...nestedTypesInsideUnion, result])
+        ? // $FlowIssue
+          UnionType.term(null, {}, [...nestedTypesInsideUnion, result])
         : result;
     }
     try {
@@ -427,8 +426,8 @@ export class GenericType<T: Type> extends Type {
       result.priority = this.subordinateType.priority + 1;
       result.save();
       return nestedTypesInsideUnion.length !== 0
-        // $FlowIssue
-        ? UnionType.term(null, {}, [...nestedTypesInsideUnion, result])
+        ? // $FlowIssue
+          UnionType.term(null, {}, [...nestedTypesInsideUnion, result])
         : result;
     } catch (e) {
       e.loc = loc;
@@ -456,7 +455,7 @@ export class GenericType<T: Type> extends Type {
       const result = this.subordinateType
         .getDifference(type.subordinateType, withReverseUnion)
         // $FlowIssue
-        .filter(a => !type.genericArguments.includes(a.variable));
+        .filter((a) => !type.genericArguments.includes(a.variable));
       this._alreadyProcessedWith = null;
       return result;
     }
@@ -467,7 +466,7 @@ export class GenericType<T: Type> extends Type {
     }
     const result = this.subordinateType
       .getDifference(type, withReverseUnion)
-      .filter(a => !this.genericArguments.includes(a.variable));
+      .filter((a) => !this.genericArguments.includes(a.variable));
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -518,7 +517,7 @@ export class GenericType<T: Type> extends Type {
   }
 
   asUserDefined() {
-    this.genericArguments.forEach(t => {
+    this.genericArguments.forEach((t) => {
       t._isUserDefined = true;
       t.root = undefined;
     });
@@ -526,7 +525,7 @@ export class GenericType<T: Type> extends Type {
   }
 
   asNotUserDefined() {
-    this.genericArguments.forEach(t => (t._isUserDefined = false));
+    this.genericArguments.forEach((t) => (t._isUserDefined = false));
     return this;
   }
 }

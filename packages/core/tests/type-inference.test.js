@@ -1784,7 +1784,9 @@ describe("Error inference", () => {
     expect(errors.length).toBe(0);
     expect(e.type).toBeInstanceOf(UnionType);
     expect(e.type.variants.length).toBe(2);
-    expect(e.type.variants[0] === Type.find("{ 'message': string }")).toBe(true);
+    expect(e.type.variants[0] === Type.find("{ 'message': string }")).toBe(
+      true
+    );
     expect(e.type.variants[1] === Type.Unknown).toBe(true);
     expect(e.type === Type.find("{ 'message': string } | unknown")).toBe(true);
   });
@@ -2447,9 +2449,9 @@ describe("Type refinement", () => {
       a.type === Type.find("{ 'b': number, 'c': number } | { 'b': string }")
     ).toBe(true);
     expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.find("{ 'b': number, 'c': number }")).toBe(
-      true
-    );
+    expect(
+      a.type.variants[0] === Type.find("{ 'b': number, 'c': number }")
+    ).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': string }")).toBe(true);
     expect(b.type === Type.find("{ 'b': number, 'c': number }")).toBe(true);
   });
@@ -2466,11 +2468,13 @@ describe("Type refinement", () => {
     const b = actualScope.body.get("b");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
-    expect(a.type === Type.find("{ 'b': 2, 'c': number } | { 'b': string }")).toBe(
+    expect(
+      a.type === Type.find("{ 'b': 2, 'c': number } | { 'b': string }")
+    ).toBe(true);
+    expect(a.type.variants.length).toBe(2);
+    expect(a.type.variants[0] === Type.find("{ 'b': 2, 'c': number }")).toBe(
       true
     );
-    expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.find("{ 'b': 2, 'c': number }")).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': string }")).toBe(true);
     expect(b.type === Type.find("{ 'b': 2, 'c': number }")).toBe(true);
   });
@@ -2491,9 +2495,9 @@ describe("Type refinement", () => {
       a.type === Type.find("{ 'b': number, 'c': number } | { 'b': string }")
     ).toBe(true);
     expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.find("{ 'b': number, 'c': number }")).toBe(
-      true
-    );
+    expect(
+      a.type.variants[0] === Type.find("{ 'b': number, 'c': number }")
+    ).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': string }")).toBe(true);
     expect(b.type === Type.find("{ 'b': 2, 'c': number }")).toBe(true);
   });
@@ -2515,9 +2519,9 @@ describe("Type refinement", () => {
     ).toBe(true);
     expect(a.type.variants.length).toBe(2);
     expect(a.type.variants[0] === Type.find("{ 'b': number }")).toBe(true);
-    expect(a.type.variants[1] === Type.find("{ 'b': string, 'c': number }")).toBe(
-      true
-    );
+    expect(
+      a.type.variants[1] === Type.find("{ 'b': string, 'c': number }")
+    ).toBe(true);
     expect(b.type === Type.find("{ 'b': string, 'c': number }")).toBe(true);
   });
   test("Equals refinement for union property(string)", async () => {
@@ -2533,9 +2537,9 @@ describe("Type refinement", () => {
     const b = actualScope.body.get("b");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
-    expect(a.type === Type.find("{ 'b': '2', 'c': number } | { 'b': number }")).toBe(
-      true
-    );
+    expect(
+      a.type === Type.find("{ 'b': '2', 'c': number } | { 'b': number }")
+    ).toBe(true);
     expect(a.type.variants.length).toBe(2);
     expect(a.type.variants[0] === Type.find("{ 'b': '2', 'c': number }")).toBe(
       true
@@ -2560,9 +2564,9 @@ describe("Type refinement", () => {
       a.type === Type.find("{ 'b': boolean, 'c': number } | { 'b': number }")
     ).toBe(true);
     expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.find("{ 'b': boolean, 'c': number }")).toBe(
-      true
-    );
+    expect(
+      a.type.variants[0] === Type.find("{ 'b': boolean, 'c': number }")
+    ).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': number }")).toBe(true);
     expect(b.type === Type.find("{ 'b': boolean, 'c': number }")).toBe(true);
   });
@@ -2579,11 +2583,13 @@ describe("Type refinement", () => {
     const b = actualScope.body.get("b");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
-    expect(a.type === Type.find("{ 'b': 2, 'c': number } | { 'b': string }")).toBe(
+    expect(
+      a.type === Type.find("{ 'b': 2, 'c': number } | { 'b': string }")
+    ).toBe(true);
+    expect(a.type.variants.length).toBe(2);
+    expect(a.type.variants[0] === Type.find("{ 'b': 2, 'c': number }")).toBe(
       true
     );
-    expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.find("{ 'b': 2, 'c': number }")).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': string }")).toBe(true);
     expect(b.type === Type.find("{ 'b': 2, 'c': number }")).toBe(true);
   });
@@ -2600,9 +2606,9 @@ describe("Type refinement", () => {
     const b = actualScope.body.get("b");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
-    expect(a.type === Type.find("{ 'b': '2', 'c': number } | { 'b': number }")).toBe(
-      true
-    );
+    expect(
+      a.type === Type.find("{ 'b': '2', 'c': number } | { 'b': number }")
+    ).toBe(true);
     expect(a.type.variants.length).toBe(2);
     expect(a.type.variants[0] === Type.find("{ 'b': '2', 'c': number }")).toBe(
       true
@@ -2623,9 +2629,9 @@ describe("Type refinement", () => {
     const b = actualScope.body.get("b");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
-    expect(a.type === Type.find("{ 'b': string } | { 'b': true, 'c': number }")).toBe(
-      true
-    );
+    expect(
+      a.type === Type.find("{ 'b': string } | { 'b': true, 'c': number }")
+    ).toBe(true);
     expect(a.type.variants.length).toBe(2);
     expect(a.type.variants[0] === Type.find("{ 'b': string }")).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': true, 'c': number }")).toBe(
@@ -2647,14 +2653,17 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(
-      a.type === Type.find("{ 'b': { 'd': number }, 'c': number } | { 'b': number }")
+      a.type ===
+        Type.find("{ 'b': { 'd': number }, 'c': number } | { 'b': number }")
     ).toBe(true);
     expect(a.type.variants.length).toBe(2);
     expect(
       a.type.variants[0] === Type.find("{ 'b': { 'd': number }, 'c': number }")
     ).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': number }")).toBe(true);
-    expect(b.type === Type.find("{ 'b': { 'd': number }, 'c': number }")).toBe(true);
+    expect(b.type === Type.find("{ 'b': { 'd': number }, 'c': number }")).toBe(
+      true
+    );
   });
   test("Typeof refinement for union property(function)", async () => {
     const sourceAST = prepareAST(`
@@ -2670,14 +2679,17 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(
-      a.type === Type.find("{ 'b': () => number, 'c': number } | { 'b': number }")
+      a.type ===
+        Type.find("{ 'b': () => number, 'c': number } | { 'b': number }")
     ).toBe(true);
     expect(a.type.variants.length).toBe(2);
     expect(
       a.type.variants[0] === Type.find("{ 'b': () => number, 'c': number }")
     ).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': number }")).toBe(true);
-    expect(b.type === Type.find("{ 'b': () => number, 'c': number }")).toBe(true);
+    expect(b.type === Type.find("{ 'b': () => number, 'c': number }")).toBe(
+      true
+    );
   });
   test("Multiple typeof refinement for union variable", async () => {
     const sourceAST = prepareAST(`
@@ -2720,12 +2732,12 @@ describe("Type refinement", () => {
         )
     ).toBe(true);
     expect(a.type.variants.length).toBe(3);
-    expect(a.type.variants[0] === Type.find("{ 'a': number, 'b': number }")).toBe(
-      true
-    );
-    expect(a.type.variants[1] === Type.find("{ 'a': number, 'b': string }")).toBe(
-      true
-    );
+    expect(
+      a.type.variants[0] === Type.find("{ 'a': number, 'b': number }")
+    ).toBe(true);
+    expect(
+      a.type.variants[1] === Type.find("{ 'a': number, 'b': string }")
+    ).toBe(true);
     expect(a.type.variants[2] === Type.find("{ 'a': string }")).toBe(true);
     expect(b.type === Type.find("{ 'a': number, 'b': number }")).toBe(true);
   });
@@ -2811,10 +2823,14 @@ describe("Type refinement", () => {
     expect(a.type).toBeInstanceOf(UnionType);
     expect(
       a.type ===
-        Type.find("{ 'a': { 'b': number } } | { 'a': { 'b': string }, 'b': string }")
+        Type.find(
+          "{ 'a': { 'b': number } } | { 'a': { 'b': string }, 'b': string }"
+        )
     ).toBe(true);
     expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.find("{ 'a': { 'b': number } }")).toBe(true);
+    expect(a.type.variants[0] === Type.find("{ 'a': { 'b': number } }")).toBe(
+      true
+    );
     expect(
       a.type.variants[1] === Type.find("{ 'a': { 'b': string }, 'b': string }")
     ).toBe(true);
@@ -2888,11 +2904,13 @@ describe("Type refinement", () => {
     const b = actualScope.body.get("b");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
-    expect(a.type === Type.find("{ 'b': Array<number> } | { 'b': number }")).toBe(
+    expect(
+      a.type === Type.find("{ 'b': Array<number> } | { 'b': number }")
+    ).toBe(true);
+    expect(a.type.variants.length).toBe(2);
+    expect(a.type.variants[0] === Type.find("{ 'b': Array<number> }")).toBe(
       true
     );
-    expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.find("{ 'b': Array<number> }")).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': number }")).toBe(true);
     expect(b.type === Type.find("{ 'b': Array<number> }")).toBe(true);
   });
@@ -2909,7 +2927,9 @@ describe("Type refinement", () => {
     const b = actualScope.body.get("b");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
-    expect(a.type === Type.find("{ 'a': number } | { 'b': string }")).toBe(true);
+    expect(a.type === Type.find("{ 'a': number } | { 'b': string }")).toBe(
+      true
+    );
     expect(a.type.variants.length).toBe(2);
     expect(a.type.variants[0] === Type.find("{ 'a': number }")).toBe(true);
     expect(a.type.variants[1] === Type.find("{ 'b': string }")).toBe(true);
@@ -2927,9 +2947,9 @@ describe("Type refinement", () => {
     const a = actual.body.get("a");
     const b = actualScope.body.get("b");
     expect(errors.length).toBe(0);
-    expect(a.type === Type.find("{ 'a': { 'b': string } | { 'c': string } }")).toBe(
-      true
-    );
+    expect(
+      a.type === Type.find("{ 'a': { 'b': string } | { 'c': string } }")
+    ).toBe(true);
     expect(b.type).toBeInstanceOf($Refinemented);
     expect(b.type.refinemented === Type.find("{ 'a': { 'b': string } }")).toBe(
       true
@@ -2949,11 +2969,16 @@ describe("Type refinement", () => {
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(UnionType);
     expect(
-      a.type === Type.find("{ 'a': { 'b': string } } | { 'a': { 'c': string } }")
+      a.type ===
+        Type.find("{ 'a': { 'b': string } } | { 'a': { 'c': string } }")
     ).toBe(true);
     expect(a.type.variants.length).toBe(2);
-    expect(a.type.variants[0] === Type.find("{ 'a': { 'b': string } }")).toBe(true);
-    expect(a.type.variants[1] === Type.find("{ 'a': { 'c': string } }")).toBe(true);
+    expect(a.type.variants[0] === Type.find("{ 'a': { 'b': string } }")).toBe(
+      true
+    );
+    expect(a.type.variants[1] === Type.find("{ 'a': { 'c': string } }")).toBe(
+      true
+    );
     expect(b.type === Type.find("{ 'a': { 'b': string } }")).toBe(true);
   });
 });
@@ -3189,12 +3214,12 @@ describe("Issues", () => {
     expect(errors[0].loc).toEqual({
       end: {
         column: 34,
-        line: 15
+        line: 15,
       },
       start: {
         column: 19,
-        line: 15
-      }
+        line: 15,
+      },
     });
   });
   test("Issue #101: function calculation should be inferenced right", async () => {
@@ -3357,8 +3382,13 @@ describe("Issues", () => {
     );
     expect(errors.length).toBe(1);
     expect(errors[0]).toBeInstanceOf(HegelError);
-    expect(errors[0].message).toBe('Parameter "bigint | number" is incompatible with restriction "$StrictUnion<bigint | number | string>"');
-    expect(errors[0].loc).toEqual({ end: { column: 23, line: 7 }, start: { column: 16, line: 7 } });
+    expect(errors[0].message).toBe(
+      'Parameter "bigint | number" is incompatible with restriction "$StrictUnion<bigint | number | string>"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 23, line: 7 },
+      start: { column: 16, line: 7 },
+    });
   });
 
   test("Issue #229: should have not to swap strict union to raw union", async () => {
@@ -3373,7 +3403,12 @@ describe("Issues", () => {
     );
     expect(errors.length).toBe(1);
     expect(errors[0]).toBeInstanceOf(HegelError);
-    expect(errors[0].message).toBe('Parameter "T" is incompatible with restriction "$StrictUnion<bigint | number | string>"');
-    expect(errors[0].loc).toEqual({ end: { column: 55, line: 2 }, start: { column: 50, line: 2 } });
+    expect(errors[0].message).toBe(
+      'Parameter "T" is incompatible with restriction "$StrictUnion<bigint | number | string>"'
+    );
+    expect(errors[0].loc).toEqual({
+      end: { column: 55, line: 2 },
+      start: { column: 50, line: 2 },
+    });
   });
 });

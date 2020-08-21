@@ -1,17 +1,17 @@
 import fs from "fs";
 import path from "path";
 import { parse } from "@babel/parser";
-import { createModuleScope } from "../src/type-graph/type-graph"
+import { createModuleScope } from "../src/type-graph/type-graph";
 
 const babelrc = {
   sourceType: "module",
-  plugins: [["flow", { all: true }], "bigInt", "classProperties"]
+  plugins: [["flow", { all: true }], "bigInt", "classProperties"],
 };
 
 const definitionsRc = {
   sourceType: "module",
   plugins: ["typescript"],
-  strictMode: false
+  strictMode: false,
 };
 
 const libsFile = fs.readFileSync(
@@ -24,7 +24,7 @@ export const prepareAST = (source, isTypeDefinitions) =>
 
 export const mixTypeDefinitions = () => {
   const definitionsAST = prepareAST(libsFile, true);
-  return async globalScope => {
+  return async (globalScope) => {
     const errors = [];
     const typingsScope = await createModuleScope(
       definitionsAST,

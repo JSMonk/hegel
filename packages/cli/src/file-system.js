@@ -8,6 +8,6 @@ export function getSources(config: Config) {
   return glob.sync(include.join(), {
     cwd: config.workingDirectory,
     dot: true,
-    ignore: exclude
+    ignore: exclude,
   });
 }

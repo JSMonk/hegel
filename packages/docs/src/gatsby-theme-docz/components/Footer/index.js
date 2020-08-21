@@ -4,7 +4,7 @@ import { useThemeUI, Container } from "theme-ui";
 
 const HtmlFooter = styled.footer`
   border-top: 1px solid
-    ${props => (props.mode === "light" ? "#CED4DE" : "#2D3747")};
+    ${(props) => (props.mode === "light" ? "#CED4DE" : "#2D3747")};
 `;
 
 const List = styled.ul`

@@ -15,12 +15,12 @@ export function printSingleError(
       ? error.loc
       : {
           start: error.loc,
-          end: Object.assign(error.loc, { column: error.loc.column + 1 })
+          end: Object.assign(error.loc, { column: error.loc.column + 1 }),
         };
   const line = chalk.dim.underline(`${error.source}:${String(loc.start.line)}`);
   const codeFrame = codeFrameColumns(fileContent, loc, {
     highlightCode: true,
-    message: error.message.replace(/\([\d:]+\)/gi, "")
+    message: error.message.replace(/\([\d:]+\)/gi, ""),
   });
   return `${line}\n${codeFrame}`;
 }

@@ -20,18 +20,18 @@ const HtmlHeader = styled.header`
   font-family: "Source Sans Pro", sans-serif;
   font-weight: 400;
   line-height: 1.5;
-  color: ${props => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
-  background-color: ${props =>
+  color: ${(props) => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
+  background-color: ${(props) =>
     props.mode === "light" ? "#F5F6F7" : "#13161F"};
   position: relative;
   z-index: 2;
   border-bottom: 1px solid
-    ${props =>
+    ${(props) =>
       props.withoutBorder
         ? "transparent"
         : props.mode === "light"
-          ? "#CED4DE"
-          : "#2D3747"};
+        ? "#CED4DE"
+        : "#2D3747"};
 `;
 
 const Navigation = styled.nav`
@@ -48,10 +48,10 @@ const Navigation = styled.nav`
   text-align: left;
   flex: 1;
   padding: 0 20px;
-  
+
   @media (max-width: 1198px) {
-     flex-basis: 100%;
-     height: auto;
+    flex-basis: 100%;
+    height: auto;
   }
 `;
 
@@ -74,7 +74,7 @@ const Toggle = styled.button`
   font-weight: 600;
   cursor: pointer;
   color: #ffffff;
-  background-color: ${props =>
+  background-color: ${(props) =>
     props.mode === "light" ? "#0B5FFF" : "#1FB6FF"};
 `;
 

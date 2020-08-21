@@ -13,7 +13,7 @@ import type {
   Program,
   SourceLocation,
   ImportSpecifier,
-  ImportDeclaration
+  ImportDeclaration,
 } from "@babel/parser";
 
 function getImportName(specifier: ImportSpecifier): ?string {
@@ -45,11 +45,11 @@ export function importDependencies(
       : currentModuleTypeGraph;
   const importEntries = [...importSource.entries()].map(([key, a]) => [
     key,
-    a instanceof VariableInfo ? a : new VariableInfo(a, sourceModuleTypeGraph)
+    a instanceof VariableInfo ? a : new VariableInfo(a, sourceModuleTypeGraph),
   ]);
   const withPositions = currentModuleTypeGraph instanceof PositionedModuleScope;
   const shouldBeVariable = importTarget instanceof ModuleScope;
-  importNode.specifiers.forEach(specifier => {
+  importNode.specifiers.forEach((specifier) => {
     const importName = getImportName(specifier);
     let importElement = importName
       ? importSource.get(importName) || exports.get(importName)
@@ -60,8 +60,9 @@ export function importDependencies(
         );
     if (importElement === undefined) {
       throw new HegelError(
-        `Module "${importNode.source.value}" hasn't "${importName ||
-          "*"}" export`,
+        `Module "${importNode.source.value}" hasn't "${
+          importName || "*"
+        }" export`,
         specifier.loc,
         modulePath
       );
@@ -128,9 +129,9 @@ export default async function mixImportedDependencies(
     importRequests.push(
       Promise.all([
         node,
-        getModuleTypeGraph(node.source.value, path, node.loc).then(module => {
+        getModuleTypeGraph(node.source.value, path, node.loc).then((module) => {
           if (
-            errors.some(error => error.source === module.path) &&
+            errors.some((error) => error.source === module.path) &&
             currentModuleScope instanceof PositionedModuleScope
           ) {
             errors.push(
@@ -142,7 +143,7 @@ export default async function mixImportedDependencies(
             );
           }
           return module;
-        })
+        }),
       ])
     );
   }

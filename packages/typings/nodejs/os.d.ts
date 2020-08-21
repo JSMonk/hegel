@@ -1,41 +1,43 @@
 export interface CpuInfo {
-    model: string;
-    speed: number;
-    times: {
-        user: number;
-        nice: number;
-        sys: number;
-        idle: number;
-        irq: number;
-    };
+  model: string;
+  speed: number;
+  times: {
+    user: number;
+    nice: number;
+    sys: number;
+    idle: number;
+    irq: number;
+  };
 }
 
 export interface NetworkInterfaceBase {
-    address: string;
-    netmask: string;
-    mac: string;
-    internal: boolean;
-    cidr: string | null;
+  address: string;
+  netmask: string;
+  mac: string;
+  internal: boolean;
+  cidr: string | null;
 }
 
 export interface NetworkInterfaceInfoIPv4 extends NetworkInterfaceBase {
-    family: "IPv4";
+  family: "IPv4";
 }
 
 export interface NetworkInterfaceInfoIPv6 extends NetworkInterfaceBase {
-    family: "IPv6";
-    scopeid: number;
+  family: "IPv6";
+  scopeid: number;
 }
 
 export interface UserInfo<T> {
-    username: T;
-    uid: number;
-    gid: number;
-    shell: T;
-    homedir: T;
+  username: T;
+  uid: number;
+  gid: number;
+  shell: T;
+  homedir: T;
 }
 
-export type NetworkInterfaceInfo = NetworkInterfaceInfoIPv4 | NetworkInterfaceInfoIPv6;
+export type NetworkInterfaceInfo =
+  | NetworkInterfaceInfoIPv4
+  | NetworkInterfaceInfoIPv6;
 
 export function hostname(): string;
 export function loadavg(): number[];
@@ -45,7 +47,9 @@ export function totalmem(): number;
 export function cpus(): CpuInfo[];
 export function type(): string;
 export function release(): string;
-export function networkInterfaces(): { [index: string]: NetworkInterfaceInfo[] };
+export function networkInterfaces(): {
+  [index: string]: NetworkInterfaceInfo[];
+};
 export function homedir(): string;
 //export function userInfo(options: { encoding: 'buffer' }): UserInfo<Buffer>;
 export function userInfo(options?: { encoding: string }): UserInfo<string>;

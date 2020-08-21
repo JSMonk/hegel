@@ -54,7 +54,7 @@ export class $Values extends GenericType {
       return realTarget.valueType;
     }
     const values = [...realTarget.properties.values()];
-    const variants = values.map(value => value.type);
+    const variants = values.map((value) => value.type);
     if (!realTarget.isStrict) {
       variants.push(Type.Unknown);
     }

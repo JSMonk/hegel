@@ -5,28 +5,30 @@ menu: Type Annotations
 ---
 
 # Type Aliases
-----------------
+
+---
 
 Sometimes your type annotations become really long, so you need some mechanisms which help you not repeat yourself. And prevent "copy-paste" errors.
 
 ```typescript
 const user: {
-  email: string,
-  password: string
+  email: string;
+  password: string;
 } = { email: "test.email@gmail.com", password: "qwerty" };
 
 const copyOfOriginalUser: {
-  email: string,
-  password: string
+  email: string;
+  password: string;
 } = user;
 
 //-------------------
 
-function createResponse(status: "Success" | "Failed"): { status: "Success" | "Failed" } {
-  return { status }
+function createResponse(
+  status: "Success" | "Failed"
+): { status: "Success" | "Failed" } {
+  return { status };
 }
 ```
-
 
 One of them is type alisases. Type aliases create a new name for a type.
 Type aliases can be created using the keyword `type` followed by its name, an equals sign `=`, and a type definition. You can place any valid type definition after equals sign `=`.
@@ -34,8 +36,8 @@ Type aliases can be created using the keyword `type` followed by its name, an eq
 ```typescript
 // Type alias for object type
 type User = {
-  email: string,
-  password: string
+  email: string;
+  password: string;
 };
 
 const user: User = { email: "test.email@gmail.com", password: "qwerty" };
@@ -47,7 +49,7 @@ const copyOfOriginalUser: User = user;
 type Status = "Success" | "Failed";
 
 function createResponse(status: Status): { status: Status } {
-  return { status }
+  return { status };
 }
 ```
 
@@ -66,7 +68,7 @@ type JsonSerializable = {
 class User implements JsonSerializable {
   email: string;
   password: string;
-  
+
   constructor(email, password) {
     this.email = email;
     this.password = password;

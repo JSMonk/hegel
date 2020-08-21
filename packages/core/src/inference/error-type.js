@@ -11,8 +11,8 @@ export function inferenceErrorType(tryNode: Node, moduleScope: ModuleScope) {
   if (tryScope === undefined || tryScope.throwable === undefined) {
     throw new Error("Never");
   }
-  const variants = tryScope.throwable.map(
-    t => (t instanceof VariableInfo ? t.type : t)
+  const variants = tryScope.throwable.map((t) =>
+    t instanceof VariableInfo ? t.type : t
   );
   return UnionType.term(null, {}, variants);
 }

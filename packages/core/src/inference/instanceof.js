@@ -10,7 +10,7 @@ import { VariableScope } from "../type-graph/variable-scope";
 import { getMemberExressionTarget } from "../utils/common";
 import {
   getPropertyChaining,
-  getTypesFromVariants
+  getTypesFromVariants,
 } from "../utils/inference-utils";
 import { createObjectWith, mergeObjectsTypes } from "../utils/type-utils";
 import type { ModuleScope } from "../type-graph/module-scope";
@@ -18,7 +18,7 @@ import type {
   Node,
   Identifier,
   BinaryExpression,
-  MemberExpression
+  MemberExpression,
 } from "@babel/parser";
 
 function instanceofIdentifier(
@@ -59,7 +59,7 @@ function instanceofIdentifier(
   );
   return [
     targetNode.name,
-    ...getTypesFromVariants(refinementedVariants, alternateVariants, typeScope)
+    ...getTypesFromVariants(refinementedVariants, alternateVariants, typeScope),
   ];
 }
 
@@ -87,7 +87,7 @@ function refinementProperty(
       }
       const [
         refinementedVariants,
-        alternateVariants
+        alternateVariants,
       ] = property.type.variants.reduce(
         ([refinementedVariants, alternateVariants], variant) => {
           const refinmentedProperty =
@@ -120,7 +120,7 @@ function refinementProperty(
   if (variableType instanceof UnionType) {
     const [
       refinementedVariants,
-      alternateVariants
+      alternateVariants,
     ] = variableType.variants.reduce(
       ([refinementedVariants, alternateVariants], variant) => {
         const isNotAlternateVariant =
@@ -142,7 +142,7 @@ function refinementProperty(
         }
         const [
           refinementedType,
-          alternateType
+          alternateType,
         ] = refinementedTypeAndAlternateType;
         return [
           refinementedType
@@ -155,7 +155,7 @@ function refinementProperty(
                     typeScope
                   ),
                   typeScope
-                )
+                ),
               ])
             : refinementedVariants,
           alternateType
@@ -168,9 +168,9 @@ function refinementProperty(
                     typeScope
                   ),
                   typeScope
-                )
+                ),
               ])
-            : alternateVariants
+            : alternateVariants,
         ];
       },
       [[], []]

@@ -5,7 +5,8 @@ menu: Type System
 ---
 
 # Type Compatibility
-----------------
+
+---
 
 The Hegel tries to implement type safety in JavaScript via strong type system. It means that analyzer ensure that variable value is always assignable to declarated (or inferenced) static type.
 
@@ -24,17 +25,17 @@ This hierachy defines rules of subtyping: "Every type which is higher in the hie
 const tuple: [number, number] = [42, 24]; // 👌!
 
 // This is also an Array
-const array: Array<number> = [42, 24];    // 👌!
+const array: Array<number> = [42, 24]; // 👌!
 
 // This is also an Object
-const object: Object = [42, 24];          // 👌!
+const object: Object = [42, 24]; // 👌!
 
 // This is also "unknown"
-const unknown: unknown = [42, 24];        // 👌!
+const unknown: unknown = [42, 24]; // 👌!
 ```
 
 ```typescript
-// But not in reverse order 
+// But not in reverse order
 // Object is not a Tuple
 // Error: Type "Object" is incompatible with type "[number, number]"
 const tuple: [number, number] = new Object();
@@ -52,27 +53,27 @@ const unknown: unknown = new Object();
 
 ## Function types Compatibility
 
-Functions does not create any hierarhy. Compatibility of two functions defined by the rule: 
-you can assign function to another only if actual arguments types are wider then declared and return type is more specific then declared. This rule sounds like: function is [contravariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by arguments and [covariant](https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)) by return.
+Functions does not create any hierarhy. Compatibility of two functions defined by the rule:
+you can assign function to another only if actual arguments types are wider then declared and return type is more specific then declared. This rule sounds like: function is [contravariant](<https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)>) by arguments and [covariant](<https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)>) by return.
 
 ```typescript
-let func: (number) => number = () => 42; 
+let func: (number) => number = () => 42;
 
-func = (a: number): number => a;           // 👌!
+func = (a: number): number => a; // 👌!
 
 // It's okay because "number | string" is wider than "number"
 func = (a: number | string): number => 44; // 👌!
 
 // It's okay because "42" is more specific than "number"
-func = (a: number): 42 => 42;              // 👌!
+func = (a: number): 42 => 42; // 👌!
 
 // Error: Type "(42) => number" is incompatible with type "(number) => number"
 // Because "42" is more specific than "number"
-func = (a: 42): number => 42; 
+func = (a: 42): number => 42;
 
 // Error: Type "(number) => number | string" is incompatible with type "(number) => number"
 // Because "number | string" is wider than "number"
-func = (a: number): number | string => 42; 
+func = (a: number): number | string => 42;
 ```
 
 ## Generics Compatibility
@@ -84,7 +85,7 @@ class Container<T> {
   value: T;
 
   constructor(value) {
-      this.value = value;
+    this.value = value;
   }
 }
 ```
@@ -92,7 +93,7 @@ class Container<T> {
 We can see a the same subtyping behavior as with primitive types:
 
 ```typescript
-const wrapped42: Container<42> = new Container<42>(42);         // 👌!
+const wrapped42: Container<42> = new Container<42>(42); // 👌!
 const wrappedNumber: Container<number> = new Container<42>(42); // 👌!
 
 // Error: Type "Container<number>" is incompatible with type "Container<42>"
@@ -115,7 +116,7 @@ const wrappedNumber: Container<number> = wrapped42;
 
 ## Soundness
 
-Soundness is an ability of system to guarantee that after analysis your program will not be in invalid state. 
+Soundness is an ability of system to guarantee that after analysis your program will not be in invalid state.
 
 Hegel tries to implement the same soundness type system as [ReasonML/OCaml](https://reasonml.github.io/), [Haskell](https://www.haskell.org/), [Elm](https://elm-lang.org/) and other ML
 -based languages. It means Hegel tries to catch every single error that might happen at runtime without runtime type checking.

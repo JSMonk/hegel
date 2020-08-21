@@ -16,13 +16,13 @@ const HtmlMain = styled.main`
   min-height: 500px;
   font-family: "Source Sans Pro", sans-serif;
   font-weight: 400; line-height: 1.5;
-  color: ${props => (props.mode === "light" ? "#2D3747" : "#FFFFFF")};
-  background-color: ${props =>
+  color: ${(props) => (props.mode === "light" ? "#2D3747" : "#FFFFFF")};
+  background-color: ${(props) =>
     props.mode === "light" ? "#F5F6F7" : "#13161F"};
   position: relative;
   z-index: 2;
   border-bottom: 1px solid
-    ${props => (props.mode === "light" ? "#CED4DE" : "#2D3747")};
+    ${(props) => (props.mode === "light" ? "#CED4DE" : "#2D3747")};
 
   & pre {
     display: flex;
@@ -88,16 +88,18 @@ const Text = styled.p`
 `;
 
 const MainLink = styled(Link)`
-  border: 2px solid ${props => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
-  color: ${props => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
+  border: 2px solid
+    ${(props) => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
+  color: ${(props) => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
   text-decoration: none;
   padding: 8px 24px;
   transition: all 0.3s ease 0s, color 0.3s ease 0s;
   text-align: center;
 
   &:hover {
-    color: ${props => (props.mode === "light" ? "#F5F6F7" : "#13161F")};
-    background-color: ${props => (props.mode === "light" ? "#2D3747" : "#CED4DE")};
+    color: ${(props) => (props.mode === "light" ? "#F5F6F7" : "#13161F")};
+    background-color: ${(props) =>
+      props.mode === "light" ? "#2D3747" : "#CED4DE"};
   }
 `;
 
@@ -130,8 +132,12 @@ export function Main() {
         </Section>
       </SpacedContainer>
       <CenterContainer>
-        <MainLink mode={colorMode} to="/docs">Get Started</MainLink>
-        <MainLink mode={colorMode} to="/try">Try Online</MainLink>
+        <MainLink mode={colorMode} to="/docs">
+          Get Started
+        </MainLink>
+        <MainLink mode={colorMode} to="/try">
+          Try Online
+        </MainLink>
       </CenterContainer>
     </HtmlMain>
   );

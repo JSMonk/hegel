@@ -50,7 +50,7 @@ export class $Partial extends GenericType {
         Type.Undefined,
         ...(property.type instanceof UnionType
           ? property.type.variants
-          : [property.type])
+          : [property.type]),
       ];
       const newType = UnionType.term(null, {}, variants);
       return [name, new VariableInfo(newType, property.parent, property.meta)];

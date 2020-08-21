@@ -25,7 +25,10 @@ export const genericFunction = (
   );
   let genericArguments = getGenericArguments(localTypeScope);
   genericArguments.forEach(([key, type]) => localTypeScope.body.set(key, type));
-  genericArguments = genericArguments.map(([, t]) => { t.isUserDefined = true; return t; });
+  genericArguments = genericArguments.map(([, t]) => {
+    t.isUserDefined = true;
+    return t;
+  });
   const parametersTypes = getTypeParameters(localTypeScope);
   const returnType = getReturnType(localTypeScope);
   return GenericType.term(
@@ -42,7 +45,7 @@ export const genericFunction = (
   );
 };
 
-const mixBaseOperators = moduleScope => {
+const mixBaseOperators = (moduleScope) => {
   const typeScope = moduleScope.typeScope;
   const operators = [
     // We need it for rest operator inside object pattern
@@ -50,66 +53,80 @@ const mixBaseOperators = moduleScope => {
       "Object::Omit",
       genericFunction(
         typeScope,
-        parent => {
+        (parent) => {
           const O = TypeVar.term("O", { parent }, ObjectType.Object);
           O.isUserDefined = true;
-          const K = TypeVar.term("K", { parent }, new $BottomType({}, typeScope.body.get("$Keys"), [O]));
+          const K = TypeVar.term(
+            "K",
+            { parent },
+            new $BottomType({}, typeScope.body.get("$Keys"), [O])
+          );
           K.isUserDefined = true;
-          return [["O", O], ["K", K]];
+          return [
+            ["O", O],
+            ["K", K],
+          ];
         },
-        l => [l.body.get("O"), CollectionType.Array.root.applyGeneric([l.body.get("K")])],
-        l => new $BottomType({}, typeScope.body.get("$Omit"), [l.body.get("O"), l.body.get("K")])
-      )
+        (l) => [
+          l.body.get("O"),
+          CollectionType.Array.root.applyGeneric([l.body.get("K")]),
+        ],
+        (l) =>
+          new $BottomType({}, typeScope.body.get("$Omit"), [
+            l.body.get("O"),
+            l.body.get("K"),
+          ])
+      ),
     ],
     [
       "+",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
-                {}, 
-                  UnionType.term(null, { parent: typeScope }, [
-                    Type.BigInt,
-                    Type.Number
-                  ])
+                null,
+                {},
+                UnionType.term(null, { parent: typeScope }, [
+                  Type.BigInt,
+                  Type.Number,
+                ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "-",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "!",
@@ -118,32 +135,32 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Boolean],
         Type.Boolean
-      )
+      ),
     ],
     [
       "~",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "typeof",
@@ -162,10 +179,10 @@ const mixBaseOperators = moduleScope => {
             Type.term("'object'", { isSubtypeOf: Type.String }),
             Type.term("'bigint'", { isSubtypeOf: Type.String }),
             Type.term("'symbol'", { isSubtypeOf: Type.String }),
-            Type.term("'function'", { isSubtypeOf: Type.String })
+            Type.term("'function'", { isSubtypeOf: Type.String }),
           ]
         )
-      )
+      ),
     ],
     [
       "void",
@@ -174,7 +191,7 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Unknown],
         Type.Undefined
-      )
+      ),
     ],
     [
       "delete",
@@ -183,14 +200,14 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Unknown],
         Type.Undefined
-      )
+      ),
     ],
     typeScope.body.has("Promise")
       ? [
           "await",
           genericFunction(
             typeScope,
-            parent => {
+            (parent) => {
               const V = TypeVar.term("V", { parent });
               return [
                 ["V", V],
@@ -200,13 +217,13 @@ const mixBaseOperators = moduleScope => {
                     "T",
                     { parent },
                     Type.find("Thenable").applyGeneric([V])
-                  )
-                ]
+                  ),
+                ],
               ];
             },
-            l => [l.body.get("T")],
-            l => l.body.get("V")
-          )
+            (l) => [l.body.get("T")],
+            (l) => l.body.get("V")
+          ),
         ]
       : [
           "await",
@@ -215,7 +232,7 @@ const mixBaseOperators = moduleScope => {
             { parent: typeScope },
             [Type.Unknown],
             Type.Unknown
-          )
+          ),
         ],
     [
       "==",
@@ -224,25 +241,25 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Unknown, Type.Unknown],
         Type.Boolean
-      )
+      ),
     ],
     [
       "===",
       genericFunction(
         typeScope,
-        parent => [["T", TypeVar.term("T", { parent })]],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => Type.Boolean
-      )
+        (parent) => [["T", TypeVar.term("T", { parent })]],
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => Type.Boolean
+      ),
     ],
     [
       "!==",
       genericFunction(
         typeScope,
-        parent => [["T", TypeVar.term("T", { parent })]],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => Type.Boolean
-      )
+        (parent) => [["T", TypeVar.term("T", { parent })]],
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => Type.Boolean
+      ),
     ],
     [
       "!=",
@@ -251,383 +268,383 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Unknown, Type.Unknown],
         Type.Boolean
-      )
+      ),
     ],
     [
       ">=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        _ => Type.Boolean
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (_) => Type.Boolean
+      ),
     ],
     [
       "<=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        _ => Type.Boolean
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (_) => Type.Boolean
+      ),
     ],
     [
       ">",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        _ => Type.Boolean
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (_) => Type.Boolean
+      ),
     ],
     [
       "<",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        _ => Type.Boolean
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (_) => Type.Boolean
+      ),
     ],
     [
       "b+",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
                   Type.String,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "b-",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "/",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "%",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "|",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "&",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "*",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "^",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "**",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "<<",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       ">>",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       ">>>",
@@ -636,16 +653,16 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Number, Type.Number],
         Type.Number
-      )
+      ),
     ],
     [
       "in",
       genericFunction(
         typeScope,
-        parent => [["T", TypeVar.term("T", { parent }, ObjectType.Object)]],
-        l => [Type.String, l.body.get("T")],
-        l => Type.Boolean
-      )
+        (parent) => [["T", TypeVar.term("T", { parent }, ObjectType.Object)]],
+        (l) => [Type.String, l.body.get("T")],
+        (l) => Type.Boolean
+      ),
     ],
     [
       "instanceof",
@@ -654,192 +671,192 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Unknown, Type.Unknown],
         Type.Boolean
-      )
+      ),
     ],
     [
       "=",
       genericFunction(
         typeScope,
-        parent => [["T", TypeVar.term("T", { parent })]],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (parent) => [["T", TypeVar.term("T", { parent })]],
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "+=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
                   Type.String,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "-=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "*=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "/=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "%=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "**=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       ">>=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       ">>>=",
@@ -848,187 +865,191 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Number, Type.Number],
         Type.Number
-      )
+      ),
     ],
     [
       "<<=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "|=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "&=",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               $AppliedStrictUnion.term(
-                null, 
+                null,
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
-                  Type.Number
+                  Type.Number,
                 ])
               )
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T"), l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T"), l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     // Updates
     [
       "++",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "--",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           [
             "T",
             TypeVar.term(
               "T",
               { parent },
               UnionType.term("bigint | number", {}, [Type.BigInt, Type.Number])
-            )
-          ]
+            ),
+          ],
         ],
-        l => [l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (l) => [l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       // Logical
       "&&",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           ["A", TypeVar.term("A", { parent })],
-          ["B", TypeVar.term("B", { parent })]
+          ["B", TypeVar.term("B", { parent })],
         ],
-        l => [l.body.get("A"), l.body.get("B")],
-        l =>
+        (l) => [l.body.get("A"), l.body.get("B")],
+        (l) =>
           UnionType.term("A | B", { parent: l }, [
             l.body.get("A"),
-            l.body.get("B")
+            l.body.get("B"),
           ])
-      )
+      ),
     ],
     [
       "||",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           ["A", TypeVar.term("A", { parent })],
-          ["B", TypeVar.term("B", { parent })]
+          ["B", TypeVar.term("B", { parent })],
         ],
-        l => [l.body.get("A"), l.body.get("B")],
-        l =>
+        (l) => [l.body.get("A"), l.body.get("B")],
+        (l) =>
           UnionType.term("A | B", { parent: l }, [
             l.body.get("A"),
-            l.body.get("B")
+            l.body.get("B"),
           ])
-      )
+      ),
     ],
     [
       "??",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           ["A", TypeVar.term("A", { parent })],
-          ["B", TypeVar.term("B", { parent })]
+          ["B", TypeVar.term("B", { parent })],
         ],
-        l => [
-          UnionType.term(null, {}, [Type.Undefined, Type.Null, l.body.get("A")]),
-          l.body.get("B")
+        (l) => [
+          UnionType.term(null, {}, [
+            Type.Undefined,
+            Type.Null,
+            l.body.get("A"),
+          ]),
+          l.body.get("B"),
         ],
-        l =>
+        (l) =>
           UnionType.term("A | B", { parent: l }, [
             l.body.get("A"),
-            l.body.get("B")
+            l.body.get("B"),
           ])
-      )
+      ),
     ],
     [
       "?:",
       genericFunction(
         typeScope,
-        parent => [
+        (parent) => [
           ["A", TypeVar.term("A", { parent })],
-          ["B", TypeVar.term("B", { parent })]
+          ["B", TypeVar.term("B", { parent })],
         ],
-        l => [Type.Boolean, l.body.get("A"), l.body.get("B")],
-        l =>
+        (l) => [Type.Boolean, l.body.get("A"), l.body.get("B")],
+        (l) =>
           UnionType.term("A | B", { parent: l }, [
             l.body.get("A"),
-            l.body.get("B")
+            l.body.get("B"),
           ])
-      )
+      ),
     ],
     [
       "if",
@@ -1037,7 +1058,7 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Boolean],
         Type.Undefined
-      )
+      ),
     ],
     [
       "while",
@@ -1046,7 +1067,7 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Boolean],
         Type.Undefined
-      )
+      ),
     ],
     [
       "do-while",
@@ -1055,7 +1076,7 @@ const mixBaseOperators = moduleScope => {
         { parent: typeScope },
         [Type.Boolean],
         Type.Undefined
-      )
+      ),
     ],
     [
       "for",
@@ -1065,47 +1086,47 @@ const mixBaseOperators = moduleScope => {
         [
           UnionType.term("undefined | unknown", {}, [
             Type.Undefined,
-            Type.Unknown
+            Type.Unknown,
           ]),
           UnionType.term("boolean | undefined", {}, [
             Type.Boolean,
-            Type.Undefined
+            Type.Undefined,
           ]),
           UnionType.term("undefined | unknown", {}, [
             Type.Undefined,
-            Type.Unknown
-          ])
+            Type.Unknown,
+          ]),
         ],
         Type.Undefined
-      )
+      ),
     ],
     [
       "return",
       genericFunction(
         typeScope,
-        parent => [["T", TypeVar.term("T", { parent })]],
-        l => [l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (parent) => [["T", TypeVar.term("T", { parent })]],
+        (l) => [l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "new",
       genericFunction(
         typeScope,
-        parent => [["T", TypeVar.term("T", { parent })]],
-        l => [l.body.get("T")],
-        l => l.body.get("T")
-      )
+        (parent) => [["T", TypeVar.term("T", { parent })]],
+        (l) => [l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
     ],
     [
       "throw",
       genericFunction(
         typeScope,
-        parent => [["T", TypeVar.term("T", { parent })]],
-        l => [l.body.get("T")],
-        l => l.body.get("T")
-      )
-    ]
+        (parent) => [["T", TypeVar.term("T", { parent })]],
+        (l) => [l.body.get("T")],
+        (l) => l.body.get("T")
+      ),
+    ],
   ].forEach(([name, type]) =>
     moduleScope.body.set(
       name,

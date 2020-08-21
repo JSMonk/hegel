@@ -49,14 +49,14 @@ export class $Entries extends GenericType {
     if (realTarget instanceof CollectionType) {
       return TupleType.term(null, {}, [
         realTarget.keyType,
-        realTarget.valueType
+        realTarget.valueType,
       ]);
     }
     const values = [...realTarget.properties.entries()];
     const variants = values.map(([key, value]) =>
       TupleType.term(null, {}, [
         Type.term(`'${key}'`, { isSubtypeOf: Type.String }),
-        value.type
+        value.type,
       ])
     );
     if (!realTarget.isStrict) {

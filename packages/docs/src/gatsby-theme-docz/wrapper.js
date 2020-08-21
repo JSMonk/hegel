@@ -8,14 +8,17 @@ export default function Wrapper({ children }) {
   const { setColorMode } = useThemeUI();
   const [favicon, changeFavicon] = useState(DARK_FAVICON);
   useEffect(() => {
-    if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+    if (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function"
+    ) {
       const darkMatcher = window.matchMedia("(prefers-color-scheme: dark)");
-        const switchFavicon = () => {
-            changeFavicon(darkMatcher.matches ? DARK_FAVICON : LIGHT_FAVICON);
-            if (!localStorage.getItem("theme-ui-color-mode")) {
-              setColorMode(darkMatcher.matches ? "dark" : "light");
-            }
-        };
+      const switchFavicon = () => {
+        changeFavicon(darkMatcher.matches ? DARK_FAVICON : LIGHT_FAVICON);
+        if (!localStorage.getItem("theme-ui-color-mode")) {
+          setColorMode(darkMatcher.matches ? "dark" : "light");
+        }
+      };
       darkMatcher.addListener(switchFavicon);
       switchFavicon();
       return () => darkMatcher.removeListener(switchFavicon);

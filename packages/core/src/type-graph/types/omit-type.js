@@ -18,7 +18,7 @@ export class $Omit extends GenericType {
       meta,
       [
         TypeVar.term("target", { parent }),
-        TypeVar.term("properties", { parent })
+        TypeVar.term("properties", { parent }),
       ],
       parent,
       null
@@ -54,7 +54,7 @@ export class $Omit extends GenericType {
     }
     const picks =
       properties instanceof UnionType ? properties.variants : [properties];
-    const pickedProperties = picks.map(variant => {
+    const pickedProperties = picks.map((variant) => {
       if (variant.isSubtypeOf && variant.isSubtypeOf.equalsTo(Type.String)) {
         return variant.name;
       }

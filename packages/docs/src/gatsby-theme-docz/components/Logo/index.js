@@ -4,14 +4,12 @@ import lightLogo from "./logo-light.svg";
 import darkLogo from "./logo-dark.svg";
 
 const Image = styled.img`
-  min-height: ${props => isNaN(props.height) ? "100" : props.height}px;
+  min-height: ${(props) => (isNaN(props.height) ? "100" : props.height)}px;
   max-width: 100%;
   max-height: 170px;
 `;
 
 export function Logo({ mode, style, height }) {
   const logo = mode === "dark" ? lightLogo : darkLogo;
-  return (
-    <Image src={logo} height={height} alt="Hegel Logo" />
-  );
+  return <Image src={logo} height={height} alt="Hegel Logo" />;
 }

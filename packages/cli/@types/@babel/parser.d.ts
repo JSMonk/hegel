@@ -15,7 +15,7 @@ export type SourceLocation = {
     line: number;
     column: number;
   };
-}
+};
 
 interface BaseNode {
   start: number | null;

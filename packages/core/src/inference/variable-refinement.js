@@ -13,7 +13,7 @@ import type { VariableScope } from "../type-graph/variable-scope";
 import type { Identifier, MemberExpression } from "@babel/parser";
 
 function getFalsyVariants(type: Type) {
-  return getFalsy().filter(falsy => type.isPrincipalTypeFor(falsy));
+  return getFalsy().filter((falsy) => type.isPrincipalTypeFor(falsy));
 }
 
 function getTruthyVariants(type: Type) {
@@ -24,7 +24,7 @@ function getTruthyVariants(type: Type) {
     return [Type.True];
   }
   if (type instanceof UnionType) {
-    return type.variants.filter(variant => !isFalsy(variant));
+    return type.variants.filter((variant) => !isFalsy(variant));
   }
   return [type];
 }
@@ -47,7 +47,7 @@ function forVariable(
   return [
     name,
     UnionType.term(null, {}, refinementedVariants),
-    UnionType.term(null, {}, alternateVariants)
+    UnionType.term(null, {}, alternateVariants),
   ];
 }
 

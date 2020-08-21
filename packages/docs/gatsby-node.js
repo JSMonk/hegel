@@ -10,25 +10,28 @@ const STD_LIB_CONTENT = fs
   .readFileSync(require.resolve(STD_LIB_PATH), "utf8")
   .replace(/`/g, "");
 
-const LOCAL_CORE_BUILD = path.resolve(__dirname, '../../core/build/')
+const LOCAL_CORE_BUILD = path.resolve(__dirname, "../../core/build/");
 
-const resolve = NODE_ENV !== 'production' && fs.existsSync(LOCAL_CORE_BUILD)?  {
-  alias: {
-    '@hegel/core': LOCAL_CORE_BUILD,
-  },
-} : {};
+const resolve =
+  NODE_ENV !== "production" && fs.existsSync(LOCAL_CORE_BUILD)
+    ? {
+        alias: {
+          "@hegel/core": LOCAL_CORE_BUILD,
+        },
+      }
+    : {};
 
-exports.onCreateWebpackConfig = args => {
+exports.onCreateWebpackConfig = (args) => {
   args.actions.setWebpackConfig({
     plugins: [
       args.plugins.define({
         STD_LIB_CONTENT: "`" + STD_LIB_CONTENT + "`",
-        REPOSITORY: "'" + REPOSITORY + "'"
+        REPOSITORY: "'" + REPOSITORY + "'",
       }),
       new MonacoWebpackPlugin({
-        languages: ["javascript", "css", "html", "typescript", "json"]
-      })
+        languages: ["javascript", "css", "html", "typescript", "json"],
+      }),
     ],
-    resolve
+    resolve,
   });
 };

@@ -68,7 +68,8 @@ export function findNearestTypeScope(
       ) {
         return (
           // $FlowIssue
-          scope.declaration.type.instanceType.subordinateMagicType.localTypeScope
+          scope.declaration.type.instanceType.subordinateMagicType
+            .localTypeScope
         );
       }
     }

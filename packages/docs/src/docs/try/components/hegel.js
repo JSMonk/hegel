@@ -16,8 +16,8 @@ const DEFAULT_OPTIONS = {
     "numericSeparator",
     "classPrivateMethods",
     "classPrivateProperties",
-    ["flow", { all: true }]
-  ]
+    ["flow", { all: true }],
+  ],
 };
 // eslint-disable-next-line
 const STANDARD_AST = parse(STD_LIB_CONTENT, STANDARD_LIB_OPTIONS);
@@ -27,10 +27,10 @@ export function getTypeByLocation(location) {
     return;
   }
   const varInfoOrType = module.getVarAtPosition(location);
-  if (varInfoOrType  === undefined) {
+  if (varInfoOrType === undefined) {
     return;
   }
-  return varInfoOrType instanceof VariableInfo 
+  return varInfoOrType instanceof VariableInfo
     ? varInfoOrType.type
     : varInfoOrType;
 }
@@ -82,19 +82,16 @@ export async function getDiagnostics(sourceCode) {
       true
     );
   } catch (e) {
-    const error = new HegelError(
-      `AnalyzationError: ${e.message}`,
-      {
-        start: {
-          line: 0,
-          column: 0,
-        },
-        end: {
-          line: Number.MAX_VALUE,
-          column: Number.MAX_VALUE,
-        }
-      }
-    )
+    const error = new HegelError(`AnalyzationError: ${e.message}`, {
+      start: {
+        line: 0,
+        column: 0,
+      },
+      end: {
+        line: Number.MAX_VALUE,
+        column: Number.MAX_VALUE,
+      },
+    });
     errors = [error];
   }
   return errors.map(toTransferableObject);
@@ -105,7 +102,7 @@ function toTransferableObject(error) {
   return {
     message: error.message,
     source: error.source,
-    loc: loc && formatLoc(loc)
+    loc: loc && formatLoc(loc),
   };
 }
 
@@ -113,10 +110,10 @@ function formatLoc(loc) {
   return loc.start
     ? {
         start: { line: loc.start.line, column: loc.start.column },
-        end: { line: loc.end.line, column: loc.end.column }
+        end: { line: loc.end.line, column: loc.end.column },
       }
     : {
         start: { line: loc.line, column: loc.column },
-        end: { line: loc.line, column: loc.column + 1 }
+        end: { line: loc.line, column: loc.column + 1 },
       };
 }

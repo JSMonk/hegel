@@ -9,7 +9,7 @@ import type { SwitchStatement } from "@babel/parser";
 import type { VariableScope } from "../type-graph/variable-scope";
 import type {
   ModuleScope,
-  PositionedModuleScope
+  PositionedModuleScope,
 } from "../type-graph/module-scope";
 
 export function findUnhandledCases(
@@ -24,7 +24,7 @@ export function findUnhandledCases(
 ) {
   const { discriminant, cases } = node;
   // test equals null only if it's default case
-  const hasDefaultCase = cases.some(switchCase => switchCase.test === null);
+  const hasDefaultCase = cases.some((switchCase) => switchCase.test === null);
   const { result: switchedValue } = addCallToTypeGraph(
     discriminant,
     moduleScope,
@@ -72,7 +72,7 @@ export function findUnhandledCases(
     }
 
     unmatchedVariants = unmatchedVariants.filter(
-      variant => !variant.equalsTo(matcherValueType)
+      (variant) => !variant.equalsTo(matcherValueType)
     );
   });
 

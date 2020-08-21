@@ -21,7 +21,7 @@ export const Layout = ({ children }) => {
     <BaseLayout sx={{ "& > div": { flex: "1 1 auto" } }} data-testid="layout">
       <Global styles={global} />
       <Main sx={styles.main}>
-        <Header onOpen={() => setOpen(s => !s)} />
+        <Header onOpen={() => setOpen((s) => !s)} />
         <div sx={wrapper}>
           {docs.fullpage ? null : (
             <Sidebar
@@ -41,7 +41,7 @@ export const Layout = ({ children }) => {
           )}
         </div>
       </Main>
-      <Footer/>
+      <Footer />
     </BaseLayout>
   );
 };

@@ -1,20 +1,40 @@
 export interface StringifyOptions {
-    encodeURIComponent?: (str: string) => string;
+  encodeURIComponent?: (str: string) => string;
 }
 
 export interface ParseOptions {
-    maxKeys?: number;
-    decodeURIComponent?: (str: string) => string;
+  maxKeys?: number;
+  decodeURIComponent?: (str: string) => string;
 }
 
-export interface ParsedUrlQuery { [key: string]: string | string[]; }
+export interface ParsedUrlQuery {
+  [key: string]: string | string[];
+}
 
 export interface ParsedUrlQueryInput {
-    [key: string]: string | number | boolean | string[] | number[] | boolean[] | undefined | null;
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | string[]
+    | number[]
+    | boolean[]
+    | undefined
+    | null;
 }
 
-export function stringify(obj?: ParsedUrlQueryInput, sep?: string, eq?: string, options?: StringifyOptions): string;
-export function parse(str: string, sep?: string, eq?: string, options?: ParseOptions): ParsedUrlQuery;
+export function stringify(
+  obj?: ParsedUrlQueryInput,
+  sep?: string,
+  eq?: string,
+  options?: StringifyOptions
+): string;
+export function parse(
+  str: string,
+  sep?: string,
+  eq?: string,
+  options?: ParseOptions
+): ParsedUrlQuery;
 /**
  * The querystring.encode() function is an alias for querystring.stringify().
  */

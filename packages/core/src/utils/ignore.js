@@ -4,17 +4,15 @@ import type { Program, CommentLine, SourceLocation } from "@babel/parser";
 
 const IGNORE_COMMENT = "@hegel-issue";
 
-export class IgnorableArray<T: Locationable & Sourcable> extends Array<
-  T
-> {
+export class IgnorableArray<T: Locationable & Sourcable> extends Array<T> {
   static withIgnoring<T: Locationable & Sourcable>(
     comments: Array<CommentLine>,
     path: string
   ): IgnorableArray<T> {
     const ignored = new Set(
       comments
-        .filter(comment => comment.value.trim() === IGNORE_COMMENT)
-        .map(comment => comment.loc.end.line + 1)
+        .filter((comment) => comment.value.trim() === IGNORE_COMMENT)
+        .map((comment) => comment.loc.end.line + 1)
     );
     return new IgnorableArray<T>(ignored, path);
   }
@@ -29,7 +27,7 @@ export class IgnorableArray<T: Locationable & Sourcable> extends Array<
   }
 
   push(...elements: T[]) {
-    elements.forEach(element => {
+    elements.forEach((element) => {
       if (
         element.loc === undefined ||
         !this._ignored.has(element.loc.start.line)

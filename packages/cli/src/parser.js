@@ -6,12 +6,12 @@ import type { ParserPlugin, Program, File } from "@babel/parser";
 
 export type FileMeta = {
   content: string,
-  path: string
+  path: string,
 };
 
 export type ExtendedFile = {
   ...File,
-  ...FileMeta
+  ...FileMeta,
 };
 
 const cache = new Map<string, FileMeta | ExtendedFile>();
@@ -37,16 +37,13 @@ export function createASTGenerator(config: Config) {
     try {
       const content = await getFileContent(path);
       const declaredPlugins: Array<ParserPlugin> =
-        config.babel.plugins !== undefined
-          ? config.babel.plugins
-          : [];
+        config.babel.plugins !== undefined ? config.babel.plugins : [];
       const plugins = isDefinition
         ? declaredPlugins
-            .filter(
-              plugin =>
-                typeof plugin === "string" 
-                  ? plugin !== "flow"
-                  : plugin[0] !== "flow"
+            .filter((plugin) =>
+              typeof plugin === "string"
+                ? plugin !== "flow"
+                : plugin[0] !== "flow"
             )
             .concat(["typescript"])
         : declaredPlugins;

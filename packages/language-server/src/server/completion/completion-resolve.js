@@ -1,12 +1,12 @@
-let currentVariableName = '';
+let currentVariableName = "";
 
 function onCompletionResolve(item) {
   currentVariableName = item.label;
 
   return {
     ...item,
-    detail: 'Type',
-    documentation: 'JavaScript documentation',
+    detail: "Type",
+    documentation: "JavaScript documentation",
   };
 }
 
