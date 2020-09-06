@@ -23,7 +23,7 @@ const CONFIG_NAME = ".hegelrc";
 const DEFAULT_CONFIG = {
   config: {
     include: ["./**/*.js"],
-    exclude: ["./node_modules/**"],
+    exclude: ["./node_modules/**", "./.*"],
     workingDirectory: CWD,
     babel: BABELRC,
     typings: ["./@types", "./node_modules/@types"],
@@ -35,6 +35,7 @@ const DEFAULT_CONFIG_CONTENT = `include:
   - ./**/*.js
 exclude:
   - ./node_modules/**
+  - ./.*
 types:
   - ./@types
   - ./node_modules/@types`;
