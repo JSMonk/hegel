@@ -7,7 +7,8 @@ updates:
       time: "13:00"
     open-pull-requests-limit: 10
     # ignore packages that update too frequently
-    ignore: []
+    ignore:
+      []
       # Example ignore
       # - dependency-name: aws-sdk
       #   versions:

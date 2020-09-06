@@ -1442,11 +1442,7 @@ export function addMethodToThis(
   const expectedType =
     existedProperty instanceof VariableInfo ? existedProperty.type : undefined;
   currentNode.expected = currentNode.expected || expectedType;
-  let fn:
-    | VariableInfo/*:: <FunctionType> */
-    | VariableInfo/*:: <
-        GenericType/*:: <FunctionType> */
-      > */ = addFunctionToTypeGraph(
+  let fn: VariableInfo | VariableInfo = addFunctionToTypeGraph(
     currentNode,
     parentNode,
     moduleScope,
