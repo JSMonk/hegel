@@ -27,6 +27,19 @@ export class TypeScope {
     this.priority += 100;
   }
 
+  findScopeWithType(type: Type) {
+    let currentTypeScope = this;
+    let existedType = undefined;
+    while (currentTypeScope !== null) {
+      existedType = currentTypeScope.body.get(type.name);
+      if (existedType !== undefined && type === existedType) {
+        return currentTypeScope;
+      }
+      currentTypeScope = currentTypeScope.parent;
+    }
+    return undefined;
+  }
+
   findTypeWithName(
     name: mixed,
     ...rest: [] | [Node, ModuleScope, Handler, Handler, Handler]

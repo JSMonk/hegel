@@ -402,8 +402,10 @@ function resolveOuterTypeVarsFromCall(
       }
       root = Type.getTypeRoot(root);
       variable = Type.getTypeRoot(variable, true);
+      const isCurrentFunctionContainsItAsGeneric = genericArguments.some((arg) => arg.contains(variable));
+      const scopeWhichContainsType = isCurrentFunctionContainsItAsGeneric ? typeScope : typeScope.findScopeWithType(variable);
       if (
-        !genericArguments.some((arg) => arg.contains(variable)) ||
+        scopeWhichContainsType === undefined ||
         (genericArguments.includes(variable) && variable.isUserDefined)
       ) {
         continue;
@@ -415,7 +417,7 @@ function resolveOuterTypeVarsFromCall(
           variable.constraint.isPrincipalTypeFor(root)) &&
         (variable.root === undefined ||
           variable.root.isSuperTypeFor(variable.root));
-      if (!genericArguments.includes(variable)) {
+      if (scopeWhichContainsType === typeScope && !genericArguments.includes(variable)) {
         genericArguments.push(variable);
       }
       if (!shouldSetNewRoot) {
@@ -425,20 +427,21 @@ function resolveOuterTypeVarsFromCall(
         root = getVariableType(Type.Unknown, root, typeScope, true);
       }
       variable.root = root;
-      if (
-        callTargetType instanceof GenericType &&
-        root instanceof TypeVar &&
-        root.constraint !== undefined
-      ) {
-        callTargetType.genericArguments.forEach((arg) => {
-          if (
-            root !== arg &&
-            !genericArguments.includes(arg) &&
-            root.contains(arg)
-          ) {
-            genericArguments.push(arg);
-          }
-        });
+      if (callTargetType instanceof GenericType && root instanceof TypeVar) {
+        if (scopeWhichContainsType !== typeScope) {
+          scopeWhichContainsType.body.set(root.name, variable);
+        }
+        if (root.constraint !== undefined) {
+          callTargetType.genericArguments.forEach((arg) => {
+            if (
+              root !== arg &&
+              !genericArguments.includes(arg) &&
+              root.contains(arg)
+            ) {
+              genericArguments.push(arg);
+            }
+          });
+        }
       }
     }
   }
