@@ -3411,4 +3411,19 @@ describe("Issues", () => {
       start: { column: 50, line: 2 },
     });
   });
+  
+  test("Issue #295: should inference nested argument usage as a single generic type", async () => {
+    const sourceAST = prepareAST(`
+      const sum2 = a => b => a + b 
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const sum2 = module.body.get("sum2");
+    expect(errors.length).toBe(0);
+    expect(sum2.type === Type.find("<T: $StrictUnion<bigint | number | string>>(T) => (T) => T")).toBe(true);
+  });
 });
