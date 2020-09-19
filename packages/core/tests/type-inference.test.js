@@ -3426,4 +3426,19 @@ describe("Issues", () => {
     expect(errors.length).toBe(0);
     expect(sum2.type === Type.find("<T: $StrictUnion<bigint | number | string>>(T) => (T) => T")).toBe(true);
   });
+
+  test("Issue #297: should inference spread argument as rest argument", async () => {
+    const sourceAST = prepareAST(`
+      const promisify = fn => (...args) => Promise.resolve(fn(...args))
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    const promisify = module.body.get("promisify");
+    expect(errors.length).toBe(0);
+    expect(promisify.type === Type.find("<_q>((...Array<unknown>) => _q) => (...Array<unknown>) => Promise<_q>")).toBe(true);
+  });
 });

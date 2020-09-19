@@ -897,7 +897,8 @@ export function addCallToTypeGraph(
       args = node.arguments.map((n, i) => {
         argsLocations.push(n.loc);
         // $FlowIssue
-        const defaultArg = (fnType.argumentsTypes || [])[i];
+        const defaultArguments = (fnType.argumentsTypes || []);
+        const defaultArg = defaultArguments[i];
         if (
           n.type === NODE.FUNCTION_EXPRESSION ||
           n.type === NODE.ARROW_FUNCTION_EXPRESSION
@@ -925,7 +926,10 @@ export function addCallToTypeGraph(
           if (resultType instanceof TupleType) {
             return resultType.items;
           }
-          const length = fnType.argumentsTypes.length - i;
+          const length = defaultArguments.length - i;
+          if (fnType instanceof TypeVar && !fnType.isUserDefined) {
+            return [new RestArgument(null, {}, resultType)];
+          }
           const restOfArguments = Array.from({ length });
           if (resultType instanceof CollectionType) {
             return restOfArguments.fill(
