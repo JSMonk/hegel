@@ -6,6 +6,7 @@
 
 [Getting Started](https://hegel.js.org/docs/install) |
 [Documentation](https://hegel.js.org/docs/type-annotations)
+[Gitter Chat](https://gitter.im/hegel-js/community)
 
 Hegel is a type checker for JavaScript with optional type annotations and preventing runtime type errors.
 
