@@ -9,7 +9,7 @@ route: /docs
 
 ## What is Hegel?
 
-Hegel is a static type checker for JavaScript. It means that it is not a new language which compiles to JavaScript. No, it's only a tool which analyzes your code ahead of time and shows you results of the analysis. Also, it means that you don't need to learn a new language to use a static strong type system - JavaScript is enough. But, additionally, this tool provides a type syntax for your variable and function arguments, analysis of your types (even if you don't use type syntax), which gives you an ability to find bugs faster without actually running your program.
+Hegel is a static type checker for JavaScript. It means that it is not a new language which compiles to JavaScript. No, it's only a tool which analyzes your code ahead of time and shows you results of the analysis. Also, it means that you don't need to learn a new language to use a static strong type system - JavaScript is enough. But, additionally, this tool provides a type syntax for your variables and function arguments, analysis of your types (even if you don't use type syntax), which gives you an ability to find bugs faster without actually running your program.
 
 ```typescript
 // Example from real life 😭
@@ -45,7 +45,7 @@ function setupE2E(db: DataBase) {
 // ...
 ```
 
-You can see result in [Hegel Playground](/try#MYGwhgzhAEAiYBcwCFIFNoG8BQ1oCc1gB7AO1KIQAoBKLAtBAV31OgQAsBLCAbgHoAVNAB0YhiXKVoIYgHMuwaIP4BfbOtCQYAMS4APZoSy4JZCsGp1M7bhBEATfMQAO8JACN0tXgyNtOHgFhMREzKUsZeUVlNVMnV3cwLwg0Wix1dWwAMyZSSy4yaFTmFwBRACYyqgcPAC44RBR0a3iPEUJJCyteDWxsfn5oAEFSB2gAT2IWdjQwAFtEDGzifDliBHZiaGAOMFI5DAhiecZuA+gwbIQ0fGgHNA8mOQUD7EkITdroAF5oCgA7tA9IYWGkaL0Hk8XrdeoMRmNJtNoHsAG4YYYAeQAKtBbs47lw2FMZmgHFwEKtoFSifcWIhCmxiNloC5nAAraQkeYuLjgBCM7AlJjlKo1DwQ7BAA) - you would be notified before the incedent.
+You can see the result in the [Hegel Playground](/try#MYGwhgzhAEAiYBcwCFIFNoG8BQ1oCc1gB7AO1KIQAoBKLAtBAV31OgQAsBLCAbgHoAVNAB0YhiXKVoIYgHMuwaIP4BfbOtCQYAMS4APZoSy4JZCsGp1M7bhBEATfMQAO8JACN0tXgyNtOHgFhMREzKUsZeUVlNVMnV3cwLwg0Wix1dWwAMyZSSy4yaFTmFwBRACYyqgcPAC44RBR0a3iPEUJJCyteDWxsfn5oAEFSB2gAT2IWdjQwAFtEDGzifDliBHZiaGAOMFI5DAhiecZuA+gwbIQ0fGgHNA8mOQUD7EkITdroAF5oCgA7tA9IYWGkaL0Hk8XrdeoMRmNJtNoHsAG4YYYAeQAKtBbs47lw2FMZmgHFwEKtoFSifcWIhCmxiNloC5nAAraQkeYuLjgBCM7AlJjlKo1DwQ7BAA) - you would be notified before the incident.
 
 ## Why Hegel?
 
@@ -55,7 +55,7 @@ First of all, let's explore the main goals of Hegel:
 - Strong type system
 - Powerful type inference
 
-But we need to answer this question differently for different audiences. So, choose list item which describes your experience:
+But we need to answer this question differently for different audiences. So, choose the list item which describes your experience:
 
 - [You have never worked with typed languages or type checkers](#why-actually-do-we-need-static-analysis)
 - [You work with TypeScript](#benefits-and-disadvantages-over-typescript)
@@ -68,7 +68,7 @@ First of all, static analysis means that your code will be analyzed without actu
 Actually, there are 2 major benefits of static type analysis:
 
 1. Static type analysis finds and provides to you information about a type error that exists in your code during code writing. It not only gives you guarantees that your code will work without runtime type errors but in addition, it really saves a lot of time for finding and fixing errors, especially in big projects that contain a really long build step.
-2. When you use an instrument that provides type information of your variables, functions, methods, classes and etc - you have got a documentation of method usage without any additional efforts.
+2. When you use an instrument that provides type information of your variables, functions, methods, classes and etc - you have got a documentation of method usage without any additional effort.
 
 ```typescript
 function deserializeUser(stringifiedUserJson) {
@@ -87,17 +87,17 @@ function deserializeUser(stringifiedUserJson) {
 const user = deserializeUser("42");
 ```
 
-If you open this example in [Hegel Playground](/try#GYVwdgxgLglg9mABAEwKYGdUCcYEMA2MAXqgKqZYAU6UOYA5jMDKsudgFLoICUiA3gChEiCAhqIAtrgCeAIzIVEAXkQcAygHkAcgDoADriyZqtGAyYs2FLrwDcwxE0SVHIqDP2o4wKbIXsWCrKqgBEcHIAVqjQoYgAZPFufvKK2IgAhCGIYCD4+AlJIiKhYLiSqHHmKQFKickeXj41aVi6ZRXBYTR09KGOfELFiFioUCBYSNKpgQ4iAL6OUAAWWHAA7jmomwAqnqgAolhrVKEACmsAbjBoyIgUeIQkdyBKMOhOYJcENxmhPA5FoI0A8fiRApRQgAWABM-zsQA) and hover at `deserializeUser` function invocation, then you will see arguments types of the function, return type of the function and which error this function may throw. And you've got it free.
+If you open this example in [Hegel Playground](/try#GYVwdgxgLglg9mABAEwKYGdUCcYEMA2MAXqgKqZYAU6UOYA5jMDKsudgFLoICUiA3gChEiCAhqIAtrgCeAIzIVEAXkQcAygHkAcgDoADriyZqtGAyYs2FLrwDcwxE0SVHIqDP2o4wKbIXsWCrKqgBEcHIAVqjQoYgAZPFufvKK2IgAhCGIYCD4+AlJIiKhYLiSqHHmKQFKickeXj41aVi6ZRXBYTR09KGOfELFiFioUCBYSNKpgQ4iAL6OUAAWWHAA7jmomwAqnqgAolhrVKEACmsAbjBoyIgUeIQkdyBKMOhOYJcENxmhPA5FoI0A8fiRApRQgAWABM-zsQA) and hover at `deserializeUser` function invocation, then you will see the argument types of the function, return type of the function and which error this function may throw. And you've got it free.
 
 ## Benefits and disadvantages over TypeScript
 
-If you familiar with TypeScript you may know benefits of static typing, so let's explore benefits and disadvantages of Hegel over TypeScript
+If you familiar with TypeScript you may know the benefits of static typing, so let's explore benefits and disadvantages of Hegel over TypeScript
 
 ### Benefits
 
 1. Ability to skip type annotation
 
-Hegel is targeting at really powerful type inference which gives an ability to write less type annotations. As example:
+Hegel is targeting at really powerful type inference which gives an ability to write fewer type annotations. For example:
 
 ```typescript
 // Type of "promisify" function is "<_q, _c>((_c) => _q) => (_c) => Promise<_q>"
@@ -110,7 +110,7 @@ const id = promisify((x) => x);
 const result = id(42).then((x) => x + x);
 ```
 
-> The same example in TypeScript (tested at version 3.7.5) will show 3 errors and inference `Promise<any>` type for "result" variable [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=1&ssc=1&pln=7&pc=1#code/PTAEBUE8AcFNQPYDNQCJoCcEFsCWBnXJSVUJAVwDsBjAF1wUtALQB4BHAcgBpRrOAfAAoh-AJSgAvANBcJ00KM7yZABSx58sDoNQAoao3y1QmHASKQpZJgoCGGAOZS1GgrAB0GWPgQAbADdYISRKIQdHMTEAbj09EAgYeGQ0XAATUgoaekZmfDZ+YXEXUHVzLVZC-UNKY2Y06zNNSyEADxLWmLiEqDhEFFRvfHI-WlIAh1w7ACM-eBZUMs1tSnJsadgMAWqjEyGRk0l6oQAWACYxD1oAC1gw9oV2gGpQTujQIA).
+> The same example in TypeScript (tested at version 3.7.5) will show 3 errors and infer `Promise<any>` type for the "result" variable [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=1&ssc=1&pln=7&pc=1#code/PTAEBUE8AcFNQPYDNQCJoCcEFsCWBnXJSVUJAVwDsBjAF1wUtALQB4BHAcgBpRrOAfAAoh-AJSgAvANBcJ00KM7yZABSx58sDoNQAoao3y1QmHASKQpZJgoCGGAOZS1GgrAB0GWPgQAbADdYISRKIQdHMTEAbj09EAgYeGQ0XAATUgoaekZmfDZ+YXEXUHVzLVZC-UNKY2Y06zNNSyEADxLWmLiEqDhEFFRvfHI-WlIAh1w7ACM-eBZUMs1tSnJsadgMAWqjEyGRk0l6oQAWACYxD1oAC1gw9oV2gGpQTujQIA).
 
 2. No unexpected runtime errors
 
@@ -125,11 +125,11 @@ numbersToShow.push((42).toString(2));
 const rounded = doubles.map((double) => double.toFixed());
 ```
 
-> The same example in TypeScript (tested at version 3.7.5) will be valid, but uncaught type error will be thrown at runtime [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=4&ssc=11&pln=4&pc=4#code/MYewdgzgLgBAJiArgIwDYFMIC4YEEBO+AhgJ4A8YiAtsuvgHwwC8MA2gLJFQAWAdAAoBJADQxOPXgFEAugG4AUKEixKNOhAAqIAMrcQAdxwFi5VbXwwAPjGj4AlmADmjFghQYICs+q26DvAAdECG4ACgAWACZeXigdKHsnUMiAShSFAHoMmABVMGAiREduWA0SAPRJQhB8HDc0dFiQADE7AA90OBg7CBgwEFgiGAAzRHyoO3B5eo9eKiIA0Jn0ZkZlptaOuFC02SA).
+> The same example in TypeScript (tested at version 3.7.5) will be valid, but an uncaught type error will be thrown at runtime [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=4&ssc=11&pln=4&pc=4#code/MYewdgzgLgBAJiArgIwDYFMIC4YEEBO+AhgJ4A8YiAtsuvgHwwC8MA2gLJFQAWAdAAoBJADQxOPXgFEAugG4AUKEixKNOhAAqIAMrcQAdxwFi5VbXwwAPjGj4AlmADmjFghQYICs+q26DvAAdECG4ACgAWACZeXigdKHsnUMiAShSFAHoMmABVMGAiREduWA0SAPRJQhB8HDc0dFiQADE7AA90OBg7CBgwEFgiGAAzRHyoO3B5eo9eKiIA0Jn0ZkZlptaOuFC02SA).
 
 3. Typed Errors
 
-Hegel implements inference and annotation for functions which gives an ability to understand which error type is inside the catch block and which errors will be, by a function.
+Hegel implements inference and annotation for functions which gives an ability to understand which error type is inside the catch block and which errors will be thrown by a function.
 
 ```typescript
 // Type of "assertIsTrue" function is "(boolean) => undefined throws TypeError"
@@ -150,7 +150,7 @@ try {
 
 ### Disadvantages
 
-1. Minimal changes in JavaScript Syntax
+1. Minimal changes in JavaScript syntax
 
 TypeScript provides a lot of additional syntax features and syntax sugar with types, but Hegel does not. Hegel is only a JavaScript with types. Let's see the example implemented in TypeScript and Hegel.
 
@@ -192,7 +192,7 @@ const Anatoly = new User("Anatoly", UserStatus.Active);
 
 2. No type coercion and "any" type
 
-As result of attempt to implement soundness type system Hegel doesn't have type coercion and "any" type.
+As result of attempting to implement a sound type system Hegel doesn't have type coercion and "any" type.
 
 ```typescript
 // Error: There is no "any" type in Hegel.
@@ -204,13 +204,13 @@ const something: any = null;
 
 ## Benefits and disadvantages over Flow.js
 
-If you familiar with Flow.js you may know benefits of static typing, so let's explore benefits and disadvantages of Hegel over Flow.js
+If you are familiar with Flow.js you may know the benefits of static typing, so let's explore benefits and disadvantages of Hegel over Flow.js
 
 ### Benefits
 
 1. Better type inference
 
-As example Flow.js docs says: "Flow does not infer generic types. If you want something to have a generic type, annotate it. Otherwise, Flow may infer a type that is less polymorphic than you expect.". It's because Flow.js inference function type by function usage. Hegel inferences function type by function declaration and as result Hegel inferences polymorphic type.
+As example Flow.js docs says: "Flow does not infer generic types. If you want something to have a generic type, annotate it. Otherwise, Flow may infer a type that is less polymorphic than you expect.". It's because Flow.js infers function types by function usage. Hegel infers function types by function declarations and as result Hegel infers polymorphic types.
 
 ```typescript
 // Type of "id" function is "<_a>(_a) => _a"
@@ -223,11 +223,11 @@ let str = id("4");
 let anotherId = id(id);
 ```
 
-> The same example in Flow.js (tested at version 0.119.0) will inference every variable type as union of all applied types [Flow.js Example](https://flow.org/try/#0PQKgBAAgZgNg9gdzCYAoVxhgCoE8AOApmHFGAEQCWAJuWFAK4B2AxgC6VxNiUDOFACiYMAtgCNCAJzAAfMLzaTKTAOaywAgQA8AXGABqAEgCMASjABeAHwHDAJlPnrG4eKnqFS1es27bZyxsjB3JUFi4FHmpLMC1A2IBuDCw8IhIyclc6ADcAQyVcsRhiPgpXCWk5T2U1OV89IwDnYNNQ4rYwVxiaAQAWUyTMHAJiUgpPHPzKQuKefkzRCo9FGp9tBpMnIPtW1Hb5RW7qAXJe8gHk4bSx8lymODYACykASVowPIKikvny9yqVt46ut-FtbCE9oQOncHs9JG8jgIaAMgA).
+> The same example in Flow.js (tested at version 0.119.0) will infer every variable type as union of all applied types [Flow.js Example](https://flow.org/try/#0PQKgBAAgZgNg9gdzCYAoVxhgCoE8AOApmHFGAEQCWAJuWFAK4B2AxgC6VxNiUDOFACiYMAtgCNCAJzAAfMLzaTKTAOaywAgQA8AXGABqAEgCMASjABeAHwHDAJlPnrG4eKnqFS1es27bZyxsjB3JUFi4FHmpLMC1A2IBuDCw8IhIyclc6ADcAQyVcsRhiPgpXCWk5T2U1OV89IwDnYNNQ4rYwVxiaAQAWUyTMHAJiUgpPHPzKQuKefkzRCo9FGp9tBpMnIPtW1Hb5RW7qAXJe8gHk4bSx8lymODYACykASVowPIKikvny9yqVt46ut-FtbCE9oQOncHs9JG8jgIaAMgA).
 
 2. Typed Errors
 
-Hegel implements inference and annotation for functions which gives an ability to understand which error type is inside catch block and which errors will be, by a function.
+Hegel implements inference and annotation for functions which gives an ability to understand which error type is inside catch block and which errors will be thrown by a function.
 
 ```typescript
 // Type of "assertIsTrue" function is "(boolean) => undefined throws TypeError"
@@ -244,22 +244,22 @@ try {
 }
 ```
 
-> The same example in Flow.js (tested at version 0.119.0) will inference e as "empty" type [Flow.js Example](https://flow.org/try/#0PQKgBAAgZgNg9gdzCYAoVUCuA7AxgFwEs5swBDAZwoFMAnfASQoBVbNqAKM2gcwEowAb1RhRYQlDAcAhN35CRYpfgAWtRGGzUkzAJ4AHagFFa62hwBEc8RXHYAbmRiEAJhb6LRAX1Q-U+Wl0FJUoaeiZWdg4oJxo+AG5fMFwyfFwVKWoBYSVgYDA9QzA4SQtqCzBHWkIyACMYahswMoBbfXxdC19UIA).
+> The same example in Flow.js (tested at version 0.119.0) will infer e as "empty" type [Flow.js Example](https://flow.org/try/#0PQKgBAAgZgNg9gdzCYAoVUCuA7AxgFwEs5swBDAZwoFMAnfASQoBVbNqAKM2gcwEowAb1RhRYQlDAcAhN35CRYpfgAWtRGGzUkzAJ4AHagFFa62hwBEc8RXHYAbmRiEAJhb6LRAX1Q-U+Wl0FJUoaeiZWdg4oJxo+AG5fMFwyfFwVKWoBYSVgYDA9QzA4SQtqCzBHWkIyACMYahswMoBbfXxdC19UIA).
 
 3. No custom library definition language
 
-Flow.js has custom library definition languages and doesn't support the most popular TypeScript "d.ts" format. But for Hegel TypeScript "d.ts" it is the only way to create the type definition for a library. So, every library which has TypeScript definitions should work with Hegel.
+Flow.js has a custom library definition language and doesn't support the most popular TypeScript "d.ts" format. But for Hegel, the TypeScript "d.ts" it is the only way to create the type definition for a library. So, every library which has TypeScript definitions should work with Hegel.
 
 4. No OCaml in source code
 
-[OCaml](https://ocaml.org/) is really great language and this language inspired us to implement the same type inference in Hegel, but the problem is that it's not common language (especially for developer who works with JavaScript stack) and as result it's hard for JavaScript community to contribute into the Flow.js.
+[OCaml](https://ocaml.org/) is really great language and this language inspired us to implement the same type inference in Hegel, but the problem is that it's not common language (especially for developers who work with a JavaScript stack) and as result it's hard for the JavaScript community to contribute to Flow.js.
 We decided to implement Hegel in JavaScript.
 
 ### Disadvantages
 
 1. No type coercion and "any" type
 
-As a result of attempting to implement soundness type system Hegel doesn't have type coercion and the "any" type.
+As a result of attempting to implement a sound type system Hegel doesn't have type coercion and the "any" type.
 
 ```typescript
 // Error: There is no "any" type in Hegel.
