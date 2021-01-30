@@ -177,6 +177,7 @@ function getPrimaryAndAlternativeScopes(
   ) {
     throw new Error("Never!");
   }
+  currentRefinementNode.isRefinemented = true;
   return [primaryScope, alternateScope];
 }
 
