@@ -177,7 +177,6 @@ function getPrimaryAndAlternativeScopes(
   ) {
     throw new Error("Never!");
   }
-  currentRefinementNode.isRefinemented = true;
   return [primaryScope, alternateScope];
 }
 
@@ -322,6 +321,7 @@ function refinementByCondition(
         if (previousPrimaryRefinement === undefined) {
           return;
         }
+        condition.isRefinemented = true;
         return [
           [
             name,
@@ -340,6 +340,7 @@ function refinementByCondition(
           moduleScope,
           primaryScope
         );
+        condition.isRefinemented = true;
         return (
           refinements &&
           refinements.map(
@@ -355,6 +356,7 @@ function refinementByCondition(
         typeScope,
         moduleScope
       );
+      condition.isRefinemented = true;
       return typeofResult && [typeofResult];
     case NODE.IDENTIFIER:
     case NODE.MEMBER_EXPRESSION:
@@ -364,6 +366,7 @@ function refinementByCondition(
         typeScope,
         moduleScope
       );
+      condition.isRefinemented = true;
       return refinemented && [refinemented];
     case NODE.LOGICAL_EXPRESSION:
       const [
@@ -418,6 +421,7 @@ function refinementByCondition(
         rightSideRefinement,
         (a, b) => a[0] === b[0]
       );
+      condition.isRefinemented = true;
       if (sameRefinement.length === 0) {
         return other;
       }
