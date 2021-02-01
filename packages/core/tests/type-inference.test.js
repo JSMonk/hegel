@@ -3206,19 +3206,19 @@ describe("Issues", () => {
       false,
       mixTypeDefinitions()
     );
-    expect(errors.length).toBe(1);
+    expect(errors.length).toBe(3);
     expect(errors[0]).toBeInstanceOf(HegelError);
     expect(errors[0].message).toBe(
-      'Property "toUpperCase" does not exist in "Number | String"'
+      'You try to return unsafly refinemented object, which mean that somebody could change prooved property type outside the function.'
     );
     expect(errors[0].loc).toEqual({
       end: {
-        column: 34,
-        line: 15,
+        column: 23,
+        line: 5,
       },
       start: {
-        column: 19,
-        line: 15,
+        column: 14,
+        line: 5,
       },
     });
   });

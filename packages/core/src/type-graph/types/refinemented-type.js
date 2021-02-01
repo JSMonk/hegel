@@ -1,4 +1,6 @@
 import { Type } from "./type";
+import { ObjectType } from "./object-type";
+import { UnionType } from "./union-type";
 
 export class $Refinemented extends Type {
   static get name() {
@@ -44,5 +46,29 @@ export class $Refinemented extends Type {
 
   getPropertyType(propertyName: mixed): ?Type {
     return this.refinemented.getPropertyType(propertyName);
+  }
+
+  isSafe(
+    from: Type = this.from,
+    refinemented: Type = this.refinemented,
+    insideObject: boolean = false
+  ): boolean {
+    if (from.equalsTo(Type.Unknown) && !refinemented.equalsTo(Type.Unknown)) {
+      return !insideObject;
+    }
+    if (from instanceof ObjectType && refinemented instanceof ObjectType) {
+      for (const [propertyName, property] of from.properties) {
+        const refinementedProperty = refinemented.properties.get(propertyName);
+        if (!this.isSafe(property.type, refinementedProperty.type, true)) {
+          return false;
+        }
+      }
+    }
+
+    if (from instanceof UnionType) {
+      return from.equalsTo(refinemented);
+    }
+
+    return true;
   }
 }

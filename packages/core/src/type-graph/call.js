@@ -534,7 +534,12 @@ export function addCallToTypeGraph(
       inferenced = arg.inferenced;
       let argType =
         arg.result instanceof VariableInfo ? arg.result.type : arg.result;
-      argType = argType instanceof $Refinemented ? argType.from : argType;
+      if (argType instanceof $Refinemented) {
+        if (!argType.isSafe()) {
+          throw new HegelError("You try to return unsafly refinemented object, which mean that somebody could change prooved property type outside the function.", node.loc);
+        }
+        argType = argType.refinemented;
+      }
       let fType = fn.declaration.type;
       fType = fType instanceof GenericType ? fType.subordinateType : fType;
       args = [
