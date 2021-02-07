@@ -253,7 +253,8 @@ export function isSideEffectCall(node: Node, invocationResult: Type) {
   return (
     node.type === NODE.EXPRESSION_STATEMENT && // i.e we don't assign a return value of it to any variable
     node.expression != null && //
-    (node.expression.type === NODE.CALL_EXPRESSION || // if we call a function like a side effect.
+    ((node.expression.type === NODE.CALL_EXPRESSION &&
+      node.expression.callee.type !== NODE.SUPER) || // if we call a function like a side effect.
       node.expression.type === NODE.TAGGED_TEMPLATE_EXPRESSION) && // if we call a function as tag like a side effect.
     !invocationResult.equalsTo(Type.Undefined) && // but call of this function actually return something.
     !invocationResult.equalsTo(Type.Undefined.promisify()) // but call of this function actually return something.
