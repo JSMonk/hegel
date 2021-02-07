@@ -20503,7 +20503,7 @@ variableInfo.type.localTypeScope,functionType):functionType;}}const withPosition
 moduleScope.addPosition(id,varInfo);}});if(withPositions&&currentNode.id!=null){// $FlowIssue
 moduleScope.addPosition(currentNode.id,variableInfo);}return variableInfo;}function isCallableType(a){if(a instanceof _genericType.GenericType){a=a.subordinateType;}return a instanceof _functionType.FunctionType;}function isSideEffectCall(node,invocationResult){return node.type===_nodes.default.EXPRESSION_STATEMENT&&// i.e we don't assign a return value of it to any variable
 node.expression!=null&&(//
-node.expression.type===_nodes.default.CALL_EXPRESSION||// if we call a function like a side effect.
+node.expression.type===_nodes.default.CALL_EXPRESSION&&node.expression.callee.type!==_nodes.default.SUPER||// if we call a function like a side effect.
 node.expression.type===_nodes.default.TAGGED_TEMPLATE_EXPRESSION)&&// if we call a function as tag like a side effect.
 !invocationResult.equalsTo(_type.Type.Undefined)&&// but call of this function actually return something.
 !invocationResult.equalsTo(_type.Type.Undefined.promisify())// but call of this function actually return something.
@@ -20698,4 +20698,4 @@ Object.assign(new _variableInfo.VariableInfo(),type.properties.get(key),{type:ge
 /***/ })
 
 /******/ });
-//# sourceMappingURL=7b607db22faf2bdd28a9.worker.js.map
+//# sourceMappingURL=1da1bd759b7cd5854982.worker.js.map
