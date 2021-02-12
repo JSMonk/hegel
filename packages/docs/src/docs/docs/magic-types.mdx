@@ -12,27 +12,27 @@ Hegel provides several of types which help to extract or create new types from e
 
 Table of contents:
 
-- [\$Class](#classinstance)
-- [\$Entries](#excludetarget-whichshouldbeexcluded)
-- [\$Exclude](#excludetarget-whichshouldbeexcluded)
-- [\$Immutable](#immutabletype)
-- [\$InstanceOf](#instanceofconstructor)
-- [\$Intersection](#intersectiono1-o2-)
-- [\$Keys](#keysobj)
-- [\$Omit](#omitobj-keys)
-- [\$Partial](#partialobj)
-- [\$Pick](#pickobj-keys)
-- [\$PropertyType](#propertytypeobj-key)
-- [\$ReturnType](#returntypefntype-)
-- [\$Soft](#softobj)
-- [\$Strict](#strictobj)
-- [\$Throws](#throwserrortype)
-- [\$TypeOf](#typeofvariable)
-- [\$Values](#valuesobj)
+- [$Class](#classinstance)
+- [$Entries](#excludetarget-whichshouldbeexcluded)
+- [$Exclude](#excludetarget-whichshouldbeexcluded)
+- [$Immutable](#immutabletype)
+- [$InstanceOf](#instanceofconstructor)
+- [$Intersection](#intersectiono1-o2-)
+- [$Keys](#keysobj)
+- [$Omit](#omitobj-keys)
+- [$Partial](#partialobj)
+- [$Pick](#pickobj-keys)
+- [$PropertyType](#propertytypeobj-key)
+- [$ReturnType](#returntypefntype-)
+- [$Soft](#softobj)
+- [$Strict](#strictobj)
+- [$Throws](#throwserrortype)
+- [$TypeOf](#typeofvariable)
+- [$Values](#valuesobj)
 
-## \$Class<Instance\>
+## $Class<Instance\>
 
-\$Class extract static type of constructor for given `Instance` type.
+$Class extract static type of constructor for given `Instance` type.
 
 ```typescript
 class Animal {}
@@ -56,9 +56,9 @@ plantClass = animalClass;
 plantClass = dogClass;
 ```
 
-## \$Entries<Obj\>
+## $Entries<Obj\>
 
-\$Entries<Obj\> returns the union type of all properties and values types.
+$Entries<Obj\> returns the union type of all properties and values types.
 
 ```typescript
 type Admin = { name: string; age: number };
@@ -67,7 +67,7 @@ type Admin = { name: string; age: number };
 const property: $Entries<Admin> = ["name", 4];
 ```
 
-## \$Exclude<Target, WhichShouldBeExcluded\>
+## $Exclude<Target, WhichShouldBeExcluded\>
 
 Create a type by excluding from `Target` all variants for which `WhichShouldBeExcluded` will be a super type.
 
@@ -89,7 +89,7 @@ intermediateStatuses.push("Failed");
 > If you familiar with TypeScript then you can be familiar with Exclude type.
 > [TypeScript Exclude Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#excludetu)
 
-## \$Immutable<Type\>
+## $Immutable<Type\>
 
 This magic type convert any type into immutable variant of this type which means that you will not be able to mutate this type or its properties. You can use it in several situations.
 
@@ -145,7 +145,7 @@ arr[0] = 4;
 arr.pop();
 ```
 
-5. Also (as result of array immutability), \$Immutable can give you an ability to use more specific array as subtype of existed.
+5. Also (as result of array immutability), $Immutable can give you an ability to use more specific array as subtype of existed.
 
 ```typescript
 const numbers: Array<number> = [1, 2, 3];
@@ -159,7 +159,7 @@ const immutableNumbersOrStrings: $Immutable<Array<
 >> = immutableNumbers; // ðŸ‘Œ!
 ```
 
-## \$InstanceOf<Constructor\>
+## $InstanceOf<Constructor\>
 
 Create a type which is the instance type of a provided constructor `Constructor`.
 
@@ -205,9 +205,9 @@ type ContainerClass = $Class<Container<unknown>>;
 const container: $InstanceOf<ContainerClass, number> = new Container<number>();
 ```
 
-## \$Intersection<O1, O2, ...\>
+## $Intersection<O1, O2, ...\>
 
-\$Intersection type merge multiple object types into new one. It means that you will get a new object types which will contain all properties of provided object types. If some objects contain the same properties then property of the most right object will be chosen.
+$Intersection type merge multiple object types into new one. It means that you will get a new object types which will contain all properties of provided object types. If some objects contain the same properties then property of the most right object will be chosen.
 
 ```typescript
 type JsonSerializable = {
@@ -242,9 +242,9 @@ const fullSerializable: $Intersection<
 > If you familiar with TypeScript or Flow.js then you can be familiar with intersection type.
 > [Intersection in TypeScript](http://www.typescriptlang.org/docs/handbook/advanced-types.html#intersection-types), [Intersection in Flow.js](https://flow.org/en/docs/types/intersections/#intersection-type-syntax-);
 
-## \$Keys<Obj\>
+## $Keys<Obj\>
 
-\$Keys type return a [Union Type](/docs/union-types) of all possible keys of provide [Object Type](/docs/object-types).
+$Keys type return a [Union Type](/docs/union-types) of all possible keys of provide [Object Type](/docs/object-types).
 
 ```typescript
 type Admin = { name: string; age: number };
@@ -256,7 +256,7 @@ const property: $Keys<Admin> = "name";
 > If you familiar with Flow.js then you can be familiar with $Keys type.
 [Flow.js $Keys](https://flow.org/en/docs/types/utilities/#toc-keys).
 
-## \$Omit<Obj, Keys\>
+## $Omit<Obj, Keys\>
 
 Create an [Object Type](/docs/object-types) by removing all properties provided as [Union Type](/docs/union-types) by `Keys`
 
@@ -270,7 +270,7 @@ const admin: $Omit<Admin, "age" | "name"> = { position: "admin" };
 > If you familiar with TypeScript then you can be familiar with Omit type.
 > [TypeScript Omit Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#omittk)
 
-## \$Partial<Obj\>
+## $Partial<Obj\>
 
 Create an [Object Type](/docs/object-types) by converting all properties of [Object Type](/docs/object-types) `Obj` into [Optional Type](/docs/optional-types);
 
@@ -295,7 +295,7 @@ const olderUser = patch(original, { age: 22 });
 > If you familiar with TypeScript then you can be familiar with Partial type.
 > [TypeScript Partial Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#partialt)
 
-## \$Pick<Obj, Keys\>
+## $Pick<Obj, Keys\>
 
 Create an [Object Type](/docs/object-types) by removing all properties which are not provided as [Union Type](/docs/union-types) by `Keys`
 
@@ -309,7 +309,7 @@ const admin: $Pick<Admin, "age" | "name"> = { name: "Maurice Moss", age: 33 };
 > If you familiar with TypeScript then you can be familiar with Pick type.
 > [TypeScript Pick Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#picktk)
 
-## \$PropertyType<Obj, Key\>
+## $PropertyType<Obj, Key\>
 
 Return a property with name `Key` type from `Obj`.
 
@@ -322,7 +322,7 @@ const age: $PropertyType<Admin, "age"> = 33;
 
 > If you familiar with Flow.js then you can be familiar with $PropertyType type.
 [Flow.js $PropertyType](https://flow.org/en/docs/types/utilities/#toc-propertytype).
-> The main difference between Flow.js $PropertyType and Hegel $PropertyType is ability to use not only string literal as a second parameter of \$PropertyType.
+> The main difference between Flow.js $PropertyType and Hegel $PropertyType is ability to use not only string literal as a second parameter of $PropertyType.
 
 ```typescript
 // Usage of $PropertyType with type variable
@@ -336,7 +336,7 @@ const admin: Admin = { name: "Maurice Moss", age: 33 };
 const age = propertyOf(admin, "age");
 ```
 
-## \$ReturnType<FnType, ...\>
+## $ReturnType<FnType, ...\>
 
 Return a return type of provided [Function Type](/docs/function-types) `FnType` after applying generic arguments if `FnType` is [Generic Function](/docs/generic-types);
 
@@ -360,7 +360,7 @@ const _: $ReturnType<GenericFunction> = "";
 > If you familiar with Flow.js then you can be familiar with $Call type. $ReturnType has the same semantic as $Call type in Flow.js
 [Flow.js $Call](https://flow.org/en/docs/types/utilities/#toc-call).
 
-## \$Soft<Obj\>
+## $Soft<Obj\>
 
 Convert any [Object Type](/docs/object-types) in [Soft Object Type](/docs/object-types#strict-and-soft-object-types).
 
@@ -376,7 +376,7 @@ const softAdmin: $Soft<Admin> = { name: "Maurice Moss", age: 33, test: 2 }; // ð
 > If you familiar with Flow.js then you can be familiar with $Shape type. $Soft has the same semantic as $Shape type in Flow.js
 [Flow.js $Shape](https://flow.org/en/docs/types/utilities/#toc-shape).
 
-## \$Strict<Obj\>
+## $Strict<Obj\>
 
 Convert any [Object Type](/docs/object-types) in [Strict Object Type](/docs/object-types#strict-and-soft-object-types).
 
@@ -392,7 +392,7 @@ const strictAdmin: $Strict<Admin> = { name: "Maurice Moss", age: 33, test: 2 };
 > If you familiar with Flow.js then you can be familiar with $Exact type. $Soft has the same semantic as $Exact type in Flow.js
 [Flow.js $Exact](https://flow.org/en/docs/types/utilities/#toc-exact).
 
-## \$Throws<ErrorType\>
+## $Throws<ErrorType\>
 
 $Throws type act like a [Throws Statement in Java](https://www.javatpoint.com/throws-keyword-and-difference-between-throw-and-throws). When you declare return type of your function as $Throws, you need to throw subtype of declared throws type.
 
@@ -441,7 +441,7 @@ function assertEntry(something: unknown): $Throws<TypeError> {
 }
 ```
 
-If you want to annotate that your function will throw something or will return something then you should use [Union Type](/docs/union-types) with \$Throws:
+If you want to annotate that your function will throw something or will return something then you should use [Union Type](/docs/union-types) with $Throws:
 
 ```typescript
 function processIfValid(a, b): number | $Throws<TypeError> {
@@ -452,7 +452,7 @@ function processIfValid(a, b): number | $Throws<TypeError> {
 }
 ```
 
-## \$TypeOf<Variable\>
+## $TypeOf<Variable\>
 
 The $TypeOf type returns the Hegel type of a provided variable `Variable`. Note, that $TypeOf is unique type because this is the only type which gets non-type argument.
 
@@ -476,9 +476,9 @@ const _: $TypeOf<a> = [];
 > If you familiar with TypeScript or Flow.js then you can be familiar with "typeof" operator.
 > [TypeScript typeof operator](http://www.typescriptlang.org/play/index.html?ssl=2&ssc=10&pln=2&pc=16#code/MYewdgzgLgBGCuBbARgUwE4QFwwILvQEMBPAHgRQwD4YBeGAbQEYAaGAJjYGYBdAbgBQoSLEI4oxAA6oQAMzhI0mOgsqY+QA) > [Flow.js typeof operator](https://flow.org/en/docs/types/typeof/#toc-typeof-type-syntax)
 
-## \$Values<Obj\>
+## $Values<Obj\>
 
-\$Values<Obj\> returns the union type of all properties value types.
+$Values<Obj\> returns the union type of all properties value types.
 
 ```typescript
 type Admin = { name: string; age: number };
