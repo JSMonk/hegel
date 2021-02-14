@@ -4,7 +4,6 @@ import HegelError from "../utils/errors";
 import { Meta } from "./meta/meta";
 import { Type } from "./types/type";
 import { $Keys } from "./types/keys-type";
-import { $Values } from "./types/values-type";
 import { TypeVar } from "./types/type-var";
 import { CallMeta } from "./meta/call-meta";
 import { TupleType } from "./types/tuple-type";
@@ -536,7 +535,10 @@ export function addCallToTypeGraph(
         arg.result instanceof VariableInfo ? arg.result.type : arg.result;
       if (argType instanceof $Refinemented) {
         if (!argType.isSafe()) {
-          throw new HegelError("You try to return unsafly refinemented object, which mean that somebody could change prooved property type outside the function.", node.loc);
+          throw new HegelError(
+            "You try to return unsafly refinemented object, which mean that somebody could change prooved property type outside the function.",
+            node.loc
+          );
         }
         argType = argType.refinemented;
       }
@@ -902,7 +904,7 @@ export function addCallToTypeGraph(
       args = node.arguments.map((n, i) => {
         argsLocations.push(n.loc);
         // $FlowIssue
-        const defaultArguments = (fnType.argumentsTypes || []);
+        const defaultArguments = fnType.argumentsTypes || [];
         const defaultArg = defaultArguments[i];
         if (
           n.type === NODE.FUNCTION_EXPRESSION ||

@@ -794,6 +794,7 @@ export function inferenceFunctionTypeByScope(
               isUserDefined: false,
             });
       genericArg.root = newRoot;
+      newRoot.root = root;
       if (alreadyCreated === undefined) {
         created.set(root, newRoot);
       }
@@ -837,6 +838,7 @@ export function inferenceFunctionTypeByScope(
   if (newReturnType instanceof TypeVar) {
     newGenericArguments.add(newReturnType);
   }
+  const GENERIC_RETURN_TYPE = typeGraph.findVariable({ name: "return" }).type;
   const shouldBeCleaned = [];
   for (const { calls } of nestedScopes) {
     for (let i = 0; i < calls.length; i++) {
@@ -865,17 +867,9 @@ export function inferenceFunctionTypeByScope(
           }
         } else if (copy !== undefined) {
           args[j] = copy;
-          if (
-            call.targetName === "return" &&
-            call.target instanceof FunctionType
-          ) {
-            // $FlowIssue
-            call.target = targetType.changeAll(
-              [argumentType],
-              [copy],
-              typeScope
-            );
-          }
+        }
+        if (call.targetName === "return" && call.target instanceof FunctionType && newReturnType !== call.target.returnType) {
+          call.target = GENERIC_RETURN_TYPE;
         }
       }
       if (targetType instanceof GenericType) {

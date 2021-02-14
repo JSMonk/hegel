@@ -94,6 +94,7 @@ export class GenericType<T: Type> extends Type {
   subordinateType: T;
   localTypeScope: TypeScope;
   nestedRestriction: Type | void;
+  inferencedArguments: Set<TypeVar> = new Set();
 
   constructor(
     name: string,
@@ -518,14 +519,22 @@ export class GenericType<T: Type> extends Type {
 
   asUserDefined() {
     this.genericArguments.forEach((t) => {
+      if (this.inferencedArguments.has(t)) return;
       t._isUserDefined = true;
       t.root = undefined;
     });
+    this.inferencedArguments = new Set();
     return this;
   }
 
   asNotUserDefined() {
-    this.genericArguments.forEach((t) => (t._isUserDefined = false));
+    this.inferencedArguments = new Set();
+    this.genericArguments.forEach((t) => {
+      if (!t._isUserDefined) {
+        this.inferencedArguments.add(t);
+      }
+      t._isUserDefined = false;
+    });
     return this;
   }
 }

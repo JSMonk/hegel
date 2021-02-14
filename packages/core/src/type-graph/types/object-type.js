@@ -234,10 +234,8 @@ export class ObjectType extends Type {
             name: newName,
           });
     }
-    const currentSelf = TypeVar.createSelf(
-      this.getChangedName(sourceTypes, targetTypes),
-      this.parent
-    );
+    const currentSelf = TypeVar.createSelf("this", this.parent);
+    targetTypes = targetTypes.map(t => t === this ? currentSelf : t);
     if (
       this._changeStack !== null &&
       this._changeStack.find((a) => a.equalsTo(currentSelf))

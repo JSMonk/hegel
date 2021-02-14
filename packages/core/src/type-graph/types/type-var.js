@@ -128,8 +128,9 @@ export class TypeVar extends Type {
     typeScope: TypeScope
   ): Type {
     const indexOfNewRootType = sourceTypes.findIndex(
-      // $FlowIssue
-      (a) => a.equalsTo(this, true, true)
+      (a) =>
+        // $FlowIssue
+        a.equalsTo(this, true, true) || this.equalsTo(a, true, true)
     );
     if (indexOfNewRootType !== -1) {
       return targetTypes[indexOfNewRootType];
