@@ -157,7 +157,7 @@ isSuperTypeFor(anotherType: Type): boolean {
 }
 ```
 
-#### \$BottomType
+#### $BottomType
 
 One of the interesting architecture decisions is [`$BottomType`](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/bottom-type.js). This type behaves like a `Promise` in types world. It means that when we want to apply [GenericType](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/union-type.js) (which behaves like a function in types world) any [TypeVar](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/type-var.js) we can reduce the cost of [`changeAll` function](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/type.js) and instead of deep changing of generic arguments to another type variables, we can return [`$BottomType`](https://github.com/JSMonk/hegel/tree/master/packages/core/src/type-graph/types/bottom-type.js) which say that we want to apply new type variables instead old ones, and if we will replace a new type variable to a specific type instead of one more call of `changeAll`, we only change new type variable to a specific type and that's all.
 
