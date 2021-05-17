@@ -285,6 +285,7 @@ const mixBaseOperators = (moduleScope) => {
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
+                  Type.String,
                   Type.Number,
                 ])
               )
@@ -310,6 +311,7 @@ const mixBaseOperators = (moduleScope) => {
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
+                  Type.String,
                   Type.Number,
                 ])
               )
@@ -335,6 +337,7 @@ const mixBaseOperators = (moduleScope) => {
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
+                  Type.String,
                   Type.Number,
                 ])
               )
@@ -360,6 +363,7 @@ const mixBaseOperators = (moduleScope) => {
                 {},
                 UnionType.term(null, { parent: typeScope }, [
                   Type.BigInt,
+                  Type.String,
                   Type.Number,
                 ])
               )
