@@ -1,6 +1,6 @@
 {
   "name": "@hegel/docs",
-  "version": "0.0.43",
+  "version": "0.0.45",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -14,12 +14,13 @@
   "dependencies": {
     "@babel/parser": "^7.7.5",
     "@emotion/core": "^10.0.28",
-    "@hegel/core": "^0.0.43",
-    "@hegel/typings": "^0.0.41",
+    "@hegel/core": "^0.0.45",
+    "@hegel/typings": "^0.0.45",
     "@reach/router": "^1.2.1",
     "classnames": "^2.2.6",
     "docz": "^2.2.0",
     "docz-theme-default": "^1.2.0",
+    "docz-utils": "^2.3.0",
     "facepaint": "^1.2.1",
     "gatsby-plugin-styled-components": "^3.1.20",
     "gatsby-plugin-theme-ui": "^0.3.0",

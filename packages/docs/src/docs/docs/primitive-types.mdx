@@ -5,9 +5,11 @@ menu: Type Annotations
 ---
 
 # Primitive Types
----------------------
+
+---
 
 Imagine type as a Set of different values. Some of them are finite and some are not. In nowadays JavaScript has 7 primitive types:
+
 - [Null](#null-and-undefined)
 - [Undefined](#null-and-undefined)
 - [Boolean](#boolean)
@@ -20,7 +22,7 @@ Hegel has not only the same types, but also adds several new types. Let's discov
 
 ## Null and Undefined
 
-The most primitive types in JavaScript are `null` and `undefined`, because each of them contains only one value. 
+The most primitive types in JavaScript are `null` and `undefined`, because each of them contains only one value.
 You can define variable with this datatype in Hegel:
 
 ```typescript
@@ -32,7 +34,7 @@ As you can see `null` and `undefined` types have the same name as their literals
 
 ## Boolean
 
-The second primitive type is `boolean`, because it contains only two values: `true` and `false`. 
+The second primitive type is `boolean`, because it contains only two values: `true` and `false`.
 
 ```typescript
 // Using literal as a datatype
@@ -58,13 +60,14 @@ let anyNumber: number = decimal + hex + binary + octal;
 
 ## BigInt
 
-`BigInt` was added in ES2019 and presents any integer number without bits limitations. 
+`BigInt` was added in ES2019 and presents any integer number without bits limitations.
 
 ```typescript
-let reallyBigNumber: bigint = 2n**255n;
+let reallyBigNumber: bigint = 2n ** 255n;
 ```
 
 **Warning**: `BigInt` is not subtype or super type for `Number` data type. Hegel will show you an error if you try to use bigint as number or number as bigint. Also, in JavaScript you can't mix number and bigint in math operators, so, Hegel will show you an error too.
+
 ```typescript
 // Error: Type "bigint" is incompatible with type "number"
 const usageBigIntAsNumber: number = 4n + 2n;
@@ -72,12 +75,11 @@ const usageBigIntAsNumber: number = 4n + 2n;
 // Error: Type "number" is incompatible with type "bigint"
 const usageNumberAsBigInt: bigint = 4 + 2;
 
-
 // Error: Type "4n" is incompatible with type "number"
-4 * 4n
+4 * 4n;
 
 // Error: Type "255" is incompatible with type "bigint"
-2n**255
+2n ** 255;
 ```
 
 ## String
@@ -86,7 +88,7 @@ Unlike String in other programming languages, JavaScript's String has a value (n
 
 ```typescript
 const firstName: "Robert" = "Robert";
-const lastName: 'Paulson' = "Paulson";
+const lastName: "Paulson" = "Paulson";
 const fullName: string = firstName + " " + lastName;
 const sentence: string = `His name is ${fullName}.`;
 ```
@@ -94,13 +96,17 @@ const sentence: string = `His name is ${fullName}.`;
 JavaScript implicitly converts other types of values into strings by concatenating them.
 
 ```javascript
-44 + "6" // 446
+44 + "6"; // 446
 ```
 
 Hegel implements a strong type system, so it will accept only strings when concatenating them or when template literal is used.
 
 ```typescript
-const world = { toString() { return "World" } };
+const world = {
+  toString() {
+    return "World";
+  },
+};
 
 "Hello " + "World"; // 👌!
 
@@ -117,17 +123,21 @@ const world = { toString() { return "World" } };
 To prevent error you need explicity convert value to string:
 
 ```typescript
-const world = { toString() { return "World" } };
+const world = {
+  toString() {
+    return "World";
+  },
+};
 
-"Hello " + "World";        // 👌!
-"Hello " + String(42);     // 👌!
-"Hello " + String(world);  // 👌!
+"Hello " + "World"; // 👌!
+"Hello " + String(42); // 👌!
+"Hello " + String(world); // 👌!
 `Hello, ${String(world)}`; // 👌!
 ```
 
 ## Symbol
 
-Symbol is another "new" datatype which was included in language starting from ECMAScript 2015.  Symbols are created by `Symbol` function invocation in JavaScript. Hegel provides `symbol` datatype that can be used as type annotation. 
+Symbol is another "new" datatype which was included in language starting from ECMAScript 2015. Symbols are created by `Symbol` function invocation in JavaScript. Hegel provides `symbol` datatype that can be used as type annotation.
 
 ```typescript
 const unique: symbol = Symbol("unique");

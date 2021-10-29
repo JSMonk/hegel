@@ -1,7 +1,9 @@
 // @flow
 import NODE from "./nodes";
+import HegelError from "./errors";
 import { Meta } from "../type-graph/meta/meta";
 import { Type } from "../type-graph/types/type";
+import { TypeVar } from "../type-graph/types/type-var";
 import { UnionType } from "../type-graph/types/union-type";
 import { TupleType } from "../type-graph/types/tuple-type";
 import { ObjectType } from "../type-graph/types/object-type";
@@ -19,14 +21,19 @@ import type { TypeScope } from "../type-graph/type-scope";
 import type { ModuleScope } from "../type-graph/module-scope";
 import type {
   Node,
-  ClassProperty,
-  ObjectProperty,
   ClassMethod,
-  ObjectMethod
+  ArrayPattern,
+  ObjectMethod,
+  ClassProperty,
+  ObjectPattern,
+  ObjectProperty,
 } from "@babel/parser";
 
 export function getPropertyName(
-  node: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod
+  node: ClassProperty | ObjectProperty | ClassMethod | ObjectMethod,
+  addCallToTypeGraph?: (
+    ClassProperty | ObjectProperty | ClassMethod | ObjectMethod
+  ) => { result: Type | VariableInfo<any> }
 ) {
   const isPrivate =
     node.type === NODE.CLASS_PRIVATE_METHOD ||
@@ -36,6 +43,49 @@ export function getPropertyName(
   }
   if (node.kind === "constructor") {
     return CONSTRUCTABLE;
+  }
+  if (node.computed && addCallToTypeGraph !== undefined) {
+    const { result } = addCallToTypeGraph(node.key);
+    let type = result instanceof VariableInfo ? result.type : result;
+    type = type.getOponentType(type);
+    const availableTypes = UnionType.term(null, {}, [
+      Type.String,
+      Type.Number,
+      Type.Symbol,
+    ]);
+    if (availableTypes.isPrincipalTypeFor(type)) {
+      if (type instanceof TypeVar || type.isSubtypeOf === Type.Symbol) {
+        return type;
+      }
+      if (type.isSubtypeOf === Type.String) {
+        return String(type.name).slice(1, -1);
+      }
+      if (type.isSubtypeOf === Type.Number) {
+        return String(type.name);
+      }
+      if (
+        !(type instanceof UnionType) &&
+        type !== Type.String &&
+        type !== Type.Number &&
+        type !== Type.Symbol
+      ) {
+        return String(type.name);
+      }
+    }
+    if (
+      type instanceof TypeVar &&
+      !type.isUserDefined &&
+      type.constraint === undefined
+    ) {
+      type.constraint = availableTypes;
+      return type;
+    }
+    throw new HegelError(
+      `Only string, symbol or number values are available for object property constructing, your type is: ${String(
+        type.name
+      )}`,
+      node.key.loc
+    );
   }
   return node.key.name || `${node.key.value}`;
 }
@@ -83,7 +133,7 @@ export function getSuperTypeOf(
       ? UnionType.term(
           null,
           {},
-          type.variants.map(variant =>
+          type.variants.map((variant) =>
             getSuperTypeOf(variant, typeScope, withUnion)
           )
         )
@@ -106,24 +156,24 @@ export function getSuperTypeOf(
           : UnionType.term(
               null,
               {},
-              type.items.map(a => getSuperTypeOf(a, typeScope, withUnion))
+              type.items.map((a) => getSuperTypeOf(a, typeScope, withUnion))
             ),
         typeScope,
         true
-      )
+      ),
     ]);
   }
   if (type instanceof ObjectType) {
     const propertyTypes = [...type.properties.entries()].map(([key, v]) => [
       key,
-      v.type
+      v.type,
     ]);
     const newProperties = propertyTypes.map(([key, p]) => [
       key,
       // $FlowIssue
       Object.assign(new VariableInfo(), type.properties.get(key), {
-        type: getSuperTypeOf(p, typeScope, withUnion)
-      })
+        type: getSuperTypeOf(p, typeScope, withUnion),
+      }),
     ]);
     return ObjectType.term(
       ObjectType.getName(newProperties),
@@ -135,19 +185,22 @@ export function getSuperTypeOf(
 }
 
 export function getVariableType(
-  variable: VariableInfo<Type> | void,
+  variable: VariableInfo<Type> | Type | void,
   newType: Type,
   typeScope: TypeScope,
-  inferenced: boolean = false,
-  freezed: boolean = false
+  inferenced: boolean = false
 ): Type {
-  if (variable && variable.type !== Type.Unknown) {
-    return variable.type;
+  const type =
+    variable === undefined || variable instanceof Type
+      ? variable
+      : variable.type;
+  if (type && type !== Type.Unknown) {
+    return type;
   }
   if (
     !inferenced ||
     newType instanceof $AppliedImmutable ||
-    (variable &&
+    (variable instanceof VariableInfo &&
       variable.isConstant &&
       (newType.constructor === Type || newType.constructor === TupleType))
   ) {

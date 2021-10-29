@@ -29,8 +29,10 @@ export class CollectionType<K: Type, V: Type> extends Type {
     if (parent === undefined || valueType.parent.priority > parent.priority) {
       parent = valueType.parent;
     }
-    const newMeta = { ...meta, parent };
-    return super.term(name, newMeta, keyType, valueType, ...args);
+    const newMeta = { ...meta, isSubtypeOf: undefined, parent };
+    const result = super.term(name, newMeta, keyType, valueType, ...args);
+    result.isSubtypeOf = meta.isSubtypeOf;
+    return result;
   }
 
   static getName(keyType: Type, valueType: Type) {
@@ -64,7 +66,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
       }
       const result =
         this.valueType instanceof UnionType &&
-        this.valueType.variants.some(a => a.equalsTo(Type.Undefined))
+        this.valueType.variants.some((a) => a.equalsTo(Type.Undefined))
           ? this.valueType
           : UnionType.term(null, {}, [this.valueType, Type.Undefined]);
       if (result) {
@@ -129,7 +131,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
             // $FlowIssue ReadonlyArray is always GenericType
             TupleType.ReadonlyArray.root.applyGeneric([this.valueType])
           )) &&
-        anotherType.items.every(t => this.valueType.isPrincipalTypeFor(t)));
+        anotherType.items.every((t) => this.valueType.isPrincipalTypeFor(t)));
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -139,7 +141,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ) {
-    if (sourceTypes.every(type => !this.canContain(type))) {
+    if (sourceTypes.every((type) => !this.canContain(type))) {
       return this;
     }
     const currentSelf = TypeVar.createSelf(
@@ -148,7 +150,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
     );
     if (
       this._changeStack !== null &&
-      this._changeStack.find(a => a.equalsTo(currentSelf))
+      this._changeStack.find((a) => a.equalsTo(currentSelf))
     ) {
       return currentSelf;
     }
@@ -245,7 +247,7 @@ export class CollectionType<K: Type, V: Type> extends Type {
     }
     this._alreadyProcessedWith = this;
     const sortedParents = [this.keyType, this.valueType]
-      .map(a => a.getNextParent(typeScope))
+      .map((a) => a.getNextParent(typeScope))
       .sort((a, b) => b.priority - a.priority);
     for (const parent of sortedParents) {
       if (parent.priority <= typeScope.priority && parent !== typeScope) {

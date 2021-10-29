@@ -14,7 +14,7 @@ const List = styled.ul`
   align-items: center;
 
   @media (max-width: 660px) {
-     flex-direction: column;
+    flex-direction: column;
   }
 `;
 
@@ -26,7 +26,7 @@ const ListItem = styled.li`
   align-items: center;
 
   @media (max-width: 660px) {
-     margin: 20px 0;
+    margin: 20px 0;
   }
 `;
 

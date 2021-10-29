@@ -12,7 +12,7 @@ export type CallableType = FunctionType | GenericType<FunctionType>;
 export type CallableTarget =
   | CallableType
   | {
-      type: CallableType
+      type: CallableType,
     };
 
 export type CallableArguments = Type | VariableInfo<Type>;

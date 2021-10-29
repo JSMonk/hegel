@@ -4,226 +4,226 @@ export default {
   rules: [
     {
       foreground: "5c6370",
-      token: "comment"
+      token: "comment",
     },
     {
       foreground: "dcdfe4",
-      token: "variable.parameter.function"
+      token: "variable.parameter.function",
     },
     {
       foreground: "c678dd",
-      token: "keyword"
+      token: "keyword",
     },
     {
       foreground: "e06c75",
-      token: "variable"
+      token: "variable",
     },
     {
       foreground: "61afef",
-      token: "entity.name.function"
+      token: "entity.name.function",
     },
     {
       foreground: "61afef",
-      token: "meta.require"
+      token: "meta.require",
     },
     {
       foreground: "61afef",
-      token: "support.function.any-method"
+      token: "support.function.any-method",
     },
     {
       foreground: "e5c07b",
-      token: "support.class"
+      token: "support.class",
     },
     {
       foreground: "e5c07b",
-      token: "entity.name.class"
+      token: "entity.name.class",
     },
     {
       foreground: "e5c07b",
-      token: "entity.name.type.class"
+      token: "entity.name.type.class",
     },
     {
       foreground: "e5c07b",
-      token: "meta.class"
+      token: "meta.class",
     },
     {
       foreground: "61afef",
-      token: "keyword.other.special-method"
+      token: "keyword.other.special-method",
     },
     {
       foreground: "c678dd",
-      token: "storage"
+      token: "storage",
     },
     {
       foreground: "61afef",
-      token: "support.function"
+      token: "support.function",
     },
     {
       foreground: "98c379",
-      token: "string"
+      token: "string",
     },
     {
       foreground: "e5c07b",
-      token: "constant.numeric"
+      token: "constant.numeric",
     },
     {
       foreground: "e5c07b",
-      token: "none"
+      token: "none",
     },
     {
       foreground: "e5c07b",
-      token: "none"
+      token: "none",
     },
     {
       foreground: "e5c07b",
-      token: "constant"
+      token: "constant",
     },
     {
       foreground: "e06c75",
-      token: "entity.name.tag"
+      token: "entity.name.tag",
     },
     {
       foreground: "e5c07b",
-      token: "entity.other.attribute-name"
+      token: "entity.other.attribute-name",
     },
     {
       foreground: "e5c07b",
-      token: "entity.other.attribute-name.id"
+      token: "entity.other.attribute-name.id",
     },
     {
       foreground: "e5c07b",
-      token: "punctuation.definition.entity"
+      token: "punctuation.definition.entity",
     },
     {
       foreground: "c678dd",
-      token: "meta.selector"
+      token: "meta.selector",
     },
     {
       foreground: "61afef",
-      token: "markup.heading punctuation.definition.heading"
+      token: "markup.heading punctuation.definition.heading",
     },
     {
       foreground: "61afef",
-      token: "entity.name.section"
+      token: "entity.name.section",
     },
     {
       foreground: "c678dd",
-      token: "markup.bold"
+      token: "markup.bold",
     },
     {
       foreground: "c678dd",
-      token: "punctuation.definition.bold"
+      token: "punctuation.definition.bold",
     },
     {
       foreground: "c678dd",
-      token: "markup.italic"
+      token: "markup.italic",
     },
     {
       foreground: "c678dd",
-      token: "punctuation.definition.italic"
+      token: "punctuation.definition.italic",
     },
     {
       foreground: "98c379",
-      token: "markup.raw.inline"
+      token: "markup.raw.inline",
     },
     {
       foreground: "98c379",
-      token: "meta.link"
+      token: "meta.link",
     },
     {
       foreground: "98c379",
-      token: "markup.quote"
+      token: "markup.quote",
     },
     {
       foreground: "dcdfe4",
-      token: "source.java meta.class.java meta.method.java"
+      token: "source.java meta.class.java meta.method.java",
     },
     {
       foreground: "dcdfe4",
-      token: "source.java meta.class.java meta.class.body.java"
+      token: "source.java meta.class.java meta.class.body.java",
     },
     {
       foreground: "e06c75",
-      token: "source.js meta.function.js variable.parameter.function.js"
+      token: "source.js meta.function.js variable.parameter.function.js",
     },
     {
       foreground: "e06c75",
-      token: "source.js variable.other.readwrite.js"
+      token: "source.js variable.other.readwrite.js",
     },
     {
       foreground: "dcdfe4",
-      token: "source.js variable.other.object.js"
+      token: "source.js variable.other.object.js",
     },
     {
       foreground: "e06c75",
       token:
-        "source.js meta.function-call.method.js variable.other.readwrite.js"
+        "source.js meta.function-call.method.js variable.other.readwrite.js",
     },
     {
       foreground: "e06c75",
-      token: "source.js meta.block.js variable.other.readwrite.js"
+      token: "source.js meta.block.js variable.other.readwrite.js",
     },
     {
       foreground: "dcdfe4",
-      token: "source.js meta.block.js variable.other.object.js"
+      token: "source.js meta.block.js variable.other.object.js",
     },
     {
       foreground: "dcdfe4",
       token:
-        "source.js meta.block.js meta.function-call.method.js variable.other.readwrite.js"
+        "source.js meta.block.js meta.function-call.method.js variable.other.readwrite.js",
     },
     {
       foreground: "dcdfe4",
-      token: "source.js meta.function-call.method.js variable.function.js"
+      token: "source.js meta.function-call.method.js variable.function.js",
     },
     {
       foreground: "61afef",
-      token: "source.js meta.property.object.js entity.name.function.js"
+      token: "source.js meta.property.object.js entity.name.function.js",
     },
     {
       foreground: "dcdfe4",
-      token: "source.js support.constant.prototype.js"
+      token: "source.js support.constant.prototype.js",
     },
     {
       foreground: "98c379",
-      token: "markup.inserted"
+      token: "markup.inserted",
     },
     {
       foreground: "e06c75",
-      token: "markup.deleted"
+      token: "markup.deleted",
     },
     {
       foreground: "e5c07b",
-      token: "markup.changed"
+      token: "markup.changed",
     },
     {
       foreground: "98c379",
-      token: "string.regexp"
+      token: "string.regexp",
     },
     {
       foreground: "56b6c2",
-      token: "constant.character.escape"
+      token: "constant.character.escape",
     },
     {
       foreground: "dcdfe4",
       background: "e06c75",
-      token: "invalid.illegal"
+      token: "invalid.illegal",
     },
     {
       foreground: "dcdfe4",
       background: "e5c07b",
-      token: "invalid.broken"
+      token: "invalid.broken",
     },
     {
       foreground: "dcdfe4",
       background: "e5c07b",
-      token: "invalid.deprecated"
+      token: "invalid.deprecated",
     },
     {
       foreground: "dcdfe4",
       background: "c678dd",
-      token: "invalid.unimplemented"
-    }
+      token: "invalid.unimplemented",
+    },
   ],
   colors: {
     "editor.foreground": "#dcdfe4",
@@ -232,6 +232,6 @@ export default {
     "editor.lineHighlightBackground": "#13161f",
     "editorCursor.foreground": "#a3b3cc",
     "editorWhitespace.foreground": "#13161f",
-    "editor.selectionHighlightBorder": "#474e5d"
-  }
+    "editor.selectionHighlightBorder": "#474e5d",
+  },
 };

@@ -1,17 +1,24 @@
 {
   "name": "@hegel/cli",
-  "version": "0.0.43",
+  "version": "0.0.45",
   "description": "",
-  "main": "index.js",
+  "main": "./build/index.js",
   "bin": {
-    "hegel": "./index.js"
+    "hegel": "./build/index.js"
   },
+  "files": [
+    "build/*",
+    "README.md"
+  ],
   "scripts": {
-    "build": "npm run build:clean && npm run build:start && npm run build:copy",
-    "build:check": "node ./build/index.js",
-    "build:start": "babel src -d build --config-file ./.babelrc",
-    "build:clean": "rm -rf build && mkdir build",
-    "build:copy": "cp ./package.json ./build/package.json"
+    "prebuild": "yarn build:clean",
+    "build": "babel src --out-dir build --copy-files --config-file ./.babelrc",
+    "build:watch": "yarn build -- --watch",
+    "build:dev": "yarn build -- --source-maps",
+    "build:clean": "rm -rf build",
+    "pretest": "yarn build",
+    "test": "yarn hegel",
+    "hegel": "node ./build/index.js"
   },
   "author": "Artem Kobzar",
   "license": "MIT",
@@ -24,8 +31,8 @@
     "@babel/code-frame": "^7.0.0",
     "@babel/parser": "^7.8.3",
     "@babel/preset-env": "^7.7.6",
-    "@hegel/core": "0.0.43",
-    "@hegel/typings": "0.0.41",
+    "@hegel/core": "0.0.45",
+    "@hegel/typings": "0.0.45",
     "chalk": "^2.4.2",
     "cosmiconfig": "^5.2.1",
     "glob": "^7.1.6",

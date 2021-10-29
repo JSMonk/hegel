@@ -16,7 +16,7 @@ import type {
   ClassMethod,
   ObjectMethod,
   SourceLocation,
-  FunctionDeclaration
+  FunctionDeclaration,
 } from "@babel/parser";
 
 type Identifier = { name: string, loc?: SourceLocation };
@@ -48,7 +48,7 @@ export class Scope {
     currentNode.expected =
       definedType != undefined && "variants" in definedType
         ? // $FlowIssue
-          definedType.variants.find(a => "argumentsTypes" in a)
+          definedType.variants.find((a) => "argumentsTypes" in a)
         : definedType;
     const scopeName = this.getName(currentNode);
     const errors = [];
@@ -99,7 +99,7 @@ export class Scope {
           Scope.canTraverseFunction(rest)
         ) {
           // $FlowIssue
-          let result: VariableInfo<Type > | void = (Scope.addAndTraverseNodeWithType(
+          let result: VariableInfo<Type> | void = (Scope.addAndTraverseNodeWithType(
             // $FlowIssue
             undefined,
             variableInfo,
@@ -120,7 +120,7 @@ export class Scope {
 
   findRecord({
     name,
-    loc
+    loc,
   }: Identifier):
     | VariableInfo<Type>
     | FunctionDeclaration

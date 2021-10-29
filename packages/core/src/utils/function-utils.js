@@ -15,7 +15,7 @@ import { getDeclarationName, getAnonymousKey } from "./common";
 import {
   getParentForNode,
   getScopeFromNode,
-  findNearestTypeScope
+  findNearestTypeScope,
 } from "../utils/scope-utils";
 import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
@@ -24,7 +24,7 @@ import type {
   Identifier,
   FunctionDeclaration,
   ClassMethod,
-  ClassProperty
+  ClassProperty,
 } from "@babel/core";
 
 export function addFunctionScopeToTypeGraph(
@@ -86,6 +86,9 @@ export function addFunctionToTypeGraph(
     name
   ): any);
   variableInfo.isInferenced = currentNode.returnType === undefined;
+  variableInfo.meta.isAnonymous =
+    currentNode.type !== NODE.FUNCTION_DECLARATION &&
+    currentNode.type !== NODE.TS_FUNCTION_DECLARATION;
   const currentTypeScope = findNearestTypeScope(
     variableInfo.parent,
     moduleScope
@@ -113,7 +116,7 @@ export function addFunctionToTypeGraph(
   let expectedType =
     expected instanceof GenericType ? expected.subordinateType : expected;
   if (expectedType instanceof UnionType) {
-    expectedType = expectedType.variants.find(a => {
+    expectedType = expectedType.variants.find((a) => {
       a = a instanceof GenericType ? a.subordinateType : a;
       return a instanceof FunctionType;
     });
@@ -133,7 +136,7 @@ export function addFunctionToTypeGraph(
   if (expected instanceof GenericType) {
     genericArgumentsTypes = [
       ...genericArgumentsTypes,
-      ...expected.genericArguments
+      ...expected.genericArguments,
     ];
   }
   if (expectedType instanceof FunctionType) {
@@ -143,7 +146,7 @@ export function addFunctionToTypeGraph(
       length: Math.max(
         inferencedArgumentsTypes.length,
         expectedArgumentsTypes.length
-      )
+      ),
     });
     let wereArgumentsChanged = false;
     const newArgumentsTypes = argumentsTypes.reduce((res, _, i) => {
@@ -208,7 +211,7 @@ export function addFunctionToTypeGraph(
     }
     const id = param.left || param.argument || param;
     if (param.left != undefined && type instanceof UnionType) {
-      const types = type.variants.filter(a => a !== Type.Undefined);
+      const types = type.variants.filter((a) => a !== Type.Undefined);
       type = UnionType.term(null, { parent: currentTypeScope }, types);
     }
     if (type instanceof RestArgument) {
@@ -219,7 +222,7 @@ export function addFunctionToTypeGraph(
       }
     }
     let varInfo = scope.body.get(id.name);
-    /*::if (type == undefined) return*/
+    if (type == undefined) return;
     if (varInfo !== undefined) {
       varInfo.type = type;
       varInfo.parent = scope;
@@ -250,7 +253,8 @@ export function isSideEffectCall(node: Node, invocationResult: Type) {
   return (
     node.type === NODE.EXPRESSION_STATEMENT && // i.e we don't assign a return value of it to any variable
     node.expression != null && //
-    (node.expression.type === NODE.CALL_EXPRESSION || // if we call a function like a side effect.
+    ((node.expression.type === NODE.CALL_EXPRESSION &&
+      node.expression.callee.type !== NODE.SUPER) || // if we call a function like a side effect.
       node.expression.type === NODE.TAGGED_TEMPLATE_EXPRESSION) && // if we call a function as tag like a side effect.
     !invocationResult.equalsTo(Type.Undefined) && // but call of this function actually return something.
     !invocationResult.equalsTo(Type.Undefined.promisify()) // but call of this function actually return something.
@@ -258,7 +262,7 @@ export function isSideEffectCall(node: Node, invocationResult: Type) {
 }
 
 export function functionWithReturnType(
-  functionType: GenericType<FunctionType> | FunctionType,
+  functionType: GenericType/*:: <FunctionType> */ | FunctionType,
   newReturnType: Type
 ) {
   const oldFunctionType =

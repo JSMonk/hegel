@@ -18,7 +18,7 @@ export function inferenceTupleType(
   middle: Handler,
   post: Handler
 ): TupleType {
-  const items = currentNode.elements.map(a => {
+  const items = currentNode.elements.map((a) => {
     if (a === null) {
       return Type.Undefined;
     }

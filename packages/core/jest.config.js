@@ -1,5 +1,5 @@
 const { defaults } = require("jest-config");
 
 module.exports = {
-  testRegex: "tests\/.*?\.test.js"
+  testRegex: "tests/.*?.test.js",
 };

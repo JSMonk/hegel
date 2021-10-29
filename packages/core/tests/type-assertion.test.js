@@ -1,11 +1,7 @@
-const HegelError = require("../build/utils/errors").default;
-const createTypeGraph = require("../build/type-graph/type-graph").default;
-const { Type } = require("../build/type-graph/types/type");
-const {
-  prepareAST,
-  mixTypeDefinitions,
-  getModuleAST
-} = require("./preparation");
+import HegelError from "../src/utils/errors";
+import createTypeGraph from "../src/type-graph/type-graph";
+import { Type } from "../src/type-graph/types/type";
+import { prepareAST, mixTypeDefinitions, getModuleAST } from "./preparation";
 
 describe("Variable declrataion and assignment", () => {
   test("Simple typed const declaration with number literal type", async () => {
@@ -27,7 +23,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 14, line: 2 },
-      start: { column: 10, line: 2 }
+      start: { column: 10, line: 2 },
     });
   });
   test("Simple typed const declaration with number literal type should throw error", async () => {
@@ -40,7 +36,7 @@ describe("Variable declrataion and assignment", () => {
     expect(errors[0].message).toEqual('Type "4" is incompatible with type "2"');
     expect(errors[0].loc).toEqual({
       end: { column: 20, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with string literal type", async () => {
@@ -62,7 +58,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       start: { line: 2, column: 12 },
-      end: { line: 2, column: 26 }
+      end: { line: 2, column: 26 },
     });
   });
   test("Simple typed const declaration with boolean literal type", async () => {
@@ -84,7 +80,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 27, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with number type", async () => {
@@ -99,7 +95,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       start: { line: 2, column: 12 },
-      end: { line: 2, column: 26 }
+      end: { line: 2, column: 26 },
     });
   });
   test("Simple typed const declaration with string type", async () => {
@@ -114,7 +110,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 25, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with boolean type", async () => {
@@ -129,7 +125,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 26, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with null type", async () => {
@@ -144,7 +140,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 23, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with undefined type", async () => {
@@ -159,7 +155,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 28, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with union type", async () => {
@@ -174,7 +170,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 37, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with tuple type", async () => {
@@ -194,7 +190,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 40, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with tuple type without error", async () => {
@@ -242,7 +238,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 22, line: 3 },
-      start: { column: 12, line: 3 }
+      start: { column: 12, line: 3 },
     });
   });
   test("Simple typed const declaration with generic type alias", async () => {
@@ -258,7 +254,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 30, line: 3 },
-      start: { column: 12, line: 3 }
+      start: { column: 12, line: 3 },
     });
   });
   test("Simple typed const declaration with array type", async () => {
@@ -278,7 +274,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 39, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with array type without error", async () => {
@@ -301,11 +297,11 @@ describe("Variable declrataion and assignment", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "{  }" is incompatible with type "{ a: number }"'
+      `Type "{  }" is incompatible with type "{ 'a': number }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 33, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with object type without optional property", async () => {
@@ -341,7 +337,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 50, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed const declaration with function type with wrong argument", async () => {
@@ -356,7 +352,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 54, line: 2 },
-      start: { column: 53, line: 2 }
+      start: { column: 53, line: 2 },
     });
   });
   test("Simple typed const declaration with function type with wrong return", async () => {
@@ -371,7 +367,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 53, line: 2 },
-      start: { column: 52, line: 2 }
+      start: { column: 52, line: 2 },
     });
   });
   test("Simple typed const declaration with function type with non-princiapl return by right", async () => {
@@ -393,7 +389,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 71, line: 2 },
-      start: { column: 49, line: 2 }
+      start: { column: 49, line: 2 },
     });
   });
   test("Simple typed const declaration with function type with non-princiapl return", async () => {
@@ -415,7 +411,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 54, line: 2 },
-      start: { column: 53, line: 2 }
+      start: { column: 53, line: 2 },
     });
     expect(errors[1].constructor).toEqual(HegelError);
     expect(errors[1].message).toEqual(
@@ -423,7 +419,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[1].loc).toEqual({
       end: { column: 54, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
   test("Simple typed function declaration with with wrong return", async () => {
@@ -440,7 +436,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 19, line: 3 },
-      start: { column: 8, line: 3 }
+      start: { column: 8, line: 3 },
     });
   });
   test("Simple typed function declaration with with wrong object return", async () => {
@@ -460,7 +456,7 @@ describe("Variable declrataion and assignment", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 26, line: 6 },
-      start: { column: 8, line: 6 }
+      start: { column: 8, line: 6 },
     });
   });
 });
@@ -474,7 +470,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const actualCall = actual.calls[0];
     const expectedCall = expect.objectContaining({
       target: globals.body.get("!"),
-      arguments: [new Type(2, { isSubtypeOf: new Type("number") })]
+      arguments: [new Type(2, { isSubtypeOf: new Type("number") })],
     });
     expect(actualCall).toEqual(expectedCall);
   });
@@ -487,7 +483,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const actualCall = actual.calls[1];
     const expectedCall = expect.objectContaining({
       target: globals.body.get("!"),
-      arguments: [actual.body.get("a")]
+      arguments: [actual.body.get("a")],
     });
     expect(actualCall).toEqual(expectedCall);
   });
@@ -500,11 +496,11 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     const secondActualCall = actual.calls[1];
     const firstExpectedCall = expect.objectContaining({
       target: globals.body.get("!"),
-      arguments: [new Type(2, { isSubtypeOf: new Type("number") })]
+      arguments: [new Type(2, { isSubtypeOf: new Type("number") })],
     });
     const secondExpectedCall = expect.objectContaining({
       target: globals.body.get("!"),
-      arguments: [Type.Boolean]
+      arguments: [Type.Boolean],
     });
     expect(firstActualCall).toEqual(firstExpectedCall);
     expect(secondActualCall).toEqual(secondExpectedCall);
@@ -519,8 +515,8 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
       target: globals.body.get("b-"),
       arguments: [
         new Type(2, { isSubtypeOf: new Type("number") }),
-        new Type(2, { isSubtypeOf: new Type("number") })
-      ]
+        new Type(2, { isSubtypeOf: new Type("number") }),
+      ],
     });
     expect(actualCall).toEqual(expectedCall);
   });
@@ -535,8 +531,8 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
       target: globals.body.get("b-"),
       arguments: [
         actual.body.get("a"),
-        new Type(2, { isSubtypeOf: new Type("number") })
-      ]
+        new Type(2, { isSubtypeOf: new Type("number") }),
+      ],
     });
     expect(actualCall).toEqual(expectedCall);
   });
@@ -551,15 +547,15 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
       target: globals.body.get("b-"),
       arguments: [
         new Type(2, { isSubtypeOf: new Type("number") }),
-        new Type(2, { isSubtypeOf: new Type("number") })
-      ]
+        new Type(2, { isSubtypeOf: new Type("number") }),
+      ],
     });
     const secondExpectedCall = expect.objectContaining({
       target: globals.body.get("b-"),
       arguments: [
         new Type("number"),
-        new Type(2, { isSubtypeOf: new Type("number") })
-      ]
+        new Type(2, { isSubtypeOf: new Type("number") }),
+      ],
     });
     expect(firstActualCall).toEqual(firstExpectedCall);
     expect(secondActualCall).toEqual(secondExpectedCall);
@@ -575,7 +571,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     expect(errors[0].message).toEqual("1 arguments are required. Given 0.");
     expect(errors[0].loc).toEqual({
       end: { column: 11, line: 3 },
-      start: { column: 7, line: 3 }
+      start: { column: 7, line: 3 },
     });
   });
   test("Call function with right count of arguments", async () => {
@@ -598,7 +594,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 29, line: 2 },
-      start: { column: 19, line: 2 }
+      start: { column: 19, line: 2 },
     });
   });
   test("Call function with different type", async () => {
@@ -614,7 +610,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 18, line: 3 },
-      start: { column: 10, line: 3 }
+      start: { column: 10, line: 3 },
     });
   });
   test("Call function which return a value like a side effect function", async () => {
@@ -639,7 +635,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 10, line: 6 },
-      start: { column: 6, line: 6 }
+      start: { column: 6, line: 6 },
     });
   });
   test("Function without return", async () => {
@@ -654,7 +650,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 40, line: 2 },
-      start: { column: 7, line: 2 }
+      start: { column: 7, line: 2 },
     });
   });
   test("Function with worng return type", async () => {
@@ -669,7 +665,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 48, line: 2 },
-      start: { column: 40, line: 2 }
+      start: { column: 40, line: 2 },
     });
   });
   test("Function with right return type", async () => {
@@ -693,7 +689,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 8, line: 4 },
-      start: { column: 7, line: 2 }
+      start: { column: 7, line: 2 },
     });
   });
   test("Call while statement with non-boolean type", async () => {
@@ -710,7 +706,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 8, line: 4 },
-      start: { column: 7, line: 2 }
+      start: { column: 7, line: 2 },
     });
   });
   test("Call do-while statement with non-boolean type", async () => {
@@ -726,7 +722,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 18, line: 3 },
-      start: { column: 7, line: 2 }
+      start: { column: 7, line: 2 },
     });
   });
   test("Call for statement with non-boolean type", async () => {
@@ -741,7 +737,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 28, line: 2 },
-      start: { column: 7, line: 2 }
+      start: { column: 7, line: 2 },
     });
   });
   test("Call ternary expression with non-boolean type", async () => {
@@ -756,7 +752,7 @@ describe("Test calls meta for operatos and functions in globals scope", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 23, line: 2 },
-      start: { column: 7, line: 2 }
+      start: { column: 7, line: 2 },
     });
   });
 });
@@ -771,11 +767,11 @@ describe("Object and collection properties", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Property "b" does not exist in "{ a: number }"'
+      `Property "b" does not exist in "{ 'a': number }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 10, line: 3 },
-      start: { column: 7, line: 3 }
+      start: { column: 7, line: 3 },
     });
   });
   test("Get existed property in object", async () => {
@@ -793,11 +789,11 @@ describe("Object and collection properties", () => {
     `);
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors[0].message).toEqual(
-      'Property "c" does not exist in "{ b: number }"'
+      `Property "c" does not exist in "{ 'b': number }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 12, line: 3 },
-      start: { column: 7, line: 3 }
+      start: { column: 7, line: 3 },
     });
   });
   test("Object with literal type should finish without error", async () => {
@@ -827,7 +823,7 @@ describe("Object and collection properties", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
     expect(errors[0].message).toEqual(
-      'Property "a" does not exist in "{ a: number } | { b: string }"'
+      `Property "a" does not exist in "{ 'a': number } | { 'b': string }"`
     );
   });
   test("Get property from Union type when first type has not property", async () => {
@@ -840,7 +836,7 @@ describe("Object and collection properties", () => {
     const [, errors] = await createTypeGraph([sourceAST]);
     expect(errors.length).toBe(1);
     expect(errors[0].message).toEqual(
-      'Property "a" does not exist in "{ a: number } | { b: string }"'
+      `Property "a" does not exist in "{ 'a': number } | { 'b': string }"`
     );
   });
 });
@@ -856,7 +852,7 @@ describe("Callable types", () => {
     expect(errors[0].message).toEqual('The type "number" is not callable.');
     expect(errors[0].loc).toEqual({
       end: { column: 9, line: 3 },
-      start: { column: 6, line: 3 }
+      start: { column: 6, line: 3 },
     });
   });
   test("Call non-function property", async () => {
@@ -870,7 +866,7 @@ describe("Callable types", () => {
     expect(errors[0].message).toEqual('The type "number" is not callable.');
     expect(errors[0].loc).toEqual({
       end: { column: 11, line: 3 },
-      start: { column: 6, line: 3 }
+      start: { column: 6, line: 3 },
     });
   });
 });
@@ -886,11 +882,11 @@ describe("Checking objects and collections reference behavior", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "{ a: number }" is incompatible with type "{ a: number | string }"'
+      `Type "{ 'a': number }" is incompatible with type "{ 'a': number | string }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 20, line: 5 },
-      start: { column: 12, line: 5 }
+      start: { column: 12, line: 5 },
     });
   });
   test("Object reference behavior with literal", async () => {
@@ -921,7 +917,7 @@ describe("Checking objects and collections reference behavior", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 20, line: 5 },
-      start: { column: 12, line: 5 }
+      start: { column: 12, line: 5 },
     });
   });
   test("Collection reference behavior with literal", async () => {
@@ -961,11 +957,11 @@ describe("Nullable types", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "{ a: 2 }" is incompatible with type "{ a: string | undefined }"'
+      `Type "{ 'a': 2 }" is incompatible with type "{ 'a': string | undefined }"`
     );
     expect(errors[0].loc).toEqual({
       end: { column: 40, line: 2 },
-      start: { column: 12, line: 2 }
+      start: { column: 12, line: 2 },
     });
   });
 });
@@ -984,7 +980,7 @@ describe("Generics", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 19, line: 3 },
-      start: { column: 15, line: 3 }
+      start: { column: 15, line: 3 },
     });
   });
 });
@@ -1034,7 +1030,7 @@ describe("Rest parameter typing", () => {
     );
     expect(errors[0].loc).toEqual({
       end: { column: 10, line: 3 },
-      start: { column: 6, line: 3 }
+      start: { column: 6, line: 3 },
     });
   });
   test("Required and full rest param", async () => {
@@ -1079,16 +1075,14 @@ describe("Rest parameter typing", () => {
     expect(errors[0].message).toEqual("1 arguments are required. Given 0.");
     expect(errors[0].loc).toEqual({
       end: { column: 9, line: 3 },
-      start: { column: 6, line: 3 }
+      start: { column: 6, line: 3 },
     });
   });
   test("Issue #74: Function should not be compared with contravariance usage", async () => {
     const sourceAST = prepareAST(`
-      function foo(obj: { a : number | string }) {
+      const f: ({ a: number }) => undefined = function(obj: { a: number | string }) {
         obj.a = 'foo';
-      }
-
-      const f: ({ a: number }) => undefined = foo;  
+      };  
     `);
     const [, errors] = await createTypeGraph(
       [sourceAST],
@@ -1099,18 +1093,16 @@ describe("Rest parameter typing", () => {
     expect(errors.length).toBe(1);
     expect(errors[0].constructor).toEqual(HegelError);
     expect(errors[0].message).toEqual(
-      'Type "({ a: number | string }) => undefined" is incompatible with type "({ a: number }) => undefined"'
+      `Type "({ 'a': number | string }) => undefined" is incompatible with type "({ 'a': number }) => undefined"`
     );
     expect(errors[0].loc).toEqual({
-      end: { column: 49, line: 6 },
-      start: { column: 12, line: 6 }
+      end: { column: 7, line: 4 },
+      start: { column: 12, line: 2 },
     });
   });
   test("Issue #74: Function should be compared with covariance usage of property", async () => {
     const sourceAST = prepareAST(`
-      function foo(obj: { a: $Immutable<number | string> }) {}
-
-      const f: ({ a: number }) => undefined = foo;  
+      const f: ({ a: number }) => undefined = function foo(obj: { a: $Immutable<number | string> }) {};  
     `);
     const [, errors] = await createTypeGraph(
       [sourceAST],
@@ -1122,9 +1114,7 @@ describe("Rest parameter typing", () => {
   });
   test("Issue #74: Function should be compared with covariance usage of whole object", async () => {
     const sourceAST = prepareAST(`
-      function foo(obj: $Immutable<{ a: number | string }>) {}
-
-      const f: ({ a: number }) => undefined = foo;  
+      const f: ({ a: number }) => undefined = function foo(obj: $Immutable<{ a: number | string }>) {};  
     `);
     const [, errors] = await createTypeGraph(
       [sourceAST],
@@ -1158,12 +1148,12 @@ describe("Rest parameter typing", () => {
     expect(errors[0].loc).toEqual({
       end: {
         column: 30,
-        line: 5
+        line: 5,
       },
       start: {
         column: 26,
-        line: 5
-      }
+        line: 5,
+      },
     });
   });
 
@@ -1192,12 +1182,12 @@ describe("Rest parameter typing", () => {
     expect(errors[0].loc).toEqual({
       end: {
         column: 13,
-        line: 8
+        line: 8,
       },
       start: {
         column: 3,
-        line: 8
-      }
+        line: 8,
+      },
     });
   });
 
@@ -1264,5 +1254,37 @@ describe("Rest parameter typing", () => {
     expect(errors[3]).toBeInstanceOf(HegelError);
     expect(errors[4]).toBeInstanceOf(HegelError);
     expect(errors[5]).toBeInstanceOf(HegelError);
+  });
+
+  test("Issue #235: Promise should uwrap inner promise", async () => {
+    const sourceAST = prepareAST(`
+      async function foo(val) {
+        const v = await val;
+        return v;
+      }
+
+      async function test() {
+        const promise = Promise.resolve(1);
+        const val = await foo(promise);
+        const a = val.then(); // Runtime error
+      }
+
+      test();
+    `);
+    const [, errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(HegelError);
+    expect(errors[0].message).toBe(
+      'Property "then" does not exist in "Number"'
+    );
+    expect(errors[0].loc).toEqual({
+      start: { line: 10, column: 18 },
+      end: { line: 10, column: 26 },
+    });
   });
 });

@@ -14,9 +14,13 @@ export class GenericType<T: Type> extends Type {
   }
 
   static new(name: mixed, meta?: TypeMeta = {}, ...args: Array<any>) {
-    const [, localTypeScope, subordinateType] = args;
+    const [genericArguments, localTypeScope, subordinateType] = args;
     const declaratedParent = meta.parent || Type.GlobalTypeScope;
-    const subordinateParent = subordinateType.getNextParent(localTypeScope);
+    const subordinateParent = this.getParent(
+      genericArguments,
+      localTypeScope,
+      subordinateType
+    );
     const parent =
       declaratedParent.priority > subordinateParent.priority
         ? declaratedParent
@@ -25,16 +29,31 @@ export class GenericType<T: Type> extends Type {
   }
 
   static term(name: mixed, meta?: TypeMeta = {}, ...args: Array<any>) {
-    const [, localTypeScope, subordinateType] = args;
+    const [genericArguments, localTypeScope, subordinateType] = args;
     const declaratedParent = meta.parent || Type.GlobalTypeScope;
-    const subordinateParent = subordinateType.getNextParent(
-      localTypeScope.priority
+    const subordinateParent = this.getParent(
+      genericArguments,
+      localTypeScope,
+      subordinateType
     );
     const parent =
       declaratedParent.priority > subordinateParent.priority
         ? declaratedParent
         : subordinateParent;
     return super.term(name, { ...meta, parent }, ...args);
+  }
+
+  static getParent(
+    genericArguments: Array<TypeVar>,
+    localTypeScope: TypeScope,
+    subordinateType: Type
+  ) {
+    const minLocalTypeScope = genericArguments.reduce(
+      (scope, type) =>
+        scope.priority > type.parent.priority ? type.parent : scope,
+      localTypeScope
+    );
+    return subordinateType.getNextParent(minLocalTypeScope);
   }
 
   static getNameWithoutApplying(name: mixed) {
@@ -50,7 +69,7 @@ export class GenericType<T: Type> extends Type {
     const isMultyLine = this.prettyMode && parameters.length >= 4;
     const isSplitterPresented =
       isMultyLine ||
-      parameters.some(a => a instanceof UnionType && a.variants.length >= 4);
+      parameters.some((a) => a instanceof UnionType && a.variants.length >= 4);
     return `${String(name)}<${
       isSplitterPresented ? "\n\t" : ""
     }${this.getParametersPart(parameters, isMultyLine)}${
@@ -74,6 +93,8 @@ export class GenericType<T: Type> extends Type {
   genericArguments: Array<TypeVar>;
   subordinateType: T;
   localTypeScope: TypeScope;
+  nestedRestriction: Type | void;
+  inferencedArguments: Set<TypeVar> = new Set();
 
   constructor(
     name: string,
@@ -85,7 +106,13 @@ export class GenericType<T: Type> extends Type {
     super(name, meta);
     this.subordinateType = type;
     this.localTypeScope = typeScope;
-    this.genericArguments = genericArguments;
+    this.genericArguments = genericArguments.map((param) => {
+      if (param.constraint != undefined && "unwrap" in param.constraint) {
+        this.nestedRestriction = param.constraint.unwrap;
+        param.constraint = undefined;
+      }
+      return param;
+    });
   }
 
   isSuperTypeFor(anotherType: Type) {
@@ -108,7 +135,7 @@ export class GenericType<T: Type> extends Type {
     ignoreLength?: boolean = false
   ) {
     const requiredParams = this.genericArguments.filter(
-      t => t.defaultType === undefined
+      (t) => t.defaultType === undefined
     );
     if (parameters.length < requiredParams.length) {
       throw new HegelError(
@@ -120,18 +147,17 @@ export class GenericType<T: Type> extends Type {
         loc
       );
     }
-    const genericArguments = this.genericArguments.map(
-      a =>
-        a.constraint !== undefined
-          ? new TypeVar(
-              String(a.name),
-              { isSubtypeOf: a.isSubtypeOf, parent: a.parent },
-              // $FlowIssue
-              a.constraint.changeAll(this.genericArguments, parameters),
-              a.defaultType,
-              a.isUserDefined
-            )
-          : a
+    const genericArguments = this.genericArguments.map((a) =>
+      a.constraint !== undefined
+        ? new TypeVar(
+            String(a.name),
+            { isSubtypeOf: a.isSubtypeOf, parent: a.parent },
+            // $FlowIssue
+            a.constraint.changeAll(this.genericArguments, parameters),
+            a.defaultType,
+            a.isUserDefined
+          )
+        : a
     );
     const wrongArgumentIndex = genericArguments.findIndex((arg, i) => {
       const parameter = parameters[i];
@@ -164,7 +190,7 @@ export class GenericType<T: Type> extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ): Type {
-    if (sourceTypes.every(type => !this.canContain(type))) {
+    if (sourceTypes.every((type) => !this.canContain(type))) {
       return this;
     }
     const currentSelf = TypeVar.createSelf(
@@ -173,17 +199,17 @@ export class GenericType<T: Type> extends Type {
     );
     [sourceTypes, targetTypes] = sourceTypes.reduce(
       ([newSourceTypes, newTargetTypes], sourceType, index) =>
-        this.genericArguments.find(a => sourceType.contains(a)) !== undefined
+        this.genericArguments.find((a) => sourceType.contains(a)) !== undefined
           ? [newSourceTypes, newTargetTypes]
           : [
               [...newSourceTypes, sourceType],
-              [...newTargetTypes, targetTypes[index]]
+              [...newTargetTypes, targetTypes[index]],
             ],
       [[], []]
     );
     if (
       this._changeStack !== null &&
-      this._changeStack.find(a => a.equalsTo(currentSelf))
+      this._changeStack.find((a) => a.equalsTo(currentSelf))
     ) {
       return currentSelf;
     }
@@ -200,9 +226,9 @@ export class GenericType<T: Type> extends Type {
       if (newSubordinateType === this.subordinateType) {
         return this.endChanges(this);
       }
-      const newGenericArguments = this.genericArguments.filter(arg =>
-        newSubordinateType.contains(arg)
-      );
+      const newGenericArguments = this.genericArguments
+        .filter((arg) => newSubordinateType.contains(arg))
+        .map((a) => a.changeAll(sourceTypes, targetTypes, typeScope));
       if (newGenericArguments.length === 0) {
         return this.endChanges(newSubordinateType);
       }
@@ -252,8 +278,44 @@ export class GenericType<T: Type> extends Type {
   ): T {
     this.assertParameters(appliedParameters, loc);
     let isBottomPresented = false;
+    let nestedInside = null;
+    let nestedTypesInsideUnion = [];
+    let isOtherPresented = false;
     const parameters: Array<Type> = this.genericArguments.map((t, i) => {
-      const appliedType = appliedParameters[i];
+      let appliedType = appliedParameters[i];
+      if (this.nestedRestriction !== undefined) {
+        if (
+          appliedType instanceof UnionType &&
+          nestedTypesInsideUnion.length === 0
+        ) {
+          const [
+            nestedInsideUnion,
+            otherVariants,
+          ] = appliedType.variants.reduce(
+            ([nested, other], type) =>
+              // $FlowIssue
+              this.nestedRestriction.isPrincipalTypeFor(type)
+                ? [[...nested, type], other]
+                : [nested, [...other, type]],
+            [[], []]
+          );
+          if (nestedInsideUnion.length !== 0) {
+            nestedTypesInsideUnion = nestedInsideUnion;
+            if (otherVariants.length !== 0) {
+              isOtherPresented = true;
+              // $FlowIssue
+              return UnionType.term(null, {}, otherVariants);
+            }
+            return Type.Undefined;
+          }
+        }
+        if (
+          nestedInside === null &&
+          this.nestedRestriction.isPrincipalTypeFor(appliedType)
+        ) {
+          nestedInside = appliedType;
+        }
+      }
       if (appliedType instanceof $BottomType) {
         isBottomPresented = true;
       }
@@ -279,8 +341,8 @@ export class GenericType<T: Type> extends Type {
       ) {
         return appliedType;
       }
-      if (t.constraint instanceof UnionType) {
-        const variant = t.constraint.variants.find(v =>
+      if (t.constraint !== undefined && "oneOf" in t.constraint) {
+        const variant = t.constraint.variants.find((v) =>
           v.isPrincipalTypeFor(appliedType)
         );
         if (variant !== undefined) {
@@ -289,6 +351,13 @@ export class GenericType<T: Type> extends Type {
       }
       return appliedType;
     });
+    if (nestedInside !== null) {
+      return nestedInside;
+    }
+    if (nestedTypesInsideUnion.length !== 0 && !isOtherPresented) {
+      // $FlowIssue
+      return UnionType.term(null, {}, nestedTypesInsideUnion);
+    }
     let appliedTypeName = this.getChangedName(
       this.genericArguments,
       parameters
@@ -308,18 +377,44 @@ export class GenericType<T: Type> extends Type {
           : parent,
       this.parent
     );
-    const appliedSelf = TypeVar.term(
+    let appliedSelf = TypeVar.term(
       appliedTypeName,
       { parent: theMostPriorityParent, isSubtypeOf: TypeVar.Self },
       undefined,
       undefined,
       true
     );
-    if (!(appliedSelf instanceof TypeVar)) {
+    if (appliedTypeName.indexOf("magic") === 0) {
+      appliedSelf = TypeVar.new(
+        appliedTypeName,
+        { parent: theMostPriorityParent, isSubtypeOf: TypeVar.Self },
+        undefined,
+        undefined,
+        true
+      );
+    }
+    if (
+      !(appliedSelf instanceof TypeVar) &&
+      !(appliedSelf instanceof $BottomType)
+    ) {
       return appliedSelf;
     }
+    if (appliedSelf instanceof $BottomType) {
+      appliedSelf.parent.body.delete(appliedTypeName);
+      appliedSelf = TypeVar.new(
+        appliedTypeName,
+        { parent: theMostPriorityParent, isSubtypeOf: TypeVar.Self },
+        undefined,
+        undefined,
+        true
+      );
+    }
     if (isBottomPresented) {
-      return this.bottomizeWith(parameters, theMostPriorityParent, loc);
+      const result = this.bottomizeWith(parameters, theMostPriorityParent, loc);
+      return nestedTypesInsideUnion.length !== 0
+        ? // $FlowIssue
+          UnionType.term(null, {}, [...nestedTypesInsideUnion, result])
+        : result;
     }
     try {
       const result = this.subordinateType.changeAll(
@@ -330,7 +425,11 @@ export class GenericType<T: Type> extends Type {
       result.name = result.name === undefined ? appliedTypeName : result.name;
       appliedSelf.root = result;
       result.priority = this.subordinateType.priority + 1;
-      return result.save();
+      result.save();
+      return nestedTypesInsideUnion.length !== 0
+        ? // $FlowIssue
+          UnionType.term(null, {}, [...nestedTypesInsideUnion, result])
+        : result;
     } catch (e) {
       e.loc = loc;
       throw e;
@@ -357,7 +456,7 @@ export class GenericType<T: Type> extends Type {
       const result = this.subordinateType
         .getDifference(type.subordinateType, withReverseUnion)
         // $FlowIssue
-        .filter(a => !type.genericArguments.includes(a.variable));
+        .filter((a) => !type.genericArguments.includes(a.variable));
       this._alreadyProcessedWith = null;
       return result;
     }
@@ -368,7 +467,7 @@ export class GenericType<T: Type> extends Type {
     }
     const result = this.subordinateType
       .getDifference(type, withReverseUnion)
-      .filter(a => !this.genericArguments.includes(a.variable));
+      .filter((a) => !this.genericArguments.includes(a.variable));
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -402,12 +501,12 @@ export class GenericType<T: Type> extends Type {
     return this.genericArguments.includes(type);
   }
 
-  getNextParent(typeScope: TypeScope) {
+  getNextParent(_: TypeScope) {
     if (this._alreadyProcessedWith !== null || this.subordinateType == null) {
       return Type.GlobalTypeScope;
     }
     this._alreadyProcessedWith = this;
-    const result = this.subordinateType.getNextParent(typeScope);
+    const result = this.subordinateType.getNextParent(this.localTypeScope);
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -419,15 +518,23 @@ export class GenericType<T: Type> extends Type {
   }
 
   asUserDefined() {
-    this.genericArguments.forEach(t => {
+    this.genericArguments.forEach((t) => {
+      if (this.inferencedArguments.has(t)) return;
       t._isUserDefined = true;
       t.root = undefined;
     });
+    this.inferencedArguments = new Set();
     return this;
   }
 
   asNotUserDefined() {
-    this.genericArguments.forEach(t => (t._isUserDefined = false));
+    this.inferencedArguments = new Set();
+    this.genericArguments.forEach((t) => {
+      if (!t._isUserDefined) {
+        this.inferencedArguments.add(t);
+      }
+      t._isUserDefined = false;
+    });
     return this;
   }
 }

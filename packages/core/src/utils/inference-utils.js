@@ -15,11 +15,11 @@ export function getTypesFromVariants(
 ): [?Type, ?Type] {
   // $FlowIssue
   const refinementedVariants: Array<Type> = _refinementedVariants.filter(
-    a => a != undefined
+    (a) => a != undefined
   );
   // $FlowIssue
   const alternateVariants: Array<Type> = _alternateVariants.filter(
-    a => a != undefined
+    (a) => a != undefined
   );
   return [
     refinementedVariants.length
@@ -27,7 +27,7 @@ export function getTypesFromVariants(
       : undefined,
     alternateVariants.length
       ? UnionType.term(null, {}, alternateVariants)
-      : undefined
+      : undefined,
   ];
 }
 
@@ -82,6 +82,6 @@ export function mergeRefinementsVariants(
       ),
     nestedAlternateType &&
       // $FlowIssue
-      mergeObjectsTypes(originalProperty.type, nestedAlternateType, typeScope)
+      mergeObjectsTypes(originalProperty.type, nestedAlternateType, typeScope),
   ];
 }

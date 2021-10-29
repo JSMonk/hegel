@@ -18,7 +18,7 @@ import type {
   Node,
   BinaryExpression,
   LogicalExpression,
-  ConditionalExpression
+  ConditionalExpression,
 } from "@babel/parser";
 
 function getScopesForLogicalExpression(
@@ -27,7 +27,7 @@ function getScopesForLogicalExpression(
   moduleScope: ModuleScope
 ): [VariableScope, VariableScope] {
   const primaryScopeName = VariableScope.getName({
-    loc: { start: condition.loc.end }
+    loc: { start: condition.loc.end },
   });
   // $FlowIssue
   let primaryScope: VariableScope = moduleScope.scopes.get(primaryScopeName);
@@ -36,7 +36,7 @@ function getScopesForLogicalExpression(
     moduleScope.scopes.set(primaryScopeName, primaryScope);
   }
   const alternateScopeName = VariableScope.getName({
-    loc: { start: condition.loc.start }
+    loc: { start: condition.loc.start },
   });
   // $FlowIssue
   let alternateScope: VariableScope = moduleScope.scopes.get(
@@ -64,7 +64,7 @@ function getScopesForSwitchCase(
       VariableScope.BLOCK_TYPE,
       currentScope,
       undefined,
-      condition.test === null ? "default-case" : "case" 
+      condition.test === null ? "default-case" : "case"
     );
     moduleScope.scopes.set(primaryScopeName, primaryScope);
   }
@@ -100,7 +100,7 @@ function getScopesForConditionalExpression(
   moduleScope: ModuleScope
 ): [VariableScope, VariableScope] {
   const primaryScopeName = VariableScope.getName({
-    loc: { start: condition.loc.start }
+    loc: { start: condition.loc.start },
   });
   // $FlowIssue
   let primaryScope: VariableScope = moduleScope.scopes.get(primaryScopeName);
@@ -109,7 +109,7 @@ function getScopesForConditionalExpression(
     moduleScope.scopes.set(primaryScopeName, primaryScope);
   }
   const alternateScopeName = VariableScope.getName({
-    loc: { start: condition.loc.end }
+    loc: { start: condition.loc.end },
   });
   // $FlowIssue
   let alternateScope: VariableScope = moduleScope.scopes.get(
@@ -212,7 +212,7 @@ function intersectionOfTypes(
     const [unionType, notUnion]: [UnionType, Type] =
       // $FlowIssue
       type1 instanceof UnionType ? [type1, type2] : [type2, type1];
-    const isTypeExisting = unionType.variants.some(t => t.equalsTo(notUnion));
+    const isTypeExisting = unionType.variants.some((t) => t.equalsTo(notUnion));
     return isTypeExisting ? notUnion : Type.Never;
   }
   return type1;
@@ -304,7 +304,7 @@ function refinementByCondition(
         caseRefinement &&
         previousCase &&
         !previousCase.consequent.body.some(
-          a =>
+          (a) =>
             a.type === NODE.BREAK_STATEMENT ||
             a.type === NODE.THROW_STATEMENT ||
             a.type === NODE.RETURN_STATEMENT
@@ -321,12 +321,13 @@ function refinementByCondition(
         if (previousPrimaryRefinement === undefined) {
           return;
         }
+        condition.isRefinemented = true;
         return [
           [
             name,
             UnionType.term(null, {}, [primary, previousPrimaryRefinement.type]),
-            alternate
-          ]
+            alternate,
+          ],
         ];
       }
       return caseRefinement && [caseRefinement];
@@ -339,10 +340,11 @@ function refinementByCondition(
           moduleScope,
           primaryScope
         );
+        condition.isRefinemented = true;
         return (
           refinements &&
           refinements.map(
-            refinement =>
+            (refinement) =>
               refinement && [refinement[0], refinement[2], refinement[1]]
           )
         );
@@ -354,6 +356,7 @@ function refinementByCondition(
         typeScope,
         moduleScope
       );
+      condition.isRefinemented = true;
       return typeofResult && [typeofResult];
     case NODE.IDENTIFIER:
     case NODE.MEMBER_EXPRESSION:
@@ -363,11 +366,12 @@ function refinementByCondition(
         typeScope,
         moduleScope
       );
+      condition.isRefinemented = true;
       return refinemented && [refinemented];
     case NODE.LOGICAL_EXPRESSION:
       const [
         additionalPrimaryScope,
-        additionalAlternateScope
+        additionalAlternateScope,
       ] = getScopesForLogicalExpression(condition, currentScope, moduleScope);
       const leftSideRefinement = refinementByCondition(
         condition.left.body || condition.left,
@@ -417,13 +421,14 @@ function refinementByCondition(
         rightSideRefinement,
         (a, b) => a[0] === b[0]
       );
+      condition.isRefinemented = true;
       if (sameRefinement.length === 0) {
         return other;
       }
       const sameRefinementVariants = sameRefinement.map(
         ([key, refinementedType, alternateType]) => {
           const sameRefinement: any = leftSideRefinement.find(
-            a => a[0] === key
+            (a) => a[0] === key
           );
           if (sameRefinement === undefined) {
             return [key, refinementedType, alternateType];
@@ -436,7 +441,7 @@ function refinementByCondition(
             return [
               key,
               unionOfTypes(refinementedType, sameRefinement[1], typeScope),
-              intersectionOfTypes(alternateType, sameRefinement[2], typeScope)
+              intersectionOfTypes(alternateType, sameRefinement[2], typeScope),
             ];
           }
           if (
@@ -451,7 +456,7 @@ function refinementByCondition(
                 sameRefinement[1],
                 typeScope
               ),
-              unionOfTypes(alternateType, sameRefinement[2], typeScope)
+              unionOfTypes(alternateType, sameRefinement[2], typeScope),
             ];
           }
           return [key, refinementedType, alternateType];
@@ -503,7 +508,7 @@ export function refinement(
   if (!currentRefinements) {
     return;
   }
-  currentRefinements.forEach(refinement => {
+  currentRefinements.forEach((refinement) => {
     let [varName, refinementedType, alternateType] = refinement;
     const existed = currentScope.findVariable({ name: varName });
     if (!(existed.type instanceof UnionType)) {
@@ -524,7 +529,7 @@ export function refinement(
       );
     }
     if (alternateType && alternateScopes) {
-      alternateScopes.forEach(alternateScope => {
+      alternateScopes.forEach((alternateScope) => {
         if (
           !alternateScope.body.has(varName) ||
           condition.type === NODE.SWITCH_CASE

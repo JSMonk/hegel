@@ -9,13 +9,13 @@ type Tree =
   | {
       body: Array<Node> | Node,
       kind?: ?string,
-      loc: SourceLocation
+      loc: SourceLocation,
     };
 
 export type TraverseMeta = {
   kind?: ?string,
   previousBodyState?: Array<Node>,
-  errors: Array<HegelError>
+  errors: Array<HegelError>,
 };
 
 export const compose = (...fns: Array<Function>) => (...args: Array<any>) => {
@@ -36,10 +36,10 @@ function mixBodyToArrowFunctionExpression(currentNode: Node) {
       {
         type: NODE.RETURN_STATEMENT,
         argument: currentNode.body,
-        loc: currentNode.body.loc
-      }
+        loc: currentNode.body.loc,
+      },
     ],
-    loc: currentNode.body.loc
+    loc: currentNode.body.loc,
   };
   return currentNode;
 }
@@ -68,16 +68,16 @@ function mixBlockToLogicalOperator(currentNode: Node) {
     body: currentNode.left,
     loc: {
       start: currentNode.loc.start,
-      end: currentNode.loc.start
-    }
+      end: currentNode.loc.start,
+    },
   };
   currentNode.right = {
     type: NODE.BLOCK_STATEMENT,
     body: currentNode.right,
     loc: {
       start: currentNode.loc.end,
-      end: currentNode.loc.end
-    }
+      end: currentNode.loc.end,
+    },
   };
   return currentNode;
 }
@@ -94,16 +94,16 @@ function mixBlockToConditionalExpression(currentNode: Node) {
     body: currentNode.consequent,
     loc: {
       start: currentNode.loc.start,
-      end: currentNode.loc.start
-    }
+      end: currentNode.loc.start,
+    },
   };
   currentNode.alternate = {
     type: NODE.BLOCK_STATEMENT,
     body: currentNode.alternate,
     loc: {
       start: currentNode.loc.end,
-      end: currentNode.loc.end
-    }
+      end: currentNode.loc.end,
+    },
   };
   return currentNode;
 }
@@ -126,7 +126,7 @@ function mixBlockForStatements(currentNode: Node) {
     currentNode.alternate = {
       type: NODE.BLOCK_STATEMENT,
       body: [currentNode.alternate],
-      loc: currentNode.alternate.loc
+      loc: currentNode.alternate.loc,
     };
   }
   const propertyName =
@@ -137,7 +137,7 @@ function mixBlockForStatements(currentNode: Node) {
   currentNode[propertyName] = {
     type: NODE.BLOCK_STATEMENT,
     body: [currentNode[propertyName]],
-    loc: currentNode[propertyName].loc
+    loc: currentNode[propertyName].loc,
   };
   return currentNode;
 }
@@ -164,7 +164,7 @@ function mixBlockToCaseStatement(currentNode: Node) {
     $case.consequent = {
       type: NODE.BLOCK_STATEMENT,
       loc: $case.loc,
-      body
+      body,
     };
   }
   return currentNode;
@@ -179,15 +179,26 @@ function mixDeclarationsInideForBlock(currentNode: Node, parentNode: Node) {
   ) {
     return currentNode;
   }
-  const init = currentNode.init || {
-    ...currentNode.left,
-    init: getInitFor(currentNode)
-  };
+  let init;
+  if (currentNode.init != undefined) {
+    init = currentNode.init;
+  } else {
+    init = {
+      ...currentNode.left,
+      declarations: [
+        {
+          ...currentNode.left.declarations[0],
+          init: getInitFor(currentNode),
+        },
+      ],
+    };
+    currentNode.left = undefined;
+  }
   return {
     type: NODE.BLOCK_STATEMENT,
     body: [init, currentNode],
     isCustom: true,
-    loc: init.loc
+    loc: init.loc,
   };
 }
 
@@ -202,7 +213,7 @@ function mixExportInfo(currentNode: Node) {
     return {
       type: NODE.EXPORT_LIST,
       exportKind: currentNode.exportKind,
-      specifiers: currentNode.specifiers
+      specifiers: currentNode.specifiers,
     };
   }
   return currentNode.declaration.type !== NODE.VARIABLE_DECLARATION
@@ -211,14 +222,16 @@ function mixExportInfo(currentNode: Node) {
         exportAs:
           currentNode.type === NODE.EXPORT_DEFAULT_DECLARATION
             ? "default"
-            : currentNode.declaration.id.name
+            : currentNode.declaration.id.name,
       }
     : {
         ...currentNode.declaration,
-        declarations: currentNode.declaration.declarations.map(declaration => ({
-          ...declaration,
-          exportAs: declaration.id.name
-        }))
+        declarations: currentNode.declaration.declarations.map(
+          (declaration) => ({
+            ...declaration,
+            exportAs: declaration.id.name,
+          })
+        ),
       };
 }
 
@@ -230,8 +243,8 @@ function mixTryCatchInfo(currentNode: Node) {
     ...currentNode,
     block: {
       ...currentNode.block,
-      catchBlock: currentNode.handler
-    }
+      catchBlock: currentNode.handler,
+    },
   };
 }
 
@@ -247,6 +260,355 @@ function mixParentToClassObjectAndFunction(
   ) {
     currentNode.parentNode = parentNode;
   }
+  return currentNode;
+}
+
+function copyLocOfNode(node) {
+  return { start: { ...node.loc.start }, end: { ...node.loc.end } };
+}
+
+function convertObjectSpreadIntoAssign(currentNode: Node) {
+  if (
+    currentNode.type !== NODE.OBJECT_EXPRESSION ||
+    !currentNode.properties.some((p) => p.type === NODE.SPREAD_ELEMENT)
+  ) {
+    return currentNode;
+  }
+  const properties = currentNode.properties;
+  let lastObject;
+  let lastProperty;
+  const objects = [];
+  for (let i = 0; i < properties.length; i++) {
+    const property = properties[i];
+    if (property.type === NODE.SPREAD_ELEMENT) {
+      if (lastObject !== undefined) {
+        lastObject.loc.end = lastProperty.loc.end;
+      }
+      objects.push(property.argument);
+      lastObject = undefined;
+    } else {
+      if (lastObject === undefined) {
+        lastObject = {
+          ...currentNode,
+          loc:
+            lastProperty === undefined
+              ? copyLocOfNode(currentNode)
+              : { start: lastProperty.loc.end },
+          properties: [property],
+        };
+        objects.push(lastObject);
+      } else {
+        lastObject.properties.push(property);
+      }
+      lastProperty = property;
+    }
+  }
+  if (lastObject !== undefined && lastObject.properties.length !== 0) {
+    lastObject.loc.end = lastProperty.loc.end;
+  }
+  if (objects.length === 1) {
+    objects.unshift({
+      type: NODE.OBJECT_EXPRESSION,
+      properties: [],
+      loc: copyLocOfNode(currentNode),
+    });
+  }
+  Object.assign(currentNode, {
+    type: NODE.CALL_EXPRESSION,
+    loc: currentNode.loc,
+    arguments: objects,
+    callee: {
+      type: NODE.MEMBER_EXPRESSION,
+      loc: currentNode.loc,
+      object: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "Object" },
+      property: { type: NODE.IDENTIFIER, loc: currentNode.loc, name: "assign" },
+    },
+    properties: undefined,
+  });
+  return currentNode;
+}
+
+function convertArraySpreadIntoConcat(currentNode: Node) {
+  if (
+    currentNode.type !== NODE.ARRAY_EXPRESSION ||
+    !currentNode.elements.some((p) => p.type === NODE.SPREAD_ELEMENT)
+  ) {
+    return currentNode;
+  }
+  const elements = currentNode.elements;
+  const arrays = [];
+  let lastArray;
+  for (let i = 0; i < elements.length; i++) {
+    const element = elements[i];
+    if (element.type === NODE.SPREAD_ELEMENT) {
+      arrays.push({
+        type: NODE.CALL_EXPRESSION,
+        loc: currentNode.loc,
+        arguments: [element.argument],
+        callee: {
+          type: NODE.MEMBER_EXPRESSION,
+          loc: currentNode.loc,
+          object: {
+            type: NODE.IDENTIFIER,
+            loc: currentNode.loc,
+            name: "Array",
+          },
+          property: {
+            type: NODE.IDENTIFIER,
+            loc: currentNode.loc,
+            name: "from",
+          },
+        },
+        elements: undefined,
+      });
+      lastArray = undefined;
+    } else {
+      if (lastArray === undefined) {
+        lastArray = {
+          ...currentNode,
+          elements: [element],
+          loc: currentNode.loc,
+        };
+        arrays.push(lastArray);
+      } else {
+        lastArray.elements.push(element);
+      }
+    }
+  }
+  const callee =
+    arrays.length === 1
+      ? {
+          type: NODE.MEMBER_EXPRESSION,
+          loc: currentNode.loc,
+          object: {
+            type: NODE.IDENTIFIER,
+            loc: currentNode.loc,
+            name: "Array",
+          },
+          property: {
+            type: NODE.IDENTIFIER,
+            loc: currentNode.loc,
+            name: "from",
+          },
+        }
+      : {
+          type: NODE.MEMBER_EXPRESSION,
+          loc: currentNode.loc,
+          object: arrays.shift(),
+          property: {
+            type: NODE.IDENTIFIER,
+            loc: currentNode.loc,
+            name: "concat",
+          },
+        };
+  Object.assign(currentNode, {
+    type: NODE.CALL_EXPRESSION,
+    loc: currentNode.loc,
+    arguments: arrays,
+    callee,
+    elements: undefined,
+  });
+  return currentNode;
+}
+
+function getNameForPattern(pattern: Node) {
+  let left = "{";
+  let right = "}";
+  if (pattern.type === NODE.ARRAY_PATTERN) {
+    left = "[";
+    right = "]";
+  }
+  return `${left}${pattern.loc.start.line}:${pattern.loc.start.column}${right}`;
+}
+
+function patternElementIntoDeclarator(
+  currentNode: Node,
+  init: Node,
+  index: number,
+  properties?: Array<Node>
+) {
+  if (currentNode === null) {
+    return null;
+  }
+  switch (currentNode.type) {
+    case NODE.ASSIGNMENT_PATTERN:
+      const identifier = patternElementIntoDeclarator(
+        currentNode.left,
+        init,
+        index,
+        properties
+      );
+      identifier.init = {
+        type: NODE.LOGICAL_EXPRESSION,
+        operator: "??",
+        left: identifier.init,
+        right: currentNode.right,
+      };
+      return identifier;
+    case NODE.OBJECT_PROPERTY:
+      properties.push(
+        currentNode.key.type === NODE.IDENTIFIER
+          ? { type: NODE.STRING_LITERAL, value: currentNode.key.name }
+          : currentNode.key
+      );
+      currentNode.isPattern = true;
+      return {
+        type: NODE.VARIABLE_DECLARATOR,
+        id: currentNode.value,
+        loc: currentNode.loc,
+        init: {
+          computed: currentNode.key.type !== NODE.IDENTIFIER,
+          type: NODE.MEMBER_EXPRESSION,
+          object: init,
+          loc: currentNode.loc,
+          property: currentNode.key,
+        },
+      };
+    case NODE.OBJECT_PATTERN:
+    case NODE.IDENTIFIER:
+    case NODE.ARRAY_PATTERN:
+      return {
+        type: NODE.VARIABLE_DECLARATOR,
+        id: currentNode,
+        loc: currentNode.loc,
+        init: {
+          type: NODE.MEMBER_EXPRESSION,
+          computed: true,
+          object: init,
+          loc: currentNode.loc,
+          property: {
+            type: NODE.NUMERIC_LITERAL,
+            value: index,
+            loc: currentNode.loc,
+          },
+        },
+      };
+    case NODE.REST_ELEMENT:
+      return properties === undefined
+        ? {
+            type: NODE.VARIABLE_DECLARATOR,
+            id: currentNode.argument,
+            loc: currentNode.loc,
+            init: {
+              type: NODE.CALL_EXPRESSION,
+              loc: currentNode.loc,
+              arguments: [{ type: NODE.NUMERIC_LITERAL, value: index }],
+              callee: {
+                type: NODE.MEMBER_EXPRESSION,
+                loc: currentNode.loc,
+                object: init,
+                property: {
+                  type: NODE.IDENTIFIER,
+                  loc: currentNode.loc,
+                  name: "slice",
+                },
+              },
+            },
+          }
+        : {
+            type: NODE.VARIABLE_DECLARATOR,
+            id: currentNode.argument,
+            loc: currentNode.loc,
+            init: {
+              type: NODE.CALL_EXPRESSION,
+              loc: currentNode.loc,
+              arguments: [
+                init,
+                {
+                  type: NODE.ARRAY_EXPRESSION,
+                  elements: properties,
+                },
+              ],
+              callee: {
+                type: NODE.IDENTIFIER,
+                loc: currentNode.loc,
+                name: "Object::Omit",
+              },
+            },
+          };
+  }
+}
+
+function patternDeclarationIntoAssignments(currentNode: Node) {
+  const pattern = currentNode.id;
+  const identifier = {
+    type: NODE.IDENTIFIER,
+    loc: currentNode.id.loc,
+    name: getNameForPattern(pattern),
+  };
+  currentNode.id = identifier;
+  const isObjectPattern = pattern.type === NODE.OBJECT_PATTERN;
+  const properties = isObjectPattern ? [] : undefined;
+  const elements = isObjectPattern ? pattern.properties : pattern.elements;
+  return [
+    currentNode,
+    ...elements
+      .map((node, index) =>
+        patternElementIntoDeclarator(node, identifier, index, properties)
+      )
+      .filter((n) => n !== null),
+  ];
+}
+
+function convertPatternIntoAssignments(currentNode: Node) {
+  if (
+    currentNode.type !== NODE.VARIABLE_DECLARATION ||
+    !currentNode.declarations.some((declaration) => {
+      declaration = declaration.id.left || declaration.id;
+      return (
+        declaration.type === NODE.ARRAY_PATTERN ||
+        declaration.type === NODE.OBJECT_PATTERN
+      );
+    })
+  ) {
+    return currentNode;
+  }
+  currentNode.declarations = currentNode.declarations.flatMap((decl) =>
+    decl.id.type === NODE.IDENTIFIER
+      ? [decl]
+      : patternDeclarationIntoAssignments(decl)
+  );
+  return convertPatternIntoAssignments(currentNode);
+}
+
+function convertPatternFunctionParamsIntoAssign(currentNode: Node) {
+  if (
+    !NODE.isFunction(currentNode) ||
+    !currentNode.params.some((param) => {
+      param = param.left || param;
+      return (
+        param.type === NODE.ARRAY_PATTERN || param.type === NODE.OBJECT_PATTERN
+      );
+    })
+  ) {
+    return currentNode;
+  }
+  const declarations = [];
+  currentNode.params = currentNode.params.map((param, index) => {
+    const isAssignmentPattern = param.type === NODE.ASSIGNMENT_PATTERN;
+    const arg = isAssignmentPattern ? param.left : param;
+    if (arg.type !== NODE.ARRAY_PATTERN && arg.type !== NODE.OBJECT_PATTERN) {
+      return param;
+    }
+    const newArg = {
+      ...arg,
+      type: NODE.IDENTIFIER,
+      name: `arg:${index}`,
+      loc: arg.loc,
+    };
+    declarations.push({
+      type: NODE.VARIABLE_DECLARATOR,
+      id: arg,
+      init: newArg,
+      loc: arg.loc,
+    });
+    return isAssignmentPattern ? { ...param, left: newArg } : newArg;
+  });
+  currentNode.body.body.unshift({
+    type: NODE.VARIABLE_DECLARATION,
+    kind: "let",
+    declarations,
+  });
   return currentNode;
 }
 
@@ -270,7 +632,7 @@ function mixElseIfReturnOrThrowExisted(
     parentNode === undefined ||
     currentNode.type !== NODE.IF_STATEMENT ||
     currentNode.consequent.body.findIndex(
-      node =>
+      (node) =>
         node.type === NODE.RETURN_STATEMENT ||
         node.type === NODE.BREAK_STATEMENT ||
         node.type === NODE.CONTINUE_STATEMENT ||
@@ -293,15 +655,15 @@ function mixElseIfReturnOrThrowExisted(
     body: [],
     loc: {
       start: currentNode.loc.end,
-      end: currentNode.loc.end
-    }
+      end: currentNode.loc.end,
+    },
   };
   const inferencedAlternate = body.splice(indexOfSlice + 1);
   alternate.body = alternate.body.concat(inferencedAlternate);
   removeNodesWhichConteindInElse(inferencedAlternate, previousBodyState);
   return {
     ...currentNode,
-    alternate
+    alternate,
   };
 }
 
@@ -329,8 +691,8 @@ const getBody = (currentNode: any) =>
     ...ensureArray(currentNode.elements),
     ...ensureArray(currentNode.cases),
     ...ensureArray(currentNode.expressions),
-    ...ensureArray(currentNode.arguments).filter(a => !NODE.isFunction(a)),
-    ...ensureArray(currentNode.consequent)
+    ...ensureArray(currentNode.arguments).filter((a) => !NODE.isFunction(a)),
+    ...ensureArray(currentNode.consequent),
   ].filter(Boolean);
 
 const getNextParent = (currentNode: Tree, parentNode: ?Tree) =>
@@ -351,7 +713,11 @@ const getCurrentNode = compose(
   mixBlockToConditionalExpression,
   mixBlockToCaseStatement,
   mixParentToClassObjectAndFunction,
-  sortClassMembers
+  sortClassMembers,
+  convertObjectSpreadIntoAssign,
+  convertArraySpreadIntoConcat,
+  convertPatternIntoAssignments,
+  convertPatternFunctionParamsIntoAssign
 );
 
 export type Handler = (
@@ -390,7 +756,7 @@ function traverseTree(
     const newMeta = {
       ...meta,
       previousBodyState: body,
-      kind: currentNode.kind
+      kind: currentNode.kind,
     };
     try {
       for (i = 0; i < body.length; i++) {
@@ -410,12 +776,14 @@ function traverseTree(
         throw e;
       }
       if (i < body.length - 1) {
-        meta.errors.push(new HegelError("Unreachable code after this line", e.loc));
+        meta.errors.push(
+          new HegelError("Unreachable code after this line", e.loc)
+        );
         return;
       }
     }
     post(currentNode, parentNode, pre, middle, post, newMeta);
-  } catch(e) {
+  } catch (e) {
     if (e instanceof Error && !(e instanceof HegelError)) {
       throw e;
     }

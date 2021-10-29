@@ -9,7 +9,7 @@ export type TypeMeta = {
   loc?: SourceLocation,
   parent?: TypeScope | void,
   isSubtypeOf?: Type | null,
-  shouldBeUsedAsGeneric?: boolean
+  shouldBeUsedAsGeneric?: boolean,
 };
 
 export class Type {
@@ -107,7 +107,7 @@ export class Type {
     const {
       parent = Type.GlobalTypeScope,
       isSubtypeOf = null,
-      shouldBeUsedAsGeneric = false
+      shouldBeUsedAsGeneric = false,
     } = meta;
     this.name = name;
     this.isSubtypeOf = isSubtypeOf;
@@ -120,7 +120,7 @@ export class Type {
     const map = sourceTypes.reduce((map, type, index) => {
       const name = String(type.name).replace(
         /[()]/g,
-        bracket => `\\${bracket}`
+        (bracket) => `\\${bracket}`
       );
       map.set(name, String(targetTypes[index].name));
       pattern += (pattern && "|") + name.replace(/\|/g, "\\|");
@@ -129,7 +129,7 @@ export class Type {
     const template = new RegExp(`\\b(${pattern})\\b`, "gm");
     return String(this.name).replace(
       template,
-      typeName => map.get(typeName) || ""
+      (typeName) => map.get(typeName) || ""
     );
   }
 
@@ -164,6 +164,10 @@ export class Type {
     if (this._alreadyProcessedWith === type) {
       return true;
     }
+    // $FlowIssue
+    if ("constraint" in type && type.constraint !== undefined) {
+      return this.isPrincipalTypeFor(type.constraint);
+    }
     if (type.isSubtypeOf === null || !this.canContain(type.isSubtypeOf)) {
       return false;
     }
@@ -181,9 +185,13 @@ export class Type {
   }
 
   isPrincipalTypeFor(type: Type): boolean {
+    // $FlowIssue
+    if ("constraint" in type && type.constraint !== undefined) {
+      return this.isPrincipalTypeFor(type.constraint);
+    }
     if ("variants" in type) {
       // $FlowIssue
-      return type.variants.every(variant => this.isPrincipalTypeFor(variant));
+      return type.variants.every((variant) => this.isPrincipalTypeFor(variant));
     }
     if (this._processingType === type) {
       return false;
@@ -236,7 +244,7 @@ export class Type {
       ) {
         return [
           { root: this, variable: type },
-          ...this.getDifference(constraint)
+          ...this.getDifference(constraint, withReverseUnion),
         ];
       }
       return [{ root: this, variable: type }];
@@ -256,12 +264,11 @@ export class Type {
       wrapper !== undefined
     ) {
       return wrapper
-        .getDifference(type)
-        .map(
-          d =>
-            d.root === wrapper && d.variable === type
-              ? { variable: type, root: this }
-              : d
+        .getDifference(type, withReverseUnion)
+        .map((d) =>
+          d.root === wrapper && d.variable === type
+            ? { variable: type, root: this }
+            : d
         );
     }
     return [];
@@ -323,7 +330,9 @@ export class Type {
 
   promisify() {
     const Promise = Type.find("Promise");
-    return Promise.applyGeneric([this]);
+    return "constraint" in this
+      ? Promise.bottomizeWith([this])
+      : Promise.applyGeneric([this]);
   }
 
   isPromise() {
@@ -403,14 +412,26 @@ export class Type {
     }
   }
 
-  
   isSimpleType() {
-    return this === Type.String || this.isSubtypeOf === Type.String ||
-    this === Type.Number || this.isSubtypeOf === Type.Number ||
-    this === Type.BigInt || this.isSubtypeOf === Type.BigInt ||
-    // $FlowIssue We mutate static field Boolean in src/type-graph/types/union-type.js so Boolean should exists in Type
-    this === Type.Boolean || this === Type.True || this === Type.False ||
-    this === Type.Symbol || this.isSubtypeOf === Type.Symbol ||
-    this === Type.Null || this === Type.Undefined;
+    return (
+      this === Type.String ||
+      this.isSubtypeOf === Type.String ||
+      this === Type.Number ||
+      this.isSubtypeOf === Type.Number ||
+      this === Type.BigInt ||
+      this.isSubtypeOf === Type.BigInt ||
+      // $FlowIssue We mutate static field Boolean in src/type-graph/types/union-type.js so Boolean should exists in Type
+      this === Type.Boolean ||
+      this === Type.True ||
+      this === Type.False ||
+      this === Type.Symbol ||
+      this.isSubtypeOf === Type.Symbol ||
+      this === Type.Null ||
+      this === Type.Undefined
+    );
+  }
+
+  toString() {
+    return String(this.name);
   }
 }

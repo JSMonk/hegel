@@ -21,7 +21,7 @@ import { getAnonymousKey, getDeclarationName } from "./common";
 import {
   getParentForNode,
   getScopeFromNode,
-  findNearestTypeScope
+  findNearestTypeScope,
 } from "../utils/scope-utils";
 import type { Handler } from "./traverse";
 import type { ModuleScope } from "../type-graph/module-scope";
@@ -33,7 +33,7 @@ import type {
   ObjectProperty,
   ClassMethod,
   ObjectMethod,
-  ObjectExpression
+  ObjectExpression,
 } from "@babel/core";
 
 export function addThisToClassScope(
@@ -58,7 +58,7 @@ export function addThisToClassScope(
   const localTypeScope = new TypeScope(parentTypeScope);
   const genericArguments =
     currentNode.typeParameters &&
-    currentNode.typeParameters.params.map(typeAnnotation =>
+    currentNode.typeParameters.params.map((typeAnnotation) =>
       getTypeFromTypeAnnotation(
         { typeAnnotation },
         localTypeScope,
@@ -84,7 +84,7 @@ export function addThisToClassScope(
       parent: isGenericType ? localTypeScope : typeScope,
       isNominal:
         currentNode.type === NODE.CLASS_EXPRESSION ||
-        currentNode.type === NODE.CLASS_DECLARATION
+        currentNode.type === NODE.CLASS_DECLARATION,
     },
     []
   );
@@ -145,7 +145,7 @@ export function addThisToClassScope(
       { isSubtypeOf: superType },
       [[CALLABLE, new VariableInfo(superFunctionType, classScope)]]
     );
-    const genericParams = (currentNode.superTypeParameters || []).map(arg =>
+    const genericParams = (currentNode.superTypeParameters || []).map((arg) =>
       getTypeFromTypeAnnotation(
         { typeAnnotation: arg },
         typeScope,
@@ -196,7 +196,7 @@ export function addThisToClassScope(
     staticSelfObject.instanceType = self;
     selfObject.classType = staticSelfObject;
     const isConstructorPresented = currentNode.body.body.some(
-      m => m.kind === "constructor"
+      (m) => m.kind === "constructor"
     );
     if (!isConstructorPresented) {
       const $super = classScope.body.get("super");
@@ -245,7 +245,7 @@ export function addThisToClassScope(
             ? constructor.type.genericArguments
             : [];
         const genericArguments = Array.from(
-          new Set([...self.genericArguments, addition])
+          new Set([...self.genericArguments, ...addition])
         );
         type = GenericType.new(
           `constructor ${String(self.name)}`,
@@ -264,7 +264,7 @@ export function addThisToClassScope(
       self instanceof $BottomType
         ? self.subordinateMagicType.localTypeScope
         : typeScope;
-    currentNode.implements = currentNode.implements.map(typeAnnotation => {
+    currentNode.implements = currentNode.implements.map((typeAnnotation) => {
       const typeForImplementation = getTypeFromTypeAnnotation(
         { typeAnnotation },
         localTypeScope,
@@ -286,7 +286,7 @@ export function addThisToClassScope(
           typeAnnotation.loc
         );
       }
-      currentNode.body.body.forEach(node => {
+      currentNode.body.body.forEach((node) => {
         if (
           node.type !== NODE.CLASS_PROPERTY &&
           node.type !== NODE.CLASS_PRIVATE_PROPERTY &&
@@ -295,7 +295,18 @@ export function addThisToClassScope(
         ) {
           return;
         }
-        const propertyName = getPropertyName(node);
+        const propertyName = getPropertyName(node, (node) =>
+          addCallToTypeGraph(
+            node,
+            typeGraph,
+            classScope,
+            parentNode,
+            precompute,
+            middlecompute,
+            postcompute,
+            { skipAddingCalls: true }
+          )
+        );
         const existedProperty = typeForImplementation.properties.get(
           propertyName
         );
@@ -307,7 +318,7 @@ export function addThisToClassScope(
       return {
         loc: typeAnnotation.loc,
         id: typeAnnotation.id,
-        typeForImplementation
+        typeForImplementation,
       };
     });
   }
@@ -351,7 +362,7 @@ export function addClassScopeToTypeGraph(
       type: NODE.THIS_TYPE_DEFINITION,
       parentNode,
       definition: currentNode,
-      loc: currentNode.loc
+      loc: currentNode.loc,
     });
   }
   return scope;
@@ -365,12 +376,22 @@ export function addPropertyNodeToThis(
   middle: Handler,
   post: Handler
 ) {
-  const propertyName = getPropertyName(currentNode);
   // $FlowIssue
   const currentClassScope: VariableScope = getParentForNode(
     currentNode,
     parentNode,
     typeGraph
+  );
+  const propertyName = getPropertyName(currentNode, (node) =>
+    addCallToTypeGraph(
+      node,
+      typeGraph,
+      currentClassScope,
+      parentNode,
+      pre,
+      middle,
+      post
+    )
   );
   if (currentClassScope.isProcessed) {
     return;
@@ -496,7 +517,7 @@ export function addClassToTypeGraph(
     selfObject.parent
   );
   const existedConstructor = classNode.body.body.find(
-    m => m.kind === "constructor"
+    (m) => m.kind === "constructor"
   );
   if (existedConstructor && !isTypeDefinitions) {
     const constructorScope = typeGraph.scopes.get(
@@ -506,7 +527,7 @@ export function addClassToTypeGraph(
       throw new Error("Never!!!");
     }
     if (
-      constructorScope.calls.find(call => call.targetName === "return") ===
+      constructorScope.calls.find((call) => call.targetName === "return") ===
       undefined
     ) {
       const callMeta = new CallMeta(
@@ -523,10 +544,10 @@ export function addClassToTypeGraph(
     }
     if (superType !== undefined) {
       const superCallIndex = constructorScope.calls.findIndex(
-        call => call.targetName === "super"
+        (call) => call.targetName === "super"
       );
       const thisCallIndex = constructorScope.calls.findIndex(
-        call => call.targetName === "this"
+        (call) => call.targetName === "this"
       );
       if (superCallIndex === -1) {
         throw new HegelError(
@@ -541,6 +562,31 @@ export function addClassToTypeGraph(
           constructorScope.calls[thisCallIndex].loc
         );
       }
+    }
+    if (self.type instanceof $BottomType) {
+      const constructor: any = constructorScope.declaration;
+      const type =
+        constructor.type instanceof GenericType
+          ? constructor.type.subordinateType
+          : constructor.type;
+      const localTypeScope =
+        constructor.type instanceof GenericType
+          ? constructor.type.localTypeScope
+          : self.type.subordinateMagicType.localTypeScope;
+      const addition =
+        constructor.type instanceof GenericType
+          ? constructor.type.genericArguments
+          : [];
+      const genericArguments = Array.from(
+        new Set([...self.type.genericArguments, ...addition])
+      );
+      constructor.type = GenericType.new(
+        `constructor ${String(self.type.name)}`,
+        {},
+        genericArguments,
+        localTypeScope,
+        type
+      );
     }
   }
   if (classNode.implements) {
@@ -589,7 +635,5 @@ function getClassName(classNode: ClassDeclaration | ClassExpression) {
   if (classNode.id !== null) {
     return `class ${classNode.id.name}`;
   }
-  return `Anonymous Class [${classNode.loc.start.line}:${
-    classNode.loc.end.line
-  }]`;
+  return `Anonymous Class [${classNode.loc.start.line}:${classNode.loc.end.line}]`;
 }

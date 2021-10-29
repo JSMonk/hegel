@@ -123,7 +123,7 @@ function createLogicHandler(monaco, model) {
 }
 
 // Disabling TypeScript Hints
-LanguageFeatureRegistry.prototype.ordered = function(model) {
+LanguageFeatureRegistry.prototype.ordered = function (model) {
   const result = [];
   this._orderedForEach(model, (entry) => result.push(entry.provider));
   return result.slice(-1);

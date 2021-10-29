@@ -1,33 +1,32 @@
 #!/usr/bin/env node
 import meow from "meow";
-import { getLogger } from "./lib/logger";
-import { getSources } from "./lib/file-system";  
-import { importModule } from "./lib/module";
-import { createGlobalScope } from "@hegel/core"; 
-import { createASTGenerator } from "./lib/parser";
-import { mixTypeDefinitions } from "./lib/typings";
-import { getConfig, createConfig } from "./lib/config";
-import { getErrorsPrint, getVerdictPrint } from "./lib/printer";
-import type { ErrorWithLocation } from "./lib/printer"; 
-import type { ExtendedFile, HegelError } from "@hegel/core"; 
-  
+import { getLogger } from "./logger";
+import { getSources } from "./file-system";
+import { importModule } from "./module";
+import { createGlobalScope } from "@hegel/core";
+import { createASTGenerator } from "./parser";
+import { mixTypeDefinitions } from "./typings";
+import { getConfig, createConfig } from "./config";
+import { getErrorsPrint, getVerdictPrint } from "./printer";
+import type { ErrorWithLocation } from "./printer";
+import type { ExtendedFile, HegelError } from "@hegel/core";
+
 const logger = getLogger();
 
-const CLI = meow(
-  `
+const helpMessage = `
 Usage
  $ hegel [COMMAND]
 
 Valid values for COMMAND:
  init        Initializes a directory to be used as a Hegel root directory	  
  version     Print version number and exit
-`,
-  {
-    input: ["init"]
-  }
-);
+`;
 
-const COMMAND = CLI.input[0]; 
+const CLI = meow(helpMessage, {
+  input: ["init"],
+});
+
+const COMMAND = CLI.input[0];
 
 switch (COMMAND) {
   case "init":
@@ -52,7 +51,7 @@ async function main() {
     let errors: Array<ErrorWithLocation> = [];
     try {
       const asts: Array<ExtendedFile> = await Promise.all(
-        sources.map(file => getFileAST(file))
+        sources.map((file) => getFileAST(file))
       );
       const result = await createGlobalScope(
         asts,

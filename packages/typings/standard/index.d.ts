@@ -20,11 +20,41 @@ and limitations under the License.
 declare var NaN: number;
 declare var Infinity: number;
 
+class Error {
+  name: string;
+  message: string;
+  stack?: string;
+  constructor(message?: string);
+}
+
+class EvalError extends Error {}
+
+class RangeError extends Error {}
+
+class ReferenceError extends Error {}
+
+class SyntaxError extends Error {}
+
+class TypeError extends Error {}
+
+class URIError extends Error {}
+
 /**
  * Evaluates JavaScript code and executes it.
  * @param x A String value that contains valid JavaScript code.
  */
-declare function eval(x: string): any | $Throws<SyntaxError | TypeError | RangeError | EvalError | ReferenceError | URIError>;
+declare function eval(
+  x: string
+):
+  | any
+  | $Throws<
+      | SyntaxError
+      | TypeError
+      | RangeError
+      | EvalError
+      | ReferenceError
+      | URIError
+    >;
 
 // /**
 //   * Converts A string to an integer.
@@ -65,7 +95,9 @@ declare function decodeURI(encodedURI: string): string | $Throws<URIError>;
 //   * @param encodedURIComponent A value representing an encoded URI component.
 //   * @throws {URIError} when used wrongly.
 //   */
-declare function decodeURIComponent(encodedURIComponent: string): string | $Throws<URIError>;
+declare function decodeURIComponent(
+  encodedURIComponent: string
+): string | $Throws<URIError>;
 
 // /**
 //   * Encodes a text string as a valid Uniform Resource Identifier (URI)
@@ -93,24 +125,31 @@ declare function escape(string: string): string;
 //   */
 declare function unescape(string: string): string;
 
-interface Symbol {
-  //   /** Returns a string representation of an object. */
-  toString(): string;
-
-  //   /** Returns the primitive value of the specified object. */
-  valueOf(): symbol;
-}
+// Used as special type
+//interface Symbol {
+//  //   /** Returns a string representation of an object. */
+//  toString(): string;
+//
+//  //   /** Returns the primitive value of the specified object. */
+//  valueOf(): symbol;
+//}
 
 interface SymbolConstructor {
-  readonly prototype: symbol;
-  readonly iterator: symbol;
-  readonly asyncIterator: symbol;
+  readonly prototype: Symbol<"prototype">;
+  readonly iterator: Symbol<"iterator">;
+  readonly asyncIterator: Symbol<"asyncIterator">;
 
-  (description?: string | number): symbol;
+  // WARRNING: THE METHOD IS CHANGED in @hegel/core/src/type-graph/types/symbol-literal-type.js:75.
+  // We need it to generate randomly postfixed symbol
+  //  <T extends string = "">(description?: T): Symbol<T>;
 
-  for(key: string): symbol;
+  // WARRNING: THE METHOD IS CHANGED in @hegel/core/src/type-graph/types/symbol-literal-type.js:75.
+  // We need it to generate randomly postfixed symbol
+  //  for<T extends string>(key: T): Symbol<T>;
 
-  keyFor(sym: symbol): string | undefined;
+  keyFor<T extends string | undefined = string | undefined>(
+    sym: Symbol<T> | symbol
+  ): T;
 }
 
 declare var Symbol: SymbolConstructor;
@@ -158,11 +197,13 @@ interface Array<T> {
   //       * Combines two or more arrays.
   //       * @param items Additional items to add to the end of array1.
   //       */
-//  concat<T1>(...items: Array<T1>): Array<T | T1>;
+  //  concat<T1>(...items: Array<T1>): Array<T | T1>;
   // @throws {TypeError} in case n + len > 2**53 - 1
   // @throws {RangeError} in case n + len > 2**32 - 1
-  concat<T1>(...items: Array<T1> | Array<Array<T1>>): Array<T | T1> | $Throws<TypeError | RangeError>;
-//  concat(...items: Array<T[]>): T[];
+  concat<T1>(
+    ...items: Array<T1> | Array<Array<T1>>
+  ): Array<T | T1> | $Throws<TypeError | RangeError>;
+  //  concat(...items: Array<T[]>): T[];
   //     /**
   //       * Adds all the elements of an array separated by the specified separator string.
   //       * @param separator A string used to separate one element of an array from the next in the resulting String. If omitted, the array elements are separated with a comma.
@@ -201,7 +242,11 @@ interface Array<T> {
   //       * @throws {TypeError} in case len + insertCount - actualDeleteCount > 2**53 - 1
   //       * @throws {RangeError} in case len + insertCount - actualDeleteCount > 2**32 - 1
   //       */
-  splice(start: number, deleteCount: number, ...items: T[]): T[] | $Throws<TypeError | RangeError>;
+  splice(
+    start: number,
+    deleteCount: number,
+    ...items: T[]
+  ): T[] | $Throws<TypeError | RangeError>;
   //     /**
   //       * Inserts new elements at the start of an array.
   //       * @param items  Elements to insert at the start of the Array.
@@ -220,7 +265,7 @@ interface Array<T> {
   findIndex(fn: (el: T) => boolean): number;
   // Fills array with [value] from [start] index (0 by default) to [end] (length of array by default).
   // Changes source array and returns it.
-  fill(value: T, start?: number, end?: number): T[];
+  fill<A = T>(...args: [A] | [T, number] | [T, number, number]): A[];
   //     /**
   //       * Returns the index of the last occurrence of a specified value in an array.
   //       * @param searchElement The value to locate in the array.
@@ -323,19 +368,19 @@ interface Array<T> {
   ): U | $Throws<TypeError>;
 
   /** Iterator */
-  //[Symbol.iterator](): IterableIterator<T>;
+  [Symbol.iterator](): IterableIterator<T>;
   /**
    * Returns an iterable of key, value pairs for every entry in the array
    */
-  // entries(): IterableIterator<[number, T]>;
+  entries(): IterableIterator<[number, T]>;
   /**
    * Returns an iterable of keys in the array
    */
-  // keys(): IterableIterator<number>;
+  keys(): IterableIterator<number>;
   /**
    * Returns an iterable of values in the array
    */
-  // values(): IterableIterator<T>;
+  values(): IterableIterator<T>;
 
   [n: number]: T;
 }
@@ -359,7 +404,9 @@ interface ReadonlyArray<T> {
   //       */
   // @throws {TypeError} in case n + len > 2**53 - 1
   // @throws {RangeError} in case n + len > 2**32 - 1
-  concat<T1>(...items: Array<T1> | Array<Array<T1>> | Array<ReadonlyArray<T1>>): ReadonlyArray<T | T1> | $Throws<TypeError | RangeError>;
+  concat<T1>(
+    ...items: Array<T1> | Array<Array<T1>> | Array<ReadonlyArray<T1>>
+  ): ReadonlyArray<T | T1> | $Throws<TypeError | RangeError>;
   //       * Adds all the elements of an array separated by the specified separator string.
   //       * @param separator A string used to separate one element of an array from the next in the resulting String. If omitted, the array elements are separated with a comma.
   //       */
@@ -475,6 +522,8 @@ interface ReadonlyArray<T> {
   //       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
   //       */
 
+  [Symbol.iterator](): IterableIterator<T>;
+
   readonly [n: number]: T;
 }
 
@@ -492,7 +541,7 @@ type IteratorResult<T, TReturn> =
   | IteratorYieldResult<T>
   | IteratorReturnResult<TReturn>;
 
-interface Iterator<T, TReturn, TNext> {
+interface Iterator<T, TReturn = any, TNext = any> {
   // NOTE: 'next' is defined using a tuple to ensure we report the correct assignability errors in all places.
   next(...args: [] | [TNext]): IteratorResult<T, TReturn>;
   return?(value?: TReturn): IteratorResult<T, TReturn>;
@@ -500,11 +549,11 @@ interface Iterator<T, TReturn, TNext> {
 }
 
 interface Iterable<T> {
-  //[Symbol.iterator](): Iterator<T>;
+  [Symbol.iterator](): Iterator<T>;
 }
 
-interface IterableIterator<T> extends Iterator<T, any, any> {
-  //[Symbol.iterator](): IterableIterator<T>;
+interface IterableIterator<T> extends Iterator<T> {
+  [Symbol.iterator](): IterableIterator<T>;
 }
 
 interface RegExpExecArray extends Array<string> {
@@ -694,7 +743,11 @@ interface ObjectConstructor {
   //       * @param attributes Descriptor for the property. It can be for a data property or an accessor property.
   //       * @throws {TypeError} If Type(O) is not Object
   //       */
-  defineProperty(o: any, p: PropertyKey, attributes: PropertyDescriptor): any | $Throws<TypeError>;
+  defineProperty(
+    o: any,
+    p: PropertyKey,
+    attributes: PropertyDescriptor
+  ): any | $Throws<TypeError>;
 
   //     /**
   //       * Adds one or more properties to an object, and/or modifies attributes of existing properties.
@@ -702,7 +755,10 @@ interface ObjectConstructor {
   //       * @param properties JavaScript object that contains one or more descriptor objects. Each descriptor object describes a data property or an accessor property.
   //       * @throws {TypeError} If Type(O) is not Object
   //       */
-  defineProperties(o: any, properties: PropertyDescriptorMap): any | $Throws<TypeError>;
+  defineProperties(
+    o: any,
+    properties: PropertyDescriptorMap
+  ): any | $Throws<TypeError>;
 
   //     /**
   //       * Prevents the modification of attributes of existing properties, and prevents the addition of new properties.
@@ -795,7 +851,7 @@ interface ObjectConstructor {
       | [O2, O3, O4, O5, O6, O7, O8]
       | [O2, O3, O4, O5, O6, O7, O8, O9]
       | [O2, O3, O4, O5, O6, O7, O8, O9, O10]
-  ): O1 & O2 & O3 & O4 & O5 & O6 & O7 & O8 & O9 & O10 | $Throws<TypeError>;
+  ): (O1 & O2 & O3 & O4 & O5 & O6 & O7 & O8 & O9 & O10) | $Throws<TypeError>;
 }
 
 // /**
@@ -985,7 +1041,7 @@ interface String {
   //     /** Returns the primitive value of the specified object. */
   valueOf(): string;
 
-  //[Symbol.iterator](): IterableIterator<string>;
+  [Symbol.iterator](): IterableIterator<string>;
 
   /** Removes whitespace from the left end of a string. */
   trimLeft(): string;
@@ -1182,6 +1238,70 @@ interface NumberConstructor {
   //       * JavaScript displays POSITIVE_INFINITY values as infinity.
   //       */
   readonly POSITIVE_INFINITY: number;
+
+   /**
+   * The value of Number.EPSILON is the difference between 1 and the smallest value greater than 1
+   * that is representable as a Number value, which is approximately:
+   * 2.2204460492503130808472633361816 x 10‍−‍16.
+   */
+  readonly EPSILON: number;
+
+  /**
+   * Returns true if passed value is finite.
+   * Unlike the global isFinite, Number.isFinite doesn't forcibly convert the parameter to a
+   * number. Only finite values of the type number, result in true.
+   * @param number A numeric value.
+   */
+  isFinite(number: unknown): boolean;
+
+  /**
+   * Returns true if the value passed is an integer, false otherwise.
+   * @param number A numeric value.
+   */
+  isInteger(number: unknown): boolean;
+
+  /**
+   * Returns a Boolean value that indicates whether a value is the reserved value NaN (not a
+   * number). Unlike the global isNaN(), Number.isNaN() doesn't forcefully convert the parameter
+   * to a number. Only values of the type number, that are also NaN, result in true.
+   * @param number A numeric value.
+   */
+  isNaN(number: unknown): boolean;
+
+  /**
+   * Returns true if the value passed is a safe integer.
+   * @param number A numeric value.
+   */
+  isSafeInteger(number: unknown): boolean;
+
+  /**
+   * The value of the largest integer n such that n and n + 1 are both exactly representable as
+   * a Number value.
+   * The value of Number.MAX_SAFE_INTEGER is 9007199254740991 2^53 − 1.
+   */
+  readonly MAX_SAFE_INTEGER: number;
+
+  /**
+   * The value of the smallest integer n such that n and n − 1 are both exactly representable as
+   * a Number value.
+   * The value of Number.MIN_SAFE_INTEGER is −9007199254740991 (−(2^53 − 1)).
+   */
+  readonly MIN_SAFE_INTEGER: number;
+
+  /**
+   * Converts a string to a floating-point number.
+   * @param string A string that contains a floating-point number.
+   */
+  parseFloat(string: string): number;
+
+  /**
+   * Converts A string to an integer.
+   * @param s A string to convert into a number.
+   * @param radix A value between 2 and 36 that specifies the base of the number in numString.
+   * If this argument is not supplied, strings with a prefix of '0x' are considered hexadecimal.
+   * All other strings are considered decimal.
+   */
+  parseInt(string: string, radix?: number): number;
 }
 
 // /** An object that represents a number of any kind. All JavaScript numbers are 64-bit floating-point numbers. */
@@ -1548,15 +1668,15 @@ declare var DateTimeFormat: {
 
 interface DateConstructor {
   new (
-    ...args: 
-    | [] 
-    | [Date | number | string] 
-    | [number, number]
-    | [number, number, number]
-    | [number, number, number, number]
-    | [number, number, number, number, number]
-    | [number, number, number, number, number, number]
-    | [number, number, number, number, number, number, number]
+    ...args:
+      | []
+      | [Date | number | string]
+      | [number, number]
+      | [number, number, number]
+      | [number, number, number, number]
+      | [number, number, number, number, number]
+      | [number, number, number, number, number, number]
+      | [number, number, number, number, number, number, number]
   ): Date;
   // (): string;
   readonly prototype: Date;
@@ -1588,25 +1708,6 @@ interface DateConstructor {
 }
 
 declare var Date: DateConstructor;
-
-class Error {
-  name: string;
-  message: string;
-  stack?: string;
-  constructor(message?: string);
-}
-
-class EvalError extends Error {}
-
-class RangeError extends Error {}
-
-class ReferenceError extends Error {}
-
-class SyntaxError extends Error {}
-
-class TypeError extends Error {}
-
-class URIError extends Error {}
 
 interface JSON {
   //     /**
@@ -1664,8 +1765,11 @@ interface TypedPropertyDescriptor<T> {
 }
 
 // declare type PromiseConstructorLike = new <T>(executor: (resolve: (value?: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void) => PromiseLike<T>;
+interface Thenable<T extends $Unwrap<this>> {
+  then<TResult1>(fn: (val: T) => TResult1): unknown;
+}
 
-interface PromiseLike<T> {
+interface PromiseLike<T extends $Unwrap<Thenable<unknown>>> {
   //     /**
   //      * Attaches callbacks for the resolution and/or rejection of the Promise.
   //      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1681,7 +1785,7 @@ interface PromiseLike<T> {
 // /**
 //  * Represents the completion of an asynchronous operation
 //  */
-interface Promise<T> {
+interface Promise<T extends $Unwrap<Thenable<unknown>>> {
   //     /**
   //      * Attaches callbacks for the resolution and/or rejection of the Promise.
   //      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1715,7 +1819,7 @@ interface PromiseConstructor {
    * a resolve callback used to resolve the promise with a value or the result of another promise,
    * and a reject callback used to reject the promise with a provided reason or error.
    */
-  new<T>(
+  new <T>(
     executor: (
       resolve: (value?: T | PromiseLike<T>) => void,
       reject: (reason?: any) => void
@@ -1911,14 +2015,20 @@ interface DataView {
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getFloat32(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
+  getFloat32(
+    byteOffset: number,
+    littleEndian?: boolean
+  ): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Float64 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getFloat64(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
+  getFloat64(
+    byteOffset: number,
+    littleEndian?: boolean
+  ): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Int8 value at the specified byte offset from the start of the view. There is
@@ -1932,13 +2042,19 @@ interface DataView {
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getInt16(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
+  getInt16(
+    byteOffset: number,
+    littleEndian?: boolean
+  ): number | $Throws<RangeError>;
   //     /**
   //       * Gets the Int32 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getInt32(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
+  getInt32(
+    byteOffset: number,
+    littleEndian?: boolean
+  ): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Uint8 value at the specified byte offset from the start of the view. There is
@@ -1952,14 +2068,20 @@ interface DataView {
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getUint16(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
+  getUint16(
+    byteOffset: number,
+    littleEndian?: boolean
+  ): number | $Throws<RangeError>;
 
   //     /**
   //       * Gets the Uint32 value at the specified byte offset from the start of the view. There is
   //       * no alignment constraint; multi-byte values may be fetched from any offset.
   //       * @param byteOffset The place in the buffer at which the value should be retrieved.
   //       */
-  getUint32(byteOffset: number, littleEndian?: boolean): number | $Throws<RangeError>;
+  getUint32(
+    byteOffset: number,
+    littleEndian?: boolean
+  ): number | $Throws<RangeError>;
 
   //     /**
   //       * The getBigInt64() method gets a signed 64-bit integer (long long)
@@ -1968,7 +2090,10 @@ interface DataView {
   //       * @param littleEndian (optional) Indicates whether the 64-bit int
   //       * is stored in little- or big-endian format. If false or undefined, a big-endian value is read.
   //       */
-  getBigInt64(byteOffset: number, littleEndian?: boolean): BigInt | $Throws<RangeError>;
+  getBigInt64(
+    byteOffset: number,
+    littleEndian?: boolean
+  ): BigInt | $Throws<RangeError>;
 
   //     /**
   //       * The getBigUint64() method gets a unsigned 64-bit integer (long long)
@@ -1977,7 +2102,10 @@ interface DataView {
   //       * @param littleEndian (optional) Indicates whether the 64-bit int
   //       * is stored in little- or big-endian format. If false or undefined, a big-endian value is read.
   //       */
-  getBigUint64(byteOffset: number, littleEndian?: boolean): BigInt | $Throws<RangeError>;
+  getBigUint64(
+    byteOffset: number,
+    littleEndian?: boolean
+  ): BigInt | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Float32 value at the specified byte offset from the start of the view.
@@ -1986,7 +2114,11 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setFloat32(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
+  setFloat32(
+    byteOffset: number,
+    value: number,
+    littleEndian?: boolean
+  ): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Float64 value at the specified byte offset from the start of the view.
@@ -1995,7 +2127,11 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setFloat64(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
+  setFloat64(
+    byteOffset: number,
+    value: number,
+    littleEndian?: boolean
+  ): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Int8 value at the specified byte offset from the start of the view.
@@ -2011,7 +2147,11 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setInt16(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
+  setInt16(
+    byteOffset: number,
+    value: number,
+    littleEndian?: boolean
+  ): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Int32 value at the specified byte offset from the start of the view.
@@ -2020,7 +2160,11 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setInt32(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
+  setInt32(
+    byteOffset: number,
+    value: number,
+    littleEndian?: boolean
+  ): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Uint8 value at the specified byte offset from the start of the view.
@@ -2036,7 +2180,11 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setUint16(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
+  setUint16(
+    byteOffset: number,
+    value: number,
+    littleEndian?: boolean
+  ): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an Uint32 value at the specified byte offset from the start of the view.
@@ -2045,7 +2193,11 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setUint32(byteOffset: number, value: number, littleEndian?: boolean): void | $Throws<RangeError>;
+  setUint32(
+    byteOffset: number,
+    value: number,
+    littleEndian?: boolean
+  ): void | $Throws<RangeError>;
 
   //     /**
   //       * Stores an BigInt64 value at the specified byte offset from the start of the view.
@@ -2054,25 +2206,31 @@ interface DataView {
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setBigInt64(byteOffset: number, value: BigInt, littleEndian?: boolean): void | $Throws<RangeError>;
+  setBigInt64(
+    byteOffset: number,
+    value: BigInt,
+    littleEndian?: boolean
+  ): void | $Throws<RangeError>;
 
   //     /**
-  //       * The setBigUint64() method stores an unsigned 64-bit integer (unsigned long long) 
+  //       * The setBigUint64() method stores an unsigned 64-bit integer (unsigned long long)
   //       * value at the specified byte offset from the start of the DataView.
   //       * @param byteOffset The place in the buffer at which the value should be set.
   //       * @param value The value to set.
   //       * @param littleEndian If false or undefined, a big-endian value should be written,
   //       * otherwise a little-endian value should be written.
   //       */
-  setBigUint64(byteOffset: number, value: BigInt, littleEndian?: boolean): void | $Throws<RangeError>;
+  setBigUint64(
+    byteOffset: number,
+    value: BigInt,
+    littleEndian?: boolean
+  ): void | $Throws<RangeError>;
 }
 
 interface DataViewConstructor {
-  new (
-    buffer: ArrayBufferLike,
-    byteOffset?: number,
-    byteLength?: number
-  ): DataView | $Throws<RangeError>;
+  new (buffer: ArrayBufferLike, byteOffset?: number, byteLength?: number):
+    | DataView
+    | $Throws<RangeError>;
 }
 
 declare var DataView: DataViewConstructor;
@@ -2294,7 +2452,7 @@ interface Int8Array {
       array: Int8Array
     ) => U,
     initialValue?: U
-  ): U |$Throws<TypeError>;
+  ): U | $Throws<TypeError>;
 
   //     /**
   //       * Reverses the elements in an Array.
@@ -2352,7 +2510,8 @@ interface Int8Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-  //[Symbol.iterator](): IterableIterator<number>;
+
+  [Symbol.iterator](): IterableIterator<number>;
   /**
    * Returns an array of key, value pairs for every entry in the array
    */
@@ -2689,7 +2848,8 @@ interface Uint8Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-  // [Symbol.iterator](): IterableIterator<number>;
+
+  [Symbol.iterator](): IterableIterator<number>;
   /**
    * Returns an array of key, value pairs for every entry in the array
    */
@@ -3051,7 +3211,8 @@ interface Uint8ClampedArray {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-  // [Symbol.iterator](): IterableIterator<number>;
+
+  [Symbol.iterator](): IterableIterator<number>;
   /**
    * Returns an array of key, value pairs for every entry in the array
    */
@@ -3391,7 +3552,7 @@ interface Int16Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-  // [Symbol.iterator](): IterableIterator<number>;
+  [Symbol.iterator](): IterableIterator<number>;
   /**
    * Returns an array of key, value pairs for every entry in the array
    */
@@ -3722,7 +3883,7 @@ interface Uint16Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-  //[Symbol.iterator](): IterableIterator<number>;
+  [Symbol.iterator](): IterableIterator<number>;
   /**
    * Returns an array of key, value pairs for every entry in the array
    */
@@ -4050,7 +4211,7 @@ interface Int32Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-  // [Symbol.iterator](): IterableIterator<number>;
+  [Symbol.iterator](): IterableIterator<number>;
   /**
    * Returns an array of key, value pairs for every entry in the array
    */
@@ -4378,7 +4539,7 @@ interface Uint32Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-  //[Symbol.iterator](): IterableIterator<number>;
+  [Symbol.iterator](): IterableIterator<number>;
   /**
    * Returns an array of key, value pairs for every entry in the array
    */
@@ -4706,7 +4867,7 @@ interface Float32Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-  //  [Symbol.iterator](): IterableIterator<number>;
+  [Symbol.iterator](): IterableIterator<number>;
   /**
    * Returns an array of key, value pairs for every entry in the array
    */
@@ -5042,7 +5203,7 @@ interface Float64Array {
   //       * Returns a string representation of an array.
   //       */
   toString(): string;
-  //[Symbol.iterator](): IterableIterator<number>;
+  [Symbol.iterator](): IterableIterator<number>;
   /**
    * Returns an array of key, value pairs for every entry in the array
    */
@@ -5102,8 +5263,12 @@ interface ArrayConstructor {
   // new creates an instance of Array<T>
   // @throws {TypeError} in case len + argCount > 2**53 - 1
   // @throws {RangeError} in case len + argCount > 2**32 - 1
-  new <T = unknown>(...args: [] | [number] | Array<T[]> | T[]): (T | undefined)[] | $Throws<TypeError | RangeError>;
-  <T>(...items: T[]): T[];
+  <T = unknown>(...args: [] | [number] | Array<T[]> | T[]):
+    | (T | undefined)[]
+    | $Throws<TypeError | RangeError>;
+  new <T = unknown>(...args: [] | [number] | Array<T[]> | T[]):
+    | (T | undefined)[]
+    | $Throws<TypeError | RangeError>;
   isArray(arg: any): arg is Array<any>;
   readonly prototype: Array<any>;
   from(
@@ -5143,7 +5308,7 @@ interface Map<K, V> {
   set(key: K, value: V): Map<K, V>;
   readonly size: number;
   /** Returns an iterable of entries in the map. */
-  //[Symbol.iterator](): IterableIterator<[K, V]>;
+  [Symbol.iterator](): IterableIterator<[K, V]>;
   /**
    * Returns an iterable of key, value pairs for every entry in the map.
    */
@@ -5203,7 +5368,7 @@ interface Set<T> {
   has(value: T): boolean;
   readonly size: number;
   /** Iterates over values in the set. */
-  //[Symbol.iterator](): IterableIterator<T>;
+  [Symbol.iterator](): IterableIterator<T>;
   /**
    * Returns an iterable of [v,v] pairs for every value `v` in the set.
    */
@@ -5220,7 +5385,7 @@ interface Set<T> {
 
 interface ReadonlySet<T> {
   /** Iterates over values in the set. */
-  //    [Symbol.iterator](): IterableIterator<T>;
+  [Symbol.iterator](): IterableIterator<T>;
 }
 
 interface SetConstructor {
@@ -5257,8 +5422,8 @@ interface SharedArrayBuffer {
    */
   readonly byteLength: number;
   /*
-     * The SharedArrayBuffer constructor's length property whose value is 1.
-     */
+   * The SharedArrayBuffer constructor's length property whose value is 1.
+   */
   length: number;
   /**
    * Returns a section of an SharedArrayBuffer.
@@ -5428,7 +5593,11 @@ interface Atomics {
    * Wakes up sleeping agents that are waiting on the given index of the array, returning the
    * number of agents that were awoken.
    */
-  notify(typedArray: Int32Array, index: number, count: number): number | $Throws<RangeError>;
+  notify(
+    typedArray: Int32Array,
+    index: number,
+    count: number
+  ): number | $Throws<RangeError>;
   /**
    * Stores the bitwise XOR of a value with the value at the given position in the array,
    * returning the original value. Until this atomic operation completes, any other read or write

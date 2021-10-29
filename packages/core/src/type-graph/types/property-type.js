@@ -23,7 +23,7 @@ export class $PropertyType extends GenericType {
       meta,
       [
         TypeVar.term("target", { parent }),
-        TypeVar.term("property", { parent })
+        TypeVar.term("property", { parent }),
       ],
       parent,
       null
@@ -63,13 +63,20 @@ export class $PropertyType extends GenericType {
   ) {
     super.assertParameters(parameters, loc);
     const [currentTarget, property] = parameters;
-    const realTarget = this.getOponentType(currentTarget);
+    const realTarget = this.getOponentType(currentTarget, true, false);
     const realProperty = this.getOponentType(property);
-    const propertyName =
-      realProperty.isSubtypeOf && realProperty.isSubtypeOf.name === "string"
-        ? realProperty.name.slice(1, -1)
-        : realProperty.name;
-
+    let propertyName = realProperty.name;
+    if (
+      realProperty.isSubtypeOf &&
+      realProperty.isSubtypeOf.name === "string"
+    ) {
+      propertyName = realProperty.name.slice(1, -1);
+    } else if (
+      realProperty.isSubtypeOf === Type.Symbol ||
+      realProperty instanceof TypeVar
+    ) {
+      propertyName = realProperty;
+    }
     const isTargetVariable = realTarget instanceof TypeVar;
     const isPropertyVariable = realProperty instanceof TypeVar;
     if (isTargetVariable && !realTarget.isUserDefined) {
@@ -82,10 +89,10 @@ export class $PropertyType extends GenericType {
               propertyName,
               new VariableInfo(
                 TypeVar.term(`${realTarget.name}0`, {
-                  parent: realTarget.parent
+                  parent: realTarget.parent,
                 })
-              )
-            ]
+              ),
+            ],
           ];
           realTarget.constraint = ObjectType.term(
             null,
@@ -107,8 +114,8 @@ export class $PropertyType extends GenericType {
                 `${realTarget.name}${realTarget.constraint.properties.size}`,
                 { parent: realTarget.parent }
               )
-            )
-          ]
+            ),
+          ],
         ];
         realTarget.constraint = ObjectType.term(null, { isSoft: true }, props);
       }
@@ -122,9 +129,9 @@ export class $PropertyType extends GenericType {
       if (realTarget instanceof CollectionType) {
         constraint = realTarget.keyType;
       } else if (realTarget instanceof TupleType) {
-        constraint = Array.from({ length: realTarget.items.length }).map(
-          (_, i) => Type.term(i + 1, { isSubtypeOf: Type.Number })
-        );
+        constraint = Array.from({
+          length: realTarget.items.length,
+        }).map((_, i) => Type.term(i + 1, { isSubtypeOf: Type.Number }));
       } else if (realTarget instanceof ObjectType) {
         constraint = UnionType.term(
           null,
@@ -141,16 +148,9 @@ export class $PropertyType extends GenericType {
     if (isTargetVariable && !realTarget.isUserDefined && !isPropertyVariable) {
       return realTarget.constraint.properties.get(propertyName).type;
     }
-    if (isPropertyVariable) {
-      return this.bottomizeWith(
-        [realTarget, realProperty],
-        realTarget.parent,
-        loc
-      );
-    }
     if (realProperty instanceof UnionType) {
       try {
-        const variants = realProperty.variants.map(p =>
+        const variants = realProperty.variants.map((p) =>
           this.applyGeneric(
             [realTarget, p],
             loc,
@@ -161,16 +161,14 @@ export class $PropertyType extends GenericType {
         return UnionType.term(null, {}, variants);
       } catch {
         throw new HegelError(
-          `Property "${propertyName}" does not exist in "${
-            currentTarget.name
-          }"`,
+          `Property "${propertyName}" does not exist in "${currentTarget.name}"`,
           loc
         );
       }
     }
     if (realTarget instanceof UnionType) {
       try {
-        const variants = realTarget.variants.map(v =>
+        const variants = realTarget.variants.map((v) =>
           this.applyGeneric(
             [v, realProperty],
             loc,
@@ -181,9 +179,7 @@ export class $PropertyType extends GenericType {
         return UnionType.term(null, {}, variants);
       } catch {
         throw new HegelError(
-          `Property "${propertyName}" does not exist in "${
-            currentTarget.name
-          }"`,
+          `Property "${propertyName}" does not exist in "${currentTarget.name}"`,
           loc
         );
       }
@@ -198,6 +194,13 @@ export class $PropertyType extends GenericType {
     }
     if (fieldType !== null) {
       return fieldType;
+    }
+    if (isPropertyVariable) {
+      return this.bottomizeWith(
+        [realTarget, realProperty],
+        realTarget.parent,
+        loc
+      );
     }
     throw new HegelError(
       `Property "${propertyName}" does not exist in "${currentTarget.name}"`,

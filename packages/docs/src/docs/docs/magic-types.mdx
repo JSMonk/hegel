@@ -5,11 +5,13 @@ menu: Type Annotations
 ---
 
 # Magic Types
-----------------
+
+---
 
 Hegel provides several of types which help to extract or create new types from existed. They may help to remove copy-pasted code. These types are available globally.
 
 Table of contents:
+
 - [$Class](#classinstance)
 - [$Entries](#excludetarget-whichshouldbeexcluded)
 - [$Exclude](#excludetarget-whichshouldbeexcluded)
@@ -27,7 +29,6 @@ Table of contents:
 - [$Throws](#throwserrortype)
 - [$TypeOf](#typeofvariable)
 - [$Values](#valuesobj)
-
 
 ## $Class<Instance\>
 
@@ -60,10 +61,10 @@ plantClass = dogClass;
 $Entries<Obj\> returns the union type of all properties and values types.
 
 ```typescript
-type Admin = { name: string, age: number };
+type Admin = { name: string; age: number };
 
 // Type of "property" is "['age', number] | ['name', string]"
-const property: $Entries<Admin> = ["name", 4]; 
+const property: $Entries<Admin> = ["name", 4];
 ```
 
 ## $Exclude<Target, WhichShouldBeExcluded\>
@@ -76,29 +77,33 @@ type Status = "Ok" | "Failed" | "Pending" | "Canceled";
 // IntermediateStatuses = "Canceled" | "Panding"
 type IntermediateStatuses = $Exclude<Status, "Ok" | "Failed">;
 
-const intermediateStatuses: Array<$Exclude<Status, "Ok" | "Failed">> = ["Pending", "Canceled"];
+const intermediateStatuses: Array<$Exclude<Status, "Ok" | "Failed">> = [
+  "Pending",
+  "Canceled",
+];
 
 // Error: Type "['Failed']" is incompatible with type "...Array<'Canceled' | 'Pending'>"
-intermediateStatuses.push("Failed"); 
+intermediateStatuses.push("Failed");
 ```
 
 > If you familiar with TypeScript then you can be familiar with Exclude type.
-[TypeScript Exclude Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#excludetu)
+> [TypeScript Exclude Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#excludetu)
 
 ## $Immutable<Type\>
 
 This magic type convert any type into immutable variant of this type which means that you will not be able to mutate this type or its properties. You can use it in several situations.
 
 1. Prevent variable mutation.
+
 ```typescript
 function manipulate(num: $Immutable<number>) {
-
   // Error: Attempt to mutate immutable type
   num = 15;
 }
 ```
 
 2. Prevent object mutation.
+
 ```typescript
 const admin: $Immutable<{ name: string }> = { name: "Roy Trenneman" };
 
@@ -112,7 +117,10 @@ const resultAdmin = Object.assign(admin, { name: "Maurice Moss" });
 3. Prevent mutation of specific property.
 
 ```typescript
-const admin: { name: string, age: $Immutable<number> } = { name: "Roy Trenneman", age: 32 };
+const admin: { name: string; age: $Immutable<number> } = {
+  name: "Roy Trenneman",
+  age: 32,
+};
 
 admin.name = "Maurice Moss"; // 👌!
 
@@ -146,7 +154,9 @@ const numbers: Array<number> = [1, 2, 3];
 const numbersOrStrings: Array<number | string> = numbers;
 
 const immutableNumbers: $Immutable<Array<number>> = [1, 2, 3];
-const immutableNumbersOrStrings: $Immutable<Array<number | string>> = immutableNumbers; // 👌!
+const immutableNumbersOrStrings: $Immutable<Array<
+  number | string
+>> = immutableNumbers; // 👌!
 ```
 
 ## $InstanceOf<Constructor\>
@@ -201,55 +211,64 @@ $Intersection type merge multiple object types into new one. It means that you w
 
 ```typescript
 type JsonSerializable = {
-    toJSON: () => string
-}
+  toJSON: () => string;
+};
 
 type Base64Serializable = {
-    toBase64: () => string
-}
+  toBase64: () => string;
+};
 
 type HashSerializable = {
-    getHash: () => string
-}
+  getHash: () => string;
+};
 
-const fullSerializable: $Intersection<JsonSerializable, Base64Serializable, HashSerializable> = {
-    toJSON() { return ""; },
-    toBase64() { return ""; },
-    getHash() { return ""; },
-}
+const fullSerializable: $Intersection<
+  JsonSerializable,
+  Base64Serializable,
+  HashSerializable
+> = {
+  toJSON() {
+    return "";
+  },
+  toBase64() {
+    return "";
+  },
+  getHash() {
+    return "";
+  },
+};
 ```
 
 > If you familiar with TypeScript or Flow.js then you can be familiar with intersection type.
-[Intersection in TypeScript](http://www.typescriptlang.org/docs/handbook/advanced-types.html#intersection-types), [Intersection in Flow.js](https://flow.org/en/docs/types/intersections/#intersection-type-syntax-);
+> [Intersection in TypeScript](http://www.typescriptlang.org/docs/handbook/advanced-types.html#intersection-types), [Intersection in Flow.js](https://flow.org/en/docs/types/intersections/#intersection-type-syntax-);
 
 ## $Keys<Obj\>
 
 $Keys type return a [Union Type](/docs/union-types) of all possible keys of provide [Object Type](/docs/object-types).
 
 ```typescript
-type Admin = { name: string, age: number };
+type Admin = { name: string; age: number };
 
 // Type of "property" is "'age' | 'name'"
-const property: $Keys<Admin> = "name"; 
+const property: $Keys<Admin> = "name";
 ```
 
 > If you familiar with Flow.js then you can be familiar with $Keys type.
 [Flow.js $Keys](https://flow.org/en/docs/types/utilities/#toc-keys).
-
 
 ## $Omit<Obj, Keys\>
 
 Create an [Object Type](/docs/object-types) by removing all properties provided as [Union Type](/docs/union-types) by `Keys`
 
 ```typescript
-type Admin = { name: string, age: number, position: "admin" };
+type Admin = { name: string; age: number; position: "admin" };
 
 // Type of "admin" is "{ position: "admin" }"
-const admin: $Omit<Admin, "age" | "name"> = { position: "admin" }
+const admin: $Omit<Admin, "age" | "name"> = { position: "admin" };
 ```
 
 > If you familiar with TypeScript then you can be familiar with Omit type.
-[TypeScript Omit Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#omittk)
+> [TypeScript Omit Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#omittk)
 
 ## $Partial<Obj\>
 
@@ -257,14 +276,14 @@ Create an [Object Type](/docs/object-types) by converting all properties of [Obj
 
 ```typescript
 type User = {
-  name: string,
-  age: number,
+  name: string;
+  age: number;
 };
 
 function patch(original: User, updates: $Partial<User>): User {
   return {
     name: updates.name || original.name,
-    age: updates.age || original.age
+    age: updates.age || original.age,
   };
 }
 
@@ -274,28 +293,28 @@ const olderUser = patch(original, { age: 22 });
 ```
 
 > If you familiar with TypeScript then you can be familiar with Partial type.
-[TypeScript Partial Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#partialt)
+> [TypeScript Partial Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#partialt)
 
 ## $Pick<Obj, Keys\>
 
 Create an [Object Type](/docs/object-types) by removing all properties which are not provided as [Union Type](/docs/union-types) by `Keys`
 
 ```typescript
-type Admin = { name: string, age: number, position: "admin" };
+type Admin = { name: string; age: number; position: "admin" };
 
 // Type of "admin" is "{ name: string, age: number }"
 const admin: $Pick<Admin, "age" | "name"> = { name: "Maurice Moss", age: 33 };
 ```
 
 > If you familiar with TypeScript then you can be familiar with Pick type.
-[TypeScript Pick Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#picktk)
+> [TypeScript Pick Type](http://www.typescriptlang.org/docs/handbook/utility-types.html#picktk)
 
 ## $PropertyType<Obj, Key\>
 
 Return a property with name `Key` type from `Obj`.
 
 ```typescript
-type Admin = { name: string, age: number, position: "admin" };
+type Admin = { name: string; age: number; position: "admin" };
 
 // Type of "age" variable is "number"
 const age: $PropertyType<Admin, "age"> = 33;
@@ -303,7 +322,7 @@ const age: $PropertyType<Admin, "age"> = 33;
 
 > If you familiar with Flow.js then you can be familiar with $PropertyType type.
 [Flow.js $PropertyType](https://flow.org/en/docs/types/utilities/#toc-propertytype).
-The main difference between Flow.js $PropertyType and Hegel $PropertyType is ability to use not only string literal as a second parameter of $PropertyType.
+> The main difference between Flow.js $PropertyType and Hegel $PropertyType is ability to use not only string literal as a second parameter of $PropertyType.
 
 ```typescript
 // Usage of $PropertyType with type variable
@@ -319,7 +338,7 @@ const age = propertyOf(admin, "age");
 
 ## $ReturnType<FnType, ...\>
 
-Return a return type of provided [Function Type](/docs/function-types) `FnType` after applying generic arguments if `FnType` is [Generi Function](/docs/generic-types);
+Return a return type of provided [Function Type](/docs/function-types) `FnType` after applying generic arguments if `FnType` is [Generic Function](/docs/generic-types);
 
 ```typescript
 type SimpleFunction = () => string;
@@ -346,7 +365,7 @@ const _: $ReturnType<GenericFunction> = "";
 Convert any [Object Type](/docs/object-types) in [Soft Object Type](/docs/object-types#strict-and-soft-object-types).
 
 ```typescript
-type Admin = { name: string, age: number };
+type Admin = { name: string; age: number };
 
 // Error: Type "{ age: 33, name: 'Maurice Moss', test: 2 }" is incompatible with type "{ age: number, name: string }"
 const strictAdmin: Admin = { name: "Maurice Moss", age: 33, test: 2 };
@@ -384,7 +403,6 @@ function assert(something: unknown): $Throws<SyntaxError> {}
 
 ```typescript
 function assert(something: unknown): $Throws<SyntaxError> {
-
   // Error: Type "ReferenceError" is incompatible with type "SyntaxError"
   throw new ReferenceError();
 }
@@ -418,7 +436,6 @@ function assertIsNumber(something: unknown) {
 }
 
 function assertEntry(something: unknown): $Throws<TypeError> {
-
   // Error: Current function throws "Error" type which is incompatible with declareted throw type "TypeError"
   assertIsNumber(something);
 }
@@ -448,27 +465,26 @@ const anotherVariable: $TypeOf<someVariable> = someVariable;
 
 ```typescript
 // Error: "$TypeOf" work only with identifier
-const _: $TypeOf<number> = []
+const _: $TypeOf<number> = [];
 ```
 
 ```typescript
 // Error: Variable "a" is not defined!
-const _: $TypeOf<a> = []
+const _: $TypeOf<a> = [];
 ```
 
 > If you familiar with TypeScript or Flow.js then you can be familiar with "typeof" operator.
-[TypeScript typeof operator](http://www.typescriptlang.org/play/index.html?ssl=2&ssc=10&pln=2&pc=16#code/MYewdgzgLgBGCuBbARgUwE4QFwwILvQEMBPAHgRQwD4YBeGAbQEYAaGAJjYGYBdAbgBQoSLEI4oxAA6oQAMzhI0mOgsqY+QA)
-[Flow.js typeof operator](https://flow.org/en/docs/types/typeof/#toc-typeof-type-syntax)
+> [TypeScript typeof operator](http://www.typescriptlang.org/play/index.html?ssl=2&ssc=10&pln=2&pc=16#code/MYewdgzgLgBGCuBbARgUwE4QFwwILvQEMBPAHgRQwD4YBeGAbQEYAaGAJjYGYBdAbgBQoSLEI4oxAA6oQAMzhI0mOgsqY+QA) > [Flow.js typeof operator](https://flow.org/en/docs/types/typeof/#toc-typeof-type-syntax)
 
 ## $Values<Obj\>
 
 $Values<Obj\> returns the union type of all properties value types.
 
 ```typescript
-type Admin = { name: string, age: number };
+type Admin = { name: string; age: number };
 
 // Type of "property" is "number | string"
-const property: $Values<Admin> = "name"; 
+const property: $Values<Admin> = "name";
 ```
 
 > If you familiar with Flow.js then you can be familiar with $Vaues type.

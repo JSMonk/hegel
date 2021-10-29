@@ -5,21 +5,22 @@ menu: Type Annotations
 ---
 
 # Modules
-----------------
+
+---
 
 Sometimes you need to use a type which is declared in other module. So, you need a mechanism of importing/exporting types from different modules. Hegel provides ECMAScript modules like syntax for this case.
 
 ```typescript
 // ./modules/a.js
 export class A {}
-export type B = {}
+export type B = {};
 export default class Main {}
 export const MY_OWN_CONST = 42;
 ```
 
 ```typescript
 // ./modules/b.js
-import type Main, { A, B, MY_OWN_CONST } from "./b.js"
+import type Main, { A, B, MY_OWN_CONST } from "./b.js";
 
 // Error: Type "22" is incompatible with type "42"
 const NEW_CONST: MY_OWN_CONST = 22;

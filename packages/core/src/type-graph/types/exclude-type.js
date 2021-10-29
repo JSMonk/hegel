@@ -17,7 +17,7 @@ export class $Exclude extends GenericType {
       meta,
       [
         TypeVar.term("target", { parent }),
-        TypeVar.term("properties", { parent })
+        TypeVar.term("properties", { parent }),
       ],
       parent,
       null
@@ -56,7 +56,7 @@ export class $Exclude extends GenericType {
         ? whichShouldBeExclude.variants
         : [whichShouldBeExclude];
     const pickedVariants = target.variants.filter(
-      variant => picks.find(pick => pick.equalsTo(variant)) === undefined
+      (variant) => picks.find((pick) => pick.equalsTo(variant)) === undefined
     );
     return UnionType.term(null, {}, pickedVariants);
   }

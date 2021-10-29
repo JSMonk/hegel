@@ -57,7 +57,7 @@ export class TupleType extends Type {
 
   constructor(name: mixed, meta: TypeMeta = {}, items: Array<Type>) {
     const arrayValue = [
-      items.length !== 0 ? UnionType.term(null, {}, items) : Type.Unknown
+      items.length !== 0 ? UnionType.term(null, {}, items) : Type.Unknown,
     ];
     const isSubtypeOf =
       TupleType.ReadonlyArray.root === undefined
@@ -74,7 +74,7 @@ export class TupleType extends Type {
     targetTypes: Array<Type>,
     typeScope: TypeScope
   ) {
-    if (sourceTypes.every(type => !this.canContain(type))) {
+    if (sourceTypes.every((type) => !this.canContain(type))) {
       return this;
     }
     const currentSelf = TypeVar.createSelf(
@@ -83,7 +83,7 @@ export class TupleType extends Type {
     );
     if (
       this._changeStack !== null &&
-      this._changeStack.find(a => a.equalsTo(currentSelf))
+      this._changeStack.find((a) => a.equalsTo(currentSelf))
     ) {
       return currentSelf;
     }
@@ -93,7 +93,7 @@ export class TupleType extends Type {
         : [...this._changeStack, currentSelf];
     try {
       let isItemsChanged = false;
-      const newItems = this.items.map(t => {
+      const newItems = this.items.map((t) => {
         const newT = t.changeAll(sourceTypes, targetTypes, typeScope);
         if (newT === t) {
           return t;
@@ -207,7 +207,7 @@ export class TupleType extends Type {
     }
     this._alreadyProcessedWith = type;
     const result =
-      super.contains(type) || this.items.some(i => i.contains(type));
+      super.contains(type) || this.items.some((i) => i.contains(type));
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -218,7 +218,7 @@ export class TupleType extends Type {
     }
     this._alreadyProcessedWith = type;
     const result =
-      super.contains(type) || this.items.some(i => i.weakContains(type));
+      super.contains(type) || this.items.some((i) => i.weakContains(type));
     this._alreadyProcessedWith = null;
     return result;
   }
@@ -229,7 +229,7 @@ export class TupleType extends Type {
     }
     this._alreadyProcessedWith = this;
     const sortedParents = [...this.items]
-      .map(a => a.getNextParent(typeScope))
+      .map((a) => a.getNextParent(typeScope))
       .sort((a, b) => b.priority - a.priority);
     for (const parent of sortedParents) {
       if (parent.priority <= typeScope.priority && parent !== typeScope) {

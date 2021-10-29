@@ -1,3 +1,6 @@
 module.exports = {
-  plugins: [ "gatsby-plugin-workerize-loader", "gatsby-plugin-styled-components"]
+  plugins: [
+    "gatsby-plugin-workerize-loader",
+    "gatsby-plugin-styled-components",
+  ],
 };

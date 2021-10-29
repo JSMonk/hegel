@@ -11,7 +11,7 @@ const ImageContainer = styled.div`
   align-items: center;
   margin: 20px 0px;
 
-  &> img {
+  & > img {
     margin-left: -20%;
     max-width: 100%;
   }
@@ -20,8 +20,8 @@ const ImageContainer = styled.div`
 const SCHEMA_TYPES = {
   hierarchy: {
     dark: darkHierarchySchema,
-    light: lightHierarchySchema
-  }
+    light: lightHierarchySchema,
+  },
 };
 
 export function Schema({ type }) {

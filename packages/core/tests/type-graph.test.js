@@ -1,18 +1,14 @@
-const HegelError = require("../build/utils/errors").default;
-const createTypeGraph = require("../build/type-graph/type-graph").default;
-const { Type } = require("../build/type-graph/types/type");
-const { UnionType } = require("../build/type-graph/types/union-type");
-const { ObjectType } = require("../build/type-graph/types/object-type");
-const { GenericType } = require("../build/type-graph/types/generic-type");
-const { VariableInfo } = require("../build/type-graph/variable-info");
-const { FunctionType } = require("../build/type-graph/types/function-type");
-const { CollectionType } = require("../build/type-graph/types/collection-type");
-const { CONSTRUCTABLE } = require("../build/type-graph/constants");
-const {
-  prepareAST,
-  getModuleAST,
-  mixTypeDefinitions
-} = require("./preparation");
+import HegelError from "../src/utils/errors";
+import createTypeGraph from "../src/type-graph/type-graph";
+import { Type } from "../src/type-graph/types/type";
+import { UnionType } from "../src/type-graph/types/union-type";
+import { ObjectType } from "../src/type-graph/types/object-type";
+import { GenericType } from "../src/type-graph/types/generic-type";
+import { VariableInfo } from "../src/type-graph/variable-info";
+import { FunctionType } from "../src/type-graph/types/function-type";
+import { CollectionType } from "../src/type-graph/types/collection-type";
+import { CONSTRUCTABLE } from "../src/type-graph/constants";
+import { prepareAST, getModuleAST, mixTypeDefinitions } from "./preparation";
 
 describe("Simple global variable nodes", () => {
   test("Creating global module variable with number type", async () => {
@@ -68,7 +64,7 @@ describe("Simple global variable nodes", () => {
     );
     expect(error.loc).toEqual({
       start: { line: 2, column: 15 },
-      end: { line: 2, column: 18 }
+      end: { line: 2, column: 18 },
     });
   });
   test("Creating global module variable with unknown type", async () => {
@@ -487,7 +483,7 @@ describe("Simple objects with property typing", () => {
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(0);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ a: () => number }")).toBe(true);
+    expect(obj.type === Type.find("{ 'a': () => number }")).toBe(true);
     expect(obj.type.properties.get("a").type).toBe(
       actualAScope.declaration.type
     );
@@ -514,7 +510,7 @@ describe("Simple objects with property typing", () => {
       true
     );
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ a: (string) => undefined }")).toBe(true);
+    expect(obj.type === Type.find("{ 'a': (string) => undefined }")).toBe(true);
     expect(obj.type.properties.get("a").type).toBe(
       actualAScope.declaration.type
     );
@@ -536,7 +532,7 @@ describe("Simple objects with property typing", () => {
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(0);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ a: () => number }")).toBe(true);
+    expect(obj.type === Type.find("{ 'a': () => number }")).toBe(true);
     expect(obj.type.properties.get("a").type).toBe(
       actualAScope.declaration.type
     );
@@ -564,7 +560,7 @@ describe("Simple objects with property typing", () => {
     ).toBe(true);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ a: (number, string) => number }")).toBe(
+    expect(obj.type === Type.find("{ 'a': (number, string) => number }")).toBe(
       true
     );
     expect(obj.type.properties.get("a").type).toBe(
@@ -590,7 +586,7 @@ describe("Simple objects with property typing", () => {
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(0);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ a: () => number }")).toBe(true);
+    expect(obj.type === Type.find("{ 'a': () => number }")).toBe(true);
     expect(obj.type.properties.get("a").type).toBe(
       actualAScope.declaration.type
     );
@@ -620,9 +616,9 @@ describe("Simple objects with property typing", () => {
       true
     );
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ a: (number, string) => undefined }")).toBe(
-      true
-    );
+    expect(
+      obj.type === Type.find("{ 'a': (number, string) => undefined }")
+    ).toBe(true);
     expect(obj.type.properties.get("a").type).toBe(
       actualAScope.declaration.type
     );
@@ -648,7 +644,7 @@ describe("Simple objects with property typing", () => {
     expect(actualAScope.declaration.type.argumentsTypes.length).toBe(0);
     expect(actualAScope.declaration.type.returnType === Type.Number).toBe(true);
     expect(obj.type).toBeInstanceOf(ObjectType);
-    expect(obj.type === Type.find("{ a: { b: () => number } }")).toBe(true);
+    expect(obj.type === Type.find("{ 'a': { 'b': () => number } }")).toBe(true);
     expect(obj.type.properties.get("a").type.properties.get("b").type).toBe(
       actualAScope.declaration.type
     );
@@ -663,7 +659,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: number }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': number }")).toBe(true);
     expect(a.type.properties.get("n").type === Type.Number).toBe(true);
   });
   test("Primitive string inside object type", async () => {
@@ -674,7 +670,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: string }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': string }")).toBe(true);
     expect(a.type.properties.get("n").type === Type.String).toBe(true);
   });
   test("Primitive boolean inside object type", async () => {
@@ -685,7 +681,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: boolean }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': boolean }")).toBe(true);
     expect(a.type.properties.get("n").type === Type.Boolean).toBe(true);
   });
   test("Primitive undefined inside object type", async () => {
@@ -696,7 +692,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: undefined }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': undefined }")).toBe(true);
     expect(a.type.properties.get("n").type === Type.Undefined).toBe(true);
   });
   test("Primitive unknown inside object type", async () => {
@@ -707,7 +703,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: unknown }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': unknown }")).toBe(true);
     expect(a.type.properties.get("n").type === Type.Unknown).toBe(true);
   });
   test("Literal number inside object type", async () => {
@@ -718,7 +714,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: 2 }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': 2 }")).toBe(true);
     expect(a.type.properties.get("n").type === Type.find(2)).toBe(true);
   });
   test("Literal string inside object type", async () => {
@@ -729,7 +725,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: '' }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': '' }")).toBe(true);
     expect(a.type.properties.get("n").type === Type.find("''")).toBe(true);
   });
   test("Literal boolean inside object type", async () => {
@@ -740,7 +736,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: true }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': true }")).toBe(true);
     expect(a.type.properties.get("n").type === Type.find(true)).toBe(true);
   });
   test("Literal null inside object type", async () => {
@@ -751,7 +747,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: null }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': null }")).toBe(true);
     expect(a.type.properties.get("n").type === Type.Null).toBe(true);
   });
   test("Functional types inside object type", async () => {
@@ -764,7 +760,7 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ f: (string, number) => number }")).toBe(
+    expect(a.type === Type.find("{ 'f': (string, number) => number }")).toBe(
       true
     );
     const f = a.type.properties.get("f").type;
@@ -782,10 +778,10 @@ describe("Unnamed object types", () => {
     const a = actual.body.get("a");
     expect(errors.length).toBe(0);
     expect(a.type).toBeInstanceOf(ObjectType);
-    expect(a.type === Type.find("{ n: { c: number } }")).toBe(true);
+    expect(a.type === Type.find("{ 'n': { 'c': number } }")).toBe(true);
     const n = a.type.properties.get("n");
     expect(n.type).toBeInstanceOf(ObjectType);
-    expect(n.type === Type.find("{ c: number }")).toBe(true);
+    expect(n.type === Type.find("{ 'c': number }")).toBe(true);
     expect(n.type.properties.get("c").type === Type.Number).toBe(true);
   });
 });
@@ -1081,7 +1077,7 @@ describe("Generic types", () => {
       const typeScope = actual.typeScope;
       const actualType = typeScope.body.get("Tree");
       expect(actualType.name).toBe(
-        "{ nodes: Array<Tree>, parent: Tree | undefined }"
+        "{ 'nodes': Array<Tree>, 'parent': Tree | undefined }"
       );
       expect(
         actualType.properties.get("nodes").type.valueType.equalsTo(actualType)
@@ -1452,17 +1448,17 @@ describe("Issues", () => {
     expect(errors.length).toEqual(1);
     expect(errors[0]).toBeInstanceOf(HegelError);
     expect(errors[0].message).toBe(
-      'Type "{ test: 3 }" is incompatible with type "{ a: number | undefined }"'
+      `Type "{ 'test': 3 }" is incompatible with type "{ 'a': number | undefined }"`
     );
     expect(errors[0].loc).toEqual({
       end: {
         column: 45,
-        line: 2
+        line: 2,
       },
       start: {
         column: 12,
-        line: 2
-      }
+        line: 2,
+      },
     });
   });
   test("Issue #113: Rest arguments don't work with generics 01", async () => {
@@ -1667,17 +1663,17 @@ describe("Issues", () => {
     expect(errors.length).toBe(1);
     expect(errors[0]).toBeInstanceOf(HegelError);
     expect(errors[0].message).toBe(
-      'Type "{ a: number } | { a: string }" is incompatible with type "{ a: number | string }"'
+      `Type "{ 'a': number } | { 'a': string }" is incompatible with type "{ 'a': number | string }"`
     );
     expect(errors[0].loc).toEqual({
       end: {
         column: 21,
-        line: 8
+        line: 8,
       },
       start: {
         column: 12,
-        line: 8
-      }
+        line: 8,
+      },
     });
   });
 
@@ -1702,5 +1698,51 @@ describe("Issues", () => {
     );
 
     expect(errors.length).toBe(0);
+  });
+
+  test("Issue #271: Custom generic class should work if it has not a property", async () => {
+    const sourceAST = prepareAST(`
+      class GenericNumber<T> {}
+
+      // Generic "constructor GenericNumber<T>" called with wrong number of arguments. Expect: 2, Actual: 1
+      let myGenericNumber = new GenericNumber<number>();
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+
+    expect(errors.length).toBe(0);
+    expect(
+      module.body.get("myGenericNumber").type ===
+        Type.find("GenericNumber<number>")
+    );
+  });
+
+  test("Issue #271: Custom generic class should work if it has a property", async () => {
+    const sourceAST = prepareAST(`
+      class GenericNumber<T> {
+        value: T;
+
+        constructor(value) {
+          this.value = value;
+        }
+      }
+
+      let myGenericNumber = new GenericNumber<number>(1);
+    `);
+    const [[module], errors] = await createTypeGraph(
+      [sourceAST],
+      getModuleAST,
+      false,
+      mixTypeDefinitions()
+    );
+    expect(errors.length).toBe(0);
+    expect(
+      module.body.get("myGenericNumber").type ===
+        Type.find("GenericNumber<number>")
+    );
   });
 });

@@ -49,15 +49,20 @@ export class $Intersection extends GenericType {
           obj.constraint = ObjectType.Object;
         }
       }
+      if (obj instanceof $BottomType) {
+        obj = obj.unpack();
+      }
       return i !== 0 && "readonly" in obj ? obj.readonly : obj;
     });
     if (containsVariable) {
       return this.bottomizeWith(objects, theMostPriorityParent, loc);
     }
-    const wrongIndex = objectTypes.findIndex(a => !(a instanceof ObjectType));
+    const wrongIndex = objectTypes.findIndex((a) => !(a instanceof ObjectType));
     if (wrongIndex !== -1) {
       throw new HegelError(
-        `All parameters should be an object type. Only first parameter should mutable object type. ${wrongIndex} is not.`,
+        `All parameters should be an object type. Only first parameter should mutable object type. ${
+          wrongIndex + 1
+        } is not.`,
         loc
       );
     }

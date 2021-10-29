@@ -43,7 +43,6 @@ export class TypeVar extends Type {
     isUserDefined?: boolean = false
   ) {
     super(name, meta);
-    this.name = name;
     this.constraint = constraint;
     this.defaultType = defaultType;
     this._isUserDefined = isUserDefined;
@@ -98,6 +97,13 @@ export class TypeVar extends Type {
     ) {
       return false;
     }
+    if (
+      type instanceof TypeVar &&
+      type.constraint !== undefined &&
+      this.constraint !== undefined
+    ) {
+      return this.constraint.isPrincipalTypeFor(type.constraint);
+    }
     return super.isPrincipalTypeFor(type);
   }
 
@@ -109,7 +115,7 @@ export class TypeVar extends Type {
       return true;
     }
     if (type instanceof TypeVar) {
-      return type.constraint !== undefined 
+      return type.constraint !== undefined
         ? this.constraint.isPrincipalTypeFor(type.constraint)
         : !type._isUserDefined;
     }
@@ -122,8 +128,9 @@ export class TypeVar extends Type {
     typeScope: TypeScope
   ): Type {
     const indexOfNewRootType = sourceTypes.findIndex(
-      // $FlowIssue
-      a => a.equalsTo(this, true, true)
+      (a) =>
+        // $FlowIssue
+        a.equalsTo(this, true, true) || this.equalsTo(a, true, true)
     );
     if (indexOfNewRootType !== -1) {
       return targetTypes[indexOfNewRootType];
@@ -175,6 +182,7 @@ export class TypeVar extends Type {
   contains(type: Type) {
     return (
       (this.constraint != undefined && this.constraint.contains(type)) ||
+      (this.root != undefined && this.root.contains(type)) ||
       this.equalsTo(type, true, true)
     );
   }
@@ -197,7 +205,13 @@ export class TypeVar extends Type {
       // $FlowIssue
       const result = target.getNextParent(typeScope);
       this._alreadyProcessedWith = null;
-      return result;
+      if (
+        this.root !== undefined ||
+        (result.priority < typeScope.priority &&
+          result.priority > this.parent.priority)
+      ) {
+        return result;
+      }
     }
     this._alreadyProcessedWith = null;
     if (
