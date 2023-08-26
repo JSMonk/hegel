@@ -53,8 +53,8 @@ const unknown: unknown = new Object();
 
 ## Function types Compatibility
 
-Functions does not create any hierarhy. Compatibility of two functions defined by the rule:
-you can assign function to another only if actual arguments types are wider then declared and return type is more specific then declared. This rule sounds like: function is [contravariant](<https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)>) by arguments and [covariant](<https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)>) by return.
+Functions do not form a hierarchy. Compatibility of two functions are defined by the rule:
+you can assign a function to another only if the actual arguments types are wider than declared and the return type is more specific than declared. In other words, a function is [contravariant](<https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)>) by arguments and [covariant](<https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)>) by return.
 
 ```typescript
 let func: (number) => number = () => 42;
@@ -78,7 +78,7 @@ func = (a: number): number | string => 42;
 
 ## Generics Compatibility
 
-Two generic may be contained in hierarchy of each other only if their actual type parameter is in heierarchy of each other. For example, imagine generic container class:
+Two generics may be contained in hierarchy of each other only if their actual types are in a hierarchy of each other. For example, imagine generic container class:
 
 ```typescript
 class Container<T> {
@@ -125,11 +125,11 @@ Hegel tries to implement the same soundness type system as [ReasonML/OCaml](http
 
 ## Hegel Issue
 
-Also, Hegel as other tools has hack for ignoring any kind of errors. You can pass the "@hegel-issue" comment and error will be ignored.
+Hegel, like other tools, has a hack for ignoring any kind of errors. You can provide the "@hegel-issue" comment and error will be ignored.
 
 ```typescript
 // @hegel-issue
 const a: string = 44;
 ```
 
-But, it's NOT RECOMMENDED to use it for a quick fix or business task solution. "@hegel-issue" should be used only if the error is Hegel bug.
+But, it is NOT RECOMMENDED to use it for a quick fix or a business task solution. "@hegel-issue" should be used only if the error is a Hegel bug.
