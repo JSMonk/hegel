@@ -110,7 +110,7 @@ const id = promisify((x) => x);
 const result = id(42).then((x) => x + x);
 ```
 
-> The same example in TypeScript (tested at version 3.7.5) will show 3 errors and infer `Promise<any>` type for the "result" variable [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=1&ssc=1&pln=7&pc=1#code/PTAEBUE8AcFNQPYDNQCJoCcEFsCWBnXJSVUJAVwDsBjAF1wUtALQB4BHAcgBpRrOAfAAoh-AJSgAvANBcJ00KM7yZABSx58sDoNQAoao3y1QmHASKQpZJgoCGGAOZS1GgrAB0GWPgQAbADdYISRKIQdHMTEAbj09EAgYeGQ0XAATUgoaekZmfDZ+YXEXUHVzLVZC-UNKY2Y06zNNSyEADxLWmLiEqDhEFFRvfHI-WlIAh1w7ACM-eBZUMs1tSnJsadgMAWqjEyGRk0l6oQAWACYxD1oAC1gw9oV2gGpQTujQIA).
+> The same example in TypeScript (tested at version 5.2.2) will show 3 errors and infer `Promise<any>` type for the "result" variable [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=1&ssc=1&pln=7&pc=1#code/PTAEBUE8AcFNQPYDNQCJoCcEFsCWBnXJSVUJAVwDsBjAF1wUtALQB4BHAcgBpRrOAfAAoh-AJSgAvANBcJ00KM7yZABSx58sDoNQAoao3y1QmHASKQpZJgoCGGAOZS1GgrAB0GWPgQAbADdYISRKIQdHMTEAbj09EAgYeGQ0XAATUgoaekZmfDZ+YXEXUHVzLVZC-UNKY2Y06zNNSyEADxLWmLiEqDhEFFRvfHI-WlIAh1w7ACM-eBZUMs1tSnJsadgMAWqjEyGRk0l6oQAWACYxD1oAC1gw9oV2gGpQTujQIA).
 
 2. No unexpected runtime errors
 
@@ -125,7 +125,7 @@ numbersToShow.push((42).toString(2));
 const rounded = doubles.map((double) => double.toFixed());
 ```
 
-> The same example in TypeScript (tested at version 3.7.5) will be valid, but an uncaught type error will be thrown at runtime [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=4&ssc=11&pln=4&pc=4#code/MYewdgzgLgBAJiArgIwDYFMIC4YEEBO+AhgJ4A8YiAtsuvgHwwC8MA2gLJFQAWAdAAoBJADQxOPXgFEAugG4AUKEixKNOhAAqIAMrcQAdxwFi5VbXwwAPjGj4AlmADmjFghQYICs+q26DvAAdECG4ACgAWACZeXigdKHsnUMiAShSFAHoMmABVMGAiREduWA0SAPRJQhB8HDc0dFiQADE7AA90OBg7CBgwEFgiGAAzRHyoO3B5eo9eKiIA0Jn0ZkZlptaOuFC02SA).
+> The same example in TypeScript (tested at version 5.2.2) will be valid, but an uncaught type error will be thrown at runtime [TypeScript Example](http://www.typescriptlang.org/play/index.html?ssl=4&ssc=11&pln=4&pc=4#code/MYewdgzgLgBAJiArgIwDYFMIC4YEEBO+AhgJ4A8YiAtsuvgHwwC8MA2gLJFQAWAdAAoBJADQxOPXgFEAugG4AUKEixKNOhAAqIAMrcQAdxwFi5VbXwwAPjGj4AlmADmjFghQYICs+q26DvAAdECG4ACgAWACZeXigdKHsnUMiAShSFAHoMmABVMGAiREduWA0SAPRJQhB8HDc0dFiQADE7AA90OBg7CBgwEFgiGAAzRHyoO3B5eo9eKiIA0Jn0ZkZlptaOuFC02SA).
 
 3. Typed Errors
 
@@ -146,7 +146,7 @@ try {
 } catch (e) {}
 ```
 
-> The same example in TypeScript (tested at version 3.7.5) will inference e as "any" type [TypeScript Example](http://www.typescriptlang.org/play/index.html#code/GYVwdgxgLglg9mABAQwM6oKYCcoElUAqWIGAFMlgOYCUiA3gFCLOIzCKkCEFN9TLAqAAsscAO6IwGCQQCeABwwBRLKKykARD1apWYAG7IANjAAmG6v2YBfBrYZQssvgLSYc+IiVLBjmagDcdogQyFAQQhwYtIwCAPRxiHKKiHDsGhgaiIZYMMgARkYYOohaYLIadkA).
+> The same example in TypeScript (tested at version 5.2.2) will inference e as "unknown" type [TypeScript Example](http://www.typescriptlang.org/play/index.html#code/GYVwdgxgLglg9mABAQwM6oKYCcoElUAqWIGAFMlgOYCUiA3gFCLOIzCKkCEFN9TLAqAAsscAO6IwGCQQCeABwwBRLKKykARD1apWYAG7IANjAAmG6v2YBfBrYZQssvgLSYc+IiVLBjmagDcdogQyFAQQhwYtIwCAPRxiHKKiHDsGhgaiIZYMMgARkYYOohaYLIadkA).
 
 ### Disadvantages
 
