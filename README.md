@@ -4,6 +4,8 @@
 
 ---
 
+**Unfortunately, the project is closed and will not be developed anymore. The reasons are described [here](https://jsmonk.github.io/2024-01-29-last-days-of-hegel/).**
+
 [Getting Started](https://hegel.js.org/docs/install) |
 [Documentation](https://hegel.js.org/docs/type-annotations) |
 [Gitter Chat](https://gitter.im/hegel-js/community)
